@@ -95,6 +95,9 @@ module.exports = (server) => {
     })
 
     client.on('switch role', () => {
+      debugger;
+      console.log("project_id" + projectId);
+      console.log(projects[projectId]);
       const temp = projects[projectId].roles.coder
       projects[projectId].roles.coder = projects[projectId].roles.reviewer
       projects[projectId].roles.reviewer = temp
@@ -134,7 +137,9 @@ module.exports = (server) => {
         if (err) throw err
       })
       const nodepty = require('node-pty')
-      const pty = nodepty.spawn('python', ['pytest.py'])
+      let pty;
+      if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
+      else pty = nodepty.spawn('python', ['pytest.py'], {})
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
