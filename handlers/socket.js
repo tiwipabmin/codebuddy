@@ -2,6 +2,8 @@ const socketio = require('socket.io')
 const winston = require('winston')
 const Redis = require('ioredis')
 const mongoose = require('mongoose')
+const timer = require('timers')
+const moment = require('moment')
 
 const Project = mongoose.model('Project')
 
@@ -83,7 +85,9 @@ module.exports = (server) => {
      * @param {Ibject} payload user selected role and partner username
      * then socket will broadcast the role to his partner
      */
+
     client.on('role selected', (payload) => {
+        countdownTimer()
       if (payload.select === 0) {
         projects[projectId].roles.reviewer = curUser
         projects[projectId].roles.coder = payload.partner
@@ -95,7 +99,7 @@ module.exports = (server) => {
     })
 
     client.on('switch role', () => {
-      debugger;
+      countdownTimer()
       console.log("project_id" + projectId);
       console.log(projects[projectId]);
       const temp = projects[projectId].roles.coder
@@ -114,6 +118,8 @@ module.exports = (server) => {
       if (origin) {
         // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
         client.to(projectId).emit('editor update', payload.code)
+        console.log(payload);
+        console.log("code " + payload.code.text[0]);
         redis.hset(`project:${projectId}`, 'editor', payload.editor)
       }
     })
@@ -162,5 +168,32 @@ module.exports = (server) => {
         winston.info(`catching error: ${error}`)
       }
     })
+
+    function countdownTimer() {
+        function intervalFunc() {
+            redis.hgetall(`project:${projectId}`, function (err, obj) {
+                var start = new Date(parseInt(obj.startTime))
+                let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
+                let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
+                io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
+                if (minutes <= 0 && seconds <= 0) {
+                    clearInterval(timerId)
+                    io.in(projectId).emit('timeout', projects[projectId])
+                    console.log(minutes)
+                    console.log(seconds)
+                }
+            });
+        }
+        var query  = Project.where({ pid: projectId });
+        let swaptime = query.findOne(function (err, project) {
+            if (err) return 300000;
+            if (project) {
+                return swaptime = parseInt(project.swaptime) * 60 * 1000
+                console.log("swaptime"  + project)
+            }
+        });
+        let timerId = setInterval(intervalFunc, 1000);
+        redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
+    }
   })
 }

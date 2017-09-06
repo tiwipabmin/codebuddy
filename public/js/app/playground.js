@@ -134,19 +134,27 @@ socket.on('role selection', () => {
     .modal('show')
 })
 
+socket.on('countdown', (payload) => {
+    $(".countdown").html(`${payload.minutes} : ${payload.seconds}`)
+})
+
 socket.on('role updated', (payload) => {
   if (user === payload.roles.reviewer) {
     editor.setOption('readOnly', 'nocursor')
     roles.user = 'reviewer'
     roles.partner = 'coder'
-    // alert('Your current role is : `Reviewer`')
   } else {
     roles.user = 'coder'
     roles.partner = 'reviewer'
     editor.setOption('readOnly', false)
-    // alert('Your current role is : `Coder`')
   }
   // startCountdown()
+})
+
+socket.on('timeout', (payload) => {
+    if (user === payload.roles.coder){
+        socket.emit('switch role')
+    }
 })
 
 /**
@@ -322,5 +330,6 @@ $('.ui.mute.toggle.button')
   });
 
 function switchRole() {
+  console.log("switch yayyyyyyyy")
   socket.emit('switch role')
 }
