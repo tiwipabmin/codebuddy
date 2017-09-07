@@ -99,13 +99,7 @@ module.exports = (server) => {
     })
 
     client.on('switch role', () => {
-      countdownTimer()
-      console.log("project_id" + projectId);
-      console.log(projects[projectId]);
-      const temp = projects[projectId].roles.coder
-      projects[projectId].roles.coder = projects[projectId].roles.reviewer
-      projects[projectId].roles.reviewer = temp
-      io.in(projectId).emit('role updated', projects[projectId])
+      switchRole()
     })
 
     /**
@@ -178,9 +172,7 @@ module.exports = (server) => {
                 io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
                 if (minutes <= 0 && seconds <= 0) {
                     clearInterval(timerId)
-                    io.in(projectId).emit('timeout', projects[projectId])
-                    console.log(minutes)
-                    console.log(seconds)
+                    switchRole()
                 }
             });
         }
@@ -194,6 +186,16 @@ module.exports = (server) => {
         });
         let timerId = setInterval(intervalFunc, 1000);
         redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
+    }
+
+    function switchRole() {
+        countdownTimer()
+        console.log("project_id" + projectId);
+        console.log(projects[projectId]);
+        const temp = projects[projectId].roles.coder
+        projects[projectId].roles.coder = projects[projectId].roles.reviewer
+        projects[projectId].roles.reviewer = temp
+        io.in(projectId).emit('role updated', projects[projectId])
     }
   })
 }

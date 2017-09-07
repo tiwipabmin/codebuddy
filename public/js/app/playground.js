@@ -151,12 +151,6 @@ socket.on('role updated', (payload) => {
   // startCountdown()
 })
 
-socket.on('timeout', (payload) => {
-    if (user === payload.roles.coder){
-        socket.emit('switch role')
-    }
-})
-
 /**
  * If user exit or going elsewhere which can be caused this project window closed
  * `beforeunload` event will fired and sending client disconnection to the server
