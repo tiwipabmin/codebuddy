@@ -26,8 +26,10 @@ module.exports = (server) => {
 
     client.on('submit review', (payload) => {
       // projects[projectId]['reviews'].push(payload)
-      winston.info(payload)
+      console.log(payload)
+        redis.hset(`project:${projectId}`, `line`+payload.line , payload.description)
       io.in(projectId).emit('new review', payload)
+
     })
 
     /**
