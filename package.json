@@ -52,7 +52,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon inspect index.js --ignore public/",
+    "dev": "nodemon index.js --ignore public/",
     "build": "npm install -g nodemon; npm run dev"
   }
 }

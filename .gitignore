@@ -92,3 +92,5 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/redis,macos,windows,sublimetext
 
 handlers/socket.js
+
+\.idea/
