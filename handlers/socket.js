@@ -2,6 +2,8 @@ const socketio = require('socket.io')
 const winston = require('winston')
 const Redis = require('ioredis')
 const mongoose = require('mongoose')
+const timer = require('timers')
+const moment = require('moment')
 
 const Project = mongoose.model('Project')
 
@@ -26,8 +28,10 @@ module.exports = (server) => {
 
     client.on('submit review', (payload) => {
       // projects[projectId]['reviews'].push(payload)
-      winston.info(payload)
+      console.log(payload)
+        redis.hset(`project:${projectId}`, `line`+payload.line , payload.description)
       io.in(projectId).emit('new review', payload)
+
     })
 
     /**
@@ -83,7 +87,9 @@ module.exports = (server) => {
      * @param {Ibject} payload user selected role and partner username
      * then socket will broadcast the role to his partner
      */
+
     client.on('role selected', (payload) => {
+        countdownTimer()
       if (payload.select === 0) {
         projects[projectId].roles.reviewer = curUser
         projects[projectId].roles.coder = payload.partner
@@ -95,10 +101,7 @@ module.exports = (server) => {
     })
 
     client.on('switch role', () => {
-      const temp = projects[projectId].roles.coder
-      projects[projectId].roles.coder = projects[projectId].roles.reviewer
-      projects[projectId].roles.reviewer = temp
-      io.in(projectId).emit('role updated', projects[projectId])
+      switchRole()
     })
 
     /**
@@ -111,6 +114,8 @@ module.exports = (server) => {
       if (origin) {
         // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
         client.to(projectId).emit('editor update', payload.code)
+        console.log(payload);
+        console.log("code " + payload.code.text[0]);
         redis.hset(`project:${projectId}`, 'editor', payload.editor)
       }
     })
@@ -134,7 +139,9 @@ module.exports = (server) => {
         if (err) throw err
       })
       const nodepty = require('node-pty')
-      const pty = nodepty.spawn('python', ['pytest.py'])
+      let pty;
+      if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
+      else pty = nodepty.spawn('python', ['pytest.py'], {})
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
@@ -157,5 +164,40 @@ module.exports = (server) => {
         winston.info(`catching error: ${error}`)
       }
     })
+
+    function countdownTimer() {
+        function intervalFunc() {
+            redis.hgetall(`project:${projectId}`, function (err, obj) {
+                var start = new Date(parseInt(obj.startTime))
+                let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
+                let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
+                io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
+                if (minutes <= 0 && seconds <= 0) {
+                    clearInterval(timerId)
+                    switchRole()
+                }
+            });
+        }
+        var query  = Project.where({ pid: projectId });
+        let swaptime = query.findOne(function (err, project) {
+            if (err) return 300000;
+            if (project) {
+                return swaptime = parseInt(project.swaptime) * 60 * 1000
+                console.log("swaptime"  + project)
+            }
+        });
+        let timerId = setInterval(intervalFunc, 1000);
+        redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
+    }
+
+    function switchRole() {
+        countdownTimer()
+        console.log("project_id" + projectId);
+        console.log(projects[projectId]);
+        const temp = projects[projectId].roles.coder
+        projects[projectId].roles.coder = projects[projectId].roles.reviewer
+        projects[projectId].roles.reviewer = temp
+        io.in(projectId).emit('role updated', projects[projectId])
+    }
   })
 }
