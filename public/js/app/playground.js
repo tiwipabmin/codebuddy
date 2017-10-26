@@ -260,6 +260,16 @@ function runCode() {
 }
 
 /**
+ * Submit code
+ */
+function submitCode() {
+  socket.emit('submit code', {
+    code: editor.getValue()
+  })
+  term.writeln('Scoring pytest.py...')
+}
+
+/**
  * Terminal socket
  */
 socket.on('term update', (payload) => {

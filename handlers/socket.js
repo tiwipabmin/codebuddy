@@ -147,6 +147,25 @@ module.exports = (server) => {
       })
     })
 
+     /**
+     * `submit code` event fired when user click on submit button from front-end
+     * @param {Object} payload code from editor
+     */
+    client.on('submit code', (payload) => {
+      const fs = require('fs')
+      const path = require('path')
+      fs.writeFile('pytest.py', payload.code, (err) => {
+        if (err) throw err
+      })
+      const nodepty = require('node-pty')
+      let pty;
+      if(process.platform === 'win32') pty = nodepty.spawn('pylint', ['pytest.py'], {})
+      else pty = nodepty.spawn('pylint', ['pytest.py'], {})
+      pty.on('data', (data) => {
+        io.in(projectId).emit('term update', data)
+      })
+    })
+
     /**
      * `disconnect` event fired when user exit from playground page
      * by exit means: reload page, close page/browser, session lost
