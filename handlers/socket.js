@@ -23,15 +23,28 @@ module.exports = (server) => {
     // recieve project id from client and stored in projectId
     let projectId = ''
     let curUser = ''
+    let review = []
 
     winston.info('Client connected')
 
+    //set review to redis
     client.on('submit review', (payload) => {
       // projects[projectId]['reviews'].push(payload)
-      console.log(payload)
-        redis.hset(`project:${projectId}`, `line`+payload.line , payload.description)
-      io.in(projectId).emit('new review', payload)
-
+        console.log(payload)
+        let rev = [payload.line, payload.description, curUser]
+        let check = 0
+        for(var i=0; i<review.length;i++){
+                if(review[i][0]==payload.line){
+                    review[i] = rev
+                    check = 1
+                    break
+                }
+        }
+        if(check==0){
+            review.push(rev)
+        }
+        redis.hset(`project:${projectId}`, `review`, JSON.stringify(review))
+        io.in(projectId).emit('new review', payload)
     })
 
     /**
@@ -45,6 +58,14 @@ module.exports = (server) => {
         curUser = payload.username
         winston.info(`User ${payload.username} joined at pid: ${payload.pid}`)
         client.join(projectId)
+        redis.hget(`project:${projectId}`, `review`,function(err, object){
+            if(object!=null) {
+                var parsed = JSON.parse(object)
+                for(var x in parsed){
+                    review.push(parsed[x])
+                }
+            }
+        })
         Project.update({
           pid: projectId
         }, {
@@ -77,6 +98,9 @@ module.exports = (server) => {
         client.emit('init state', {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
+
+        client.emit('init reviews', review)
+
       } catch (error) {
         winston.info(`catching error: ${error}`)
       }

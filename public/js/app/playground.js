@@ -110,6 +110,15 @@ socket.on('init state', (payload) => {
 })
 
 /**
+ * After user join the project, user will recieve initiate review to hilight in local editor
+ */
+socket.on('init reviews', (payload) => {
+  for(var i in payload){
+      editor.addLineClass(parseInt(payload[i][0])-1, 'wrap', 'CodeMirror-activeline-background')
+  }
+})
+
+/**
  * If there's no one select the role, then first user that come to the project must choose one
  */
 socket.on('role selection', () => {
