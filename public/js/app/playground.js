@@ -273,10 +273,12 @@ function submitCode() {
  * Send Message
  */
 function sendMessage() {
-  socket.emit('send message', {
-    uid: uid,
-    message:  document.getElementById("inputMessage").value
-  })
+  if (document.getElementById("inputMessage").value != '') {
+    socket.emit('send message', {
+      uid: uid,
+      message:  document.getElementById("inputMessage").value
+    })
+  }
 }
 
 /**
@@ -285,6 +287,17 @@ function sendMessage() {
 socket.on('term update', (payload) => {
   term.writeln(payload)
   term.prompt()
+})
+
+/**
+ * Terminal socket
+ */
+socket.on('update message', (payload) => {
+  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png'></a><div class='content'></div><div class='description'><p>"+ payload.message +"</p></div></li>");
+  updateScroll()
+  if (payload.uid === uid) {
+    $("#inputMessage").val("")
+  }
 })
 
 /**
@@ -323,7 +336,9 @@ $(document)
           active: '<i class="unmute icon"/>'
         }
       });
+    updateScroll();
   });
+
 $('.ui.video.toggle.button')
   .on('click', handler.activate);
 $('.ui.video.toggle.button')
@@ -347,3 +362,9 @@ function switchRole() {
   console.log("switch yayyyyyyyy")
   socket.emit('switch role')
 }
+
+function updateScroll(){
+  // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
+  $(".chat").animate({ scrollTop: $('.message-list').height() }, "fast");
+}
+

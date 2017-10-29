@@ -1,0 +1,5 @@
+.chat {
+    height: 70%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}

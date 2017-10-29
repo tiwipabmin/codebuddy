@@ -156,15 +156,16 @@ module.exports = (server) => {
       const message = payload.message
       const uid = payload.uid
       console.log(payload)
-      new Message({
+      const messageModel = {
         pid: projectId,
         uid: uid,
         message: message,
         createdAt: Date.now()
-      }, (err) => {
+      }
+      new Message(messageModel, (err) => {
         if (err) throw err
       }).save()
-
+      io.in(projectId).emit('update message', messageModel)
     })
 
      /**

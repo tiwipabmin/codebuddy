@@ -1,6 +1,7 @@
 extends layout/layout.pug
 
 block script
+  link(rel='stylesheet' href='/css/main.css')
   link(rel='stylesheet' href='/xterm/xterm.css')
   link(rel='stylesheet' href='/codemirror/lib/codemirror.css')
   link(rel='stylesheet' href='/codemirror/addon/selection/active-line.js')
@@ -174,20 +175,15 @@ block content
         .four.wide.column.right
           .ui.raised.segments
             .ui.segment Chat
-            .ui.secondary.segment
-              .ui.items
-                .ui.item
-                  a.ui.avatar.image
-                    img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
-                  .content
-                    //- a.header Thara
-                  .description Hi
-                .ui.item
-                  a.ui.avatar.image
-                    img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
-                  .content
-                  .description 
-                    .ui.input(type='text', name='message', placeholder='Type here...')
+            .ui.secondary.segment.chat
+              .ui.items.message-list
+                each message in messages
+                  .ui.item
+                    a.ui.avatar.image
+                      img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                    .content
+                      //- a.header Thara
+                    .description #{message.message}
             .ui.segment
                 .ui.form(action='/project', method='POST')
                   .field
