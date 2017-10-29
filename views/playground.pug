@@ -163,7 +163,7 @@ block content
                 #localVolume.volume_bar
               p Buddy
               #remotes
-        .twelve.wide.column.right
+        .eight.wide.column.right
           .ui.form
               textarea#demotext.show
           .ui.segments
@@ -171,6 +171,32 @@ block content
               p Terminal
             .ui.secondary.segment
               #xterm-container
+        .four.wide.column.right
+          .ui.raised.segments
+            .ui.segment Chat
+            .ui.secondary.segment
+              .ui.items
+                .ui.item
+                  a.ui.avatar.image
+                    img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                  .content
+                    //- a.header Thara
+                  .description Hi
+                .ui.item
+                  a.ui.avatar.image
+                    img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                  .content
+                  .description 
+                    .ui.input(type='text', name='message', placeholder='Type here...')
+            .ui.segment
+                .ui.form(action='/project', method='POST')
+                  .field
+                    .ui.grid
+                      .twelve.wide.column
+                        input.ui.input(type='text', id="inputMessage", name='message', placeholder='Type here')
+                      .four.wide.column
+                        button.ui.button.icon(type='submit', onClick='sendMessage()')
+                          i.send.icon
       .ui.grid
         .four.wide.column
 
@@ -179,6 +205,7 @@ block content
 block footerExtend
   script.
     let user="#{user.username}"
+    let uid="#{user._id}"
     let partner="#{partner}"
   script(type='text/javascript').
     $(document).ready(function(){

@@ -270,6 +270,16 @@ function submitCode() {
 }
 
 /**
+ * Send Message
+ */
+function sendMessage() {
+  socket.emit('send message', {
+    uid: uid,
+    message:  document.getElementById("inputMessage").value
+  })
+}
+
+/**
  * Terminal socket
  */
 socket.on('term update', (payload) => {

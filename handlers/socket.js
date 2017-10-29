@@ -6,6 +6,7 @@ const timer = require('timers')
 const moment = require('moment')
 
 const Project = mongoose.model('Project')
+const Message = mongoose.model('Message')
 
 /**
  * @param {Object} server server instance
@@ -145,6 +146,25 @@ module.exports = (server) => {
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
+    })
+
+    /**
+     * `send message` event fired when user send chat message from front-end
+     * @param {Object} payload code from editor
+     */
+    client.on('send message', (payload) => {
+      const message = payload.message
+      const uid = payload.uid
+      console.log(payload)
+      new Message({
+        pid: projectId,
+        uid: uid,
+        message: message,
+        createdAt: Date.now()
+      }, (err) => {
+        if (err) throw err
+      }).save()
+
     })
 
      /**
