@@ -293,7 +293,7 @@ socket.on('term update', (payload) => {
  * Terminal socket
  */
 socket.on('update message', (payload) => {
-  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png'></a><div class='content'></div><div class='description'><p>"+ payload.message +"</p></div></li>");
+  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png'></a><div class='content'></div><div class='description curve-box'><p>"+ payload.message +"</p></div></li>");
   updateScroll()
   if (payload.uid === uid) {
     $("#inputMessage").val("")

@@ -1,5 +1,12 @@
 .chat {
-    height: 50%;
+    height: 60%;
     overflow-x: hidden;
     overflow-y: scroll;
+}
+
+.curve-box {
+    border-radius: 25px;
+    background: #FFFFFF;
+    padding: 8px; 
+
 }
