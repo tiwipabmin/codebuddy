@@ -264,6 +264,7 @@ function runCode() {
  */
 function submitCode() {
   socket.emit('submit code', {
+    uid: uid,
     code: editor.getValue()
   })
   term.writeln('Scoring pytest.py...')
@@ -359,7 +360,6 @@ $('.ui.mute.toggle.button')
   });
 
 function switchRole() {
-  console.log("switch yayyyyyyyy")
   socket.emit('switch role')
 }
 
