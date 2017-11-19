@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
+const Score = mongoose.model('Score')
 
 exports.getHomepage = (req, res) => {
   res.render('index')
@@ -23,7 +24,7 @@ exports.getPlayground = async (req, res) => {
   if (!req.query.pid) res.redirect('/dashboard')
   const project = await Project.findOne({ pid: req.query.pid })
   const messages = await Message
-      .find({ pid: "Hyu3qIsa-"})
+      .find({ pid: req.query.pid})
       .sort({ createdAt: 1 })
   res.render('playground', { project, title: `${project.title} - Playground`, messages})
 }
