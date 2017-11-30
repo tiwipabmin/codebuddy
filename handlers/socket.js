@@ -174,6 +174,7 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('submit code', (payload) => {
+      console.log('summit code')
       const uid = payload.uid
       const fs = require('fs')
       const path = require('path')
@@ -186,55 +187,56 @@ module.exports = (server) => {
       else pty = nodepty.spawn('pylint', ['pytest.py'], {})
       pty.on('data', (data) => {
         //get score from pylint
+        console.log('data', data)
+        console.log('pylint check')
         const before_score = data.indexOf("Your code has been rated at");
         let score = 0;
         if(before_score != -1) {
           const after_score = data.indexOf("/10 (previous run:");
           score = data.slice(before_score + 28, after_score)
-        }
-        const uid = payload.uid
-        const project = Project.where({pid: projectId}).findOne(function (err, project) {
-          if (err);
-          if (project) {
-            if (project.creator_id != null && project.collaborator_id != null){
-              const users = [project.creator_id, project.collaborator_id]
-              users.forEach(function(element) {
-                console.log(project)
-                console.log(users)
-                const scoreModel = {
-                  pid: projectId,
-                  uid: element,
-                  score: score,
-                  createdAt: Date.now()
-                }
-                new Score(scoreModel, (err) => {
-                  if (err) throw err
-                }).save()
-                // const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
-                //   if (err) {
-                //     console.log("not find")
-                //     new Score(scoreModel, (err) => {
-                //       if (err) throw err
-                //     }).save()
-                //   }
-                //   if (oldScore) {
-                //     console.log("find")
-                //     Score.update({
-                //       pid: projectId, 
-                //       uid: element
-                //     }, {
-                //       $set: {
-                //         score: score
-                //       }
-                //     }, (err) => {
-                //       if (err) throw err
-                //     })
-                //   }  
-                // });
-              }, this);
+          const uid = payload.uid
+          const project = Project.where({pid: projectId}).findOne(function (err, project) {
+            if (err);
+            if (project) {
+              if (project.creator_id != null && project.collaborator_id != null){
+                const users = [project.creator_id, project.collaborator_id]
+                users.forEach(function(element) {
+                  const scoreModel = {
+                    pid: projectId,
+                    uid: element,
+                    score: score,
+                    createdAt: Date.now()
+                  }
+                  const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
+                    if (err) {
+                      throw err
+                    }
+                    if (!oldScore) {
+                      new Score(scoreModel, (err) => {
+                        if (err) throw err
+                      }).save()
+                    }
+                    if (oldScore) {
+                      Score.update({
+                        pid: projectId, 
+                        uid: element
+                      }, { 
+                        $set: { 
+                          score: score 
+                        }
+                      }, 
+                      function(err, scoreReturn){
+                        if(err) throw err;
+                        if(scoreReturn) {
+                        }
+                      });
+                    }  
+                  });
+                }, this);
+              }
             }
-          }
-        });
+          });
+        }
         console.log("score"+score)
 
         io.in(projectId).emit('term update', data)
