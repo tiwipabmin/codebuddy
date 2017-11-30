@@ -188,7 +188,6 @@ module.exports = (server) => {
       pty.on('data', (data) => {
         //get score from pylint
         console.log('data', data)
-        console.log('pylint check')
         const before_score = data.indexOf("Your code has been rated at");
         let score = 0;
         if(before_score != -1) {
@@ -215,6 +214,7 @@ module.exports = (server) => {
                       new Score(scoreModel, (err) => {
                         if (err) throw err
                       }).save()
+                      io.in(projectId).emit('show score', score)
                     }
                     if (oldScore) {
                       Score.update({
@@ -230,6 +230,7 @@ module.exports = (server) => {
                         if(scoreReturn) {
                         }
                       });
+                      io.in(projectId).emit('show score', score)
                     }  
                   });
                 }, this);
@@ -238,7 +239,6 @@ module.exports = (server) => {
           });
         }
         console.log("score"+score)
-
         io.in(projectId).emit('term update', data)
       })
     })

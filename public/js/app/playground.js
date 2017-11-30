@@ -283,6 +283,22 @@ function sendMessage() {
 }
 
 /**
+ * Show score dialog
+ */
+socket.on('show score', (payload) => {
+  console.log(payload)
+  $('p#show-point').text("You score is "+payload+" point."); 	
+  $('#showScore-modal')
+  .modal({
+    closable  : true,
+    onApprove : function() {
+      console.log('approve')
+    }
+  })
+  .modal('show')
+})
+
+/**
  * Terminal socket
  */
 socket.on('term update', (payload) => {
