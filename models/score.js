@@ -4,25 +4,25 @@
 const mongoose = require('mongoose')
 
 /**
- * `Message` model schema based on Mongoose schema
+ * `Score` model schema based on Mongoose schema
  */
 const scoreSchema = new mongoose.Schema({
   uid: {
     type: String,
-    required: [true, 'Please enter a author']
+    required: [true, 'Please enter a user id']
   },
   pid: {
     type: String,
     required: [true, 'Please enter a project id']
   },
   score: {
-    type: String,
-    required: [true, 'Please fill in message']
+    type: Number,
+    required: [true, 'Please fill in score']
   },
   createdAt: { type: Date, default: Date.now }
 })
 
 /**
- * Expose `Message` model
+ * Expose `Score` model
  */
 module.exports = mongoose.model('Score', scoreSchema)

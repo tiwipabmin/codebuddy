@@ -45,7 +45,9 @@ const userSchema = mongoose.Schema({
       trim: true
     },
     occupation: String,
-    gender: String
+    gender: String,
+    score: Number,
+    status: String
   }
 })
 

@@ -28,7 +28,6 @@ const projectSchema = new mongoose.Schema({
   language: { type: String, default: 'py' },
   swaptime: {type : String, default: '5'},
   files: String
-  // files: [{ name: String, lastModify: { type: Date, default: Date.now }, code: String }]
 })
 
 /**
