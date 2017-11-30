@@ -6,6 +6,7 @@ const timer = require('timers')
 const moment = require('moment')
 
 const Project = mongoose.model('Project')
+const Comment = mongoose.model('Comment')
 
 /**
  * @param {Object} server server instance
@@ -30,20 +31,16 @@ module.exports = (server) => {
     //set review to redis
     client.on('submit review', (payload) => {
       // projects[projectId]['reviews'].push(payload)
-        console.log(payload)
-        let rev = [payload.line, payload.description, curUser]
-        let check = 0
-        for(var i=0; i<review.length;i++){
-                if(review[i][0]==payload.line){
-                    review[i] = rev
-                    check = 1
-                    break
-                }
+        const commentModel = {
+            line: payload.line,
+            pid: projectId,
+            comment: payload.description,
+            createdAt: Date.now()
         }
-        if(check==0){
-            review.push(rev)
-        }
-        redis.hset(`project:${projectId}`, `review`, JSON.stringify(review))
+        new Comment(commentModel, (err) => {
+            if (err) throw err
+        }).save()
+
         io.in(projectId).emit('new review', payload)
     })
 
@@ -58,14 +55,12 @@ module.exports = (server) => {
         curUser = payload.username
         winston.info(`User ${payload.username} joined at pid: ${payload.pid}`)
         client.join(projectId)
-        redis.hget(`project:${projectId}`, `review`,function(err, object){
-            if(object!=null) {
-                var parsed = JSON.parse(object)
-                for(var x in parsed){
-                    review.push(parsed[x])
-                }
-            }
-        })
+
+          const comment = await Comment
+              .find({ pid: payload.pid})
+              .sort({ line: 1 })
+          console.log('commmmm'+comment)
+
         Project.update({
           pid: projectId
         }, {

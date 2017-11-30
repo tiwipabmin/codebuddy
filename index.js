@@ -28,6 +28,7 @@ mongoose.connection.on('error', (err) => {
 })
 require('./models/user')
 require('./models/project')
+require('./models/comment')
 
 /**
  * Checking Redis server is available
