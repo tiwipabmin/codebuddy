@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 
 const Project = mongoose.model('Project')
+const Comment = mongoose.model('Comment')
 
 exports.getHomepage = (req, res) => {
   res.render('index')
@@ -21,7 +22,10 @@ exports.getDashboard = async (req, res) => {
 exports.getPlayground = async (req, res) => {
   if (!req.query.pid) res.redirect('/dashboard')
   const project = await Project.findOne({ pid: req.query.pid })
-  res.render('playground', { project, title: `${project.title} - Playground` })
+  const comments = await Comment
+    .find({ pid: req.query.pid})
+    .sort({ line: 1 })
+  res.render('playground', { project, title: `${project.title} - Playground`, comments })
 }
 
 exports.getAboutUs = (req, res) => {

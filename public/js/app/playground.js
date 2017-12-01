@@ -79,13 +79,19 @@ editor.on('dblclick', () => {
   $('input.disabled.line.no').val(A1 + 1)
   let line = $('input.disabled.line.no').val()
   switch (roles.user) {
-    case 'coder':
-      reviews.map((review) => {
-        if (review.line === line) {
-          $('textarea.line.coder.disabled.description').val(review.description)
-          // $('#priority').html(review.priority)
+    case 'coder':    
+      for(var i in comments){
+        if(comments[i].line==line){
+          $('textarea.line.coder.disabled.description').val(comments[i].comment)
         }
-      })
+
+      }
+      // reviews.map((review) => {
+      //   if (review.line === line) {
+      //     $('textarea.line.coder.disabled.description').val(review.description)
+      //     // $('#priority').html(review.priority)
+      //   }
+      // })
       $('.ui.coder.small.modal').modal('show')
       break
     case 'reviewer':
@@ -112,9 +118,14 @@ socket.on('init state', (payload) => {
 /**
  * After user join the project, user will recieve initiate review to hilight in local editor
  */
+
 socket.on('init reviews', (payload) => {
   for(var i in payload){
-      editor.addLineClass(parseInt(payload[i][0])-1, 'wrap', 'CodeMirror-activeline-background')
+    const comments = payload
+    console.log(comments)
+    console.log('type'+typeof(payload))
+    // console.log(payload[i].line)
+      editor.addLineClass(parseInt(payload[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
   }
 })
 

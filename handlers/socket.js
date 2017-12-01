@@ -56,10 +56,10 @@ module.exports = (server) => {
         winston.info(`User ${payload.username} joined at pid: ${payload.pid}`)
         client.join(projectId)
 
-          const comment = await Comment
+          const comments = await Comment
               .find({ pid: payload.pid})
               .sort({ line: 1 })
-          console.log('commmmm'+comment)
+          console.log('commmmm'+comments)
 
         Project.update({
           pid: projectId
@@ -94,7 +94,7 @@ module.exports = (server) => {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
 
-        client.emit('init reviews', review)
+        client.emit('init reviews', comments)
 
       } catch (error) {
         winston.info(`catching error: ${error}`)
