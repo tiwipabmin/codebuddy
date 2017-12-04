@@ -33,6 +33,10 @@ const userSchema = mongoose.Schema({
     },
     required: 'Please enter an email address'
   },
+  avgScore: {
+    type: Number,
+    default: 0
+  },
   info: {
     firstname: {
       type: String,
@@ -46,7 +50,6 @@ const userSchema = mongoose.Schema({
     },
     occupation: String,
     gender: String,
-    score: Number,
     status: String
   }
 })

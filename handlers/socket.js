@@ -8,6 +8,7 @@ const moment = require('moment')
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
 const Score = mongoose.model('Score')
+const User = mongoose.model('User')
 
 /**
  * @param {Object} server server instance
@@ -233,6 +234,22 @@ module.exports = (server) => {
                             // sum = 0;
                             results.forEach(function(result) {
                               console.log("avg: "+result._id+" "+result.score+" "+result.avg);
+                              //start update
+                              User.update({
+                                _id: element
+                              }, { 
+                                $set: { 
+                                  avgScore: result.avg
+                                }
+                              }, 
+                              function(err, userReturn){
+                                if (err) ;
+                                if (userReturn) {
+                                  console.log(userReturn)
+                                }
+
+                              });
+                              //end update
                               const shownScore = {
                                 score: score,
                                 uid: element,
@@ -274,7 +291,23 @@ module.exports = (server) => {
                               if (results) {
                                 // sum = 0;
                                 results.forEach(function(result) {
-                                  console.log("avg: "+result._id+" "+result.score+" "+result.avg);
+                                  console.log("avg: "+result._id+" "+result.avg);
+                                  //start update
+                                  User.update({
+                                    _id: element
+                                  }, { 
+                                    $set: { 
+                                      avgScore: result.avg
+                                    }
+                                  }, 
+                                  function(err, userReturn){
+                                    if (err) ;
+                                    if (userReturn) {
+                                      console.log(userReturn)
+                                    }
+
+                                  });
+                                  //end update
                                   const shownScore = {
                                     score: score,
                                     uid: element,
@@ -285,6 +318,7 @@ module.exports = (server) => {
                               }
                           });
                           //end recalculate score
+                          
                         }
                       });
                     }  
