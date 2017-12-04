@@ -287,7 +287,10 @@ function sendMessage() {
  */
 socket.on('show score', (payload) => {
   console.log(payload)
-  $('p#show-point').text("You score is "+payload+" point."); 	
+  $('p#show-point').text("Your score is "+parseInt(payload.score).toFixed(2)+" points.");
+  if (uid == payload.uid) {
+    $('p#show-avg-point').text("Your average score is "+parseInt(payload.avgScore).valueOf().toFixed(2)+" points."); 	
+  }
   $('#showScore-modal')
   .modal({
     closable  : true,

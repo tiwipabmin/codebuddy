@@ -214,7 +214,35 @@ module.exports = (server) => {
                       new Score(scoreModel, (err) => {
                         if (err) throw err
                       }).save()
-                      io.in(projectId).emit('show score', score)
+                      
+                      //recalculate score
+                      sumScore = Score.aggregate([
+                        { $match:{
+                            uid:  element
+                        }},
+                        { $group: {
+                            _id: '$uid',
+                            score: {$sum: '$score'}
+                        }}
+                      ], function (err, results) {
+                          if (err) {
+                              console.log(err);
+                              return;
+                          }
+                          if (results) {
+                            // sum = 0;
+                            results.forEach(function(result) {
+                              console.log("sum: "+result._id+" "+result.score);
+                              const shownScore = {
+                                score: score,
+                                avgScore: result.score
+                              }
+                              io.in(projectId).emit('show score', shownScore)
+                            })
+                          }
+                      });
+                      //end recalculate score
+
                     }
                     if (oldScore) {
                       Score.update({
@@ -228,9 +256,36 @@ module.exports = (server) => {
                       function(err, scoreReturn){
                         if(err) throw err;
                         if(scoreReturn) {
+                          //recalculate score
+                          sumScore = Score.aggregate([
+                            { $match:{
+                                uid: element
+                            }},
+                            { $group: {
+                                _id: '$uid',
+                                score: {$sum: '$score'}
+                            }}
+                          ], function (err, results) {
+                              if (err) {
+                                  console.log(err);
+                                  return;
+                              }
+                              if (results) {
+                                // sum = 0;
+                                results.forEach(function(result) {
+                                  console.log("sum: "+result._id+" "+result.score);
+                                  const shownScore = {
+                                    score: score,
+                                    uid: element,
+                                    avgScore: result.score
+                                  }
+                                  io.in(projectId).emit('show score', shownScore)
+                                })
+                              }
+                          });
+                          //end recalculate score
                         }
                       });
-                      io.in(projectId).emit('show score', score)
                     }  
                   });
                 }, this);
