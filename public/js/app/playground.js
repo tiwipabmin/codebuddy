@@ -291,7 +291,7 @@ socket.on('show score', (payload) => {
   $('#showScore-modal').modal('show')
   $('p#show-point').text("Your score is "+parseFloat(payload.score).toFixed(2)+" points.");
   if (uid == payload.uid) {
-    $('p#show-avg-point').text("Your average score is "+parseFloat(payload.avgScore).toFixed(2)+" points."); 	
+    $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points"); 	
   }
   $('#showScore-modal')
   .modal({

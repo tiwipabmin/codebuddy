@@ -218,11 +218,11 @@ module.exports = (server) => {
                       //recalculate score
                       sumScore = Score.aggregate([
                         { $match:{
-                            uid:  element
+                            uid: element
                         }},
                         { $group: {
                             _id: '$uid',
-                            score: {$sum: '$score'}
+                            avg: {$avg: '$score'}
                         }}
                       ], function (err, results) {
                           if (err) {
@@ -232,10 +232,11 @@ module.exports = (server) => {
                           if (results) {
                             // sum = 0;
                             results.forEach(function(result) {
-                              console.log("sum: "+result._id+" "+result.score);
+                              console.log("avg: "+result._id+" "+result.score+" "+result.avg);
                               const shownScore = {
                                 score: score,
-                                avgScore: result.score
+                                uid: element,
+                                avgScore: result.avg
                               }
                               io.in(projectId).emit('show score', shownScore)
                             })
@@ -263,7 +264,7 @@ module.exports = (server) => {
                             }},
                             { $group: {
                                 _id: '$uid',
-                                score: {$sum: '$score'}
+                                avg: {$avg: '$score'}
                             }}
                           ], function (err, results) {
                               if (err) {
@@ -273,11 +274,11 @@ module.exports = (server) => {
                               if (results) {
                                 // sum = 0;
                                 results.forEach(function(result) {
-                                  console.log("sum: "+result._id+" "+result.score);
+                                  console.log("avg: "+result._id+" "+result.score+" "+result.avg);
                                   const shownScore = {
                                     score: score,
                                     uid: element,
-                                    avgScore: result.score
+                                    avgScore: result.avg
                                   }
                                   io.in(projectId).emit('show score', shownScore)
                                 })
