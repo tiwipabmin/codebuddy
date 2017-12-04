@@ -7,6 +7,7 @@ const roles = {
   partner: ''
 }
 const reviews = []
+var comments = null
 
 /**
  * get query parameter from URL
@@ -80,18 +81,25 @@ editor.on('dblclick', () => {
   let line = $('input.disabled.line.no').val()
   switch (roles.user) {
     case 'coder':    
-      for(var i in comments){
-        if(comments[i].line==line){
-          $('textarea.line.coder.disabled.description').val(comments[i].comment)
-        }
-
-      }
-      // reviews.map((review) => {
-      //   if (review.line === line) {
-      //     $('textarea.line.coder.disabled.description').val(review.description)
-      //     // $('#priority').html(review.priority)
+      // for(var i in comments){
+      //   if(comments[i].line==line){
+      //     $('textarea.line.coder.disabled.description').val(comments[i].comment)
       //   }
-      // })
+      //
+      // }
+      reviews.map((review) => {
+        if (review.line == line) {
+          $('textarea.line.coder.disabled.description').val(review.description)
+          // $('#priority').html(review.priority)
+        }
+      })
+
+      comments.map((comment) => {
+        if (comment.line == line) {
+          $('textarea.line.coder.disabled.description').val(comment.comment)
+        }
+      })
+
       $('.ui.coder.small.modal').modal('show')
       break
     case 'reviewer':
@@ -121,7 +129,7 @@ socket.on('init state', (payload) => {
 
 socket.on('init reviews', (payload) => {
   for(var i in payload){
-    const comments = payload
+    comments = payload
     console.log(comments)
     console.log('type'+typeof(payload))
     // console.log(payload[i].line)
