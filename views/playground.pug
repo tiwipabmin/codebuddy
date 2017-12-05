@@ -189,7 +189,7 @@ block content
           .ui.raised.segments
             .ui.segment Chat
             .ui.secondary.segment.chat
-              .ui.items.messagsssse-list
+              .ui.items.message-list
                 each message in messages
                   .ui.item
                     a.ui.avatar.image
@@ -197,10 +197,8 @@ block content
                     .content
                       //- a.header Thara
                     .description.curve-box #{message.message}
-                //- .ui.item
-                //-   p#show-is-typing
-                //-   |
             .ui.segment
+              p#show-is-typing
                 .ui.form(action='/project', method='POST')
                   .field
                     .ui.grid

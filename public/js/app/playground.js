@@ -217,7 +217,7 @@ socket.on('new review', (payload) => {
 })
 
 socket.on('is typing', (payload) => {
-  if (uid == payload.uid) {
+  if (uid != payload.uid) {
     $('#show-is-typing').text(payload.text);
   }
 })
