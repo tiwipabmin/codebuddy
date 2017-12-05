@@ -170,6 +170,10 @@ module.exports = (server) => {
       io.in(projectId).emit('update message', messageModel)
     })
 
+    client.on('is typing', (payload) => {
+      io.in(projectId).emit('is typing', payload)
+    })
+
      /**
      * `submit code` event fired when user click on submit button from front-end
      * @param {Object} payload code from editor

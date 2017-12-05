@@ -216,6 +216,12 @@ socket.on('new review', (payload) => {
   })
 })
 
+socket.on('is typing', (payload) => {
+  if (uid == payload.uid) {
+    $('#show-is-typing').text(payload.text);
+  }
+})
+
 /**
  * Run code
  */
@@ -297,7 +303,7 @@ socket.on('show score', (payload) => {
   .modal({
     closable  : true,
     onApprove : function() {
-      console.log('approve')
+
     }
   })
   .modal('show')
@@ -358,6 +364,18 @@ $(document)
           active: '<i class="unmute icon"/>'
         }
       });
+    $('#inputMessage').keydown(function() {
+      socket.emit('is typing', {
+        uid: uid,
+        text: `${user} is typing...`
+      })
+    });
+    $('#inputMessage').keyup(function() {
+      socket.emit('is typing', {
+        uid: uid,
+        text: ''
+      })
+    });
     updateScroll();
   });
 
