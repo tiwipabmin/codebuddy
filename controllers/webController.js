@@ -1,6 +1,9 @@
 const mongoose = require('mongoose')
 
 const Project = mongoose.model('Project')
+const Message = mongoose.model('Message')
+const Score = mongoose.model('Score')
+const User = mongoose.model('User')
 
 exports.getHomepage = (req, res) => {
   res.render('index')
@@ -21,7 +24,10 @@ exports.getDashboard = async (req, res) => {
 exports.getPlayground = async (req, res) => {
   if (!req.query.pid) res.redirect('/dashboard')
   const project = await Project.findOne({ pid: req.query.pid })
-  res.render('playground', { project, title: `${project.title} - Playground` })
+  const messages = await Message
+      .find({ pid: req.query.pid})
+      .sort({ createdAt: 1 })
+  res.render('playground', { project, title: `${project.title} - Playground`, messages})
 }
 
 exports.getAboutUs = (req, res) => {
@@ -47,7 +53,22 @@ exports.getNotifications = async (req, res) => {
 }
 
 exports.createProject = async (req, res) => {
-  const project = await (new Project(req.body)).save()
-  req.flash('success', `Successfully Created ${project.title} Project.`)
+  const collaborator = await User
+  .findOne({ username: req.body.collaborator})
+  if (collaborator != null) {
+    const project = await (new Project(req.body)).save()
+    Project.update({
+      _id: project._id
+    }, {
+      $set: {
+        collaborator_id: collaborator._id
+      }
+    }, (err) => {
+      if (err) throw err
+    })
+    req.flash('success', `Successfully Created ${project.title} Project.`)
+  } else {
+    req.flash('error', "Can't find @" + req.body.collaborator)
+  }
   res.redirect('dashboard')
 }

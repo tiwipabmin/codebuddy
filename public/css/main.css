@@ -1,0 +1,16 @@
+.chat {
+    height: 60%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.curve-box {
+    /* overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto; */
+    border-radius: 25px;
+    background: #FFFFFF;
+    padding: 8px; 
+
+    /* overflow: hidden; */
+}

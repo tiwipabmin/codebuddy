@@ -216,6 +216,12 @@ socket.on('new review', (payload) => {
   })
 })
 
+socket.on('is typing', (payload) => {
+  if (uid != payload.uid) {
+    $('#show-is-typing').text(payload.text);
+  }
+})
+
 /**
  * Run code
  */
@@ -260,11 +266,66 @@ function runCode() {
 }
 
 /**
+ * Submit code
+ */
+function submitCode() {
+  socket.emit('submit code', {
+    uid: uid,
+    code: editor.getValue()
+  })
+  term.writeln('Scoring pytest.py...')
+}
+
+/**
+ * Send Message
+ */
+function sendMessage() {
+  if (document.getElementById("inputMessage").value != '') {
+    socket.emit('send message', {
+      uid: uid,
+      message:  document.getElementById("inputMessage").value
+    })
+  }
+}
+
+/**
+ * Show score dialog
+ */
+socket.on('show score', (payload) => {
+  console.log(payload)
+  $('#showScore-modal').modal('hide')
+  $('#showScore-modal').modal('show')
+  $('p#show-point').text("Your score is "+parseFloat(payload.score).toFixed(2)+" points.");
+  if (uid == payload.uid) {
+    $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points"); 	
+  }
+  $('#showScore-modal')
+  .modal({
+    closable  : true,
+    onApprove : function() {
+
+    }
+  })
+  .modal('show')
+})
+
+/**
  * Terminal socket
  */
 socket.on('term update', (payload) => {
   term.writeln(payload)
   term.prompt()
+})
+
+/**
+ * Terminal socket
+ */
+socket.on('update message', (payload) => {
+  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png'></a><div class='content'></div><div class='description curve-box'><p>"+ payload.message +"</p></div></li>");
+  updateScroll()
+  if (payload.uid === uid) {
+    $("#inputMessage").val("")
+  }
 })
 
 /**
@@ -303,7 +364,21 @@ $(document)
           active: '<i class="unmute icon"/>'
         }
       });
+    $('#inputMessage').keydown(function() {
+      socket.emit('is typing', {
+        uid: uid,
+        text: `${user} is typing...`
+      })
+    });
+    $('#inputMessage').keyup(function() {
+      socket.emit('is typing', {
+        uid: uid,
+        text: ''
+      })
+    });
+    updateScroll();
   });
+
 $('.ui.video.toggle.button')
   .on('click', handler.activate);
 $('.ui.video.toggle.button')
@@ -324,6 +399,11 @@ $('.ui.mute.toggle.button')
   });
 
 function switchRole() {
-  console.log("switch yayyyyyyyy")
   socket.emit('switch role')
 }
+
+function updateScroll(){
+  // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
+  $(".chat").animate({ scrollTop: $('.message-list').height() }, "fast");
+}
+

@@ -1,6 +1,7 @@
 extends layout/layout.pug
 
 block script
+  link(rel='stylesheet' href='/css/main.css')
   link(rel='stylesheet' href='/xterm/xterm.css')
   link(rel='stylesheet' href='/codemirror/lib/codemirror.css')
   link(rel='stylesheet' href='/codemirror/addon/selection/active-line.js')
@@ -8,7 +9,7 @@ block script
   link(rel='stylesheet' href='/codemirror/theme/seti.css')
   link(rel='stylesheet' href='/codemirror/theme/material.css')
 block content
-
+    //- select role modal
     .ui.basic.modal#selectRole-modal
       .ui.icon.header
         i.users.icon
@@ -22,6 +23,19 @@ block content
             .ui.green.massive.inverted.negative.button
               i.unhide.icon
               |       Reviewer
+    //- show score modal
+    .ui.basic.modal#showScore-modal
+      .ui.icon.header
+        i.student.icon
+        p#show-point
+        |       Summary
+        p#show-avg-point
+      .content
+        .actions
+          center
+            .ui.blue.massive.inverted.positive.button
+              i.remove.icon
+              |       Close
     .ui.modal
     .ui.reviewer.small.modal
       .header Code Review
@@ -59,7 +73,7 @@ block content
         .four.wide.column
           h1.ui.header= project.title
           p= project.description
-        .seven.wide.column
+        .five.wide.column
           center
             #swapTimer(style='margin: 0 0 10 0')
               <strong>Auto Swapping Role In: </strong>
@@ -70,7 +84,7 @@ block content
               - let curUser = user.username === project.creator ? project.creator : project.collaborator
             .user.status
               span.user.status!= `<strong><em><i class='grey circle icon'></i>${partner}</em></strong>`
-        .five.wide.column.right
+        .seven.wide.column.right
           center
             button.ui.primary.labeled.icon.button(onClick='switchRole()')
               i.refresh.icon
@@ -79,6 +93,9 @@ block content
             button.ui.positive.labeled.icon.button(id='run' onClick='runCode()')
               i.terminal.icon
               |  Run
+            button.ui.positive.labeled.icon.button(id='run' onClick='submitCode()')
+              i.code.icon
+              |  Submit
       .ui.divider
       br
       .ui.grid
@@ -160,7 +177,7 @@ block content
                 #localVolume.volume_bar
               p Buddy
               #remotes
-        .twelve.wide.column.right
+        .eight.wide.column.right
           .ui.form
               textarea#demotext.show
           .ui.segments
@@ -168,6 +185,32 @@ block content
               p Terminal
             .ui.secondary.segment
               #xterm-container
+        .four.wide.column.right
+          .ui.raised.segments
+            .ui.segment Chat
+            .ui.secondary.segment.chat
+              .ui.items.message-list
+                if messages.length == 0
+                  .ui.item
+                  | Send message to you pair.
+                else
+                  each message in messages
+                    .ui.item
+                      a.ui.avatar.image
+                        img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                      .content
+                        //- a.header Thara
+                      .description.curve-box #{message.message}
+            .ui.segment
+              p#show-is-typing
+                .ui.form(action='/project', method='POST')
+                  .field
+                    .ui.grid
+                      .twelve.wide.column
+                        input.ui.input(type='text', id="inputMessage", name='message', placeholder='Type here')
+                      .four.wide.column
+                        button.ui.button.icon(type='submit', onClick='sendMessage()')
+                          i.send.icon
       .ui.grid
         .four.wide.column
 
@@ -176,6 +219,7 @@ block content
 block footerExtend
   script.
     let user="#{user.username}"
+    let uid="#{user._id}"
     let partner="#{partner}"
   script(type='text/javascript').
     $(document).ready(function(){

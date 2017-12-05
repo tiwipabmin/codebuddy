@@ -101,7 +101,8 @@ block content
                 .field
               .five.wide.column
                   label Buddy ID :
-                  |  
+                  |
+                  input(type='hidden' name='creator_id' value=user._id)
                   input(type='hidden' name='creator' value=user.username)
                   input#collaborator(type='text',name='collaborator', placeholder='Search users...')
           .field

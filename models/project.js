@@ -21,12 +21,13 @@ const projectSchema = new mongoose.Schema({
     required: [true, 'Please fill in project description']
   },
   createdAt: { type: Date, default: Date.now },
+  creator_id: String,
   creator: String,
+  collaborator_id: String,
   collaborator: String,
   language: { type: String, default: 'py' },
   swaptime: {type : String, default: '5'},
   files: String
-  // files: [{ name: String, lastModify: { type: Date, default: Date.now }, code: String }]
 })
 
 /**

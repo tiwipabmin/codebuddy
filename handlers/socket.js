@@ -6,6 +6,9 @@ const timer = require('timers')
 const moment = require('moment')
 
 const Project = mongoose.model('Project')
+const Message = mongoose.model('Message')
+const Score = mongoose.model('Score')
+const User = mongoose.model('User')
 
 /**
  * @param {Object} server server instance
@@ -143,6 +146,193 @@ module.exports = (server) => {
       if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
       else pty = nodepty.spawn('python', ['pytest.py'], {})
       pty.on('data', (data) => {
+        io.in(projectId).emit('term update', data)
+      })
+    })
+
+    /**
+     * `send message` event fired when user send chat message from front-end
+     * @param {Object} payload code from editor
+     */
+    client.on('send message', (payload) => {
+      const message = payload.message
+      const uid = payload.uid
+      console.log(payload)
+      const messageModel = {
+        pid: projectId,
+        uid: uid,
+        message: message,
+        createdAt: Date.now()
+      }
+      new Message(messageModel, (err) => {
+        if (err) throw err
+      }).save()
+      io.in(projectId).emit('update message', messageModel)
+    })
+
+    client.on('is typing', (payload) => {
+      io.in(projectId).emit('is typing', payload)
+    })
+
+     /**
+     * `submit code` event fired when user click on submit button from front-end
+     * @param {Object} payload code from editor
+     */
+    client.on('submit code', (payload) => {
+      console.log('summit code')
+      const uid = payload.uid
+      const fs = require('fs')
+      const path = require('path')
+      fs.writeFile('pytest.py', payload.code, (err) => {
+        if (err) throw err
+      })
+      const nodepty = require('node-pty')
+      let pty;
+      if(process.platform === 'win32') pty = nodepty.spawn('pylint', ['pytest.py'], {})
+      else pty = nodepty.spawn('pylint', ['pytest.py'], {})
+      pty.on('data', (data) => {
+        //get score from pylint
+        console.log('data', data)
+        const before_score = data.indexOf("Your code has been rated at");
+        let score = 0;
+        if(before_score != -1) {
+          const after_score = data.indexOf("/10 (previous run:");
+          score = data.slice(before_score + 28, after_score)
+          const uid = payload.uid
+          const project = Project.where({pid: projectId}).findOne(function (err, project) {
+            if (err);
+            if (project) {
+              if (project.creator_id != null && project.collaborator_id != null){
+                const users = [project.creator_id, project.collaborator_id]
+                users.forEach(function(element) {
+                  const scoreModel = {
+                    pid: projectId,
+                    uid: element,
+                    score: score,
+                    createdAt: Date.now()
+                  }
+                  const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
+                    if (err) {
+                      throw err
+                    }
+                    if (!oldScore) {
+                      new Score(scoreModel, (err) => {
+                        if (err) throw err
+                      }).save()
+                      
+                      //recalculate score
+                      sumScore = Score.aggregate([
+                        { $match:{
+                            uid: element
+                        }},
+                        { $group: {
+                            _id: '$uid',
+                            avg: {$avg: '$score'}
+                        }}
+                      ], function (err, results) {
+                          if (err) {
+                              console.log(err);
+                              return;
+                          }
+                          if (results) {
+                            // sum = 0;
+                            results.forEach(function(result) {
+                              console.log("avg: "+result._id+" "+result.score+" "+result.avg);
+                              //start update
+                              User.update({
+                                _id: element
+                              }, { 
+                                $set: { 
+                                  avgScore: result.avg
+                                }
+                              }, 
+                              function(err, userReturn){
+                                if (err) ;
+                                if (userReturn) {
+                                  console.log(userReturn)
+                                }
+
+                              });
+                              //end update
+                              const shownScore = {
+                                score: score,
+                                uid: element,
+                                avgScore: result.avg
+                              }
+                              io.in(projectId).emit('show score', shownScore)
+                            })
+                          }
+                      });
+                      //end recalculate score
+
+                    }
+                    if (oldScore) {
+                      Score.update({
+                        pid: projectId, 
+                        uid: element
+                      }, { 
+                        $set: { 
+                          score: score 
+                        }
+                      }, 
+                      function(err, scoreReturn){
+                        if(err) throw err;
+                        if(scoreReturn) {
+                          //recalculate score
+                          sumScore = Score.aggregate([
+                            { $match:{
+                                uid: element
+                            }},
+                            { $group: {
+                                _id: '$uid',
+                                avg: {$avg: '$score'}
+                            }}
+                          ], function (err, results) {
+                              if (err) {
+                                  console.log(err);
+                                  return;
+                              }
+                              if (results) {
+                                // sum = 0;
+                                results.forEach(function(result) {
+                                  console.log("avg: "+result._id+" "+result.avg);
+                                  //start update
+                                  User.update({
+                                    _id: element
+                                  }, { 
+                                    $set: { 
+                                      avgScore: result.avg
+                                    }
+                                  }, 
+                                  function(err, userReturn){
+                                    if (err) ;
+                                    if (userReturn) {
+                                      console.log(userReturn)
+                                    }
+
+                                  });
+                                  //end update
+                                  const shownScore = {
+                                    score: score,
+                                    uid: element,
+                                    avgScore: result.avg
+                                  }
+                                  io.in(projectId).emit('show score', shownScore)
+                                })
+                              }
+                          });
+                          //end recalculate score
+                          
+                        }
+                      });
+                    }  
+                  });
+                }, this);
+              }
+            }
+          });
+        }
+        console.log("score"+score)
         io.in(projectId).emit('term update', data)
       })
     })
