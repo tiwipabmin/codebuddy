@@ -190,13 +190,17 @@ block content
             .ui.segment Chat
             .ui.secondary.segment.chat
               .ui.items.message-list
-                each message in messages
+                if messages.length == 0
                   .ui.item
-                    a.ui.avatar.image
-                      img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
-                    .content
-                      //- a.header Thara
-                    .description.curve-box #{message.message}
+                  | Send message to you pair.
+                else
+                  each message in messages
+                    .ui.item
+                      a.ui.avatar.image
+                        img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                      .content
+                        //- a.header Thara
+                      .description.curve-box #{message.message}
             .ui.segment
               p#show-is-typing
                 .ui.form(action='/project', method='POST')
