@@ -9,7 +9,7 @@ const shortid = require('shortid')
  */
 const commentSchema = new mongoose.Schema({
     line: {
-        type: Number,
+        type: String,
         required: [true, 'Please enter a line']
     },
     pid: {

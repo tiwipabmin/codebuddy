@@ -6,7 +6,6 @@ const roles = {
   user: '',
   partner: ''
 }
-const reviews = []
 var comments = null
 
 /**
@@ -81,25 +80,19 @@ editor.on('dblclick', () => {
   let line = $('input.disabled.line.no').val()
   switch (roles.user) {
     case 'coder':    
-
-console.log(reviews)
-
-      reviews.map((review) => {
-        if (review.line == line) {
-          $('textarea.line.coder.disabled.description').val(review.description)
-          // $('#priority').html(review.priority)
-        }
-      })
-
       comments.map((comment) => {
         if (comment.line == line) {
           $('textarea.line.coder.disabled.description').val(comment.description)
         }
       })
-
       $('.ui.coder.small.modal').modal('show')
       break
     case 'reviewer':
+      comments.map((comment) => {
+        if (comment.line == line) {
+          $('textarea.line.reviewer.description').val(comment.description)
+        }
+      })
       $('.ui.reviewer.small.modal').modal('show')
       break
   }
@@ -232,9 +225,9 @@ function submitReview() {
 }
 
 socket.on('new review', (payload) => {
-  reviews.push(payload)
-  reviews.map((review) => {
-    editor.addLineClass(parseInt(review.line-1), 'wrap', 'CodeMirror-activeline-background')
+  comments = payload
+  comments.map((comment) => {
+    editor.addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
   })
 })
 

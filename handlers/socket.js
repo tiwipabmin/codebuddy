@@ -56,7 +56,7 @@ module.exports = (server) => {
           saveComment(payload)
         } 
       }
-        io.in(projectId).emit('new review', payload)
+      io.in(projectId).emit('new review', comments)
     })
 
     /**
@@ -248,10 +248,9 @@ module.exports = (server) => {
 
     function updateDesc(line, description){
       for (var i in comments) {
-        console.log(comments[i])
         if (comments[i].line == line) {
            comments[i].description = description;
-           break;
+           break
         }
       }
     }
