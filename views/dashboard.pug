@@ -1,6 +1,7 @@
 extends layout/layout.pug
 
 block script
+    script(src='/js/app/dashboard.js')
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
     script(type='text/javascript').
@@ -93,18 +94,22 @@ block content
             input(type='text', name='description', placeholder='Something about your project')
           .content
             .ui.grid
-              .eleven.wide.column
+              .six.wide.column
                 .field
                   label Language :
                   select.ui.dropdown(name='language')
                     option(value='0') Python
+              .six.wide.column
                 .field
-              .five.wide.column
                   label Buddy ID :
                   |
                   input(type='hidden' name='creator_id' value=user._id)
                   input(type='hidden' name='creator' value=user.username)
-                  input#collaborator(type='text',name='collaborator', placeholder='Search users...')
+                  input#collaborator(type='text',name='collaborator', placeholder='Search users...', disabled)
+              .four.wide.column    
+                  button.ui.positive.labeled.icon.button(id='add-collaborator' type='button')
+                    i.user.icon
+                    |  Add
           .field
             label Time  :
             select.ui.dropdown(name='swaptime')
@@ -133,6 +138,45 @@ block content
               button.ui.button.approve.green(type='submit') Create
               .ui.button.approve.red(data-value='cancel') Cancel
     +displayFlashes(flashes)
+    .ui.small.modal#select-partner-modal
+      i.close.icon
+      .header Select Partner
+      .content
+        .ui.top.attached.tabular.menu
+          a.item.active(data-tab="purpose") Select by purpose
+          a.item(data-tab="search") Search Partner
+        .ui.bottom.attached.tab.segment.active(data-tab="purpose")
+          a.ui.red.ribbon.label Recommended
+          .ui.grid
+            .six.wide.column
+                .ui.segment.top.attached.purpose-segment-tab
+                  .row
+                    i.large.circular.inverted.teal.line.chart.icon
+                  .row
+                    | Improve quality
+                .ui.segment.attached.purpose-segment-tab
+                  .row
+                    i.large.circular.inverted.teal.line.chart.icon
+                  .row  
+                    | Enhance the experience
+                .ui.segment.bottom.attached.purpose-segment-tab
+                  .row
+                    i.large.circular.inverted.teal.line.chart.icon.center.aligned
+                  .row  
+                    |       Trainer
+            .ten.wide.column 
+              .ui.segment.container.fluid.purpose-segment-tab
+                | AAA
+        .ui.bottom.attached.tab.segment(data-tab="search")
+          .ui.grid
+            .six.wide.column
+              .ui.category.search
+                .ui.icon.input
+                  input.prompt(type="text" placeholder="Search by username...")
+                  i.search.icon
+            .ten.wide.column 
+                .ui.segment.container.fluid.purpose-segment-tab
+                  | BBB
     .ui.raised.very.padded.text.container.segment
       .ui.two.column.doubling.stackable.grid.container
         .column
