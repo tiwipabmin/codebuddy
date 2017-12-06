@@ -25,22 +25,37 @@ module.exports = (server) => {
     let projectId = ''
     let curUser = ''
     let review = []
+    var comments = []
 
     winston.info('Client connected')
 
-    //set review to redis
+    //set review to mongoDB
     client.on('submit review', (payload) => {
-      // projects[projectId]['reviews'].push(payload)
-        const commentModel = {
-            line: payload.line,
-            pid: projectId,
-            comment: payload.description,
-            createdAt: Date.now()
+      var found = false
+      //if there's no comment in array => add to DB and array
+      if (comments.length==0) {
+        saveComment(payload)
+      } else {
+        //edit comment in exist line => update in DB
+        for (var i=0; i<comments.length; i++) {
+          if (comments[i].line==payload.line) found = true
         }
-        new Comment(commentModel, (err) => {
+        if (found) {
+          Comment.update({
+            pid: projectId,
+            line: payload.line
+          }, {
+            $set: {
+              description: payload.description
+            } 
+          }, (err) => {
             if (err) throw err
-        }).save()
-
+          })
+          updateDesc(payload.line, payload.description);
+        } else {
+          saveComment(payload)
+        } 
+      }
         io.in(projectId).emit('new review', payload)
     })
 
@@ -56,10 +71,9 @@ module.exports = (server) => {
         winston.info(`User ${payload.username} joined at pid: ${payload.pid}`)
         client.join(projectId)
 
-          const comments = await Comment
-              .find({ pid: payload.pid})
-              .sort({ line: 1 })
-          console.log('commmmm'+comments)
+        comments = await Comment
+          .find({pid: payload.pid}, {line:1, description:1, _id:0})
+          .sort({ line: 1 })        
 
         Project.update({
           pid: projectId
@@ -217,6 +231,29 @@ module.exports = (server) => {
         projects[projectId].roles.coder = projects[projectId].roles.reviewer
         projects[projectId].roles.reviewer = temp
         io.in(projectId).emit('role updated', projects[projectId])
+    }
+
+    function saveComment(payload){
+      const commentModel = {
+        line: payload.line,
+        pid: projectId,
+        description: payload.description,
+        createdAt: Date.now()
+      }
+      new Comment(commentModel, (err) => {
+          if (err) throw err
+      }).save()
+      comments.push(payload)
+    }
+
+    function updateDesc(line, description){
+      for (var i in comments) {
+        console.log(comments[i])
+        if (comments[i].line == line) {
+           comments[i].description = description;
+           break;
+        }
+      }
     }
   })
 }

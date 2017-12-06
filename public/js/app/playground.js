@@ -81,12 +81,9 @@ editor.on('dblclick', () => {
   let line = $('input.disabled.line.no').val()
   switch (roles.user) {
     case 'coder':    
-      // for(var i in comments){
-      //   if(comments[i].line==line){
-      //     $('textarea.line.coder.disabled.description').val(comments[i].comment)
-      //   }
-      //
-      // }
+
+console.log(reviews)
+
       reviews.map((review) => {
         if (review.line == line) {
           $('textarea.line.coder.disabled.description').val(review.description)
@@ -96,7 +93,7 @@ editor.on('dblclick', () => {
 
       comments.map((comment) => {
         if (comment.line == line) {
-          $('textarea.line.coder.disabled.description').val(comment.comment)
+          $('textarea.line.coder.disabled.description').val(comment.description)
         }
       })
 
@@ -128,13 +125,10 @@ socket.on('init state', (payload) => {
  */
 
 socket.on('init reviews', (payload) => {
-  for(var i in payload){
-    comments = payload
-    console.log(comments)
-    console.log('type'+typeof(payload))
-    // console.log(payload[i].line)
-      editor.addLineClass(parseInt(payload[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
-  }
+  comments = payload
+  payload.map((comment) => {
+      editor.addLineClass(parseInt(comment.line)-1, 'wrap', 'CodeMirror-activeline-background')
+  })
 })
 
 /**

@@ -16,7 +16,7 @@ const commentSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please enter a pid']
     },
-    comment: {
+    description: {
         type: String,
         required: [true, 'Please enter a comment']
     },
