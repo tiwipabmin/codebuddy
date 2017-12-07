@@ -124,3 +124,34 @@ exports.searchUserByPurpose = async (req, res) => {
   }
   res.send(users)
 }
+
+exports.acceptInvite = async (req, res) => {
+  const id = req.body.id
+  Project.update({ 
+      pid: id
+    }, { 
+      $set: { 
+        status: "" 
+      }
+    }, function(err, result){
+      if(err) res.send("error")
+      if(result) {
+        res.send("success")
+        // res.redirect(303,'/dashboard')
+      }  
+    }) 
+}
+
+exports.declineInvite = async (req, res) => {
+  const id = req.body.id
+  Project.remove({ 
+      pid: id
+    }, function(err, result){
+      if(err) res.send("error")
+      if(result) {
+        res.send("success")
+        // res.redirect(303,'/dashboard')
+      }  
+    }) 
+}
+

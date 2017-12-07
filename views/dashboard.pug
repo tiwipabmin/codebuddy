@@ -214,8 +214,8 @@ block content
                   .description @#{invite.creator} has invited you to join <b>#{invite.title}</b> project.
                 .right.floated.content
                   .ui.two.buttons
-                    .ui.basic.green.button Approve
-                    .ui.basic.red.button Decline
+                    .ui.basic.green.button.accept-invite-button(onclick='onClickAcceptInvite("'+invite.pid+'")') Accept
+                    .ui.basic.red.button.accept-decline-button(onclick='onClickDeclineInvite("'+invite.pid+'")') Decline
       .ui.items.segment
         if projects.length > 0
           each project in projects
