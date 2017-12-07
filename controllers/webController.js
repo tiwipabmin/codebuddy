@@ -16,9 +16,20 @@ exports.userSignout = (req, res) => {
 
 exports.getDashboard = async (req, res) => {
   const projects = await Project
-    .find({ $or: [{ creator: req.user.username }, { collaborator: req.user.username }] })
+    .find({ $and : [
+        {status: {$ne : "pending"} },
+        {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]} 
+      ]
+    })
     .sort({ createdAt: -1 })
-  res.render('dashboard', { projects, title: 'Dashboard' })
+  const invitations =  await Project
+    .find({ $and : [
+          {status: "pending" },
+          {collaborator: req.user.username }
+        ]
+      })
+    .sort({ createdAt: -1 })
+  res.render('dashboard', { projects, invitations, title: 'Dashboard' })
 }
 
 exports.getPlayground = async (req, res) => {

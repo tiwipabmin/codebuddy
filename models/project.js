@@ -27,6 +27,7 @@ const projectSchema = new mongoose.Schema({
   collaborator: String,
   language: { type: String, default: 'py' },
   swaptime: {type : String, default: '5'},
+  status: String,
   files: String
 })
 
