@@ -22,12 +22,13 @@ $(document).ready(function() {
         $('#ui-purpose-'+index).addClass('teal inverted')
         const purpose = $(this).data("purpose")
         const uid = $(this).data("uid")
-        var parameters = { purpose: purpose, uid: uid};
+        const score = $(this).data("score")
+        var parameters = { purpose: purpose, uid: uid, score: score};
         $.get( 'dashboard/searchUserByPurpose',parameters, function(data) {
             $(".user-purpose-list").empty();
             if (data.length > 0) {
                 data.forEach(function(user) {
-                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickAddUserButton(\"" +user.username+"\", \"" +user.username+"\", \"" +user.username+"\")'>Add</div></div><img class='ui avatar image' src='/images/christian.jpg'><div class='content'><div class='header'>"+user.username+"</div></div></div>");
+                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickAddUserButton(\"" +user.username+"\", \"" +user.username+"\", \"" +user.username+"\")'>Add</div></div><img class='ui avatar image' src='/images/christian.jpg'><div class='content'><div class='header'>"+user.username+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(user.avgScore).toFixed(2)+"</a></div></div></div></div>");
                 }, this);  
             } else {
                 $(".user-purpose-list").append("<li class='ui item'>No results</li>")

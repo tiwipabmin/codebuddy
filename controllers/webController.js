@@ -85,6 +85,10 @@ exports.searchUser = async (req, res) => {
 exports.searchUserByPurpose = async (req, res) => {
   const purpose = req.query.purpose
   const uid = req.query.uid
-  console.log(req.query.purpose) 
-  res.send([])
+  const score = req.query.score
+  console.log(req.query.purpose+" "+ req.query.uid+" "+req.query.score)
+  const users = await User.find( { 
+    avgScore: 0
+  })
+  res.send(users)
 }
