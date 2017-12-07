@@ -81,3 +81,10 @@ exports.searchUser = async (req, res) => {
   })
   res.send(users)
 }
+
+exports.searchUserByPurpose = async (req, res) => {
+  const purpose = req.query.purpose
+  const uid = req.query.uid
+  console.log(req.query.purpose) 
+  res.send([])
+}

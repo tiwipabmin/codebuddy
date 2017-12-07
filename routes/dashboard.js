@@ -16,6 +16,7 @@ const router = express.Router()
  */
 router.get('/', auth.isSignedIn, catchErrors(webController.getDashboard))
 router.get('/searchUser', auth.isSignedIn, catchErrors(webController.searchUser))
+router.get('/searchUserByPurpose', auth.isSignedIn, catchErrors(webController.searchUserByPurpose))
 
 // router
 // .use(auth.isSignedIn)

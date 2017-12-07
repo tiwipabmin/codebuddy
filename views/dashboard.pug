@@ -150,24 +150,25 @@ block content
           a.ui.red.ribbon.label Recommended
           .ui.grid
             .six.wide.column
-                .ui.segment.top.attached.purpose-segment-tab
+                #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab&attributes({'data-purpose':'quality', 'data-uid':user._id})
                   .row
                     i.large.circular.inverted.teal.line.chart.icon
                   .row
                     | Improve quality
-                .ui.segment.attached.purpose-segment-tab
+                #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab.teal.inverted&attributes({'data-purpose':'experience', 'data-uid':user._id})
                   .row
-                    i.large.circular.inverted.teal.line.chart.icon
+                    i.large.circular.inverted.teal.line.idea.icon
                   .row  
                     | Enhance the experience
-                .ui.segment.bottom.attached.purpose-segment-tab
+                #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab&attributes({'data-purpose':'train', 'data-uid':user._id})
                   .row
-                    i.large.circular.inverted.teal.line.chart.icon.center.aligned
+                    i.large.circular.inverted.teal.line.student.icon.center.aligned
                   .row  
                     | Trainer
             .ten.wide.column 
               .ui.segment.container.fluid.purpose-segment-tab
-                | AAA
+                .ui.middle.aligned.animated.list.user-purpose-list
+                    li.ui.item Search result
         .ui.bottom.attached.tab.segment(data-tab="search")
           .ui.grid
             .six.wide.column

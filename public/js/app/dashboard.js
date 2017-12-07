@@ -16,6 +16,25 @@ $(document).ready(function() {
             }         
         })
     })
+    $('.ui-purpose').click(function() {
+        const index = $('.ui-purpose').index(this)
+        $('.ui-purpose').removeClass('teal inverted')
+        $('#ui-purpose-'+index).addClass('teal inverted')
+        const purpose = $(this).data("purpose")
+        const uid = $(this).data("uid")
+        var parameters = { purpose: purpose, uid: uid};
+        $.get( 'dashboard/searchUserByPurpose',parameters, function(data) {
+            $(".user-purpose-list").empty();
+            if (data.length > 0) {
+                data.forEach(function(user) {
+                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickAddUserButton(\"" +user.username+"\", \"" +user.username+"\", \"" +user.username+"\")'>Add</div></div><img class='ui avatar image' src='/images/christian.jpg'><div class='content'><div class='header'>"+user.username+"</div></div></div>");
+                }, this);  
+            } else {
+                $(".user-purpose-list").append("<li class='ui item'>No results</li>")
+            }         
+        })
+
+    })
 })
 function onClickAddUserButton(username) {
     $('#collaborator').val(username)
