@@ -81,6 +81,7 @@ editor.on('dblclick', () => {
   switch (roles.user) {
     case 'coder':    
       comments.map((comment) => {
+        console.log(comment)
         if (comment.line == line) {
           $('textarea.line.coder.disabled.description').val(comment.description)
         }
@@ -230,6 +231,20 @@ socket.on('new review', (payload) => {
     editor.addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
   })
 })
+
+socket.on('update review', (payload) => {
+  comments = payload
+})
+
+function deleteReview() {
+  socket.emit('delete review', {
+    line: $('input.disabled.line.no').val(),
+    description: $('textarea.line.reviewer.description').val(),
+  })
+  editor.addLineClass(parseInt(line-1), 'wrap', 'CodeMirror-unactiveline-background')
+  $('textarea.line.description').val('')
+  
+}
 
 /**
  * Run code

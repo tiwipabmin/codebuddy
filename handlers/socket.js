@@ -26,13 +26,13 @@ module.exports = (server) => {
     let curUser = ''
     let review = []
     var comments = []
+    var index = null
 
     winston.info('Client connected')
 
     //set review to mongoDB
     client.on('submit review', (payload) => {
-      var found = false
-      var index = null
+      var found = false     
       
       //if there's no comment in array => add to DB and array
       if (comments.length==0) {
@@ -70,6 +70,15 @@ module.exports = (server) => {
         } 
       }
       io.in(projectId).emit('new review', comments)
+    })
+
+    client.on('delete review', (payload) => {
+      Comment.findOne({
+        pid:  projectId,
+        line: payload.line
+      }).remove().exec()
+      comments.splice(index,1)
+      io.in(projectId).emit('update review', comments)
     })
 
     /**
