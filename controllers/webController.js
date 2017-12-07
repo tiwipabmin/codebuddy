@@ -16,9 +16,20 @@ exports.userSignout = (req, res) => {
 
 exports.getDashboard = async (req, res) => {
   const projects = await Project
-    .find({ $or: [{ creator: req.user.username }, { collaborator: req.user.username }] })
+    .find({ $and : [
+        {status: {$ne : "pending"} },
+        {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]} 
+      ]
+    })
     .sort({ createdAt: -1 })
-  res.render('dashboard', { projects, title: 'Dashboard' })
+  const invitations =  await Project
+    .find({ $and : [
+          {status: "pending" },
+          {collaborator: req.user.username }
+        ]
+      })
+    .sort({ createdAt: -1 })
+  res.render('dashboard', { projects, invitations, title: 'Dashboard' })
 }
 
 exports.getPlayground = async (req, res) => {
@@ -113,3 +124,34 @@ exports.searchUserByPurpose = async (req, res) => {
   }
   res.send(users)
 }
+
+exports.acceptInvite = async (req, res) => {
+  const id = req.body.id
+  Project.update({ 
+      pid: id
+    }, { 
+      $set: { 
+        status: "" 
+      }
+    }, function(err, result){
+      if(err) res.send("error")
+      if(result) {
+        res.send("success")
+        // res.redirect(303,'/dashboard')
+      }  
+    }) 
+}
+
+exports.declineInvite = async (req, res) => {
+  const id = req.body.id
+  Project.remove({ 
+      pid: id
+    }, function(err, result){
+      if(err) res.send("error")
+      if(result) {
+        res.send("success")
+        // res.redirect(303,'/dashboard')
+      }  
+    }) 
+}
+

@@ -32,3 +32,15 @@
     position: fixed;
     z-index: 1;
 }
+
+.text-center {
+    text-align: center;
+}
+
+.invitation-card {
+    width: 500px !important;
+    border: 2px solid rgb(85, 81, 81);
+    border-radius: 5px;
+    margin-top: 10px !important;
+    margin-bottom: 4px !important;
+}

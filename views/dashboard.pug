@@ -118,6 +118,7 @@ block content
                option(value='15') 15 minutes (Recommended)
                option(value='10') 10 minutes
                option(value='5') 5 minutes
+            input(type='hidden' name='status' value="pending")   
           .ui.form
             .inline.fields
               //- .fields
@@ -167,7 +168,7 @@ block content
                   .row  
                     | Trainer
             .ten.wide.column 
-              .ui.circular.labels.your-score-label.right
+              .ui.circular.labels.your-score-label
                   a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
               .ui.segment.container.user-purpose.box
                 .ui.middle.aligned.animated.list.user-purpose-list
@@ -191,39 +192,66 @@ block content
           a.right
             button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
       br
-      .ui.items
-        each project in projects
-          if project.creator === user.username
+      //- invitation
+      //- .ui.cards
+      //-   .card.invitation-card
+      //-     .content
+      //-       img.right.floated.mini.ui.image(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+      //-       .header Header
+      //-       .meta Meta
+      //-       .description Des
+      //-     .extra.content 
+      //-       .ui.two.buttons
+      //-         .ui.basic.green.button Approve
+      //-         .ui.basic.red.button Decline
+      if invitations.length > 0
+        .ui.relaxed.list.segment
+          each invite in invitations
               .item
-                a.ui.tiny.image
-                  img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                img.ui.avatar.image(src='/images/christian.jpg')
                 .content
-                  .ui.grid
-                    .eleven.wide.column
-                      b
-                        a.header(href='/project?pid='+project.pid)= project.title
-                      .description= project.description
-                      | Last updated #{moment(project.createdAt).fromNow()}
-                      | (
-                      a(href='/profile/'+project.collaborator ) @#{project.collaborator}
-                      |)
-                    .five.wide.column
-                      .ui.right.floated.alignedvertical.animated.settingProject.button(tabindex='0', id=project.pid)
-                        .hidden.content Setting
-                        .visible.content
-                          i.setting.icon
+                  a.header #{invite.creator}
+                  .description @#{invite.creator} has invited you to join <b>#{invite.title}</b> project.
+                .right.floated.content
+                  .ui.two.buttons
+                    .ui.basic.green.button.accept-invite-button(onclick='onClickAcceptInvite("'+invite.pid+'")') Accept
+                    .ui.basic.red.button.accept-decline-button(onclick='onClickDeclineInvite("'+invite.pid+'")') Decline
+      .ui.items.segment
+        if projects.length > 0
+          each project in projects
+            if project.creator === user.username
+                .item
+                  a.ui.tiny.image
+                    img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                  .content
+                    .ui.grid
+                      .eleven.wide.column
+                        b
+                          a.header(href='/project?pid='+project.pid)= project.title
+                        .description= project.description
+                        | Last updated #{moment(project.createdAt).fromNow()}
+                        | (
+                        a(href='/profile/'+project.collaborator ) @#{project.collaborator}
+                        |)
+                      .five.wide.column
+                        .ui.right.floated.alignedvertical.animated.settingProject.button(tabindex='0', id=project.pid)
+                          .hidden.content Setting
+                          .visible.content
+                            i.setting.icon
                       
-          else if project.collaborator === user.username
-            .item
-              a.ui.yellow.image.label.middle.aligned
-                img(src='https://semantic-ui.com/images/avatar/small/elliot.jpg')
-                .detail.middle Co-Worker
-              .content
-                a.header(href='/project?pid='+project.pid)= project.title
-                |
-                .description= project.description
-                | Last updated #{moment(project.createdAt).fromNow()} (
-                a(href='/profile/'+project.creator)
-                  | @
-                  = project.creator
-                |)
+            else if project.collaborator === user.username
+              .item
+                a.ui.yellow.image.label.middle.aligned
+                  img(src='https://semantic-ui.com/images/avatar/small/elliot.jpg')
+                  .detail.middle Co-Worker
+                .content
+                  a.header(href='/project?pid='+project.pid)= project.title
+                  |
+                  .description= project.description
+                  | Last updated #{moment(project.createdAt).fromNow()} (
+                  a(href='/profile/'+project.creator)
+                    | @
+                    = project.creator
+                  |)
+        else
+          p.text-center No project.
