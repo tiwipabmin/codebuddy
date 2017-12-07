@@ -85,10 +85,31 @@ exports.searchUser = async (req, res) => {
 exports.searchUserByPurpose = async (req, res) => {
   const purpose = req.query.purpose
   const uid = req.query.uid
-  const score = req.query.score
+  const score = parseFloat(req.query.score)
   console.log(req.query.purpose+" "+ req.query.uid+" "+req.query.score)
-  const users = await User.find( { 
-    avgScore: 0
-  })
+  let user = []
+  if("quality"==purpose){
+    users = await User.find({
+      avgScore: { $lt: score+10, $gt : score-10},
+      _id: {$ne: uid}
+    })
+  } else if ("experience"==purpose){
+    users = await User.find({
+      $or:[
+        {avgScore: {$gt : score+10, $lt : score+20}},
+        {avgScore: {$lt : score-10, $gt : score-20}}
+      ],
+      _id: {$ne: uid}
+    })
+  } else {
+    users = await User.find({
+      $or:[
+        {avgScore: {$gt : score+20, $lt : score+40}},
+        {avgScore: {$lt : score-20, $gt : score-40}}
+      ],
+      _id: {$ne: uid}
+    })
+    console.log(purpose)
+  }
   res.send(users)
 }

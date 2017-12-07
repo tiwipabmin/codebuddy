@@ -155,7 +155,7 @@ block content
                     i.large.circular.inverted.teal.line.chart.icon
                   .row
                     | Improve quality
-                #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab.teal.inverted&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+                #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
                   .row
                     i.large.circular.inverted.teal.line.idea.icon
                   .row  
@@ -167,8 +167,10 @@ block content
                     | Trainer
             .ten.wide.column 
               .ui.segment.container.fluid.purpose-segment-tab
+                .ui.circular.labels
+                  a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
                 .ui.middle.aligned.animated.list.user-purpose-list
-                    li.ui.item Search result
+                    li.ui.item Please select your purpose.
         .ui.bottom.attached.tab.segment(data-tab="search")
           .ui.grid
             .six.wide.column
