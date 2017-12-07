@@ -72,3 +72,12 @@ exports.createProject = async (req, res) => {
   }
   res.redirect('dashboard')
 }
+
+exports.searchUser = async (req, res) => {
+  const keyword = req.query.search
+  console.log(req.query.search) 
+  const users = await User.find( { 
+    username: {$regex: '.*' + keyword + '.*'}
+  })
+  res.send(users)
+}

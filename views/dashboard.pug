@@ -105,6 +105,7 @@ block content
                   |
                   input(type='hidden' name='creator_id' value=user._id)
                   input(type='hidden' name='creator' value=user.username)
+                  input#collaborator-hidden(type='hidden' name='collaborator')
                   input#collaborator(type='text',name='collaborator', placeholder='Search users...', disabled)
               .four.wide.column    
                   button.ui.positive.labeled.icon.button(id='add-collaborator' type='button')
@@ -140,11 +141,11 @@ block content
     +displayFlashes(flashes)
     .ui.small.modal#select-partner-modal
       i.close.icon
-      .header Select Partner
+      .header Select partner
       .content
         .ui.top.attached.tabular.menu
           a.item.active(data-tab="purpose") Select by purpose
-          a.item(data-tab="search") Search Partner
+          a.item(data-tab="search") Search partner
         .ui.bottom.attached.tab.segment.active(data-tab="purpose")
           a.ui.red.ribbon.label Recommended
           .ui.grid
@@ -163,7 +164,7 @@ block content
                   .row
                     i.large.circular.inverted.teal.line.chart.icon.center.aligned
                   .row  
-                    |       Trainer
+                    | Trainer
             .ten.wide.column 
               .ui.segment.container.fluid.purpose-segment-tab
                 | AAA
@@ -172,11 +173,12 @@ block content
             .six.wide.column
               .ui.category.search
                 .ui.icon.input
-                  input.prompt(type="text" placeholder="Search by username...")
+                  input.prompt(type="text" placeholder="Search by username..." id="search-user-input")
                   i.search.icon
             .ten.wide.column 
                 .ui.segment.container.fluid.purpose-segment-tab
-                  | BBB
+                  .ui.middle.aligned.animated.list.user-list
+                    li.ui.item Search result
     .ui.raised.very.padded.text.container.segment
       .ui.two.column.doubling.stackable.grid.container
         .column

@@ -15,6 +15,12 @@ const router = express.Router()
  * @method {GET} return rendered `dashboard.pug`
  */
 router.get('/', auth.isSignedIn, catchErrors(webController.getDashboard))
+router.get('/searchUser', auth.isSignedIn, catchErrors(webController.searchUser))
+
+// router
+// .use(auth.isSignedIn)
+// .route('/searchUser')
+// .get(webController.searchUser)
 
 /**
  * Expose `router`
