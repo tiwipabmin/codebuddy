@@ -1,8 +1,10 @@
 extends layout/layout.pug
 
 block script
+    script(src='/js/app/dashboard.js')
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+    link(rel='stylesheet' href='/css/main.css')
     script(type='text/javascript').
       const options = {}
       $.ajax({
@@ -93,18 +95,23 @@ block content
             input(type='text', name='description', placeholder='Something about your project')
           .content
             .ui.grid
-              .eleven.wide.column
+              .six.wide.column
                 .field
                   label Language :
                   select.ui.dropdown(name='language')
                     option(value='0') Python
+              .six.wide.column
                 .field
-              .five.wide.column
                   label Buddy ID :
                   |
                   input(type='hidden' name='creator_id' value=user._id)
                   input(type='hidden' name='creator' value=user.username)
-                  input#collaborator(type='text',name='collaborator', placeholder='Search users...')
+                  input#collaborator-hidden(type='hidden' name='collaborator')
+                  input#collaborator(type='text',name='collaborator', placeholder='Search users...', disabled)
+              .four.wide.column    
+                  button.ui.positive.labeled.icon.button(id='add-collaborator' type='button')
+                    i.user.icon
+                    |  Add
           .field
             label Time  :
             select.ui.dropdown(name='swaptime')
@@ -133,6 +140,49 @@ block content
               button.ui.button.approve.green(type='submit') Create
               .ui.button.approve.red(data-value='cancel') Cancel
     +displayFlashes(flashes)
+    .ui.small.modal#select-partner-modal
+      i.close.icon
+      .header Select partner
+      .content
+        .ui.top.attached.tabular.menu
+          a.item.active(data-tab="purpose") Select by purpose
+          a.item(data-tab="search") Search partner
+        .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
+          a.ui.red.ribbon.label Recommended
+          .ui.grid
+            .six.wide.column
+                #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.chart.icon
+                  .row
+                    | Improve quality
+                #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.idea.icon
+                  .row  
+                    | Enhance the experience
+                #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.student.icon.center.aligned
+                  .row  
+                    | Trainer
+            .ten.wide.column 
+              .ui.circular.labels.your-score-label.right
+                  a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
+              .ui.segment.container.user-purpose.box
+                .ui.middle.aligned.animated.list.user-purpose-list
+                    li.ui.item Please select your purpose.
+        .ui.bottom.attached.tab.segment.purpose-tab(data-tab="search")
+          .ui.grid
+            .six.wide.column
+              .ui.category.search
+                .ui.icon.input
+                  input.prompt(type="text" placeholder="Search by username..." id="search-user-input")
+                  i.search.icon
+            .ten.wide.column 
+                .ui.segment.container.user-purpose.box
+                  .ui.middle.aligned.animated.list.user-list
+                    li.ui.item Search result
     .ui.raised.very.padded.text.container.segment
       .ui.two.column.doubling.stackable.grid.container
         .column
