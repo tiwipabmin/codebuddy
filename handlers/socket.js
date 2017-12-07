@@ -32,6 +32,7 @@ module.exports = (server) => {
     //set review to mongoDB
     client.on('submit review', (payload) => {
       var found = false
+      
       //if there's no comment in array => add to DB and array
       if (comments.length==0) {
         saveComment(payload)
@@ -41,17 +42,25 @@ module.exports = (server) => {
           if (comments[i].line==payload.line) found = true
         }
         if (found) {
-          Comment.update({
-            pid: projectId,
-            line: payload.line
-          }, {
-            $set: {
-              description: payload.description
-            } 
-          }, (err) => {
-            if (err) throw err
-          })
-          updateDesc(payload.line, payload.description);
+          if(payload.description==''){
+            console.log('pid'+projectId+'  line'+payload.line)
+            Comment.remove({
+              pid: projectId,
+              line: payload.line
+            })
+          } else {
+            Comment.update({
+              pid: projectId,
+              line: payload.line
+            }, {
+              $set: {
+                description: payload.description
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+            updateDesc(payload.line, payload.description);
+          }
         } else {
           saveComment(payload)
         } 
