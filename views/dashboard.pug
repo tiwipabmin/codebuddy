@@ -4,6 +4,7 @@ block script
     script(src='/js/app/dashboard.js')
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+    link(rel='stylesheet' href='/css/main.css')
     script(type='text/javascript').
       const options = {}
       $.ajax({
@@ -146,7 +147,7 @@ block content
         .ui.top.attached.tabular.menu
           a.item.active(data-tab="purpose") Select by purpose
           a.item(data-tab="search") Search partner
-        .ui.bottom.attached.tab.segment.active(data-tab="purpose")
+        .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
           a.ui.red.ribbon.label Recommended
           .ui.grid
             .six.wide.column
@@ -166,12 +167,12 @@ block content
                   .row  
                     | Trainer
             .ten.wide.column 
-              .ui.segment.container.fluid.purpose-segment-tab
-                .ui.circular.labels
+              .ui.circular.labels.your-score-label.right
                   a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
+              .ui.segment.container.user-purpose.box
                 .ui.middle.aligned.animated.list.user-purpose-list
                     li.ui.item Please select your purpose.
-        .ui.bottom.attached.tab.segment(data-tab="search")
+        .ui.bottom.attached.tab.segment.purpose-tab(data-tab="search")
           .ui.grid
             .six.wide.column
               .ui.category.search
@@ -179,7 +180,7 @@ block content
                   input.prompt(type="text" placeholder="Search by username..." id="search-user-input")
                   i.search.icon
             .ten.wide.column 
-                .ui.segment.container.fluid.purpose-segment-tab
+                .ui.segment.container.user-purpose.box
                   .ui.middle.aligned.animated.list.user-list
                     li.ui.item Search result
     .ui.raised.very.padded.text.container.segment

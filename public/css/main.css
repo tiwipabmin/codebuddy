@@ -15,10 +15,20 @@
     /* overflow: hidden; */
 }
 
-.purpose-segment-tab {
+/* .purpose-segment-tab {
     border: 2px solid rgb(85, 81, 81);
     border-radius: 5px;
     margin-top: 10px !important;
     margin-bottom: 4px !important;
     height: 100px;
+} */
+
+.user-purpose.box {
+    height:300px; 
+    overflow-y: scroll;
+}
+
+.your-score-label {
+    position: fixed;
+    z-index: 1;
 }
