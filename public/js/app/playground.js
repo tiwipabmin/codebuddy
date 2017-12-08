@@ -232,17 +232,13 @@ socket.on('new review', (payload) => {
   })
 })
 
-socket.on('update review', (payload) => {
-  comments = payload
-})
-
 function deleteReview() {
-  socket.emit('delete review', {
-    line: $('input.disabled.line.no').val(),
-    description: $('textarea.line.reviewer.description').val(),
-  })
-  editor.addLineClass(parseInt(line-1), 'wrap', 'CodeMirror-unactiveline-background')
-  $('textarea.line.description').val('')
+  // socket.emit('delete review', {
+  //   line: $('input.disabled.line.no').val(),
+  //   description: $('textarea.line.reviewer.description').val(),
+  // })
+  // editor.addLineClass(parseInt(line-1), 'wrap', 'CodeMirror-unactiveline-background')
+  // $('textarea.line.description').val('')
   
 }
 

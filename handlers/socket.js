@@ -73,12 +73,12 @@ module.exports = (server) => {
     })
 
     client.on('delete review', (payload) => {
-      Comment.findOne({
-        pid:  projectId,
-        line: payload.line
-      }).remove().exec()
-      comments.splice(index,1)
-      io.in(projectId).emit('update review', comments)
+      // Comment.findOne({
+      //   pid:  projectId,
+      //   line: payload.line
+      // }).remove().exec()
+      // comments.splice(index,1)
+      // io.in(projectId).emit('update review', comments)
     })
 
     /**
