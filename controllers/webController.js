@@ -1,6 +1,9 @@
 const mongoose = require('mongoose')
 
 const Project = mongoose.model('Project')
+const Message = mongoose.model('Message')
+const Score = mongoose.model('Score')
+const User = mongoose.model('User')
 
 exports.getHomepage = (req, res) => {
   res.render('index')
@@ -13,15 +16,29 @@ exports.userSignout = (req, res) => {
 
 exports.getDashboard = async (req, res) => {
   const projects = await Project
-    .find({ $or: [{ creator: req.user.username }, { collaborator: req.user.username }] })
+    .find({ $and : [
+        {status: {$ne : "pending"} },
+        {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]} 
+      ]
+    })
     .sort({ createdAt: -1 })
-  res.render('dashboard', { projects, title: 'Dashboard' })
+  const invitations =  await Project
+    .find({ $and : [
+          {status: "pending" },
+          {collaborator: req.user.username }
+        ]
+      })
+    .sort({ createdAt: -1 })
+  res.render('dashboard', { projects, invitations, title: 'Dashboard' })
 }
 
 exports.getPlayground = async (req, res) => {
   if (!req.query.pid) res.redirect('/dashboard')
   const project = await Project.findOne({ pid: req.query.pid })
-  res.render('playground', { project, title: `${project.title} - Playground`})
+  const messages = await Message
+      .find({ pid: req.query.pid})
+      .sort({ createdAt: 1 })
+  res.render('playground', { project, title: `${project.title} - Playground`, messages})
 }
 
 exports.getAboutUs = (req, res) => {
@@ -47,7 +64,94 @@ exports.getNotifications = async (req, res) => {
 }
 
 exports.createProject = async (req, res) => {
-  const project = await (new Project(req.body)).save()
-  req.flash('success', `Successfully Created ${project.title} Project.`)
+  const collaborator = await User
+  .findOne({ username: req.body.collaborator})
+  if (collaborator != null) {
+    const project = await (new Project(req.body)).save()
+    Project.update({
+      _id: project._id
+    }, {
+      $set: {
+        collaborator_id: collaborator._id
+      }
+    }, (err) => {
+      if (err) throw err
+    })
+    req.flash('success', `Successfully Created ${project.title} Project.`)
+  } else {
+    req.flash('error', "Can't find @" + req.body.collaborator)
+  }
   res.redirect('dashboard')
 }
+
+exports.searchUser = async (req, res) => {
+  const keyword = req.query.search
+  console.log(req.query.search) 
+  const users = await User.find( { 
+    username: {$regex: '.*' + keyword + '.*'}
+  })
+  res.send(users)
+}
+
+exports.searchUserByPurpose = async (req, res) => {
+  const purpose = req.query.purpose
+  const uid = req.query.uid
+  const score = parseFloat(req.query.score)
+  console.log(req.query.purpose+" "+ req.query.uid+" "+req.query.score)
+  let user = []
+  if("quality"==purpose){
+    users = await User.find({
+      avgScore: { $lt: score+10, $gt : score-10},
+      _id: {$ne: uid}
+    })
+  } else if ("experience"==purpose){
+    users = await User.find({
+      $or:[
+        {avgScore: {$gt : score+10, $lt : score+20}},
+        {avgScore: {$lt : score-10, $gt : score-20}}
+      ],
+      _id: {$ne: uid}
+    })
+  } else {
+    users = await User.find({
+      $or:[
+        {avgScore: {$gt : score+20, $lt : score+40}},
+        {avgScore: {$lt : score-20, $gt : score-40}}
+      ],
+      _id: {$ne: uid}
+    })
+    console.log(purpose)
+  }
+  res.send(users)
+}
+
+exports.acceptInvite = async (req, res) => {
+  const id = req.body.id
+  Project.update({ 
+      pid: id
+    }, { 
+      $set: { 
+        status: "" 
+      }
+    }, function(err, result){
+      if(err) res.send("error")
+      if(result) {
+        res.send("success")
+        // res.redirect(303,'/dashboard')
+      }  
+    }) 
+}
+
+exports.declineInvite = async (req, res) => {
+  const id = req.body.id
+  Project.remove({ 
+      pid: id
+    }, function(err, result){
+      if(err) res.send("error")
+      if(result) {
+        res.send("success")
+        // res.redirect(303,'/dashboard')
+      }  
+    }) 
+}
+
