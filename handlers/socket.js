@@ -2,8 +2,11 @@ const socketio = require('socket.io')
 const winston = require('winston')
 const Redis = require('ioredis')
 const mongoose = require('mongoose')
+const timer = require('timers')
+const moment = require('moment')
 
 const Project = mongoose.model('Project')
+const Comment = mongoose.model('Comment')
 
 /**
  * @param {Object} server server instance
@@ -21,13 +24,61 @@ module.exports = (server) => {
     // recieve project id from client and stored in projectId
     let projectId = ''
     let curUser = ''
+    let review = []
+    var comments = []
+    var index = null
 
     winston.info('Client connected')
 
+    //set review to mongoDB
     client.on('submit review', (payload) => {
-      // projects[projectId]['reviews'].push(payload)
-      winston.info(payload)
-      io.in(projectId).emit('new review', payload)
+      var found = false     
+      
+      //if there's no comment in array => add to DB and array
+      if (comments.length==0) {
+        saveComment(payload)
+      } else {
+        //edit comment in exist line => update in DB
+        for (var i=0; i<comments.length; i++) {
+          if (comments[i].line==payload.line){ 
+            found = true
+            index = i
+          }
+        }
+        if (found) {
+          if (payload.description=='') {
+            Comment.findOne({
+              pid:  projectId,
+              line: payload.line
+            }).remove().exec()
+            comments.splice(index,1)
+          } else {
+            Comment.update({
+              pid: projectId,
+              line: payload.line
+            }, {
+              $set: {
+                description: payload.description
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+            updateDesc(payload.line, payload.description);
+          }
+        } else {
+          saveComment(payload)
+        } 
+      }
+      io.in(projectId).emit('new review', comments)
+    })
+
+    client.on('delete review', (payload) => {
+      // Comment.findOne({
+      //   pid:  projectId,
+      //   line: payload.line
+      // }).remove().exec()
+      // comments.splice(index,1)
+      // io.in(projectId).emit('update review', comments)
     })
 
     /**
@@ -41,6 +92,11 @@ module.exports = (server) => {
         curUser = payload.username
         winston.info(`User ${payload.username} joined at pid: ${payload.pid}`)
         client.join(projectId)
+
+        comments = await Comment
+          .find({pid: payload.pid}, {line:1, description:1, _id:0})
+          .sort({ line: 1 })        
+
         Project.update({
           pid: projectId
         }, {
@@ -73,6 +129,9 @@ module.exports = (server) => {
         client.emit('init state', {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
+
+        client.emit('init reviews', comments)
+
       } catch (error) {
         winston.info(`catching error: ${error}`)
       }
@@ -83,7 +142,9 @@ module.exports = (server) => {
      * @param {Ibject} payload user selected role and partner username
      * then socket will broadcast the role to his partner
      */
+
     client.on('role selected', (payload) => {
+        countdownTimer()
       if (payload.select === 0) {
         projects[projectId].roles.reviewer = curUser
         projects[projectId].roles.coder = payload.partner
@@ -95,10 +156,7 @@ module.exports = (server) => {
     })
 
     client.on('switch role', () => {
-      const temp = projects[projectId].roles.coder
-      projects[projectId].roles.coder = projects[projectId].roles.reviewer
-      projects[projectId].roles.reviewer = temp
-      io.in(projectId).emit('role updated', projects[projectId])
+      switchRole()
     })
 
     /**
@@ -111,6 +169,8 @@ module.exports = (server) => {
       if (origin) {
         // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
         client.to(projectId).emit('editor update', payload.code)
+        console.log(payload);
+        console.log("code " + payload.code.text[0]);
         redis.hset(`project:${projectId}`, 'editor', payload.editor)
       }
     })
@@ -134,7 +194,9 @@ module.exports = (server) => {
         if (err) throw err
       })
       const nodepty = require('node-pty')
-      const pty = nodepty.spawn('python', ['pytest.py'])
+      let pty;
+      if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
+      else pty = nodepty.spawn('python', ['pytest.py'], {})
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
@@ -157,5 +219,62 @@ module.exports = (server) => {
         winston.info(`catching error: ${error}`)
       }
     })
+
+    function countdownTimer() {
+        function intervalFunc() {
+            redis.hgetall(`project:${projectId}`, function (err, obj) {
+                var start = new Date(parseInt(obj.startTime))
+                let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
+                let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
+                io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
+                if (minutes <= 0 && seconds <= 0) {
+                    clearInterval(timerId)
+                    switchRole()
+                }
+            });
+        }
+        var query  = Project.where({ pid: projectId });
+        let swaptime = query.findOne(function (err, project) {
+            if (err) return 300000;
+            if (project) {
+                return swaptime = parseInt(project.swaptime) * 60 * 1000
+                console.log("swaptime"  + project)
+            }
+        });
+        let timerId = setInterval(intervalFunc, 1000);
+        redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
+    }
+
+    function switchRole() {
+        countdownTimer()
+        console.log("project_id" + projectId);
+        console.log(projects[projectId]);
+        const temp = projects[projectId].roles.coder
+        projects[projectId].roles.coder = projects[projectId].roles.reviewer
+        projects[projectId].roles.reviewer = temp
+        io.in(projectId).emit('role updated', projects[projectId])
+    }
+
+    function saveComment(payload){
+      const commentModel = {
+        line: payload.line,
+        pid: projectId,
+        description: payload.description,
+        createdAt: Date.now()
+      }
+      new Comment(commentModel, (err) => {
+          if (err) throw err
+      }).save()
+      comments.push(payload)
+    }
+
+    function updateDesc(line, description){
+      for (var i in comments) {
+        if (comments[i].line == line) {
+           comments[i].description = description;
+           break
+        }
+      }
+    }
   })
 }

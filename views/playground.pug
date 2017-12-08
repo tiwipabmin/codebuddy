@@ -8,6 +8,7 @@ block script
   link(rel='stylesheet' href='/codemirror/theme/seti.css')
   link(rel='stylesheet' href='/codemirror/theme/material.css')
 block content
+
     .ui.basic.modal#selectRole-modal
       .ui.icon.header
         i.users.icon
@@ -38,6 +39,10 @@ block content
             .actions
               button.ui.button.approve.green(onClick='submitReview()') Submit
               .ui.button.approve.red(data-value='cancel') Cancel
+              .ui.floated.alignedvertical.animated.deleteProject.button.approve(onClick='deleteReview()' tabindex='0')
+                        .hidden.content Delete
+                        .visible.content
+                          i.trash.icon
     .ui.coder.small.modal
       .header Review Description
       .content
@@ -63,11 +68,12 @@ block content
             #swapTimer(style='margin: 0 0 10 0')
               <strong>Auto Swapping Role In: </strong>
               span.time
+                    .countdown
               |  minutes
               - let partner = user.username === project.creator ? project.collaborator : project.creator
               - let curUser = user.username === project.creator ? project.creator : project.collaborator
             .user.status
-              span.user.status!= `<strong><em><i class='grey circle icon'></i>${partner}</em></strong`
+              span.user.status!= `<strong><em><i class='grey circle icon'></i>${partner}</em></strong>`
         .five.wide.column.right
           center
             button.ui.primary.labeled.icon.button(onClick='switchRole()')

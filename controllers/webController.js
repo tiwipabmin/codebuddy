@@ -21,7 +21,7 @@ exports.getDashboard = async (req, res) => {
 exports.getPlayground = async (req, res) => {
   if (!req.query.pid) res.redirect('/dashboard')
   const project = await Project.findOne({ pid: req.query.pid })
-  res.render('playground', { project, title: `${project.title} - Playground` })
+  res.render('playground', { project, title: `${project.title} - Playground`})
 }
 
 exports.getAboutUs = (req, res) => {
