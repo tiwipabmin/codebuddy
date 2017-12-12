@@ -295,6 +295,7 @@ function runCode() {
  */
 function submitCode() {
   socket.emit('submit code', {
+    mode: 'button submit',
     uid: uid,
     code: editor.getValue()
   })
@@ -332,6 +333,31 @@ socket.on('show score', (payload) => {
     }
   })
   .modal('show')
+})
+
+/**
+ * Auto update score
+ */
+socket.on('auto update score', (payload) => {
+  socket.emit('submit code', {
+    mode: "auto",
+    uid: uid,
+    code: editor.getValue()
+  })
+  
+})
+
+/**
+ * Auto update score
+ */
+socket.on('show auto update score', (payload) => {
+  $('a#project-score-point').text("score : " + parseFloat(payload.score));
+  if (uid == payload.uid) {
+    $('#user-point-label').text(parseFloat(payload.avgScore).toFixed(2)); 	
+  } else {
+    $('#partner-point-label').text(parseFloat(payload.avgScore).toFixed(2));
+  }
+  
 })
 
 /**

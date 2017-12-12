@@ -244,7 +244,8 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('submit code', (payload) => {
-      console.log('summit code')
+      console.log(payload.mode)
+      const mode = payload.mode
       const uid = payload.uid
       const fs = require('fs')
       const path = require('path')
@@ -327,7 +328,11 @@ module.exports = (server) => {
                               uid: element,
                               avgScore: result.avg
                             }
-                            io.in(projectId).emit('show score', shownScore)
+                            if(mode == "auto"){
+                              io.in(projectId).emit('show auto update score', shownScore)
+                            } else {
+                              io.in(projectId).emit('show score', shownScore)
+                            }
                           })
                         }
                     });
@@ -385,7 +390,11 @@ module.exports = (server) => {
                                   uid: element,
                                   avgScore: result.avg
                                 }
-                                io.in(projectId).emit('show score', shownScore)
+                                if(mode == "auto"){
+                                  io.in(projectId).emit('show auto update score', shownScore)
+                                } else {
+                                  io.in(projectId).emit('show score', shownScore)
+                                }
                               })
                             }
                         });
@@ -428,6 +437,15 @@ module.exports = (server) => {
                 var start = new Date(parseInt(obj.startTime))
                 let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
                 let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
+                console.log(seconds + "secound")
+                flag = 0
+                if(seconds == 0 && flag != 1){
+                  flag = 1
+                  console.log(seconds + "secound yayyy")
+                  io.in(projectId).emit('auto update score')
+                } else {
+                  flag = 0
+                }
                 io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
                 if (minutes <= 0 && seconds <= 0) {
                     clearInterval(timerId)

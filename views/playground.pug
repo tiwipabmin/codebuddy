@@ -84,6 +84,7 @@ block content
               span.time
                     .countdown
               |  minutes
+              //- - let partner_obj = partner_obj
               - let partner_img = partner_obj.img
               - let partner = user.username === project.creator ? project.collaborator : project.creator
               - let curUser = user.username === project.creator ? project.creator : project.collaborator
@@ -183,6 +184,15 @@ block content
               p Buddy
               #remotes
         .eight.wide.column.right
+          a#project-score-point.ui.red.circular.label score : 0
+          a.ui.blue.image.label
+            img.ui.avatar.image(src=user.img) 
+            | #{user.username}
+            .detail#user-point-label 0
+          a.ui.yellow.image.label
+            img.ui.avatar.image(src=partner_img) 
+            | #{partner}
+            .detail#partner-point-label 0
           .ui.form
               textarea#demotext.show
           .ui.segments
