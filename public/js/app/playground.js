@@ -390,20 +390,79 @@ $(document)
           active: '<i class="unmute icon"/>'
         }
       });
-    $('#inputMessage').keydown(function() {
-      socket.emit('is typing', {
+    // $('#inputMessage').keydown(function() {
+    //   socket.emit('is typing', {
+    //     uid: uid,
+    //     text: `${user} is typing...`
+    //   })
+    // });
+    // $('#inputMessage').keyup(function() {
+    //   socket.emit('is typing', {
+    //     uid: uid,
+    //     text: ''
+    //   })
+    // });
+    $('#inputMessage').change(function() {
+      if($('#inputMessage').val() != "") {
+        console.log("is typing")
+        socket.emit('is typing', {
+              uid: uid,
+              text: `${user} is typing...`
+            })
+      } else {
+        socket.emit('is typing', {
+              uid: uid,
+              text: ''
+            })
+      }
+    });
+    console.log("is typing : " + $('#inputMessage').val())
+    updateScroll();
+  });
+$(document)
+.ready(function () {
+  if($('#inputMessage').val() != "") {
+    console.log("is typing")
+    socket.emit('is typing', {
+          uid: uid,
+          text: `${user} is typing...`
+        })
+  } else {
+    socket.emit('is typing', {
+          uid: uid,
+          text: ''
+        })
+  }  
+});
+$(function(){
+  console.log("is typing : " + $('#inputMessage').val())
+  if($('#inputMessage').val() != "") {
+    console.log("is typing")
+    socket.emit('is typing', {
+          uid: uid,
+          text: `${user} is typing...`
+        })
+  } else {
+    socket.emit('is typing', {
+          uid: uid,
+          text: ''
+        })
+  }  
+});
+console.log("is typing : " + $('#inputMessage').val())
+if($('#inputMessage').val() != "") {
+  console.log("is typing")
+  socket.emit('is typing', {
         uid: uid,
         text: `${user} is typing...`
       })
-    });
-    $('#inputMessage').keyup(function() {
-      socket.emit('is typing', {
+} else {
+  socket.emit('is typing', {
         uid: uid,
         text: ''
       })
-    });
-    updateScroll();
-  });
+}  
+  
 
 $('.ui.video.toggle.button')
   .on('click', handler.activate);
