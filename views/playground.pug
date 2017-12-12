@@ -84,6 +84,7 @@ block content
               span.time
                     .countdown
               |  minutes
+              - let partner_img = partner_obj.img
               - let partner = user.username === project.creator ? project.collaborator : project.creator
               - let curUser = user.username === project.creator ? project.creator : project.collaborator
             .user.status
@@ -97,9 +98,9 @@ block content
             button.ui.positive.labeled.icon.button(id='run' onClick='runCode()')
               i.terminal.icon
               |  Run
-            button.ui.positive.labeled.icon.button(id='run' onClick='submitCode()')
+            button.ui.labeled.icon.button.orange(id='run' onClick='submitCode()')
               i.code.icon
-              |  Submit
+              |  Verify
       .ui.divider
       br
       .ui.grid
@@ -196,12 +197,14 @@ block content
               .ui.items.message-list
                 if messages.length == 0
                   .ui.item
-                  | Send message to you pair.
+                  | Send message to your pair.
                 else
                   each message in messages
                     .ui.item
-                      a.ui.avatar.image
-                        img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                      if (message.uid != user._id)
+                        img.ui.avatar.image(src=partner_img)
+                      else 
+                        img.ui.avatar.image(src=`${user.img}`)
                       .content
                         //- a.header Thara
                       .description.curve-box #{message.message}

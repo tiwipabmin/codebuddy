@@ -47,6 +47,7 @@ function config(passport) {
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
+      img: '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg',
       info: {
         firstname: req.body.firstname,
         lastname: req.body.lastname,

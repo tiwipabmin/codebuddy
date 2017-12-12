@@ -69,7 +69,7 @@ html
         a.item(href='/notifications')
           i.mail.icon
           |  Notifications
-          .ui.red.horizontal.label 1
+          //- .ui.red.horizontal.label 1
         .ui.simple.dropdown.right.item
             i.user.icon
             |  Kittikorn Prasertsak
@@ -121,15 +121,15 @@ html
                 .content
                       b
                         a.header(href='/project?pid='+project.pid)= project.title 
-                          |   has been created ! - 30/06/2017
+                          |   has been created ! - #{moment(project.createdAt).format('YYYY/MM/DD HH:mm:ss')}
                       
-          else if project.collaborator === user.username
+          else if (project.collaborator === user.username && project.status != 'pending')
               .item
                 .content
                       b
                         a.header(href='/project?pid='+project.pid) 
-                          |  Joined to #{project.title}
-                          | ! - 30/06/2017
+                          |  Joined to #{project.title}#{project.status}
+                          | ! - #{moment(project.createdAt).format('YYYY/MM/DD HH:mm:ss')}
 
     .ui.inverted.vertical.footer.segment.form-page
       .ui.center.aligned.container

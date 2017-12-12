@@ -34,11 +34,20 @@ exports.getDashboard = async (req, res) => {
 
 exports.getPlayground = async (req, res) => {
   if (!req.query.pid) res.redirect('/dashboard')
+  const user_role = req.query.user_role
+  let partner_obj = ''
   const project = await Project.findOne({ pid: req.query.pid })
   const messages = await Message
       .find({ pid: req.query.pid})
       .sort({ createdAt: 1 })
-  res.render('playground', { project, title: `${project.title} - Playground`, messages})
+  if ('creator' == user_role){
+    partner_obj = await User
+    .findOne({ _id: project.collaborator_id})
+  } else {
+    partner_obj = await User
+    .findOne({ _id: project.creator_id})
+  }
+  res.render('playground', { project, title: `${project.title} - Playground`, messages, partner_obj})
 }
 
 exports.getAboutUs = (req, res) => {

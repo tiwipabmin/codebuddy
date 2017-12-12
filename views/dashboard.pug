@@ -227,7 +227,7 @@ block content
                     .ui.grid
                       .eleven.wide.column
                         b
-                          a.header(href='/project?pid='+project.pid)= project.title
+                          a.header(href='/project?pid='+project.pid+'&user_role=creator')= project.title
                         .description= project.description
                         | Last updated #{moment(project.createdAt).fromNow()}
                         | (
@@ -245,7 +245,7 @@ block content
                   img(src='https://semantic-ui.com/images/avatar/small/elliot.jpg')
                   .detail.middle Co-Worker
                 .content
-                  a.header(href='/project?pid='+project.pid)= project.title
+                  a.header(href='/project?pid='+project.pid+'&user_role=collaborator')= project.title
                   |
                   .description= project.description
                   | Last updated #{moment(project.createdAt).fromNow()} (
