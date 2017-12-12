@@ -7,7 +7,6 @@ const roles = {
   partner: ''
 }
 var comments = null
-
 /**
  * get query parameter from URL
  * @param {String} name parameter name that you want to get value from
@@ -347,10 +346,14 @@ socket.on('term update', (payload) => {
  * Terminal socket
  */
 socket.on('update message', (payload) => {
-  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png'></a><div class='content'></div><div class='description curve-box'><p>"+ payload.message +"</p></div></li>");
+  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='content'></div><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
   updateScroll()
-  if (payload.uid === uid) {
+  if (payload.user._id === uid) {
     $("#inputMessage").val("")
+    socket.emit('is typing', {
+      uid: uid,
+      text: ''
+    })
   }
 })
 

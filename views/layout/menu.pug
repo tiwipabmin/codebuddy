@@ -10,7 +10,8 @@
             |  Notifications
             //- .ui.red.horizontal.label 1
           .ui.simple.dropdown.right.item
-              i.user.icon
+              //- i.user.icon
+              img.ui.avatar.image(src=`${user.img}`)
               = `${user.info.firstname} ${user.info.lastname}`
               i.dropdown.icon
               .menu

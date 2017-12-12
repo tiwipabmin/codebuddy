@@ -84,6 +84,7 @@ block content
               span.time
                     .countdown
               |  minutes
+              - let partner_img = partner_obj.img
               - let partner = user.username === project.creator ? project.collaborator : project.creator
               - let curUser = user.username === project.creator ? project.creator : project.collaborator
             .user.status
@@ -99,7 +100,7 @@ block content
               |  Run
             button.ui.labeled.icon.button.orange(id='run' onClick='submitCode()')
               i.code.icon
-              |  Submit
+              |  Verify
       .ui.divider
       br
       .ui.grid
@@ -200,8 +201,10 @@ block content
                 else
                   each message in messages
                     .ui.item
-                      a.ui.avatar.image
-                        img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                      if (message.uid != user._id)
+                        img.ui.avatar.image(src=partner_img)
+                      else 
+                        img.ui.avatar.image(src=`${user.img}`)
                       .content
                         //- a.header Thara
                       .description.curve-box #{message.message}

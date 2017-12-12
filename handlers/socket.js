@@ -222,8 +222,18 @@ module.exports = (server) => {
       new Message(messageModel, (err) => {
         if (err) throw err
       }).save()
-      io.in(projectId).emit('update message', messageModel)
+      const user = User.where({ _id: uid}).findOne(function(err, user){
+        if(err);
+        if(user){
+          const response = {
+            user: user,
+            message: messageModel
+          }
+          io.in(projectId).emit('update message', response)
+        }
+      })
     })
+
 
     client.on('is typing', (payload) => {
       io.in(projectId).emit('is typing', payload)
