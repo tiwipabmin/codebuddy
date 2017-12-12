@@ -263,140 +263,142 @@ module.exports = (server) => {
         if(before_score != -1) {
           const after_score = data.indexOf("/10 (previous run:");
           score = data.slice(before_score + 28, after_score)
-          const uid = payload.uid
-          const project = Project.where({pid: projectId}).findOne(function (err, project) {
-            if (err);
-            if (project) {
-              if (project.creator_id != null && project.collaborator_id != null){
-                const users = [project.creator_id, project.collaborator_id]
-                users.forEach(function(element) {
-                  const scoreModel = {
-                    pid: projectId,
-                    uid: element,
-                    score: score,
-                    createdAt: Date.now()
+        } else if (data.indexOf('E:') < 0){
+          score = 0
+        }  
+        const uid = payload.uid
+        const project = Project.where({pid: projectId}).findOne(function (err, project) {
+          if (err);
+          if (project) {
+            if (project.creator_id != null && project.collaborator_id != null){
+              const users = [project.creator_id, project.collaborator_id]
+              users.forEach(function(element) {
+                const scoreModel = {
+                  pid: projectId,
+                  uid: element,
+                  score: score,
+                  createdAt: Date.now()
+                }
+                const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
+                  if (err) {
+                    throw err
                   }
-                  const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
-                    if (err) {
-                      throw err
-                    }
-                    if (!oldScore) {
-                      new Score(scoreModel, (err) => {
-                        if (err) throw err
-                      }).save()
-                      
-                      //recalculate score
-                      sumScore = Score.aggregate([
-                        { $match:{
-                            uid: element
-                        }},
-                        { $group: {
-                            _id: '$uid',
-                            avg: {$avg: '$score'}
-                        }}
-                      ], function (err, results) {
-                          if (err) {
-                              console.log(err);
-                              return;
-                          }
-                          if (results) {
-                            // sum = 0;
-                            results.forEach(function(result) {
-                              console.log("avg: "+result._id+" "+result.score+" "+result.avg);
-                              //start update
-                              User.update({
-                                _id: element
-                              }, { 
-                                $set: { 
-                                  avgScore: result.avg
-                                }
-                              }, 
-                              function(err, userReturn){
-                                if (err) ;
-                                if (userReturn) {
-                                  console.log(userReturn)
-                                }
-
-                              });
-                              //end update
-                              const shownScore = {
-                                score: score,
-                                uid: element,
+                  if (!oldScore) {
+                    new Score(scoreModel, (err) => {
+                      if (err) throw err
+                    }).save()
+                    
+                    //recalculate score
+                    sumScore = Score.aggregate([
+                      { $match:{
+                          uid: element
+                      }},
+                      { $group: {
+                          _id: '$uid',
+                          avg: {$avg: '$score'}
+                      }}
+                    ], function (err, results) {
+                        if (err) {
+                            console.log(err);
+                            return;
+                        }
+                        if (results) {
+                          // sum = 0;
+                          results.forEach(function(result) {
+                            console.log("avg: "+result._id+" "+result.score+" "+result.avg);
+                            //start update
+                            User.update({
+                              _id: element
+                            }, { 
+                              $set: { 
                                 avgScore: result.avg
                               }
-                              io.in(projectId).emit('show score', shownScore)
-                            })
-                          }
-                      });
-                      //end recalculate score
-
-                    }
-                    if (oldScore) {
-                      Score.update({
-                        pid: projectId, 
-                        uid: element
-                      }, { 
-                        $set: { 
-                          score: score 
-                        }
-                      }, 
-                      function(err, scoreReturn){
-                        if(err) throw err;
-                        if(scoreReturn) {
-                          //recalculate score
-                          sumScore = Score.aggregate([
-                            { $match:{
-                                uid: element
-                            }},
-                            { $group: {
-                                _id: '$uid',
-                                avg: {$avg: '$score'}
-                            }}
-                          ], function (err, results) {
-                              if (err) {
-                                  console.log(err);
-                                  return;
+                            }, 
+                            function(err, userReturn){
+                              if (err) ;
+                              if (userReturn) {
+                                console.log(userReturn)
                               }
-                              if (results) {
-                                // sum = 0;
-                                results.forEach(function(result) {
-                                  console.log("avg: "+result._id+" "+result.avg);
-                                  //start update
-                                  User.update({
-                                    _id: element
-                                  }, { 
-                                    $set: { 
-                                      avgScore: result.avg
-                                    }
-                                  }, 
-                                  function(err, userReturn){
-                                    if (err) ;
-                                    if (userReturn) {
-                                      console.log(userReturn)
-                                    }
 
-                                  });
-                                  //end update
-                                  const shownScore = {
-                                    score: score,
-                                    uid: element,
+                            });
+                            //end update
+                            const shownScore = {
+                              score: score,
+                              uid: element,
+                              avgScore: result.avg
+                            }
+                            io.in(projectId).emit('show score', shownScore)
+                          })
+                        }
+                    });
+                    //end recalculate score
+
+                  }
+                  if (oldScore) {
+                    Score.update({
+                      pid: projectId, 
+                      uid: element
+                    }, { 
+                      $set: { 
+                        score: score 
+                      }
+                    }, 
+                    function(err, scoreReturn){
+                      if(err) throw err;
+                      if(scoreReturn) {
+                        //recalculate score
+                        sumScore = Score.aggregate([
+                          { $match:{
+                              uid: element
+                          }},
+                          { $group: {
+                              _id: '$uid',
+                              avg: {$avg: '$score'}
+                          }}
+                        ], function (err, results) {
+                            if (err) {
+                                console.log(err);
+                                return;
+                            }
+                            if (results) {
+                              // sum = 0;
+                              results.forEach(function(result) {
+                                console.log("avg: "+result._id+" "+result.avg);
+                                //start update
+                                User.update({
+                                  _id: element
+                                }, { 
+                                  $set: { 
                                     avgScore: result.avg
                                   }
-                                  io.in(projectId).emit('show score', shownScore)
-                                })
-                              }
-                          });
-                          //end recalculate score
-                          
-                        }
-                      });
-                    }  
-                  });
-                }, this);
-              }
+                                }, 
+                                function(err, userReturn){
+                                  if (err) ;
+                                  if (userReturn) {
+                                    console.log(userReturn)
+                                  }
+
+                                });
+                                //end update
+                                const shownScore = {
+                                  score: score,
+                                  uid: element,
+                                  avgScore: result.avg
+                                }
+                                io.in(projectId).emit('show score', shownScore)
+                              })
+                            }
+                        });
+                        //end recalculate score
+                        
+                      }
+                    });
+                  }  
+                });
+              }, this);
             }
-          });
-        }
+          }
+        });
         console.log("score"+score)
         io.in(projectId).emit('term update', data)
       })
@@ -449,10 +451,25 @@ module.exports = (server) => {
         countdownTimer()
         console.log("project_id" + projectId);
         console.log(projects[projectId]);
-        const temp = projects[projectId].roles.coder
-        projects[projectId].roles.coder = projects[projectId].roles.reviewer
-        projects[projectId].roles.reviewer = temp
-        io.in(projectId).emit('role updated', projects[projectId])
+        // Checking if this project hasn't have any roles assigned.
+        if (!projects[projectId]) {
+          winston.info(`created new projects['${projectId}'] - fix bug version`)
+          projects[projectId] = {
+            roles: {
+              coder: '',
+              reviewer: '',
+              reviews: []
+            },
+            count: 1
+          }
+          winston.info(projects[projectId].count)
+          client.emit('role selection')
+        }  else {
+          const temp = projects[projectId].roles.coder
+          projects[projectId].roles.coder = projects[projectId].roles.reviewer
+          projects[projectId].roles.reviewer = temp
+          io.in(projectId).emit('role updated', projects[projectId])
+        }
     }
 
     function saveComment(payload){
