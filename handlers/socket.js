@@ -264,7 +264,7 @@ module.exports = (server) => {
         const before_score = data.indexOf("Your code has been rated at");
         let score = 0;
         if(before_score != -1) {
-          const after_score = data.indexOf("/10 (previous run:");
+          const after_score = data.indexOf("/10");
           score = data.slice(before_score + 28, after_score)
         } else if (data.indexOf('E:') < 0){
           score = 0
