@@ -351,6 +351,7 @@ socket.on('auto update score', (payload) => {
  * Auto update score
  */
 socket.on('show auto update score', (payload) => {
+  console.log(payload)
   $('a#project-score-point').text("score : " + parseFloat(payload.score));
   if (uid == payload.uid) {
     $('#user-point-label').text(parseFloat(payload.avgScore).toFixed(2)); 	
@@ -443,6 +444,11 @@ $(document)
               uid: uid,
               text: ''
             })
+      }
+    });
+    $('#inputMessage').keydown(function(e) {
+      if (e.keyCode == 13) {
+        sendMessage()
       }
     });
     console.log("is typing : " + $('#inputMessage').val())
