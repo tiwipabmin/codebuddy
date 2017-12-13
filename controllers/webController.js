@@ -29,6 +29,20 @@ exports.getDashboard = async (req, res) => {
         ]
       })
     .sort({ createdAt: -1 })
+  // projects.forEach(element => {
+  //   console.log(element)
+  //   let partner = ''
+  //   if(req.user.username == element.creator) {
+  //     partner = await User
+  //     .findOne(req.user.username)
+  //   } else {
+  //     partner = await User
+  //     .findOne(req.user.username)
+  //   }
+  //   element.partner_img = partner.img
+  //   console.log(element.partner_img)
+  // });
+  
   res.render('dashboard', { projects, invitations, title: 'Dashboard' })
 }
 
