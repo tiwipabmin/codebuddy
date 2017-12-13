@@ -133,6 +133,8 @@ module.exports = (server) => {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
 
+        io.in(projectId).emit('auto update score')
+
         client.emit('init reviews', comments)
 
       } catch (error) {
@@ -441,7 +443,6 @@ module.exports = (server) => {
                 flag = 0
                 if(seconds == 0 && flag != 1){
                   flag = 1
-                  console.log(seconds + "secound yayyy")
                   io.in(projectId).emit('auto update score')
                 } else {
                   flag = 0
