@@ -138,8 +138,8 @@ exports.searchUserByPurpose = async (req, res) => {
   } else {
     users = await User.find({
       $or:[
-        {avgScore: {$gt : score+20, $lt : score+40}},
-        {avgScore: {$lt : score-20, $gt : score-40}}
+        {avgScore: {$gt : score+20, $lt : score+30}},
+        {avgScore: {$lt : score-20, $gt : score-30}}
       ],
       _id: {$ne: uid}
     })
