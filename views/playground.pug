@@ -85,7 +85,9 @@ block content
                     .countdown
               |  minutes
               //- - let partner_obj = partner_obj
-              - let partner_img = partner_obj.img
+              //- - if partner_obj is null
+              - let partner_img = partner_obj === null ? '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg' : partner_obj.img
+              - while (partner_img == user.img) {partner_img = '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg'}
               - let partner = user.username === project.creator ? project.collaborator : project.creator
               - let curUser = user.username === project.creator ? project.creator : project.collaborator
             .user.status
