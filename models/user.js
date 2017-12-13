@@ -33,6 +33,13 @@ const userSchema = mongoose.Schema({
     },
     required: 'Please enter an email address'
   },
+  avgScore: {
+    type: Number,
+    default: 0
+  },
+  img: {
+    type: String
+  },
   info: {
     firstname: {
       type: String,
@@ -45,7 +52,8 @@ const userSchema = mongoose.Schema({
       trim: true
     },
     occupation: String,
-    gender: String
+    gender: String,
+    status: String
   }
 })
 

@@ -6,8 +6,7 @@ const roles = {
   user: '',
   partner: ''
 }
-const reviews = []
-
+var comments = null
 /**
  * get query parameter from URL
  * @param {String} name parameter name that you want to get value from
@@ -79,16 +78,21 @@ editor.on('dblclick', () => {
   $('input.disabled.line.no').val(A1 + 1)
   let line = $('input.disabled.line.no').val()
   switch (roles.user) {
-    case 'coder':
-      reviews.map((review) => {
-        if (review.line === line) {
-          $('textarea.line.coder.disabled.description').val(review.description)
-          // $('#priority').html(review.priority)
+    case 'coder':    
+      comments.map((comment) => {
+        console.log(comment)
+        if (comment.line == line) {
+          $('textarea.line.coder.disabled.description').val(comment.description)
         }
       })
       $('.ui.coder.small.modal').modal('show')
       break
     case 'reviewer':
+      comments.map((comment) => {
+        if (comment.line == line) {
+          $('textarea.line.reviewer.description').val(comment.description)
+        }
+      })
       $('.ui.reviewer.small.modal').modal('show')
       break
   }
@@ -107,6 +111,17 @@ socket.emit('join project', {
  */
 socket.on('init state', (payload) => {
   editor.setValue(payload.editor)
+})
+
+/**
+ * After user join the project, user will recieve initiate review to hilight in local editor
+ */
+
+socket.on('init reviews', (payload) => {
+  comments = payload
+  payload.map((comment) => {
+      editor.addLineClass(parseInt(comment.line)-1, 'wrap', 'CodeMirror-activeline-background')
+  })
 })
 
 /**
@@ -134,17 +149,19 @@ socket.on('role selection', () => {
     .modal('show')
 })
 
+socket.on('countdown', (payload) => {
+    $(".countdown").html(`${payload.minutes} : ${payload.seconds}`)
+})
+
 socket.on('role updated', (payload) => {
   if (user === payload.roles.reviewer) {
     editor.setOption('readOnly', 'nocursor')
     roles.user = 'reviewer'
     roles.partner = 'coder'
-    // alert('Your current role is : `Reviewer`')
   } else {
     roles.user = 'coder'
     roles.partner = 'reviewer'
     editor.setOption('readOnly', false)
-    // alert('Your current role is : `Coder`')
   }
   // startCountdown()
 })
@@ -208,10 +225,26 @@ function submitReview() {
 }
 
 socket.on('new review', (payload) => {
-  reviews.push(payload)
-  reviews.map((review) => {
-    editor.addLineClass(parseInt(review.line-1), 'wrap', 'CodeMirror-activeline-background')
+  comments = payload
+  comments.map((comment) => {
+    editor.addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
   })
+})
+
+function deleteReview() {
+  // socket.emit('delete review', {
+  //   line: $('input.disabled.line.no').val(),
+  //   description: $('textarea.line.reviewer.description').val(),
+  // })
+  // editor.addLineClass(parseInt(line-1), 'wrap', 'CodeMirror-unactiveline-background')
+  // $('textarea.line.description').val('')
+  
+}
+
+socket.on('is typing', (payload) => {
+  if (uid != payload.uid) {
+    $('#show-is-typing').text(payload.text);
+  }
 })
 
 /**
@@ -258,11 +291,97 @@ function runCode() {
 }
 
 /**
+ * Submit code
+ */
+function submitCode() {
+  socket.emit('submit code', {
+    mode: 'button submit',
+    uid: uid,
+    code: editor.getValue()
+  })
+  term.writeln('Scoring pytest.py...')
+}
+
+/**
+ * Send Message
+ */
+function sendMessage() {
+  if (document.getElementById("inputMessage").value != '') {
+    socket.emit('send message', {
+      uid: uid,
+      message:  document.getElementById("inputMessage").value
+    })
+  }
+}
+
+/**
+ * Show score dialog
+ */
+socket.on('show score', (payload) => {
+  console.log(payload)
+  $('#showScore-modal').modal('hide')
+  $('#showScore-modal').modal('show')
+  $('p#show-point').text("Your score is "+parseFloat(payload.score).toFixed(2)+" points.");
+  if (uid == payload.uid) {
+    $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points"); 	
+  }
+  $('#showScore-modal')
+  .modal({
+    closable  : true,
+    onApprove : function() {
+
+    }
+  })
+  .modal('show')
+})
+
+/**
+ * Auto update score
+ */
+socket.on('auto update score', (payload) => {
+  socket.emit('submit code', {
+    mode: "auto",
+    uid: uid,
+    code: editor.getValue()
+  })
+  
+})
+
+/**
+ * Auto update score
+ */
+socket.on('show auto update score', (payload) => {
+  console.log(payload)
+  $('a#project-score-point').text("score : " + parseFloat(payload.score));
+  if (uid == payload.uid) {
+    $('#user-point-label').text(parseFloat(payload.avgScore).toFixed(2)); 	
+  } else {
+    $('#partner-point-label').text(parseFloat(payload.avgScore).toFixed(2));
+  }
+  
+})
+
+/**
  * Terminal socket
  */
 socket.on('term update', (payload) => {
   term.writeln(payload)
   term.prompt()
+})
+
+/**
+ * Terminal socket
+ */
+socket.on('update message', (payload) => {
+  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='content'></div><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
+  updateScroll()
+  if (payload.user._id === uid) {
+    $("#inputMessage").val("")
+    socket.emit('is typing', {
+      uid: uid,
+      text: ''
+    })
+  }
 })
 
 /**
@@ -301,7 +420,85 @@ $(document)
           active: '<i class="unmute icon"/>'
         }
       });
+    // $('#inputMessage').keydown(function() {
+    //   socket.emit('is typing', {
+    //     uid: uid,
+    //     text: `${user} is typing...`
+    //   })
+    // });
+    // $('#inputMessage').keyup(function() {
+    //   socket.emit('is typing', {
+    //     uid: uid,
+    //     text: ''
+    //   })
+    // });
+    $('#inputMessage').change(function() {
+      if($('#inputMessage').val() != "") {
+        console.log("is typing")
+        socket.emit('is typing', {
+              uid: uid,
+              text: `${user} is typing...`
+            })
+      } else {
+        socket.emit('is typing', {
+              uid: uid,
+              text: ''
+            })
+      }
+    });
+    $('#inputMessage').keydown(function(e) {
+      if (e.keyCode == 13) {
+        sendMessage()
+      }
+    });
+    console.log("is typing : " + $('#inputMessage').val())
+    updateScroll();
   });
+$(document)
+.ready(function () {
+  if($('#inputMessage').val() != "") {
+    console.log("is typing")
+    socket.emit('is typing', {
+          uid: uid,
+          text: `${user} is typing...`
+        })
+  } else {
+    socket.emit('is typing', {
+          uid: uid,
+          text: ''
+        })
+  }  
+});
+$(function(){
+  console.log("is typing : " + $('#inputMessage').val())
+  if($('#inputMessage').val() != "") {
+    console.log("is typing")
+    socket.emit('is typing', {
+          uid: uid,
+          text: `${user} is typing...`
+        })
+  } else {
+    socket.emit('is typing', {
+          uid: uid,
+          text: ''
+        })
+  }  
+});
+console.log("is typing : " + $('#inputMessage').val())
+if($('#inputMessage').val() != "") {
+  console.log("is typing")
+  socket.emit('is typing', {
+        uid: uid,
+        text: `${user} is typing...`
+      })
+} else {
+  socket.emit('is typing', {
+        uid: uid,
+        text: ''
+      })
+}  
+  
+
 $('.ui.video.toggle.button')
   .on('click', handler.activate);
 $('.ui.video.toggle.button')
@@ -324,3 +521,9 @@ $('.ui.mute.toggle.button')
 function switchRole() {
   socket.emit('switch role')
 }
+
+function updateScroll(){
+  // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
+  $(".chat").animate({ scrollTop: $('.message-list').height() }, "fast");
+}
+
