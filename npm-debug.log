@@ -1,0 +1,136 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/bin/node', '/usr/bin/npm', 'install', 'yarn', '-g' ]
+2 info using npm@3.10.10
+3 info using node@v6.12.2
+4 silly loadCurrentTree Starting
+5 silly install loadCurrentTree
+6 silly install readGlobalPackageData
+7 silly fetchPackageMetaData yarn
+8 silly fetchNamedPackageData yarn
+9 silly mapToRegistry name yarn
+10 silly mapToRegistry using default registry
+11 silly mapToRegistry registry https://registry.npmjs.org/
+12 silly mapToRegistry data Result {
+12 silly mapToRegistry   raw: 'yarn',
+12 silly mapToRegistry   scope: null,
+12 silly mapToRegistry   escapedName: 'yarn',
+12 silly mapToRegistry   name: 'yarn',
+12 silly mapToRegistry   rawSpec: '',
+12 silly mapToRegistry   spec: 'latest',
+12 silly mapToRegistry   type: 'tag' }
+13 silly mapToRegistry uri https://registry.npmjs.org/yarn
+14 verbose request uri https://registry.npmjs.org/yarn
+15 verbose request no auth needed
+16 info attempt registry request try #1 at 4:20:37 PM
+17 verbose request id 1c655e205266eb0f
+18 verbose etag "5a225eba-33987"
+19 verbose lastModified Sat, 2 Dec 2017 8:05:14 GMT
+20 http request GET https://registry.npmjs.org/yarn
+21 http 304 https://registry.npmjs.org/yarn
+22 verbose headers { date: 'Wed, 13 Dec 2017 09:20:37 GMT',
+22 verbose headers   via: '1.1 varnish',
+22 verbose headers   'cache-control': 'max-age=300',
+22 verbose headers   etag: '"5a225eba-33987"',
+22 verbose headers   age: '10810',
+22 verbose headers   connection: 'keep-alive',
+22 verbose headers   'x-served-by': 'cache-sin18022-SIN',
+22 verbose headers   'x-cache': 'HIT',
+22 verbose headers   'x-cache-hits': '1',
+22 verbose headers   'x-timer': 'S1513156838.574703,VS0,VE1',
+22 verbose headers   vary: 'Accept-Encoding, Accept' }
+23 silly get cb [ 304,
+23 silly get   { date: 'Wed, 13 Dec 2017 09:20:37 GMT',
+23 silly get     via: '1.1 varnish',
+23 silly get     'cache-control': 'max-age=300',
+23 silly get     etag: '"5a225eba-33987"',
+23 silly get     age: '10810',
+23 silly get     connection: 'keep-alive',
+23 silly get     'x-served-by': 'cache-sin18022-SIN',
+23 silly get     'x-cache': 'HIT',
+23 silly get     'x-cache-hits': '1',
+23 silly get     'x-timer': 'S1513156838.574703,VS0,VE1',
+23 silly get     vary: 'Accept-Encoding, Accept' } ]
+24 verbose etag https://registry.npmjs.org/yarn from cache
+25 verbose get saving yarn to /home/codebuddy/.npm/registry.npmjs.org/yarn/.cache.json
+26 verbose correctMkdir /home/codebuddy/.npm correctMkdir not in flight; initializing
+27 silly install normalizeTree
+28 silly loadCurrentTree Finishing
+29 silly loadIdealTree Starting
+30 silly install loadIdealTree
+31 silly cloneCurrentTree Starting
+32 silly install cloneCurrentTreeToIdealTree
+33 silly cloneCurrentTree Finishing
+34 silly loadShrinkwrap Starting
+35 silly install loadShrinkwrap
+36 silly loadShrinkwrap Finishing
+37 silly loadAllDepsIntoIdealTree Starting
+38 silly install loadAllDepsIntoIdealTree
+39 silly resolveWithNewModule yarn@1.3.2 checking installable status
+40 silly cache add args [ 'yarn', null ]
+41 verbose cache add spec yarn
+42 silly cache add parsed spec Result {
+42 silly cache add   raw: 'yarn',
+42 silly cache add   scope: null,
+42 silly cache add   escapedName: 'yarn',
+42 silly cache add   name: 'yarn',
+42 silly cache add   rawSpec: '',
+42 silly cache add   spec: 'latest',
+42 silly cache add   type: 'tag' }
+43 silly addNamed yarn@latest
+44 verbose addNamed "latest" is being treated as a dist-tag for yarn
+45 info addNameTag [ 'yarn', 'latest' ]
+46 silly mapToRegistry name yarn
+47 silly mapToRegistry using default registry
+48 silly mapToRegistry registry https://registry.npmjs.org/
+49 silly mapToRegistry data Result {
+49 silly mapToRegistry   raw: 'yarn',
+49 silly mapToRegistry   scope: null,
+49 silly mapToRegistry   escapedName: 'yarn',
+49 silly mapToRegistry   name: 'yarn',
+49 silly mapToRegistry   rawSpec: '',
+49 silly mapToRegistry   spec: 'latest',
+49 silly mapToRegistry   type: 'tag' }
+50 silly mapToRegistry uri https://registry.npmjs.org/yarn
+51 verbose addNameTag registry:https://registry.npmjs.org/yarn not in flight; fetching
+52 verbose get https://registry.npmjs.org/yarn not expired, no request
+53 silly addNameTag next cb for yarn with tag latest
+54 silly addNamed yarn@1.3.2
+55 verbose addNamed "1.3.2" is a plain semver version for yarn
+56 warn deprecated yarn@1.3.2: It is recommended to install Yarn using the native installation method for your environment. See https://yarnpkg.com/en/docs/install
+57 silly cache afterAdd yarn@1.3.2
+58 verbose afterAdd /home/codebuddy/.npm/yarn/1.3.2/package/package.json not in flight; writing
+59 verbose correctMkdir /home/codebuddy/.npm correctMkdir not in flight; initializing
+60 verbose afterAdd /home/codebuddy/.npm/yarn/1.3.2/package/package.json written
+61 silly loadAllDepsIntoIdealTree Finishing
+62 silly loadIdealTree Finishing
+63 silly currentTree lib
+64 silly idealTree lib
+64 silly idealTree └── yarn@1.3.2
+65 silly generateActionsToTake Starting
+66 silly install generateActionsToTake
+67 warn checkPermissions Missing write access to /usr/lib/node_modules
+68 silly rollbackFailedOptional Starting
+69 silly rollbackFailedOptional Finishing
+70 silly runTopLevelLifecycles Finishing
+71 silly install printInstalled
+72 verbose stack Error: EACCES: permission denied, access '/usr/lib/node_modules'
+72 verbose stack     at Error (native)
+73 verbose cwd /home/codebuddy/codebuddy
+74 error Linux 3.10.0-693.11.1.el7.x86_64
+75 error argv "/usr/bin/node" "/usr/bin/npm" "install" "yarn" "-g"
+76 error node v6.12.2
+77 error npm  v3.10.10
+78 error path /usr/lib/node_modules
+79 error code EACCES
+80 error errno -13
+81 error syscall access
+82 error Error: EACCES: permission denied, access '/usr/lib/node_modules'
+82 error     at Error (native)
+82 error  { Error: EACCES: permission denied, access '/usr/lib/node_modules'
+82 error     at Error (native)
+82 error   errno: -13,
+82 error   code: 'EACCES',
+82 error   syscall: 'access',
+82 error   path: '/usr/lib/node_modules' }
+83 error Please try running this command again as root/Administrator.
+84 verbose exit [ -13, true ]
