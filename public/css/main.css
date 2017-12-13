@@ -44,3 +44,18 @@
     margin-top: 10px !important;
     margin-bottom: 4px !important;
 }
+
+.img-owner{
+    position: absolute;
+    left:10px;
+    top: 30px;
+}
+.img-partner{
+    position: absolute;
+    left: 40px;
+    top: 0px;
+}
+
+#folder {
+    position:relative;
+}

@@ -222,7 +222,9 @@ block content
             if project.creator === user.username
                 .item
                   a.ui.tiny.image
-                    img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                    img(src='/images/blue-folder.png')(style='position: absolute;')
+                    img.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;left:25px;top: 30px;')
+
                   .content
                     .ui.grid
                       .eleven.wide.column
@@ -241,9 +243,11 @@ block content
                       
             else if project.collaborator === user.username
               .item
-                a.ui.yellow.image.label.middle.aligned
-                  img(src='https://semantic-ui.com/images/avatar/small/elliot.jpg')
-                  .detail.middle Co-Worker
+                a.ui.tiny.image
+                    img(src='/images/yellow-folder.png')(style='position: absolute;')
+                    img.img-owner.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;')
+                    img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg')(style='width: 30px;height: 30px;')
+                                                   
                 .content
                   a.header(href='/project?pid='+project.pid+'&user_role=collaborator')= project.title
                   |
