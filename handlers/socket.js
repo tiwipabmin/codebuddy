@@ -334,6 +334,7 @@ module.exports = (server) => {
                               io.in(projectId).emit('show auto update score', shownScore)
                             } else {
                               io.in(projectId).emit('show score', shownScore)
+                              io.in(projectId).emit('show auto update score', shownScore)
                             }
                           })
                         }
@@ -396,6 +397,7 @@ module.exports = (server) => {
                                   io.in(projectId).emit('show auto update score', shownScore)
                                 } else {
                                   io.in(projectId).emit('show score', shownScore)
+                                  io.in(projectId).emit('show auto update score', shownScore)
                                 }
                               })
                             }
