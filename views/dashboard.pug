@@ -1,8 +1,10 @@
 extends layout/layout.pug
 
 block script
+    script(src='/js/app/dashboard.js')
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+    link(rel='stylesheet' href='/css/main.css')
     script(type='text/javascript').
       const options = {}
       $.ajax({
@@ -25,7 +27,6 @@ block script
       @media (min-height: 200px) {
       .ui.footer.form-page { /* Increased specificity for SO snippet priority */
       position: absolute;
-      bottom: 0;
       width: 100%;
       }
       }
@@ -94,23 +95,31 @@ block content
             input(type='text', name='description', placeholder='Something about your project')
           .content
             .ui.grid
-              .eleven.wide.column
+              .six.wide.column
                 .field
                   label Language :
                   select.ui.dropdown(name='language')
                     option(value='0') Python
+              .six.wide.column
                 .field
-              .five.wide.column
                   label Buddy ID :
-                  |  
+                  |
+                  input(type='hidden' name='creator_id' value=user._id)
                   input(type='hidden' name='creator' value=user.username)
-                  input#collaborator(type='text',name='collaborator', placeholder='Search users...')
+                  input#collaborator-hidden(type='hidden' name='collaborator')
+                  input#collaborator(type='text',name='collaborator', placeholder='Search users...', disabled)
+              .four.wide.column    
+                  button.ui.positive.labeled.icon.button(id='add-collaborator' type='button')
+                    i.user.icon
+                    |  Add
           .field
             label Time  :
             select.ui.dropdown(name='swaptime')
                option(value='15') 15 minutes (Recommended)
                option(value='10') 10 minutes
                option(value='5') 5 minutes
+               option(value='1') 1 minute
+            input(type='hidden' name='status' value="pending")   
           .ui.form
             .inline.fields
               //- .fields
@@ -133,6 +142,49 @@ block content
               button.ui.button.approve.green(type='submit') Create
               .ui.button.approve.red(data-value='cancel') Cancel
     +displayFlashes(flashes)
+    .ui.small.modal#select-partner-modal
+      i.close.icon
+      .header Select partner
+      .content
+        .ui.top.attached.tabular.menu
+          a.item.active(data-tab="purpose") Select by purpose
+          a.item(data-tab="search") Search partner
+        .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
+          a.ui.red.ribbon.label Recommended
+          .ui.grid
+            .six.wide.column
+                #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.chart.icon
+                  .row
+                    | Improve quality
+                #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.idea.icon
+                  .row  
+                    | Enhance the experience
+                #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.student.icon.center.aligned
+                  .row  
+                    | Trainer
+            .ten.wide.column 
+              .ui.circular.labels.your-score-label
+                  a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
+              .ui.segment.container.user-purpose.box
+                .ui.middle.aligned.animated.list.user-purpose-list
+                    li.ui.item Please select your purpose.
+        .ui.bottom.attached.tab.segment.purpose-tab(data-tab="search")
+          .ui.grid
+            .six.wide.column
+              .ui.category.search
+                .ui.icon.input
+                  input.prompt(type="text" placeholder="Search by username..." id="search-user-input")
+                  i.search.icon
+            .ten.wide.column 
+                .ui.segment.container.user-purpose.box
+                  .ui.middle.aligned.animated.list.user-list
+                    li.ui.item Search result
     .ui.raised.very.padded.text.container.segment
       .ui.two.column.doubling.stackable.grid.container
         .column
@@ -141,39 +193,70 @@ block content
           a.right
             button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
       br
-      .ui.items
-        each project in projects
-          if project.creator === user.username
+      //- invitation
+      //- .ui.cards
+      //-   .card.invitation-card
+      //-     .content
+      //-       img.right.floated.mini.ui.image(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+      //-       .header Header
+      //-       .meta Meta
+      //-       .description Des
+      //-     .extra.content 
+      //-       .ui.two.buttons
+      //-         .ui.basic.green.button Approve
+      //-         .ui.basic.red.button Decline
+      if invitations.length > 0
+        .ui.relaxed.list.segment
+          each invite in invitations
+              .item
+                img.ui.avatar.image(src='/images/christian.jpg')
+                .content
+                  a.header #{invite.creator}
+                  .description @#{invite.creator} has invited you to join <b>#{invite.title}</b> project.
+                .right.floated.content
+                  .ui.two.buttons
+                    .ui.basic.green.button.accept-invite-button(onclick='onClickAcceptInvite("'+invite.pid+'")') Accept
+                    .ui.basic.red.button.accept-decline-button(onclick='onClickDeclineInvite("'+invite.pid+'")') Decline
+      .ui.items.segment
+        if projects.length > 0
+          each project in projects
+            if project.creator === user.username
+                .item
+                  a.ui.tiny.image
+                    img(src='/images/blue-folder.png')(style='position: absolute;')
+                    img.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;left:25px;top: 30px;')
+
+                  .content
+                    .ui.grid
+                      .eleven.wide.column
+                        b
+                          a.header(href='/project?pid='+project.pid+'&user_role=creator')= project.title
+                        .description= project.description
+                        | Last updated #{moment(project.createdAt).fromNow()}
+                        | (
+                        a(href='/profile/'+project.collaborator ) @#{project.collaborator}
+                        |)
+                      .five.wide.column
+                        .ui.right.floated.alignedvertical.animated.settingProject.button(tabindex='0', id=project.pid)
+                          .hidden.content Setting
+                          .visible.content
+                            i.setting.icon
+                      
+            else if project.collaborator === user.username
               .item
                 a.ui.tiny.image
-                  img(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+                    img(src='/images/yellow-folder.png')(style='position: absolute;')
+                    img.img-owner.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;')
+                    img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg')(style='width: 30px;height: 30px;')
+                                                   
                 .content
-                  .ui.grid
-                    .eleven.wide.column
-                      b
-                        a.header(href='/project?pid='+project.pid)= project.title
-                      .description= project.description
-                      | Last updated #{moment(project.createdAt).fromNow()}
-                      | (
-                      a(href='/profile/'+project.collaborator ) @#{project.collaborator}
-                      |)
-                    .five.wide.column
-                      .ui.right.floated.alignedvertical.animated.settingProject.button(tabindex='0', id=project.pid)
-                        .hidden.content Setting
-                        .visible.content
-                          i.setting.icon
-                      
-          else if project.collaborator === user.username
-            .item
-              a.ui.yellow.image.label.middle.aligned
-                img(src='https://semantic-ui.com/images/avatar/small/elliot.jpg')
-                .detail.middle Co-Worker
-              .content
-                a.header(href='/project?pid='+project.pid)= project.title
-                |
-                .description= project.description
-                | Last updated #{moment(project.createdAt).fromNow()} (
-                a(href='/profile/'+project.creator)
-                  | @
-                  = project.creator
-                |)
+                  a.header(href='/project?pid='+project.pid+'&user_role=collaborator')= project.title
+                  |
+                  .description= project.description
+                  | Last updated #{moment(project.createdAt).fromNow()} (
+                  a(href='/profile/'+project.creator)
+                    | @
+                    = project.creator
+                  |)
+        else
+          p.text-center No project.
