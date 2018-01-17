@@ -217,6 +217,26 @@ block content
                   .ui.two.buttons
                     .ui.basic.green.button.accept-invite-button(onclick='onClickAcceptInvite("'+invite.pid+'")') Accept
                     .ui.basic.red.button.accept-decline-button(onclick='onClickDeclineInvite("'+invite.pid+'")') Decline
+      if pendings.length > 0
+        .ui.items.segment
+          each pending in pendings
+            .item.disabled
+              a.ui.tiny.image
+                img(src='/images/blue-folder.png')(style='position: absolute;')
+                img.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;left:25px;top: 30px;')
+              .content
+                .ui.grid
+                  .eleven.wide.column
+                    a.header(href='/project?pid='+pending.pid+'&user_role=creator')= pending.title
+                    .description= pending.description
+                    | Last updated #{moment(pending.createdAt).fromNow()}
+                    | (
+                    a(href='/profile/'+pending.collaborator ) @#{pending.collaborator}
+                    |)
+                  .five.wide.column
+                    .ui.right.floated.alignedvertical
+                      .ui.red.circular.label pending
+
       .ui.items.segment
         if projects.length > 0
           each project in projects
@@ -229,8 +249,7 @@ block content
                   .content
                     .ui.grid
                       .eleven.wide.column
-                        b
-                          a.header(href='/project?pid='+project.pid+'&user_role=creator')= project.title
+                        a.header(href='/project?pid='+project.pid+'&user_role=creator')= project.title
                         .description= project.description
                         | Last updated #{moment(project.createdAt).fromNow()}
                         | (
