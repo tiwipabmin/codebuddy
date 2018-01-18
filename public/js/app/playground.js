@@ -121,10 +121,11 @@ socket.emit('join project', {
  */
 socket.on('init state', (payload) => {
   editor.setValue(payload.editor)
-  webrtc.on('readyToCall', function () {
-    // you can name it anything
-    webrtc.joinRoom('pichai');
-  });
+  // webrtc.on('readyToCall', function () {
+  //   // you can name it anything
+  //   webrtc.joinRoom(getParameterByName('pid'));
+  // });
+  webrtc.emit('readyToCall')
 })
 
 /**
