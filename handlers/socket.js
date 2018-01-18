@@ -268,7 +268,8 @@ module.exports = (server) => {
           score = data.slice(before_score + 28, after_score)
         } else if (data.indexOf('E:') < 0){
           score = 0
-        }  
+        }
+        data = data.replace("/10", "/100.00")
         const uid = payload.uid
         const project = Project.where({pid: projectId}).findOne(function (err, project) {
           if (err);
@@ -413,8 +414,7 @@ module.exports = (server) => {
           }
         });
         console.log("score"+score)
-        const data_score = data.replace("/10", "/100.00")
-        io.in(projectId).emit('term update', data_score)
+        io.in(projectId).emit('term update', data)
       })
     })
 
