@@ -114,6 +114,26 @@ exports.createProject = async (req, res) => {
   res.redirect('dashboard')
 }
 
+exports.editProject = async (req, res) => {
+  const id = req.body.pid
+  Project.update({ 
+      pid: id
+    }, { 
+      $set: { 
+        title: req.body.title,
+        description: req.body.description,
+        swaptime: req.body.swaptime
+      }
+    }, function(err, result){
+      if(err) res.send("error")
+      if(result) {
+        res.send("success")
+        
+      }  
+    }) 
+    // res.redirect('dashboard')
+}
+
 exports.searchUser = async (req, res) => {
   const keyword = req.query.search
   console.log(req.query.search) 
@@ -182,6 +202,7 @@ exports.declineInvite = async (req, res) => {
         res.send("success")
         // res.redirect(303,'/dashboard')
       }  
-    }) 
+    })
 }
+
 

@@ -19,7 +19,7 @@ router.get('/searchUser', auth.isSignedIn, catchErrors(webController.searchUser)
 router.get('/searchUserByPurpose', auth.isSignedIn, catchErrors(webController.searchUserByPurpose))
 router.put('/acceptInvite', auth.isSignedIn, catchErrors(webController.acceptInvite))
 router.delete('/declineInvite', auth.isSignedIn, catchErrors(webController.declineInvite))
-
+router.post('/editProject', auth.isSignedIn, catchErrors(webController.editProject))
 // router
 // .use(auth.isSignedIn)
 // .route('/searchUser')
