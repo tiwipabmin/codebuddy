@@ -116,15 +116,22 @@ socket.emit('join project', {
   username: user
 })
 
+webrtc.on('readyToCall', function () {
+  // you can name it anything
+  webrtc.createRoom(getParameterByName('pid'));
+  webrtc.joinRoom(getParameterByName('pid'));
+});
+
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
  */
 socket.on('init state', (payload) => {
   editor.setValue(payload.editor)
-  webrtc.on('readyToCall', function () {
-    // you can name it anything
-    webrtc.joinRoom(getParameterByName('pid'));
-  });
+  // webrtc.on('readyToCall', function () {
+  //   // you can name it anything
+  //   webrtc.createRoom(getParameterByName('pid'));
+  //   webrtc.joinRoom(getParameterByName('pid'));
+  // });
   // webrtc.emit('readyToCall')
 })
 
@@ -412,6 +419,7 @@ function muteEvent(b) {
 }
 function videoEvent(b) {
   if ($(b).hasClass("active")) {
+    alert(b);
     webrtc.pauseVideo();
   }
   else {
