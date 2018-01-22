@@ -90,7 +90,7 @@ exports.getNotifications = async (req, res) => {
   const projects = await Project
     .find({ $or: [{ creator: req.user.username }, { collaborator: req.user.username }] })
     .sort({ createdAt: -1 })
-  res.render('notifications', { projects })    
+  res.render('notifications', { projects })
 }
 
 exports.createProject = async (req, res) => {
@@ -125,13 +125,9 @@ exports.editProject = async (req, res) => {
         swaptime: req.body.swaptime
       }
     }, function(err, result){
-      if(err) res.send("error")
-      if(result) {
-        res.send("success")
-        
-      }  
+      if(err) throw err
     }) 
-    // res.redirect('dashboard')
+    res.redirect('/dashboard')
 }
 
 exports.searchUser = async (req, res) => {
