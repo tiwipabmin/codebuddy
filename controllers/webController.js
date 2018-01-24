@@ -4,6 +4,7 @@ const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
 const Score = mongoose.model('Score')
 const User = mongoose.model('User')
+const Comment = mongoose.model('Comment')
 
 exports.getHomepage = (req, res) => {
   res.render('index')
@@ -128,6 +129,32 @@ exports.editProject = async (req, res) => {
       if(err) throw err
     }) 
     res.redirect('/dashboard')
+}
+
+exports.deleteProject = async (req, res) => {
+  const id = req.body.id
+  Project.remove({ 
+      pid: id
+    }, function(err, result){
+      if(err) res.send("error")
+      if(result) {
+        res.send("success")
+      }  
+    })
+  // Message.remove({ 
+  //     pid: id
+  //   }, function(err, result){
+  //     if(err) res.send("error")
+  //     if(result) {
+  //       res.send("success")
+  //     }  
+  //   })
+  // Comment.remove({ 
+  //     pid: id
+  //   }, function(err, result){
+  //     if(err) throw err
+  //   }) 
+  //   res.redirect('/dashboard')
 }
 
 exports.searchUser = async (req, res) => {
