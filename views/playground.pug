@@ -234,6 +234,20 @@ block content
         .four.wide.column
 
         .twelve.wide.column.right
+      style.
+        .face-tracking {
+          width: 320;
+          height: 240px;
+          position: relative;
+          background: #eee;
+          overflow: hidden;
+        }
+        .face-tracking video,canvas {
+          position: absolute;
+        }
+      .face-tracking
+        video(id="video" width="320" height="240" preload autoplay loop muted)
+        canvas(id="canvas" width="320" height="240")
 
 block footerExtend
   script.
@@ -253,3 +267,6 @@ block footerExtend
   script(src='/xterm/addons/fit/fit.js')
   script(src='/js/static/countdown.min.js')
   script(src='/js/app/playground.js')
+  script(src='/js/app/main.js')
+  script(src='/trackingjs/build/tracking-min.js')
+  script(src='/trackingjs/build/data/face-min.js')
