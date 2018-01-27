@@ -182,6 +182,7 @@ block content
               p You
               .videoContainer
                 video#localVideo(style='height: 150px;', oncontextmenu='return false;')
+                canvas(id="canvas" width="320" height="240")
                 #localVolume.volume_bar
               p Buddy
               #remotes
@@ -245,9 +246,6 @@ block content
         .face-tracking video,canvas {
           position: absolute;
         }
-      .face-tracking
-        video(id="video" width="320" height="240" preload autoplay loop muted)
-        canvas(id="canvas" width="320" height="240")
       p(id="mins") 0
       p(id="secs") 0
       p(id="counts") 0

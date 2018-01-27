@@ -36,7 +36,7 @@ window.onload = function () {
 }
 
 window.onload = function() {
-  var video = document.getElementById('video');
+  var video = document.getElementById('localVideo');
   var canvas = document.getElementById('canvas');
   var context = canvas.getContext('2d');
 
@@ -44,62 +44,81 @@ window.onload = function() {
   tracker.setInitialScale(1);
   tracker.setStepSize(1);
   tracker.setEdgesDensity(0.1);
-  tracking.track('#video', tracker, { camera: true });
+  tracking.track('#localVideo', tracker, { camera: true });
 
-  setInterval( function(){
-    var flag = 0;
-    tracker.on('track', function(event) {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      event.data.forEach(function(rect) {
+  // setInterval( function(){
+  //   var flag = 0;
+  //   // tracker.run()
+  //   console.log("time" + pad(((Date.now()-sec)/1000)%60))
+  //   tracker.on('track', function(event) {
+  //     // context.translate(canvas.width, 0);
+  //     context.clearRect(0, 0, canvas.width, canvas.height);
+  //     event.data.forEach(function(rect) {
         
-        context.strokeStyle = '#a64ceb';
-        context.strokeRect(rect.x, rect.y, rect.width, rect.height);
-        context.font = '11px Helvetica';
-        context.fillStyle = "#fff";
-        context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
-        context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
+  //       // context.strokeStyle = '#a64ceb'; canvas.width-rect.x-rect.width
+  //       context.strokeStyle = '#ffffff';
+  //       context.strokeRect(rect.x+120, rect.y, rect.width, rect.height);
+  //       context.font = '11px Helvetica';
+  //       context.fillStyle = "#fff";
+  //       // context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
+  //       // context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
         
-        if(flag == 0){
-          flag = 1;
-          counts++;
-          document.getElementById("secs").innerHTML=pad(((Date.now()-sec)/1000)%60);
-          document.getElementById("mins").innerHTML=pad(parseInt(((Date.now()-sec)/1000)/60,10));
-          document.getElementById("counts").innerHTML=counts;
-        }
+  //       if(flag == 0){
+  //         flag = 1;
+  //         counts++;
+  //         console.log(counts + " ===== " + pad(((Date.now()-sec)/1000)%60))
+  //         document.getElementById("secs").innerHTML=pad(((Date.now()-sec)/1000)%60);
+  //         document.getElementById("mins").innerHTML=pad(parseInt(((Date.now()-sec)/1000)/60,10));
+  //         document.getElementById("counts").innerHTML=counts;
+  //         $(this).stop()
+  //       }
   
-        // document.getElementById('my_timer').innerHTML = count
-      });
-    }, 1000);
+  //       // document.getElementById('my_timer').innerHTML = count
+  //     });
+  //   }, 1000);
  
-  });
+  // });
+
+  var trackingTimer = setInterval(trackerTimer, 1000);
+
+  function trackerTimer(){
+    var flag = 0;
+    console.log("time" + pad(((Date.now()-sec)/1000)%60))
+    tracker.on('track', function(event) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        event.data.forEach(function(rect) {
+          // console.log("Hi")
+          // context.strokeStyle = '#a64ceb'; canvas.width-rect.x-rect.width
+          context.strokeStyle = '#ffffff';
+          context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+          context.font = '11px Helvetica';
+          context.fillStyle = "#fff";
+          // context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
+          // context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
+          
+          if(flag == 0){
+            // console.log("flag0", flag)
+            counts = counts + 1;
+            // console.log(counts + " ===== " + pad(((Date.now()-sec)/1000)%60))
+            document.getElementById("secs").innerHTML=pad(((Date.now()-sec)/1000)%60);
+            document.getElementById("mins").innerHTML=pad(parseInt(((Date.now()-sec)/1000)/60,10));
+            document.getElementById("counts").innerHTML=counts;
+            $(this).stop()
+          }
+    
+          // document.getElementById('my_timer').innerHTML = count
+        });
+        flag = 1;
+      // console.log("flag", flag)
+    });  
+  }  
 
   var gui = new dat.GUI();
   gui.add(tracker, 'edgesDensity', 0.1, 0.5).step(0.01);
   gui.add(tracker, 'initialScale', 1.0, 10.0).step(0.1);
   gui.add(tracker, 'stepSize', 1, 5).step(0.1);
 };
-var time;
-function pad ( val ) { return val > 9 ? val : "0" + val; }
-function counter(){
-      time = setInterval( function(){
-      document.getElementById("secs").innerHTML=pad(++sec%60);
-      document.getElementById("mins").innerHTML=pad(parseInt(sec/60,10));
-  }, 1000); 
-  console.log("hi")
-  timeout()
-}
 
-function timeout(){ 
-  var timeout = setInterval( function(){
-      time = setInterval( function(){
-        counts
-        document.getElementById("secs").innerHTML=pad(++sec%60);
-        document.getElementById("mins").innerHTML=pad(parseInt(sec/60,10));
-        console.log("hi")
-    }, 1000);
-    clearInterval(time)
-    console.log("stop")
-  }, 300000);
-}
+function pad ( val ) { return val > 9 ? val : "0" + val; }
 
 
