@@ -105,6 +105,52 @@ block content
               i.code.icon
               |  Verify
       .ui.divider
+      //- new
+      .ui.grid
+        .sixteen.wide.column
+          center
+            h1.ui.header= project.title
+      //- .ui.dividerss
+      .ui.grid
+        .six.wide.column
+          .ui.grid
+            .sixteen.wide.column
+              center
+                a.ui.label
+                  img.ui.avatar.image(src=user.img)
+                  .user-role-label
+                div.margin-top-15 #{user.info.firstname}   #{user.info.lastname} <b> (@#{user.username}) </b>
+                div.margin-top-10
+                  a.ui.teal.circular.label#user-point-label
+        .four.wide.column
+          center
+            #swapTimer(style='margin: 0 0 10 0')
+              //- <strong>Auto Swapping Role In: </strong>
+              span.time
+                .countdown
+                .auto-swap-warning
+              div.margin-top-15
+                button.ui.primary.labeled.icon.button.margin-top-15(onClick='switchRole()')
+                  i.refresh.icon
+                  |  Switch Role
+              //- - let partner_obj = partner_obj
+              //- - if partner_obj is null
+              //- - let partner_img = partner_obj === null ? '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg' : partner_obj.img
+              //- - while (partner_img == user.img) {partner_img = '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg'}
+              //- - let partner = user.username === project.creator ? project.collaborator : project.creator
+              //- - let curUser = user.username === project.creator ? project.creator : project.collaborator
+        .six.wide.column.right
+          center
+            a.ui.label
+              img.ui.avatar.image(src=partner_img)
+              .partner-role-label
+            div.margin-top-15 #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>
+              span.user.status
+              //- span.user.status!= `<strong><em><i class='grey circle icon'></i></em></strong>`
+            div.margin-top-10
+              a.ui.teal.circular.label#partner-point-label
+            
+      .ui.divider
       br
       .ui.grid
         .four.wide.column
@@ -182,6 +228,7 @@ block content
               p You
               .videoContainer
                 video#localVideo(style='height: 150px;', oncontextmenu='return false;')
+                canvas(id="canvas" width="320" height="240")
                 #localVolume.volume_bar
               p Buddy
               #remotes
@@ -234,6 +281,20 @@ block content
         .four.wide.column
 
         .twelve.wide.column.right
+      style.
+        .face-tracking {
+          width: 320;
+          height: 240px;
+          position: relative;
+          background: #eee;
+          overflow: hidden;
+        }
+        .face-tracking video,canvas {
+          position: absolute;
+        }
+      p(id="mins") 0
+      p(id="secs") 0
+      p(id="counts") 0
 
 block footerExtend
   script.
@@ -253,3 +314,6 @@ block footerExtend
   script(src='/xterm/addons/fit/fit.js')
   script(src='/js/static/countdown.min.js')
   script(src='/js/app/playground.js')
+  script(src='/js/app/main.js')
+  script(src='/trackingjs/build/tracking-min.js')
+  script(src='/trackingjs/build/data/face-min.js')
