@@ -227,12 +227,10 @@ block content
               .content
                 .ui.grid
                   .eleven.wide.column
-                    a.header(href='/project?pid='+pending.pid+'&user_role=creator')= pending.title
+                    b.header= pending.title
                     .description= pending.description
                     | Last updated #{moment(pending.createdAt).fromNow()}
-                    | (
-                    a(href='/profile/'+pending.collaborator ) @#{pending.collaborator}
-                    |)
+                    | (@#{pending.collaborator})
                   .five.wide.column
                     .ui.right.floated.alignedvertical
                       .ui.red.circular.label pending
@@ -269,9 +267,8 @@ block content
                     img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg')(style='width: 30px;height: 30px;')
                                                    
                 .content
-                  a.header(href='/project?pid='+project.pid+'&user_role=collaborator')= project.title
-                  |
-                  .description= project.description
+                  a(href='/project?pid='+project.pid+'&user_role=collaborator')= project.title
+                  .description(style='margin-top:0px;')= project.description
                   | Last updated #{moment(project.createdAt).fromNow()} (
                   a(href='/profile/'+project.creator)
                     | @
