@@ -239,10 +239,10 @@ block content
         if projects.length > 0
           each project in projects
             if project.creator === user.username
-                .item
+                .item(style='padding-top:10px; padding-bottom:10px;')
                   a.ui.tiny.image
                     img(src='/images/blue-folder.png')(style='position: absolute;')
-                    img.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;left:25px;top: 30px;')
+                    img.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;left:25px;top: 20px;')
 
                   .content
                     .ui.grid
@@ -260,11 +260,11 @@ block content
                             i.setting.icon
                       
             else if project.collaborator === user.username
-              .item
+              .item(style='padding-top:10px')
                 a.ui.tiny.image
                     img(src='/images/yellow-folder.png')(style='position: absolute;')
-                    img.img-owner.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;')
-                    img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg')(style='width: 30px;height: 30px;')
+                    img.img-owner.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px; top:20px;')
+                    img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg')(style='width:30px; height:30px; top:-10px;')
                                                    
                 .content
                   a(href='/project?pid='+project.pid+'&user_role=collaborator')= project.title
