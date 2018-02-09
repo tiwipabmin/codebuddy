@@ -133,8 +133,10 @@ exports.editProject = async (req, res) => {
 
 exports.deleteProject = async (req, res) => {
   const id = req.body.id
-  const users = await User.find( { 
-    username: {$regex: '.*' + keyword + '.*'}
+  Score.remove({
+    pid: id
+    },  function(err, result){
+      if(err) throw err
   })
   Project.remove({ 
       pid: id
