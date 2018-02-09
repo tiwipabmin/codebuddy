@@ -128,33 +128,31 @@ exports.editProject = async (req, res) => {
     }, function(err, result){
       if(err) throw err
     }) 
-    res.redirect('/dashboard')
+  res.redirect('/dashboard')
 }
 
 exports.deleteProject = async (req, res) => {
   const id = req.body.id
+  const users = await User.find( { 
+    username: {$regex: '.*' + keyword + '.*'}
+  })
   Project.remove({ 
       pid: id
+    },  function(err, result){
+      if(err) throw err
+    }) 
+  Message.remove({ 
+      pid: id
     }, function(err, result){
-      if(err) res.send("error")
-      if(result) {
-        res.send("success")
-      }  
-    })
-  // Message.remove({ 
-  //     pid: id
-  //   }, function(err, result){
-  //     if(err) res.send("error")
-  //     if(result) {
-  //       res.send("success")
-  //     }  
-  //   })
-  // Comment.remove({ 
-  //     pid: id
-  //   }, function(err, result){
-  //     if(err) throw err
-  //   }) 
-  //   res.redirect('/dashboard')
+      if(err) throw err
+    }) 
+  Comment.remove({ 
+      pid: id
+    }, function(err, result){
+      if(err) throw err
+      res.end()
+    }) 
+  
 }
 
 exports.searchUser = async (req, res) => {
