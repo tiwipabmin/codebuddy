@@ -84,6 +84,28 @@ module.exports = (server) => {
       // io.in(projectId).emit('update review', comments)
     })
 
+    client.on('add line', (payload) => {
+      startline = payload.code.from.line
+      endline = payload.code.to.line
+      // character = payload.code.
+      var enter = payload.editor.toString().slice(-2).charCodeAt(0)
+      var text = payload.code.text.toString().charCodeAt(0)
+      var enterline = payload.code.to.line
+      if(text==44){
+      console.log('--'+comments)
+        for(var i in comments){          
+          if(comments[i].line > enterline){
+            console.log(comments[i].description+' '+comments[i].line+' '+(enterline+3))
+            comments[i].line = enterline+3         
+          }
+        }
+      
+      }
+      if(enter==10){
+        
+      }
+    })
+
     /**
      * `join project` evnet trigged when user joining project in playground page
      * @param {Object} payload receive project id from client payload
@@ -515,5 +537,11 @@ module.exports = (server) => {
         }
       }
     }
+
+    // function updateLine(line, description){
+    //   for(var i in comments) {
+    //     if(comments[i].)
+    //   }
+    // }
   })
 }
