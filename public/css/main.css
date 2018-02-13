@@ -37,6 +37,14 @@
     text-align: center;
 }
 
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
 .invitation-card {
     width: 500px !important;
     border: 2px solid rgb(85, 81, 81);
@@ -83,4 +91,16 @@ body {
 
 .margin-top-15 {
     margin-top: 15px;
+}
+
+.padding-10 {
+    padding: 10px !important;
+}
+
+.padding-left-20 {
+    padding-left: 50px !important;
+}
+
+.padding-right-20 {
+    padding-right: 50px !important;
 }

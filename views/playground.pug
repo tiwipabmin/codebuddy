@@ -106,24 +106,28 @@ block content
               |  Verify
       .ui.divider
       //- new
-      .ui.grid
-        .sixteen.wide.column
-          center
-            h1.ui.header= project.title
+      //- .ui.grid
+      //-   .sixteen.wide.column
+      //-     center
+      //-       h1.ui.header= project.title
       //- .ui.dividerss
       .ui.grid
         .six.wide.column
           .ui.grid
-            .sixteen.wide.column
-              center
-                a.ui.label
-                  img.ui.avatar.image(src=user.img)
-                  .user-role-label
-                div.margin-top-15 #{user.info.firstname}   #{user.info.lastname} <b> (@#{user.username}) </b>
-                div.margin-top-10
-                  a.ui.teal.circular.label#user-point-label
+            .sixteen.wide.column.padding-left-20.padding-right-20
+              div.ui.relaxed.items
+                div.item
+                  div
+                    a.ui.tiny.image.circular
+                      img(src=user.img)
+                    p.user-role-label.text-center
+                  div.content.padding-10
+                    p.header #{user.info.firstname}   #{user.info.lastname} <b> (@#{user.username}) </b>
+                    div.description
+                      a.ui.teal.circular.label#user-point-label
         .four.wide.column
           center
+            h1.ui.header= project.title
             #swapTimer(style='margin: 0 0 10 0')
               //- <strong>Auto Swapping Role In: </strong>
               span.time
@@ -139,17 +143,20 @@ block content
               //- - while (partner_img == user.img) {partner_img = '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg'}
               //- - let partner = user.username === project.creator ? project.collaborator : project.creator
               //- - let curUser = user.username === project.creator ? project.creator : project.collaborator
-        .six.wide.column.right
-          center
-            a.ui.label
-              img.ui.avatar.image(src=partner_img)
-              .partner-role-label
-            div.margin-top-15 #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>
-              span.user.status
-              //- span.user.status!= `<strong><em><i class='grey circle icon'></i></em></strong>`
-            div.margin-top-10
-              a.ui.teal.circular.label#partner-point-label
-            
+        .six.wide.column
+          .ui.grid    
+            .sixteen.wide.column.padding-left-20.padding-right-20
+              div.ui.relaxed.items
+                div.item
+                  div
+                    a.ui.tiny.image.circular
+                      img(src=partner_img)
+                    p.partner-role-label.text-center
+                  div.content.padding-10
+                    p.header #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>
+                      span.user.status
+                    div.description
+                      a.ui.teal.circular.label#partner-point-label
       .ui.divider
       br
       .ui.grid
