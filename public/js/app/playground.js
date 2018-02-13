@@ -340,6 +340,13 @@ function submitCode() {
 }
 
 /**
+ * Clear Terminal
+ */
+function clearTerminal() {
+  term.clear()
+}
+
+/**
  * Send Message
  */
 function sendMessage() {
