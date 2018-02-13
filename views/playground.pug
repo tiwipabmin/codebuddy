@@ -253,7 +253,11 @@ block content
               textarea#demotext.show
           .ui.segments
             .ui.segment
-              p Terminal
+              .ui.grid
+                .ten.wide.column
+                  p Terminal
+                .six.wide.column
+                  button.ui.button.float-right(id='clearTerm' onClick='clearTerminal()') Clear
             .ui.secondary.segment
               #xterm-container
         .four.wide.column.right
