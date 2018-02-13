@@ -88,6 +88,9 @@ module.exports = (server) => {
     client.on('move hilight', (payload) => {
       var text = payload.code.text.toString().charCodeAt(0)
       var enterline = payload.code.to.line
+      var remove = payload.code.removed
+
+      //check when enter new line
       if(text==44){
       // console.log('--'+comments)
         for(var i in comments){          
@@ -107,6 +110,28 @@ module.exports = (server) => {
           }
         }
       }
+
+      //check when delete line
+      if(remove.length==2){
+        for(var i in comments){          
+          if(comments[i].line > enterline){
+            // console.log(comments[i].description+' '+comments[i].line+' '+(parseInt(comments[i].line)+1))
+            Comment.update({
+              pid: projectId,
+              line: comments[i].line
+            }, {
+              $set: {
+                line: parseInt(comments[i].line)-1
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+            comments[i].line = parseInt(comments[i].line)-1
+          }
+        }
+      }
+      
+
     })
 
     /**
@@ -271,176 +296,176 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('submit code', (payload) => {
-      console.log(payload.mode)
-      const mode = payload.mode
-      const uid = payload.uid
-      const fs = require('fs')
-      const path = require('path')
-      fs.writeFile('pytest.py', payload.code, (err) => {
-        if (err) throw err
-      })
-      const nodepty = require('node-pty')
-      let pty;
-      if(process.platform === 'win32') pty = nodepty.spawn('pylint', ['pytest.py'], {})
-      else pty = nodepty.spawn('pylint', ['pytest.py'], {})
-      pty.on('data', (data) => {
-        //get score from pylint
-        console.log('data', data)
-        const before_score = data.indexOf("Your code has been rated at");
-        let score = 0;
-        if(before_score != -1) {
-          const after_score = data.indexOf("/10");
-          score = data.slice(before_score + 28, after_score)
-        } else if (data.indexOf('E:') < 0){
-          score = 0
-        }
-        data = data.replace("/10", "/100.00")
-        const uid = payload.uid
-        const project = Project.where({pid: projectId}).findOne(function (err, project) {
-          if (err);
-          if (project) {
-            if (project.creator_id != null && project.collaborator_id != null){
-              const users = [project.creator_id, project.collaborator_id]
-              users.forEach(function(element) {
-                const scoreModel = {
-                  pid: projectId,
-                  uid: element,
-                  score: score,
-                  createdAt: Date.now()
-                }
-                const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
-                  if (err) {
-                    throw err
-                  }
-                  if (!oldScore) {
-                    new Score(scoreModel, (err) => {
-                      if (err) throw err
-                    }).save()
+      // console.log(payload.mode)
+      // const mode = payload.mode
+      // const uid = payload.uid
+      // const fs = require('fs')
+      // const path = require('path')
+      // fs.writeFile('pytest.py', payload.code, (err) => {
+      //   if (err) throw err
+      // })
+      // const nodepty = require('node-pty')
+      // let pty;
+      // if(process.platform === 'win32') pty = nodepty.spawn('pylint', ['pytest.py'], {})
+      // else pty = nodepty.spawn('pylint', ['pytest.py'], {})
+      // pty.on('data', (data) => {
+      //   //get score from pylint
+      //   console.log('data', data)
+      //   const before_score = data.indexOf("Your code has been rated at");
+      //   let score = 0;
+      //   if(before_score != -1) {
+      //     const after_score = data.indexOf("/10");
+      //     score = data.slice(before_score + 28, after_score)
+      //   } else if (data.indexOf('E:') < 0){
+      //     score = 0
+      //   }
+      //   data = data.replace("/10", "/100.00")
+      //   const uid = payload.uid
+      //   const project = Project.where({pid: projectId}).findOne(function (err, project) {
+      //     if (err);
+      //     if (project) {
+      //       if (project.creator_id != null && project.collaborator_id != null){
+      //         const users = [project.creator_id, project.collaborator_id]
+      //         users.forEach(function(element) {
+      //           const scoreModel = {
+      //             pid: projectId,
+      //             uid: element,
+      //             score: score,
+      //             createdAt: Date.now()
+      //           }
+      //           const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
+      //             if (err) {
+      //               throw err
+      //             }
+      //             if (!oldScore) {
+      //               new Score(scoreModel, (err) => {
+      //                 if (err) throw err
+      //               }).save()
                     
-                    //recalculate score
-                    sumScore = Score.aggregate([
-                      { $match:{
-                          uid: element
-                      }},
-                      { $group: {
-                          _id: '$uid',
-                          avg: {$avg: '$score'}
-                      }}
-                    ], function (err, results) {
-                        if (err) {
-                            console.log(err);
-                            return;
-                        }
-                        if (results) {
-                          // sum = 0;
-                          results.forEach(function(result) {
-                            console.log("avg: "+result._id+" "+result.score+" "+result.avg);
-                            //start update
-                            User.update({
-                              _id: element
-                            }, { 
-                              $set: { 
-                                avgScore: result.avg
-                              }
-                            }, 
-                            function(err, userReturn){
-                              if (err) ;
-                              if (userReturn) {
-                                console.log(userReturn)
-                              }
+      //               //recalculate score
+      //               sumScore = Score.aggregate([
+      //                 { $match:{
+      //                     uid: element
+      //                 }},
+      //                 { $group: {
+      //                     _id: '$uid',
+      //                     avg: {$avg: '$score'}
+      //                 }}
+      //               ], function (err, results) {
+      //                   if (err) {
+      //                       console.log(err);
+      //                       return;
+      //                   }
+      //                   if (results) {
+      //                     // sum = 0;
+      //                     results.forEach(function(result) {
+      //                       console.log("avg: "+result._id+" "+result.score+" "+result.avg);
+      //                       //start update
+      //                       User.update({
+      //                         _id: element
+      //                       }, { 
+      //                         $set: { 
+      //                           avgScore: result.avg
+      //                         }
+      //                       }, 
+      //                       function(err, userReturn){
+      //                         if (err) ;
+      //                         if (userReturn) {
+      //                           console.log(userReturn)
+      //                         }
 
-                            });
-                            //end update
-                            const shownScore = {
-                              score: score,
-                              uid: element,
-                              avgScore: result.avg
-                            }
-                            if(mode == "auto"){
-                              io.in(projectId).emit('show auto update score', shownScore)
-                            } else {
-                              io.in(projectId).emit('show score', shownScore)
-                              io.in(projectId).emit('show auto update score', shownScore)
-                            }
-                          })
-                        }
-                    });
-                    //end recalculate score
+      //                       });
+      //                       //end update
+      //                       const shownScore = {
+      //                         score: score,
+      //                         uid: element,
+      //                         avgScore: result.avg
+      //                       }
+      //                       if(mode == "auto"){
+      //                         io.in(projectId).emit('show auto update score', shownScore)
+      //                       } else {
+      //                         io.in(projectId).emit('show score', shownScore)
+      //                         io.in(projectId).emit('show auto update score', shownScore)
+      //                       }
+      //                     })
+      //                   }
+      //               });
+      //               //end recalculate score
 
-                  }
-                  if (oldScore) {
-                    Score.update({
-                      pid: projectId, 
-                      uid: element
-                    }, { 
-                      $set: { 
-                        score: score 
-                      }
-                    }, 
-                    function(err, scoreReturn){
-                      if(err) throw err;
-                      if(scoreReturn) {
-                        //recalculate score
-                        sumScore = Score.aggregate([
-                          { $match:{
-                              uid: element
-                          }},
-                          { $group: {
-                              _id: '$uid',
-                              avg: {$avg: '$score'}
-                          }}
-                        ], function (err, results) {
-                            if (err) {
-                                console.log(err);
-                                return;
-                            }
-                            if (results) {
-                              // sum = 0;
-                              results.forEach(function(result) {
-                                console.log("avg: "+result._id+" "+result.avg);
-                                //start update
-                                User.update({
-                                  _id: element
-                                }, { 
-                                  $set: { 
-                                    avgScore: result.avg
-                                  }
-                                }, 
-                                function(err, userReturn){
-                                  if (err) ;
-                                  if (userReturn) {
-                                    console.log(userReturn)
-                                  }
+      //             }
+      //             if (oldScore) {
+      //               Score.update({
+      //                 pid: projectId, 
+      //                 uid: element
+      //               }, { 
+      //                 $set: { 
+      //                   score: score 
+      //                 }
+      //               }, 
+      //               function(err, scoreReturn){
+      //                 if(err) throw err;
+      //                 if(scoreReturn) {
+      //                   //recalculate score
+      //                   sumScore = Score.aggregate([
+      //                     { $match:{
+      //                         uid: element
+      //                     }},
+      //                     { $group: {
+      //                         _id: '$uid',
+      //                         avg: {$avg: '$score'}
+      //                     }}
+      //                   ], function (err, results) {
+      //                       if (err) {
+      //                           console.log(err);
+      //                           return;
+      //                       }
+      //                       if (results) {
+      //                         // sum = 0;
+      //                         results.forEach(function(result) {
+      //                           console.log("avg: "+result._id+" "+result.avg);
+      //                           //start update
+      //                           User.update({
+      //                             _id: element
+      //                           }, { 
+      //                             $set: { 
+      //                               avgScore: result.avg
+      //                             }
+      //                           }, 
+      //                           function(err, userReturn){
+      //                             if (err) ;
+      //                             if (userReturn) {
+      //                               console.log(userReturn)
+      //                             }
 
-                                });
-                                //end update
-                                const shownScore = {
-                                  score: score,
-                                  uid: element,
-                                  avgScore: result.avg
-                                }
-                                if(mode == "auto"){
-                                  io.in(projectId).emit('show auto update score', shownScore)
-                                } else {
-                                  io.in(projectId).emit('show score', shownScore)
-                                  io.in(projectId).emit('show auto update score', shownScore)
-                                }
-                              })
-                            }
-                        });
-                        //end recalculate score
+      //                           });
+      //                           //end update
+      //                           const shownScore = {
+      //                             score: score,
+      //                             uid: element,
+      //                             avgScore: result.avg
+      //                           }
+      //                           if(mode == "auto"){
+      //                             io.in(projectId).emit('show auto update score', shownScore)
+      //                           } else {
+      //                             io.in(projectId).emit('show score', shownScore)
+      //                             io.in(projectId).emit('show auto update score', shownScore)
+      //                           }
+      //                         })
+      //                       }
+      //                   });
+      //                   //end recalculate score
                         
-                      }
-                    });
-                  }  
-                });
-              }, this);
-            }
-          }
-        });
-        console.log("score"+score)
-        io.in(projectId).emit('term update', data)
-      })
+      //                 }
+      //               });
+      //             }  
+      //           });
+      //         }, this);
+      //       }
+      //     }
+      //   });
+      //   console.log("score"+score)
+      //   io.in(projectId).emit('term update', data)
+      // })
     })
 
     /**
@@ -467,7 +492,7 @@ module.exports = (server) => {
                 var start = new Date(parseInt(obj.startTime))
                 let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
                 let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
-                console.log(seconds + "secound")
+                // console.log(seconds + "secound")
                 flag = 0
                 if(seconds == 0 && flag != 1){
                   flag = 1
