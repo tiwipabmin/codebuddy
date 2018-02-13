@@ -45,6 +45,10 @@
     text-align: right;
 }
 
+.float-right {
+    float: right;
+}
+
 .invitation-card {
     width: 500px !important;
     border: 2px solid rgb(85, 81, 81);

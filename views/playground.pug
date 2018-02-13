@@ -129,7 +129,6 @@ block content
           center
             h1.ui.header= project.title
             #swapTimer(style='margin: 0 0 10 0')
-              //- <strong>Auto Swapping Role In: </strong>
               span.time
                 .countdown
                 .auto-swap-warning
@@ -240,15 +239,15 @@ block content
               p Buddy
               #remotes
         .eight.wide.column.right
-          a#project-score-point.ui.red.circular.label score : 0
-          a.ui.image.label
-            img.ui.avatar.image(src=user.img) 
-            | #{user.username}
-            .detail#user-point-label 0
-          a.ui.image.label
-            img.ui.avatar.image(src=partner_img) 
-            | #{partner}
-            .detail#partner-point-label 0
+          .ui.grid
+            .sixteen.wide.column
+              p#project-score-point.ui.red.circular.label score : 0
+              button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()')
+                i.unhide.icon
+              button.ui.icon.button.positive.float-right(id='run' onClick='runCode()')
+                i.play.icon
+              button.ui.icon.button.negative.float-right(id='pause')
+                i.pause.icon
           .ui.form
               textarea#demotext.show
           .ui.segments
