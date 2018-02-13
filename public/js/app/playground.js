@@ -310,6 +310,16 @@ term.on('key', function (key, ev) {
   }
 });
 
+/**
+ * Pause running code
+ */
+function pauseRunCode() {
+  socket.emit('pause run code',{})
+}
+
+/**
+ * Run code
+ */
 function runCode() {
   socket.emit('run code', {
     code: editor.getValue()
@@ -360,6 +370,13 @@ socket.on('show score', (payload) => {
     }
   })
   .modal('show')
+})
+
+/**
+ * Auto update score
+ */
+socket.on('pause run code', (payload) => {
+  term.writeln('Stop running pytest.py...')
 })
 
 /**
