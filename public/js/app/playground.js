@@ -7,6 +7,16 @@ const roles = {
   partner: ''
 }
 var comments = null
+
+var webrtc = new SimpleWebRTC({
+  // the id/element dom element that will hold "our" video
+  localVideoEl: 'localVideo',
+  // the id/element dom element that will hold remote videos
+  remoteVideosEl: 'remoteVideo',
+  // immediately ask for camera access
+  autoRequestMedia: true
+});
+
 /**
  * get query parameter from URL
  * @param {String} name parameter name that you want to get value from
@@ -111,6 +121,11 @@ socket.emit('join project', {
  */
 socket.on('init state', (payload) => {
   editor.setValue(payload.editor)
+  webrtc.on('readyToCall', function () {
+    // you can name it anything
+    webrtc.joinRoom(getParameterByName('pid'));
+  });
+  // webrtc.emit('readyToCall')
 })
 
 /**
