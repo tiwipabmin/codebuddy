@@ -84,6 +84,31 @@ module.exports = (server) => {
       // io.in(projectId).emit('update review', comments)
     })
 
+    //move hilight when enter or delete
+    client.on('move hilight', (payload) => {
+      var text = payload.code.text.toString().charCodeAt(0)
+      var enterline = payload.code.to.line
+      if(text==44){
+      // console.log('--'+comments)
+        for(var i in comments){          
+          if(comments[i].line > enterline){
+            // console.log(comments[i].description+' '+comments[i].line+' '+(parseInt(comments[i].line)+1))
+            Comment.update({
+              pid: projectId,
+              line: comments[i].line
+            }, {
+              $set: {
+                line: parseInt(comments[i].line)+1
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+            comments[i].line = parseInt(comments[i].line)+1
+          }
+        }
+      }
+    })
+
     /**
      * `join project` evnet trigged when user joining project in playground page
      * @param {Object} payload receive project id from client payload
@@ -515,5 +540,11 @@ module.exports = (server) => {
         }
       }
     }
+
+    // function updateLine(line, description){
+    //   for(var i in comments) {
+    //     if(comments[i].)
+    //   }
+    // }
   })
 }

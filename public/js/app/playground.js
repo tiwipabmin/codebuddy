@@ -182,6 +182,10 @@ editor.on('change', (ins, data) => {
     code: data,
     editor: editor.getValue()
   })
+  socket.emit('move hilight',{
+    code: data,
+    editor: editor.getValue()
+  })
 })
 
 /**
