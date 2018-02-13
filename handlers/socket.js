@@ -30,6 +30,7 @@ module.exports = (server) => {
     let review = []
     var comments = []
     var index = null
+    let pty;
 
     winston.info('Client connected')
 
@@ -224,12 +225,22 @@ module.exports = (server) => {
         if (err) throw err
       })
       const nodepty = require('node-pty')
-      let pty;
       if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
       else pty = nodepty.spawn('python', ['pytest.py'], {})
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
+
+      setTimeout(pty.kill.bind(pty), 5000);
+    })
+
+    /**
+     * `pause running code` event fired when user click on pause button from front-end
+     * @param {Object} payload code from editor
+     */
+    client.on('pause run code', (payload) => {
+      setTimeout(pty.kill.bind(pty), 0);
+      io.in(projectId).emit('pause run code')
     })
 
     /**
