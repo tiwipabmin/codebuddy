@@ -105,6 +105,58 @@ block content
               i.code.icon
               |  Verify
       .ui.divider
+      //- new
+      //- .ui.grid
+      //-   .sixteen.wide.column
+      //-     center
+      //-       h1.ui.header= project.title
+      //- .ui.dividerss
+      .ui.grid
+        .six.wide.column
+          .ui.grid
+            .sixteen.wide.column.padding-left-20.padding-right-20
+              div.ui.relaxed.items
+                div.item
+                  div
+                    a.ui.tiny.image.circular
+                      img(src=user.img)
+                    p.user-role-label.text-center
+                  div.content.padding-10
+                    p.header #{user.info.firstname}   #{user.info.lastname} <b> (@#{user.username}) </b>
+                    div.description
+                      a.ui.teal.circular.label#user-point-label
+        .four.wide.column
+          center
+            h1.ui.header= project.title
+            #swapTimer(style='margin: 0 0 10 0')
+              span.time
+                .countdown
+                .auto-swap-warning
+              div.margin-top-15
+                button.ui.primary.labeled.icon.button.margin-top-15(onClick='switchRole()')
+                  i.refresh.icon
+                  |  Switch Role
+              //- - let partner_obj = partner_obj
+              //- - if partner_obj is null
+              //- - let partner_img = partner_obj === null ? '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg' : partner_obj.img
+              //- - while (partner_img == user.img) {partner_img = '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg'}
+              //- - let partner = user.username === project.creator ? project.collaborator : project.creator
+              //- - let curUser = user.username === project.creator ? project.creator : project.collaborator
+        .six.wide.column
+          .ui.grid    
+            .sixteen.wide.column.padding-left-20.padding-right-20
+              div.ui.relaxed.items
+                div.item
+                  div
+                    a.ui.tiny.image.circular
+                      img(src=partner_img)
+                    p.partner-role-label.text-center
+                  div.content.padding-10
+                    p.header #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>
+                      span.user.status
+                    div.description
+                      a.ui.teal.circular.label#partner-point-label
+      .ui.divider
       br
       .ui.grid
         .four.wide.column
@@ -182,20 +234,21 @@ block content
               p You
               .videoContainer
                 video#localVideo(style='height: 150px;', oncontextmenu='return false;')
+                canvas(id="canvas" width="320" height="240")
                 #localVolume.volume_bar
               p Buddy
               .videoContainer
                 #remoteVideo
         .eight.wide.column.right
-          a#project-score-point.ui.red.circular.label score : 0
-          a.ui.image.label
-            img.ui.avatar.image(src=user.img) 
-            | #{user.username}
-            .detail#user-point-label 0
-          a.ui.image.label
-            img.ui.avatar.image(src=partner_img) 
-            | #{partner}
-            .detail#partner-point-label 0
+          .ui.grid
+            .sixteen.wide.column
+              p#project-score-point.ui.red.circular.label score : 0
+              button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()')
+                i.unhide.icon
+              button.ui.icon.button.positive.float-right(id='run' onClick='runCode()')
+                i.play.icon
+              button.ui.icon.button.negative.float-right(id='pause')
+                i.pause.icon
           .ui.form
               textarea#demotext.show
           .ui.segments
@@ -235,6 +288,20 @@ block content
         .four.wide.column
 
         .twelve.wide.column.right
+      style.
+        .face-tracking {
+          width: 320;
+          height: 240px;
+          position: relative;
+          background: #eee;
+          overflow: hidden;
+        }
+        .face-tracking video,canvas {
+          position: absolute;
+        }
+      p(id="mins") 0
+      p(id="secs") 0
+      p(id="counts") 0
 
 block footerExtend
   script.
@@ -254,3 +321,6 @@ block footerExtend
   script(src='/xterm/addons/fit/fit.js')
   script(src='/js/static/countdown.min.js')
   script(src='/js/app/playground.js')
+  script(src='/js/app/main.js')
+  script(src='/trackingjs/build/tracking-min.js')
+  script(src='/trackingjs/build/data/face-min.js')

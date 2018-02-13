@@ -165,7 +165,13 @@ socket.on('role selection', () => {
 })
 
 socket.on('countdown', (payload) => {
-    $(".countdown").html(`${payload.minutes} : ${payload.seconds}`)
+  if(payload.minutes == '0' && payload.seconds <= 15){
+    $(".countdown").html(`<span style="color: red;"> ${pad(payload.minutes)} : ${pad(payload.seconds)}</span> <span style="font-size:12px;">mins</span>`)
+    $(".auto-swap-warning").html(`<div class="ui circular labels" style="margin-top: 10px;"><a class="ui label">Auto swaping role in ${payload.seconds} secs</a></div>`)
+  } else {
+    $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
+    $(".auto-swap-warning").html(``)
+  }
 })
 
 socket.on('role updated', (payload) => {
@@ -178,6 +184,8 @@ socket.on('role updated', (payload) => {
     roles.partner = 'reviewer'
     editor.setOption('readOnly', false)
   }
+  $(".partner-role-label").text(`${roles.partner}`)
+  $(".user-role-label").text(`${roles.user}`)
   // startCountdown()
 })
 
@@ -229,9 +237,9 @@ setInterval(() => {
 
 socket.on('update status', (payload) => {
   if (payload.status) {
-    $(".user.status").html(`<strong><em><i class='green circle icon'></i>${partner} (${roles.partner})</em></strong>`)
+    $(".user.status").html(`<strong><em><i class='green circle icon'></i></em></strong>`)
   } else {
-    $(".user.status").html(`<strong><em><i class='grey circle icon'></i>${partner} (${roles.partner})</em></strong>`)
+    $(".user.status").html(`<strong><em><i class='grey circle icon'></i></em></strong>`)
   }
 })
 
@@ -373,9 +381,9 @@ socket.on('show auto update score', (payload) => {
   console.log(payload)
   $('a#project-score-point').text("score : " + parseFloat(payload.score));
   if (uid == payload.uid) {
-    $('#user-point-label').text(parseFloat(payload.avgScore).toFixed(2)); 	
+    $('#user-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2)); 	
   } else {
-    $('#partner-point-label').text(parseFloat(payload.avgScore).toFixed(2));
+    $('#partner-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2));
   }
   
 })
@@ -545,4 +553,6 @@ function updateScroll(){
   // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
   $(".chat").animate({ scrollTop: $('.message-list').height() }, "fast");
 }
+
+function pad ( val ) { return val > 9 ? val : "0" + val; }
 

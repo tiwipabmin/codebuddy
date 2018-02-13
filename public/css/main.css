@@ -37,6 +37,18 @@
     text-align: center;
 }
 
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.float-right {
+    float: right;
+}
+
 .invitation-card {
     width: 500px !important;
     border: 2px solid rgb(85, 81, 81);
@@ -62,4 +74,37 @@
 
 .disabled {
     pointer-events:none;
+}
+
+.circle_status {
+    position: absolute;
+}
+
+.countdown {
+    font-family: 'Roboto',sans-serif;
+    font-size: 45px;
+}
+
+body {
+    font-family: 'Roboto',sans-serif;
+}
+
+.margin-top-10 {
+    margin-top: 10px;
+}
+
+.margin-top-15 {
+    margin-top: 15px;
+}
+
+.padding-10 {
+    padding: 10px !important;
+}
+
+.padding-left-20 {
+    padding-left: 50px !important;
+}
+
+.padding-right-20 {
+    padding-right: 50px !important;
 }

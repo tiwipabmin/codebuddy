@@ -8614,7 +8614,13 @@
       }
     }
     return result;
-  } : function(string){return string.split(/\r\n?|\n/);};
+  } : function(string){
+    if(string!=null) {
+      return string.split(/\r\n?|\n/);
+    } else{
+      return " ";
+    }
+  };
 
   var hasSelection = window.getSelection ? function(te) {
     try { return te.selectionStart != te.selectionEnd; }
