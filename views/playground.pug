@@ -273,11 +273,12 @@ block content
                     .ui.item
                       if (message.uid != user._id)
                         img.ui.avatar.image(src=partner_img)
+                        .curve-box #{message.message}
                       else 
-                        img.ui.avatar.image(src=`${user.img}`)
-                      .content
+                        //- img.ui.avatar.image(src=`${user.img}`)
+                        .content
+                        .curve-box-user #{message.message}
                         //- a.header Thara
-                      .description.curve-box #{message.message}
             .ui.segment
               p#show-is-typing
                 .ui.form(action='/project', method='POST')

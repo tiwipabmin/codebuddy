@@ -424,14 +424,16 @@ socket.on('term update', (payload) => {
  * Terminal socket
  */
 socket.on('update message', (payload) => {
-  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='content'></div><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
   updateScroll()
   if (payload.user._id === uid) {
+    $(".message-list").append("<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>"+ payload.message.message +"</p></div></li>");
     $("#inputMessage").val("")
     socket.emit('is typing', {
       uid: uid,
       text: ''
     })
+  } else {
+    $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
   }
 })
 

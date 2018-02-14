@@ -1,5 +1,5 @@
 .chat {
-    height: 60%;
+    height: 500px;
     overflow-x: hidden;
     overflow-y: scroll;
 }
@@ -10,9 +10,18 @@
     hyphens: auto; */
     border-radius: 25px;
     background: #FFFFFF;
-    padding: 8px; 
-
+    padding: 8px;
+    margin-left: 8px;
+    margin-right: 8px;
     /* overflow: hidden; */
+}
+
+.curve-box-user {
+    border-radius: 25px;
+    background: #E0E1E2;
+    padding: 8px;
+    margin-left: 8px;
+    margin-right: 8px;
 }
 
 /* .purpose-segment-tab {
@@ -46,7 +55,11 @@
 }
 
 .float-right {
-    float: right;
+    float: right !important;
+}
+
+.float-left {
+    float: left;
 }
 
 .invitation-card {
