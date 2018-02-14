@@ -182,10 +182,48 @@ editor.on('change', (ins, data) => {
     code: data,
     editor: editor.getValue()
   })
-  socket.emit('move hilight',{
-    code: data,
-    editor: editor.getValue()
-  })
+
+  var text = data.text.toString().charCodeAt(0)
+  var enterline = data.to.line
+  var remove = data.removed
+  var isEnter = false
+  var isDelete = false
+
+  //check when enter new line
+  if(text==44){
+      for(var i in comments){          
+        if(comments[i].line > enterline){          
+          isEnter = true
+          console.log('>>'+comments[i].line)
+          socket.emit('move hilight',{
+            remove: remove,
+            oldline: comments[i].line,
+            isEnter: isEnter,
+            comments: comments
+          })
+          comments[i].line = parseInt(comments[i].line)+1
+        }
+      }
+    }
+
+    //check when delete line
+    if(remove.length==2){
+      for(var i in comments){          
+        if(comments[i].line > enterline){
+          isDelete = true
+          console.log('>>'+comments[i].line)
+          socket.emit('move hilight',{
+            remove: remove,
+            oldline: comments[i].line,
+            isDelete: isDelete,
+            comments: comments
+          })
+          comments[i].line = parseInt(comments[i].line)-1
+        }
+      }
+    }
+
+  
 })
 
 /**
