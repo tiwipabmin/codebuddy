@@ -30,6 +30,7 @@ module.exports = (server) => {
     let review = []
     var comments = []
     var index = null
+    let pty;
 
     winston.info('Client connected')
 
@@ -82,6 +83,31 @@ module.exports = (server) => {
       // }).remove().exec()
       // comments.splice(index,1)
       // io.in(projectId).emit('update review', comments)
+    })
+
+    //move hilight when enter or delete
+    client.on('move hilight', (payload) => {
+      var text = payload.code.text.toString().charCodeAt(0)
+      var enterline = payload.code.to.line
+      if(text==44){
+      // console.log('--'+comments)
+        for(var i in comments){          
+          if(comments[i].line > enterline){
+            // console.log(comments[i].description+' '+comments[i].line+' '+(parseInt(comments[i].line)+1))
+            Comment.update({
+              pid: projectId,
+              line: comments[i].line
+            }, {
+              $set: {
+                line: parseInt(comments[i].line)+1
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+            comments[i].line = parseInt(comments[i].line)+1
+          }
+        }
+      }
     })
 
     /**
@@ -199,12 +225,22 @@ module.exports = (server) => {
         if (err) throw err
       })
       const nodepty = require('node-pty')
-      let pty;
       if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
       else pty = nodepty.spawn('python', ['pytest.py'], {})
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
+
+      setTimeout(pty.kill.bind(pty), 5000);
+    })
+
+    /**
+     * `pause running code` event fired when user click on pause button from front-end
+     * @param {Object} payload code from editor
+     */
+    client.on('pause run code', (payload) => {
+      setTimeout(pty.kill.bind(pty), 0);
+      io.in(projectId).emit('pause run code')
     })
 
     /**
@@ -268,7 +304,8 @@ module.exports = (server) => {
           score = data.slice(before_score + 28, after_score)
         } else if (data.indexOf('E:') < 0){
           score = 0
-        }  
+        }
+        data = data.replace("/10", "/100.00")
         const uid = payload.uid
         const project = Project.where({pid: projectId}).findOne(function (err, project) {
           if (err);
@@ -413,8 +450,7 @@ module.exports = (server) => {
           }
         });
         console.log("score"+score)
-        const data_score = data.replace("/10", "/100.00")
-        io.in(projectId).emit('term update', data_score)
+        io.in(projectId).emit('term update', data)
       })
     })
 
@@ -515,5 +551,11 @@ module.exports = (server) => {
         }
       }
     }
+
+    // function updateLine(line, description){
+    //   for(var i in comments) {
+    //     if(comments[i].)
+    //   }
+    // }
   })
 }

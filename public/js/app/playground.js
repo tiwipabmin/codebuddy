@@ -172,7 +172,13 @@ socket.on('role selection', () => {
 })
 
 socket.on('countdown', (payload) => {
-    $(".countdown").html(`${payload.minutes} : ${payload.seconds}`)
+  if(payload.minutes == '0' && payload.seconds <= 15){
+    $(".countdown").html(`<span style="color: red;"> ${pad(payload.minutes)} : ${pad(payload.seconds)}</span> <span style="font-size:12px;">mins</span>`)
+    $(".auto-swap-warning").html(`<div class="ui circular labels" style="margin-top: 10px;"><a class="ui label">Auto swaping role in ${payload.seconds} secs</a></div>`)
+  } else {
+    $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
+    $(".auto-swap-warning").html(``)
+  }
 })
 
 socket.on('role updated', (payload) => {
@@ -185,6 +191,8 @@ socket.on('role updated', (payload) => {
     roles.partner = 'reviewer'
     editor.setOption('readOnly', false)
   }
+  $(".partner-role-label").text(`${roles.partner}`)
+  $(".user-role-label").text(`${roles.user}`)
   // startCountdown()
 })
 
@@ -201,6 +209,10 @@ $(window).on('beforeunload', () => {
  */
 editor.on('change', (ins, data) => {
   socket.emit('code change', {
+    code: data,
+    editor: editor.getValue()
+  })
+  socket.emit('move hilight',{
     code: data,
     editor: editor.getValue()
   })
@@ -232,9 +244,9 @@ setInterval(() => {
 
 socket.on('update status', (payload) => {
   if (payload.status) {
-    $(".user.status").html(`<strong><em><i class='green circle icon'></i>${partner} (${roles.partner})</em></strong>`)
+    $(".user.status").html(`<strong><em><i class='green circle icon'></i></em></strong>`)
   } else {
-    $(".user.status").html(`<strong><em><i class='grey circle icon'></i>${partner} (${roles.partner})</em></strong>`)
+    $(".user.status").html(`<strong><em><i class='grey circle icon'></i></em></strong>`)
   }
 })
 
@@ -305,6 +317,16 @@ term.on('key', function (key, ev) {
   }
 });
 
+/**
+ * Pause running code
+ */
+function pauseRunCode() {
+  socket.emit('pause run code',{})
+}
+
+/**
+ * Run code
+ */
 function runCode() {
   socket.emit('run code', {
     code: editor.getValue()
@@ -322,6 +344,13 @@ function submitCode() {
     code: editor.getValue()
   })
   term.writeln('Scoring pytest.py...')
+}
+
+/**
+ * Clear Terminal
+ */
+function clearTerminal() {
+  term.clear()
 }
 
 /**
@@ -360,6 +389,13 @@ socket.on('show score', (payload) => {
 /**
  * Auto update score
  */
+socket.on('pause run code', (payload) => {
+  term.writeln('Stop running pytest.py...')
+})
+
+/**
+ * Auto update score
+ */
 socket.on('auto update score', (payload) => {
   socket.emit('submit code', {
     mode: "auto",
@@ -376,9 +412,9 @@ socket.on('show auto update score', (payload) => {
   console.log(payload)
   $('a#project-score-point').text("score : " + parseFloat(payload.score));
   if (uid == payload.uid) {
-    $('#user-point-label').text(parseFloat(payload.avgScore).toFixed(2)); 	
+    $('#user-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2)); 	
   } else {
-    $('#partner-point-label').text(parseFloat(payload.avgScore).toFixed(2));
+    $('#partner-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2));
   }
   
 })
@@ -395,14 +431,16 @@ socket.on('term update', (payload) => {
  * Terminal socket
  */
 socket.on('update message', (payload) => {
-  $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='content'></div><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
   updateScroll()
   if (payload.user._id === uid) {
+    $(".message-list").append("<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>"+ payload.message.message +"</p></div></li>");
     $("#inputMessage").val("")
     socket.emit('is typing', {
       uid: uid,
       text: ''
     })
+  } else {
+    $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
   }
 })
 
@@ -549,4 +587,6 @@ function updateScroll(){
   // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
   $(".chat").animate({ scrollTop: $('.message-list').height() }, "fast");
 }
+
+function pad ( val ) { return val > 9 ? val : "0" + val; }
 

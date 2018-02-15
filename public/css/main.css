@@ -1,5 +1,5 @@
 .chat {
-    height: 60%;
+    height: 500px;
     overflow-x: hidden;
     overflow-y: scroll;
 }
@@ -10,9 +10,18 @@
     hyphens: auto; */
     border-radius: 25px;
     background: #FFFFFF;
-    padding: 8px; 
-
+    padding: 8px;
+    margin-left: 8px;
+    margin-right: 8px;
     /* overflow: hidden; */
+}
+
+.curve-box-user {
+    border-radius: 25px;
+    background: #E0E1E2;
+    padding: 8px;
+    margin-left: 8px;
+    margin-right: 8px;
 }
 
 /* .purpose-segment-tab {
@@ -35,6 +44,22 @@
 
 .text-center {
     text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.float-right {
+    float: right !important;
+}
+
+.float-left {
+    float: left;
 }
 
 .invitation-card {
@@ -62,4 +87,37 @@
 
 .disabled {
     pointer-events:none;
+}
+
+.circle_status {
+    position: absolute;
+}
+
+.countdown {
+    font-family: 'Roboto',sans-serif;
+    font-size: 45px;
+}
+
+body {
+    font-family: 'Roboto',sans-serif;
+}
+
+.margin-top-10 {
+    margin-top: 10px;
+}
+
+.margin-top-15 {
+    margin-top: 15px;
+}
+
+.padding-10 {
+    padding: 10px !important;
+}
+
+.padding-left-20 {
+    padding-left: 50px !important;
+}
+
+.padding-right-20 {
+    padding-right: 50px !important;
 }
