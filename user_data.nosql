@@ -1,0 +1,187 @@
+db.users.insertMany(
+    [
+        {
+            "username" : "alvin",
+            "email" : "alvin@alvin.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Alvin",
+                "lastname" : "Domenico",
+                "occupation" : "developer",
+                "gender" : "female"
+            },
+            "avgScore" : 12,
+            "img" : "/images/user_img_2.jpg",
+        },
+        {
+            "username" : "arnold",
+            "email" : "arnold@arnold.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Arnold",
+                "lastname" : "Eaglin",
+                "occupation" : "developer",
+                "gender" : "male"
+            },
+            "avgScore" : 22,
+            "img" : "/images/user_img_3.jpg",
+        },
+        {
+            "username" : "joseph",
+            "email" : "joseph@joseph.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Joseph",
+                "lastname" : "Houston",
+                "occupation" : "developer",
+                "gender" : "male"
+            },
+            "avgScore" : 27,
+            "img" : "/images/user_img_4.jpg",
+        },
+        {
+            "username" : "lida",
+            "email" : "lida@lida.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Lida",
+                "lastname" : "Carpenter",
+                "occupation" : "developer",
+                "gender" : "female"
+            },
+            "avgScore" : 33,
+            "img" : "/images/user_img_5.jpg",
+        },
+        {
+            "username" : "kimberley",
+            "email" : "kimberley@kimberley.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Kimberley",
+                "lastname" : "Beverly",
+                "occupation" : "developer",
+                "gender" : "female"
+            },
+            "avgScore" : 39,
+            "img" : "/images/user_img_6.jpg",
+        },
+        {
+            "username" : "keith",
+            "email" : "keith@keith.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Keith",
+                "lastname" : "Vera",
+                "occupation" : "developer",
+                "gender" : "female"
+            },
+            "avgScore" : 44,
+            "img" : "/images/user_img_7.jpg",
+        },
+        {
+            "username" : "clarence",
+            "email" : "clarence@clarence.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Clarence",
+                "lastname" : "Craig",
+                "occupation" : "developer",
+                "gender" : "male"
+            },
+            "avgScore" : 52,
+            "img" : "/images/user_img_0.jpg",
+        },
+        {
+            "username" : "leo",
+            "email" : "leo@leo.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Leo",
+                "lastname" : "Hamilton",
+                "occupation" : "developer",
+                "gender" : "male"
+            },
+            "avgScore" : 57,
+            "img" : "/images/user_img_1.jpg",
+        },
+        {
+            "username" : "elizabeth",
+            "email" : "elizabeth@elizabeth.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Elizabeth",
+                "lastname" : "Hogan",
+                "occupation" : "developer",
+                "gender" : "female"
+            },
+            "avgScore" : 65,
+            "img" : "/images/user_img_2.jpg",
+        },
+        {
+            "username" : "trina",
+            "email" : "trina@trina.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Trina",
+                "lastname" : "Hamlet",
+                "occupation" : "developer",
+                "gender" : "male"
+            },
+            "avgScore" : 70,
+            "img" : "/images/user_img_3.jpg",
+        },
+        {
+            "username" : "kevin",
+            "email" : "kevin@kevin.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Kevin",
+                "lastname" : "Jarvis",
+                "occupation" : "developer",
+                "gender" : "male"
+            },
+            "avgScore" : 77,
+            "img" : "/images/user_img_4.jpg",
+        },
+        {
+            "username" : "katherine",
+            "email" : "katherine@katherine.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Katherine",
+                "lastname" : "Young",
+                "occupation" : "developer",
+                "gender" : "male"
+            },
+            "avgScore" : 86,
+            "img" : "/images/user_img_5.jpg",
+        },
+        {
+            "username" : "thomas",
+            "email" : "thomas@thomas.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Thomas",
+                "lastname" : "Brooks",
+                "occupation" : "developer",
+                "gender" : "male"
+            },
+            "avgScore" : 90,
+            "img" : "/images/user_img_6.jpg",
+        },
+        {
+            "username" : "rachel",
+            "email" : "rachel@rachel.com",
+            "password" : "$2a$12$V3/Ylb6bJ.mCzXc7XkZlyO9n1WJYG6x9v7oSxh4uKfTJMdssvAXTC",
+            "info" : {
+                "firstname" : "Rachel",
+                "lastname" : "Wooten",
+                "occupation" : "developer",
+                "gender" : "female"
+            },
+            "avgScore" : 100,
+            "img" : "/images/user_img_4.jpg",
+        }
+    ]
+)
+

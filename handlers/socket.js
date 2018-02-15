@@ -413,7 +413,8 @@ module.exports = (server) => {
           }
         });
         console.log("score"+score)
-        io.in(projectId).emit('term update', data)
+        const data_score = data.replace("/10", "/100.00")
+        io.in(projectId).emit('term update', data_score)
       })
     })
 

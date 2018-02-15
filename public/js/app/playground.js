@@ -7,6 +7,16 @@ const roles = {
   partner: ''
 }
 var comments = null
+
+var webrtc = new SimpleWebRTC({
+  // the id/element dom element that will hold "our" video
+  localVideoEl: 'localVideo',
+  // the id/element dom element that will hold remote videos
+  remoteVideosEl: 'remoteVideo',
+  // immediately ask for camera access
+  autoRequestMedia: true
+});
+
 /**
  * get query parameter from URL
  * @param {String} name parameter name that you want to get value from
@@ -106,11 +116,23 @@ socket.emit('join project', {
   username: user
 })
 
+webrtc.on('readyToCall', function () {
+  // you can name it anything
+  webrtc.createRoom(getParameterByName('pid'));
+  webrtc.joinRoom(getParameterByName('pid'));
+});
+
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
  */
 socket.on('init state', (payload) => {
   editor.setValue(payload.editor)
+  // webrtc.on('readyToCall', function () {
+  //   // you can name it anything
+  //   webrtc.createRoom(getParameterByName('pid'));
+  //   webrtc.joinRoom(getParameterByName('pid'));
+  // });
+  // webrtc.emit('readyToCall')
 })
 
 /**
@@ -397,6 +419,7 @@ function muteEvent(b) {
 }
 function videoEvent(b) {
   if ($(b).hasClass("active")) {
+    alert(b);
     webrtc.pauseVideo();
   }
   else {

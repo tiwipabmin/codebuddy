@@ -29,6 +29,13 @@ exports.getDashboard = async (req, res) => {
         ]
       })
     .sort({ createdAt: -1 })
+  const pendings =  await Project
+  .find({ $and : [
+        {status: "pending" },
+        {creator: req.user.username }
+      ]
+    })
+  .sort({ createdAt: -1 })
   // projects.forEach(element => {
   //   console.log(element)
   //   let partner = ''
@@ -43,7 +50,7 @@ exports.getDashboard = async (req, res) => {
   //   console.log(element.partner_img)
   // });
   
-  res.render('dashboard', { projects, invitations, title: 'Dashboard' })
+  res.render('dashboard', { projects, invitations, pendings, title: 'Dashboard' })
 }
 
 exports.getPlayground = async (req, res) => {
