@@ -326,7 +326,7 @@ module.exports = (server) => {
         } else if (data.indexOf('E:') < 0){
           score = 0
         }
-        data = data.replace("/10", "/100.00")
+        data = data.replace(/\/10/g, "/100.00")
         const uid = payload.uid
         const project = Project.where({pid: projectId}).findOne(function (err, project) {
           if (err);
