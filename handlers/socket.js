@@ -30,6 +30,7 @@ module.exports = (server) => {
     let review = []
     var comments = []
     var index = null
+    let pty;
 
     winston.info('Client connected')
 
@@ -82,6 +83,52 @@ module.exports = (server) => {
       // }).remove().exec()
       // comments.splice(index,1)
       // io.in(projectId).emit('update review', comments)
+    })
+
+    //move hilight when enter or delete
+    client.on('move hilight', (payload) => {
+      var enterline = payload.enterline
+      var remove = payload.remove
+      var oldline = payload.oldline
+      var isEnter = payload.isEnter
+      var isDelete = payload.isDelete
+      comments = payload.comments
+
+      //check when enter new line
+      if(isEnter){
+        for(var i in comments){
+          if(comments[i].line > enterline){        
+            Comment.update({
+              pid: projectId,
+              description: comments[i].description
+            }, {
+              $set: {
+                line: comments[i].line
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+          }
+        }        
+      }
+
+      //check when delete line
+      if(isDelete){
+        for(var i in comments){
+          if(comments[i].line > parseInt(enterline)-1){  
+            Comment.update({
+              pid: projectId,
+              description: comments[i].description
+            }, {
+              $set: {
+                line: comments[i].line
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+          }
+        }
+      }
     })
 
     /**
@@ -199,12 +246,22 @@ module.exports = (server) => {
         if (err) throw err
       })
       const nodepty = require('node-pty')
-      let pty;
       if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
       else pty = nodepty.spawn('python', ['pytest.py'], {})
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
+
+      setTimeout(pty.kill.bind(pty), 5000);
+    })
+
+    /**
+     * `pause running code` event fired when user click on pause button from front-end
+     * @param {Object} payload code from editor
+     */
+    client.on('pause run code', (payload) => {
+      setTimeout(pty.kill.bind(pty), 0);
+      io.in(projectId).emit('pause run code')
     })
 
     /**
@@ -268,7 +325,8 @@ module.exports = (server) => {
           score = data.slice(before_score + 28, after_score)
         } else if (data.indexOf('E:') < 0){
           score = 0
-        }  
+        }
+        data = data.replace(/\/10/g, "/100.00")
         const uid = payload.uid
         const project = Project.where({pid: projectId}).findOne(function (err, project) {
           if (err);
@@ -495,7 +553,7 @@ module.exports = (server) => {
 
     function saveComment(payload){
       const commentModel = {
-        line: payload.line,
+        line: parseInt(payload.line),
         pid: projectId,
         description: payload.description,
         createdAt: Date.now()
@@ -514,5 +572,11 @@ module.exports = (server) => {
         }
       }
     }
+
+    // function updateLine(line, description){
+    //   for(var i in comments) {
+    //     if(comments[i].)
+    //   }
+    // }
   })
 }

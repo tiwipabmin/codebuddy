@@ -4,6 +4,7 @@ const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
 const Score = mongoose.model('Score')
 const User = mongoose.model('User')
+const Comment = mongoose.model('Comment')
 
 exports.getHomepage = (req, res) => {
   res.render('index')
@@ -29,6 +30,13 @@ exports.getDashboard = async (req, res) => {
         ]
       })
     .sort({ createdAt: -1 })
+  const pendings =  await Project
+  .find({ $and : [
+        {status: "pending" },
+        {creator: req.user.username }
+      ]
+    })
+  .sort({ createdAt: -1 })
   // projects.forEach(element => {
   //   console.log(element)
   //   let partner = ''
@@ -43,7 +51,7 @@ exports.getDashboard = async (req, res) => {
   //   console.log(element.partner_img)
   // });
   
-  res.render('dashboard', { projects, invitations, title: 'Dashboard' })
+  res.render('dashboard', { projects, invitations, pendings, title: 'Dashboard' })
 }
 
 exports.getPlayground = async (req, res) => {
@@ -83,7 +91,7 @@ exports.getNotifications = async (req, res) => {
   const projects = await Project
     .find({ $or: [{ creator: req.user.username }, { collaborator: req.user.username }] })
     .sort({ createdAt: -1 })
-  res.render('notifications', { projects })    
+  res.render('notifications', { projects })
 }
 
 exports.createProject = async (req, res) => {
@@ -105,6 +113,48 @@ exports.createProject = async (req, res) => {
     req.flash('error', "Can't find @" + req.body.collaborator)
   }
   res.redirect('dashboard')
+}
+
+exports.editProject = async (req, res) => {
+  const id = req.body.pid
+  Project.update({ 
+      pid: id
+    }, { 
+      $set: { 
+        title: req.body.title,
+        description: req.body.description,
+        swaptime: req.body.swaptime
+      }
+    }, function(err, result){
+      if(err) throw err
+    }) 
+  res.redirect('/dashboard')
+}
+
+exports.deleteProject = async (req, res) => {
+  const id = req.body.id
+  Score.remove({
+    pid: id
+    },  function(err, result){
+      if(err) throw err
+  })
+  Project.remove({ 
+      pid: id
+    },  function(err, result){
+      if(err) throw err
+    }) 
+  Message.remove({ 
+      pid: id
+    }, function(err, result){
+      if(err) throw err
+    }) 
+  Comment.remove({ 
+      pid: id
+    }, function(err, result){
+      if(err) throw err
+      res.end()
+    }) 
+  
 }
 
 exports.searchUser = async (req, res) => {
@@ -175,6 +225,7 @@ exports.declineInvite = async (req, res) => {
         res.send("success")
         // res.redirect(303,'/dashboard')
       }  
-    }) 
+    })
 }
+
 
