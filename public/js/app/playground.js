@@ -445,7 +445,7 @@ socket.on('auto update score', (payload) => {
  */
 socket.on('show auto update score', (payload) => {
   console.log(payload)
-  $('a#project-score-point').text("score : " + parseFloat(payload.score));
+  $('p#project-score-point').text("score : " + parseFloat(payload.score));
   if (uid == payload.uid) {
     $('#user-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2)); 	
   } else {
