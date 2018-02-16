@@ -32,54 +32,6 @@ block script
       }
   
 block content
-    .ui.small.modal#settingProject-modal
-      i.close.icon
-      .header Setting Project
-      .content
-        form.ui.form(action='/project', method='POST')
-          .field
-            label Project Name :
-            |  
-            input(type='text', name='title', placeholder='Your Project Name')
-          .field
-            label Description :
-            |  
-            input(type='text', name='description', placeholder='Something about your project')
-          .field
-                  label Language :
-                  select.ui.dropdown(name='language')
-                    option(value='0') Python
-          .field
-            label Time  :
-            select.ui.dropdown(name='swaptime')
-               option(value='15') 15 minutes (Recommended)
-               option(value='10') 10 minutes
-               option(value='5') 5 minutes
-          .ui.form
-            .inline.fields
-              //- .fields
-              //-   label(for='theme') Select your theme:
-              //-   .field
-              //-     .radio.checkbox
-              //-       input.hidden(type='radio', name='theme', checked='', tabindex='0')
-              //-       |  
-              //-       label White (default)
-              //-       img.logo.small(src='images/whiteEditorTheme.PNG' ,width='80%', height='15%')
-              //-   .field
-              //-     .radio.checkbox
-              //-       input.hidden(type='radio', name='theme', tabindex='0')
-              //-       |  
-              //-       label Blackboard
-              //-       img.logo.small(src='images/darkEditorTheme.PNG' ,width='80%',height='15%')
-
-          .ui.basic.center.aligned.segment()
-            .actions
-              button.ui.button.approve.green(type='submit') Create
-              .ui.button.approve.red(data-value='cancel') Cancel
-              .ui.floated.alignedvertical.animated.deleteProject.button(tabindex='0')
-                        .hidden.content Delete
-                        .visible.content
-                          i.trash.icon
     .ui.small.modal#newProject-modal
       i.close.icon
       .header Create New Project
@@ -256,9 +208,50 @@ block content
                         |)
                       .five.wide.column
                         .ui.right.floated.alignedvertical.animated.settingProject.button(tabindex='0', id=project.pid)
-                          .hidden.content Setting
+                          .hidden.content Edit
                           .visible.content
                             i.setting.icon
+                    .ui.small.modal#settingProject-modal
+                      i.close.icon
+                      .header Edit Project
+                      .content
+                        form.ui.form(action='/dashboard/editProject', method='POST')
+                          .field
+                            label Project Name :
+                            | 
+                            input(type='hidden', name='pid', value=project.pid) 
+                            input(type='text', name='title', value=project.title)
+                          .field
+                            label Description :
+                            |  
+                            input(type='text', name='description', value=project.description)
+                          .field
+                                  label Language :
+                                  select.ui.dropdown(name='language')
+                                    option(value='0') Python
+                          .field
+                            label Time  :
+                            select.ui.dropdown(name='swaptime')
+                              if project.swaptime == 15
+                                option(value='15' selected) 15 minutes (Recommended)
+                                option(value='10') 10 minutes
+                                option(value='5') 5 minutes
+                              else if project.swaptime == 10
+                                option(value='15') 15 minutes (Recommended)
+                                option(value='10' selected) 10 minutes
+                                option(value='5') 5 minutes
+                              else
+                                option(value='15') 15 minutes (Recommended)
+                                option(value='10') 10 minutes
+                                option(value='5' selected) 5 minutes
+                          .ui.basic.center.aligned.segment()
+                            .actions
+                              button.ui.button.approve.green(type='submit') Save
+                              .ui.button.approve.red(data-value='cancel') Cancel
+                              .ui.floated.alignedvertical.animated.deleteProject.button(tabindex='0', onclick='onClickDeleteProject("'+project.pid+'")')
+                                        .hidden.content Delete
+                                        .visible.content
+                                          i.trash.icon
                       
             else if project.collaborator === user.username
               .item(style='padding-top:10px')

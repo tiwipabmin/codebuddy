@@ -66,3 +66,15 @@ function onClickDeclineInvite(id) {
         }
     });
 }
+
+function onClickDeleteProject(id) {
+    $.ajax({
+        url: '/dashboard/deleteProject',
+        type: 'DELETE',
+        data: {id: id},
+        success: function(result) {
+            location.reload();
+        }
+    });
+}
+
