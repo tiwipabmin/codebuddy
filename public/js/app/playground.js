@@ -89,20 +89,25 @@ editor.on('dblclick', () => {
   let line = $('input.disabled.line.no').val()
   switch (roles.user) {
     case 'coder':    
-      comments.map((comment) => {
-        console.log(comment)
-        if (comment.line == line) {
-          $('textarea.line.coder.disabled.description').val(comment.description)
+      for(var i in comments){
+        if (comments[i].line == parseInt(line)) {
+          $('textarea.line.coder.disabled.description').val(comments[i].description)
+          break
+        }else{
+          $('textarea.line.coder.disabled.description').val('')
         }
-      })
+      }     
       $('.ui.coder.small.modal').modal('show')
       break
     case 'reviewer':
-      comments.map((comment) => {
-        if (comment.line == line) {
-          $('textarea.line.reviewer.description').val(comment.description)
+      for(var i in comments){
+        if (comments[i].line == parseInt(line)) {
+          $('textarea.line.reviewer.description').val(comments[i].description)
+          break
+        }else{
+          $('textarea.line.reviewer.description').val('')
         }
-      })
+      }
       $('.ui.reviewer.small.modal').modal('show')
       break
   }
