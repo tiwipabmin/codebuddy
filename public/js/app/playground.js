@@ -492,7 +492,6 @@ function muteEvent(b) {
 }
 function videoEvent(b) {
   if ($(b).hasClass("active")) {
-    alert(b);
     webrtc.pauseVideo();
   }
   else {
