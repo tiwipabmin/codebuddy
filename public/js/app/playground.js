@@ -212,10 +212,45 @@ editor.on('change', (ins, data) => {
     code: data,
     editor: editor.getValue()
   })
-  socket.emit('move hilight',{
-    code: data,
-    editor: editor.getValue()
-  })
+
+  var text = data.text.toString().charCodeAt(0)
+  var enterline = parseInt(data.to.line)+1
+  var remove = data.removed
+  var isEnter = false
+  var isDelete = false
+
+  //check when enter new line
+  if(text==44){
+    console.log('enter '+enterline)
+      for(var i in comments){  
+        if(comments[i].line > enterline){          
+          isEnter = true
+          comments[i].line = parseInt(comments[i].line)+1
+        }
+      }
+    socket.emit('move hilight',{
+      comments: comments,
+      enterline: enterline,
+      isEnter: isEnter
+    })
+  }
+
+  //check when delete line
+  if(remove.length==2){
+    for(var i in comments){          
+      if(comments[i].line > enterline-1){
+        isDelete = true        
+        comments[i].line = parseInt(comments[i].line)-1
+      }
+    }
+    socket.emit('move hilight',{
+      comments: comments,
+      enterline: enterline,
+      isDelete: isDelete,
+    })
+  }
+
+  
 })
 
 /**
@@ -252,7 +287,7 @@ socket.on('update status', (payload) => {
 
 function submitReview() {
   socket.emit('submit review', {
-    line: $('input.disabled.line.no').val(),
+    line: parseInt($('input.disabled.line.no').val()),
     description: $('textarea.line.reviewer.description').val(),
   })
   $('textarea.line.description').val('')
