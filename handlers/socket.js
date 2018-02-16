@@ -91,37 +91,42 @@ module.exports = (server) => {
       var oldline = payload.oldline
       var isEnter = payload.isEnter
       var isDelete = payload.isDelete
-
-      console.log('>>'+oldline)
+      comments = payload.comments
 
       //check when enter new line
       if(isEnter){
-        comments = payload.comments
-        Comment.update({
-          pid: projectId,
-          line: oldline
-        }, {
-          $set: {
-            line: parseInt(oldline)+1
-          } 
-        }, (err) => {
-          if (err) throw err
-        })
+        for(var i in comments){
+          if(comments[i].line > enterline){        
+            Comment.update({
+              pid: projectId,
+              description: comments[i].description
+            }, {
+              $set: {
+                line: comments[i].line
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+          }
+        }        
       }
 
       //check when delete line
       if(isDelete){
-        comments = payload.comments
-        Comment.update({
-          pid: projectId,
-          line: oldline
-        }, {
-          $set: {
-            line: parseInt(oldline)-1
-          } 
-        }, (err) => {
-          if (err) throw err
-        })
+        for(var i in comments){
+          if(comments[i].line > parseInt(enterline)-1){  
+            Comment.update({
+              pid: projectId,
+              description: comments[i].description
+            }, {
+              $set: {
+                line: comments[i].line
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
+          }
+        }
       }
     })
 
@@ -483,7 +488,7 @@ module.exports = (server) => {
                 var start = new Date(parseInt(obj.startTime))
                 let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
                 let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
-                // console.log(seconds + "secound")
+                console.log(seconds + "secound")
                 flag = 0
                 if(seconds == 0 && flag != 1){
                   flag = 1
@@ -537,7 +542,7 @@ module.exports = (server) => {
 
     function saveComment(payload){
       const commentModel = {
-        line: payload.line,
+        line: parseInt(payload.line),
         pid: projectId,
         description: payload.description,
         createdAt: Date.now()
