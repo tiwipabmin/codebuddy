@@ -320,7 +320,7 @@ socket.on('is typing', (payload) => {
  * Run code
  */
 const term = new Terminal({
-  cols: 120,
+  cols: 60,
   rows: 10,
   cursorBlink: true
 })
