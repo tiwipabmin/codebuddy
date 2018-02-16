@@ -87,24 +87,45 @@ module.exports = (server) => {
 
     //move hilight when enter or delete
     client.on('move hilight', (payload) => {
-      var text = payload.code.text.toString().charCodeAt(0)
-      var enterline = payload.code.to.line
-      if(text==44){
-      // console.log('--'+comments)
-        for(var i in comments){          
-          if(comments[i].line > enterline){
-            // console.log(comments[i].description+' '+comments[i].line+' '+(parseInt(comments[i].line)+1))
+      var enterline = payload.enterline
+      var remove = payload.remove
+      var oldline = payload.oldline
+      var isEnter = payload.isEnter
+      var isDelete = payload.isDelete
+      comments = payload.comments
+
+      //check when enter new line
+      if(isEnter){
+        for(var i in comments){
+          if(comments[i].line > enterline){        
             Comment.update({
               pid: projectId,
-              line: comments[i].line
+              description: comments[i].description
             }, {
               $set: {
-                line: parseInt(comments[i].line)+1
+                line: comments[i].line
               } 
             }, (err) => {
               if (err) throw err
             })
-            comments[i].line = parseInt(comments[i].line)+1
+          }
+        }        
+      }
+
+      //check when delete line
+      if(isDelete){
+        for(var i in comments){
+          if(comments[i].line > parseInt(enterline)-1){  
+            Comment.update({
+              pid: projectId,
+              description: comments[i].description
+            }, {
+              $set: {
+                line: comments[i].line
+              } 
+            }, (err) => {
+              if (err) throw err
+            })
           }
         }
       }
@@ -532,7 +553,7 @@ module.exports = (server) => {
 
     function saveComment(payload){
       const commentModel = {
-        line: payload.line,
+        line: parseInt(payload.line),
         pid: projectId,
         description: payload.description,
         createdAt: Date.now()
