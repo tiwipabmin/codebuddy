@@ -209,8 +209,11 @@ block content
 
     .ui.chatbox(id="live-chat")
       header.clearfix
-          i.comments.icon(style="float: left;") 
-          p Chat
+          eight.wide.column(style="float: left;") 
+            i.comments.icon(style="float: left;") 
+            p Chat
+          eight.wide.column(style="float: right;") 
+            i.angle.up.icon(id="angle-up")
       .chat
         .chat-history
           .ui.items.message-list(id="chatheight")

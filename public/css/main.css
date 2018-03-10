@@ -161,12 +161,31 @@ fieldset {
 	border-radius: 8px 8px 0 0;
 	color: #fff;
 	cursor: pointer;
-	padding: 14px 24px;
+    padding-top: 14px;
+    padding-bottom: 10px;
+    padding-left: 24px;
+    padding-right: 24px;
 }
 
 #live-chat header p {
     font-size: 16px;
     padding-left: 25px;
+}
+
+#angle-up{
+    font-size: 2em;
+    -webkit-transition:all 500ms ease-in 0s;
+    -moz-transition: all 500ms ease-in 0s;
+    -o-transition: all 500ms ease-in 0s;
+    transition: all 500ms ease-in 0s;
+}
+
+.rotate {
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    transform: rotate(180deg);
 }
 
 #live-chat p {
@@ -197,15 +216,15 @@ fieldset {
     padding-top: 5px;
     padding-left: 10px;
     padding-bottom: 10px;
+    background: #fff;
 }
 
 .chatbox {
-    background: #fff;
     display: initial;
 }
 
 .chat-history {
-    background: #e0e1e257;
+    background: #f3f0f0;
 	height: 252px;
 	padding: 8px 24px;
 	overflow-y: scroll;
