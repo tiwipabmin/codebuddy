@@ -1,8 +1,8 @@
-.chat {
+/* .chat {
     height: 500px;
     overflow-x: hidden;
     overflow-y: scroll;
-}
+} */
 
 .curve-box {
     /* overflow-wrap: break-word;
@@ -121,3 +121,126 @@ body {
 .padding-right-20 {
     padding-right: 50px !important;
 }
+
+
+/* ---------- GENERAL ---------- */
+
+fieldset {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+
+#chatinput {
+	border: 0;
+	color: inherit;
+    font-family: inherit;
+    font-size: 100%;
+    line-height: normal;
+    margin: 0;
+}
+
+.clearfix { *zoom: 1; } /* For IE 6/7 */
+.clearfix:before, .clearfix:after {
+    content: "";
+    display: table;
+}
+.clearfix:after { clear: both; }
+
+/* ---------- LIVE-CHAT ---------- */
+
+#live-chat {
+	bottom: 0;
+	right: 24px;
+	position: fixed;
+	width: 300px;
+}
+
+#live-chat header {
+	background: #676868;
+	border-radius: 8px 8px 0 0;
+	color: #fff;
+	cursor: pointer;
+	padding: 14px 24px;
+}
+
+#live-chat header p {
+    font-size: 16px;
+    padding-left: 25px;
+}
+
+#live-chat p {
+	font-size: 12px;
+}
+
+#live-chat h4 {
+	font-size: 12px;
+}
+
+#live-chat h5 {
+	font-size: 10px;
+}
+
+#live-chat form {
+	padding: 24px;
+}
+
+#live-chat input[type="text"] {
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	padding: 8px;
+	outline: none;
+    width: 220px;
+}
+
+.chatbottom{
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+}
+
+.chatbox {
+    background: #fff;
+    display: initial;
+}
+
+.chat-history {
+    background: #e0e1e257;
+	height: 252px;
+	padding: 8px 24px;
+	overflow-y: scroll;
+}
+
+/*scrollbar */
+.chat-history::-webkit-scrollbar {
+    width: 8px;
+    background-color: #F5F5F5;
+}
+.chat-history::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background: rgba(0,0,0,0.1);
+}
+.chat-history::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: rgba(0,0,0,0.2);
+}
+.chat-history::-webkit-scrollbar-thumb:hover{
+    background: rgba(0,0,0,0.4);
+}
+.chat-history::-webkit-scrollbar-thumb:active{
+    background: rgba(0,0,0,.5);
+}
+
+.chat-message {
+	margin: 16px 0;
+}
+
+.chat-message img {
+	border-radius: 50%;
+	float: left;
+}
+
+.chat-message-content {
+	margin-left: 56px;
+}
+

@@ -1,0 +1,15 @@
+include ../mixins/_displayFlashes
+include ../mixins/_form
+html
+  head
+    title= `${title} | CodeBuddy`
+    include header
+    block header
+    style(type='text/css').
+        .row{
+          max-width:900px;
+        }
+    block script
+  body
+    include menu
+    block content
