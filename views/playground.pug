@@ -1,4 +1,4 @@
-extends layout/layout.pug
+extends layout/layoutPlayground.pug
 
 block script
   link(rel='stylesheet' href='/css/main.css')
@@ -185,7 +185,7 @@ block content
                 video#localVideo(style='height: 150px;', oncontextmenu='return false;')
                 canvas(id="canvas" width="320" height="240")
                 #localVolume.volume_bar
-        .eight.wide.column.right
+        .twelve.wide.column.right
           .ui.grid
             .sixteen.wide.column
               p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") score : 0
@@ -206,72 +206,60 @@ block content
                   button.ui.button.float-right(id='clearTerm' onClick='clearTerminal()') Clear
             .ui.secondary.segment
               #xterm-container
-        .four.wide.column.right
-          .ui.raised.segments
-            .ui.segment Chat
-            .ui.secondary.segment.chat
-              .ui.items.message-list
-                if messages.length == 0
-                  .ui.item
-                  | Send message to your pair.
-                else
-                  each message in messages
-                    .ui.item
-                      if (message.uid != user._id)
-                        img.ui.avatar.image(src=partner_img)
-                        .curve-box #{message.message}
-                      else 
-                        //- img.ui.avatar.image(src=`${user.img}`)
-                        .content
-                        .curve-box-user #{message.message}
-                        //- a.header Thara
-            .ui.segment
-              p#show-is-typing
-                .ui.form(action='/project', method='POST')
-                  .field
-                    .ui.grid
-                      .twelve.wide.column
-                        input.ui.input(type='text', id="inputMessage", name='message', placeholder='Type here')
-                      .four.wide.column
-                        button.ui.button.icon(type='submit', onClick='sendMessage()')
-                          i.send.icon
-      .ui.grid
-        .four.wide.column
 
-        .twelve.wide.column.right
-      style.
-        .face-tracking {
-          width: 320;
-          height: 240px;
-          position: relative;
-          background: #eee;
-          overflow: hidden;
-        }
-        .face-tracking video,canvas {
-          position: absolute;
-        }
-      p(id="mins") 0
-      p(id="secs") 0
-      p(id="counts") 0
+    .ui.chatbox(id="live-chat")
+      header.clearfix
+          eight.wide.column(style="float: left;") 
+            i.comments.icon(style="float: left;") 
+            p Chat
+          eight.wide.column(style="float: right;") 
+            i.angle.up.icon(id="angle-up")
+      .chat
+        .chat-history
+          .ui.items.message-list(id="chatheight")
+            if messages.length == 0
+              .ui.item
+              | Send message to your pair.
+            else
+              each message in messages
+                .ui.item
+                  if (message.uid != user._id)
+                    img.ui.avatar.image(src=partner_img)
+                    .curve-box #{message.message}
+                  else 
+                    //- img.ui.avatar.image(src=`${user.img}`)
+                    .content
+                    .curve-box-user #{message.message}
+                    //- a.header Thara
+                    
+        .ui.chatbottom
+          p#show-is-typing
+            .ui.form(action='/project', method='POST')
+              .field
+                .ui.grid
+                  .twelve.wide.column
+                    input.ui.input(type='text', id="inputMessage", name='message', placeholder='Type here')
+                  .four.wide.column
+                    button.ui.button.icon(type='submit', onClick='sendMessage()')
+                      i.send.icon
 
-block footerExtend
-  script.
-    let user="#{user.username}"
-    let uid="#{user._id}"
-    let partner="#{partner}"
-  script(type='text/javascript').
-    $(document).ready(function(){
-        $('.demo.menu .item').tab({history:false});
-    });
-  script(src='/codemirror/lib/codemirror.js')
-  script(src='/codemirror/mode/python/python.js')
-  //- script(src='/js/static/simplewebrtc.bundle.js')
-  //- script(src='/js/static/webrtc.js')
-  script(src='/js/static/socket.io.min.js')
-  script(src='/xterm/xterm.js')
-  script(src='/xterm/addons/fit/fit.js')
-  script(src='/js/static/countdown.min.js')
-  script(src='/js/app/playground.js')
-  script(src='/js/app/main.js')
-  script(src='/trackingjs/build/tracking-min.js')
-  script(src='/trackingjs/build/data/face-min.js')
+    script.
+      let user="#{user.username}"
+      let uid="#{user._id}"
+      let partner="#{partner}"
+    script(type='text/javascript').
+      $(document).ready(function(){
+          $('.demo.menu .item').tab({history:false});
+      });
+    script(src='/codemirror/lib/codemirror.js')
+    script(src='/codemirror/mode/python/python.js')
+    //- script(src='/js/static/simplewebrtc.bundle.js')
+    //- script(src='/js/static/webrtc.js')
+    script(src='/js/static/socket.io.min.js')
+    script(src='/xterm/xterm.js')
+    script(src='/xterm/addons/fit/fit.js')
+    script(src='/js/static/countdown.min.js')
+    script(src='/js/app/playground.js')
+    script(src='/js/app/main.js')
+    script(src='/trackingjs/build/tracking-min.js')
+    script(src='/trackingjs/build/data/face-min.js')

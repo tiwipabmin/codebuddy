@@ -624,7 +624,7 @@ function switchRole() {
 
 function updateScroll(){
   // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
-  $(".chat").animate({ scrollTop: $('.message-list').height() }, "fast");
+  $(".chat-history").animate({ scrollTop: $('.message-list').height() }, "fast");
 }
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }
