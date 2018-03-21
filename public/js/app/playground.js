@@ -189,11 +189,11 @@ socket.on('countdown', (payload) => {
 socket.on('role updated', (payload) => {
   if (user === payload.roles.reviewer) {
     editor.setOption('readOnly', 'nocursor')
-    roles.user = 'reviewer'
-    roles.partner = 'coder'
+    roles.user = 'Reviewer'
+    roles.partner = 'Coder'
   } else {
-    roles.user = 'coder'
-    roles.partner = 'reviewer'
+    roles.user = 'Coder'
+    roles.partner = 'Reviewer'
     editor.setOption('readOnly', false)
   }
   $(".partner-role-label").text(`${roles.partner}`)
