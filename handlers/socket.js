@@ -77,12 +77,18 @@ module.exports = (server) => {
     })
 
     client.on('delete review', (payload) => {
-      // Comment.findOne({
-      //   pid:  projectId,
-      //   line: payload.line
-      // }).remove().exec()
-      // comments.splice(index,1)
-      // io.in(projectId).emit('update review', comments)
+      Comment.findOne({
+        pid:  projectId,
+        line: payload.line
+      }).remove().exec()
+
+      deletecomments = comments.filter(function(el){
+        return el.line !== parseInt(payload.line);
+      })
+      
+      io.in(projectId).emit('update review', {
+        comments: deletecomments,
+        deleteline: payload.line})
     })
 
     //move hilight when enter or delete
@@ -499,7 +505,7 @@ module.exports = (server) => {
                 var start = new Date(parseInt(obj.startTime))
                 let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
                 let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
-                console.log(seconds + "secound")
+                // console.log(seconds + "secound")
                 flag = 0
                 if(seconds == 0 && flag != 1){
                   flag = 1

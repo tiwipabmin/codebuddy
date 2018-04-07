@@ -306,14 +306,17 @@ socket.on('new review', (payload) => {
 })
 
 function deleteReview() {
-  // socket.emit('delete review', {
-  //   line: $('input.disabled.line.no').val(),
-  //   description: $('textarea.line.reviewer.description').val(),
-  // })
-  // editor.addLineClass(parseInt(line-1), 'wrap', 'CodeMirror-unactiveline-background')
-  // $('textarea.line.description').val('')
-  
+  socket.emit('delete review', {
+    line: $('input.disabled.line.no').val(),
+    description: $('textarea.line.reviewer.description').val(),
+  })
 }
+
+socket.on('update review', (payload) =>{
+  comments = payload.comments
+  deleteline = payload.deleteline
+  editor.removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
+})
 
 socket.on('is typing', (payload) => {
   if (uid != payload.uid) {
