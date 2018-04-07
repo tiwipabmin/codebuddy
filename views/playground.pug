@@ -182,7 +182,7 @@ block content
               .ui.divider
               p You
               .videoContainer
-                video#localVideo(style='height: 150px;', oncontextmenu='return false;')
+                video#localVideo(style='height: 150px; transform: scaleX(-1);', oncontextmenu='return false;')
                 canvas(id="canvas" width="320" height="240" style="transform: scaleX(-1);")
                 #localVolume.volume_bar
         .eight.wide.column.right
