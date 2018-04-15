@@ -7,6 +7,7 @@ const roles = {
   partner: ''
 }
 var comments = null
+var code = null
 
 var webrtc = new SimpleWebRTC({
   // the id/element dom element that will hold "our" video
@@ -132,6 +133,7 @@ webrtc.on('readyToCall', function () {
  */
 socket.on('init state', (payload) => {
   editor.setValue(payload.editor)
+  code = payload.editor
   // webrtc.on('readyToCall', function () {
   //   // you can name it anything
   //   webrtc.createRoom(getParameterByName('pid'));
@@ -213,10 +215,6 @@ $(window).on('beforeunload', () => {
  * Local editor value is changing, to handle that we'll emit our changes to server
  */
 editor.on('change', (ins, data) => {
-  socket.emit('code change', {
-    code: data,
-    editor: editor.getValue()
-  })
 
   var text = data.text.toString().charCodeAt(0)
   var enterline = parseInt(data.to.line)+1
@@ -255,7 +253,14 @@ editor.on('change', (ins, data) => {
     })
   }
 
-  
+  socket.emit('code change', {
+    code: data,
+    editor: editor.getValue(),
+    user: user,
+    enterline: enterline,
+    isEnter: isEnter,
+    isDelete: isDelete,
+  })
 })
 
 /**

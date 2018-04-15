@@ -1,10 +1,12 @@
 const mongoose = require('mongoose')
+const Redis = require('ioredis')
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
 const Score = mongoose.model('Score')
 const User = mongoose.model('User')
 const Comment = mongoose.model('Comment')
+const History = mongoose.model('History')
 
 exports.getHomepage = (req, res) => {
   res.render('index')
@@ -70,6 +72,33 @@ exports.getPlayground = async (req, res) => {
     .findOne({ _id: project.creator_id})
   }
   res.render('playground', { project, title: `${project.title} - Playground`, messages, partner_obj})
+}
+
+exports.getHistory = async (req, res) => {
+  const redis = new Redis()
+  var code = await redis.hget(`project:${req.query.pid}`, 'editor', (err, ret) => ret)
+
+  const project = await Project
+    .findOne({ pid: req.query.pid})
+  var creator = project.creator
+  var collaborator = project.collaborator
+  var curUser = req.query.curUser
+
+  if(curUser==project.creator){
+    var curUser_obj = await User
+    .findOne({ username: curUser})
+    var partner_obj = await User
+      .findOne({ username: collaborator})
+  }else{
+    var curUser_obj = await User
+    .findOne({ username: curUser})
+    var partner_obj = await User
+      .findOne({ username: creator})
+  }
+  
+  const histories = await History
+    .find({ pid: req.query.pid})
+  res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, title: 'History' })
 }
 
 exports.getAboutUs = (req, res) => {

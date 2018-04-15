@@ -31,6 +31,7 @@ require('./models/project')
 require('./models/comment')
 require('./models/message')
 require('./models/score')
+require('./models/history')
 
 /**
  * Checking Redis server is available

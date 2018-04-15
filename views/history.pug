@@ -1,0 +1,85 @@
+extends layout/layout.pug
+
+block script
+  link(rel='stylesheet' href='/css/main.css')
+  link(rel='stylesheet' href='/xterm/xterm.css')
+  link(rel='stylesheet' href='/codemirror/lib/codemirror.css')
+  link(rel='stylesheet' href='/codemirror/addon/selection/active-line.js')
+  link(rel='stylesheet' href='/codemirror/theme/blackboard.css')
+  link(rel='stylesheet' href='/codemirror/theme/seti.css')
+  link(rel='stylesheet' href='/codemirror/theme/material.css')
+
+block content
+    .ui.container.segment
+        .ui.grid
+            .sixteen.wide.column
+                center
+                    h1.ui.header(style='padding-top:5px;')= project.title
+            .eight.wide.column.padding-left-20.padding-right-20
+                div.ui.relaxed.items
+                    div.item
+                        div
+                            a.ui.tiny.image.circular
+                                img(src=curUser_obj.img)
+                            p.user-role-label.text-center
+                        div.content
+                            p.header(id='badge1') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
+            .eight.wide.column.padding-left-20.padding-right-20
+                div.ui.relaxed.items
+                    div.item
+                        div
+                            a.ui.tiny.image.circular
+                                img(src=partner_obj.img)
+                            p.user-role-label.text-center
+                        div.content
+                            p.header(id='badge2') #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>                
+        .ui.divider
+        br
+        .ui.form
+            textarea#demotext(name="", cols="30", rows="10").show
+
+        //- pass value by input hidden
+        input(type='hidden' id='code' value=code)
+        input(type='hidden' id='histories' value=histories)
+        input(type='hidden' id='creator' value=creator)
+
+    script(src='/codemirror/lib/codemirror.js')
+    script(src='/codemirror/mode/python/python.js')
+    script(src='/js/static/socket.io.min.js')
+    script(src='/xterm/xterm.js')
+    script(src='/xterm/addons/fit/fit.js')
+    script(src='/js/app/main.js')
+
+    script(type='text/javascript').
+        var code = document.getElementById('code').value;
+        var histories = JSON.parse(document.getElementById('histories').value);
+        var creator = document.getElementById('creator').value;
+        
+        let editor = CodeMirror.fromTextArea(document.getElementById("demotext"), {
+            lineNumbers: true,
+            mode: {
+                name: 'python',
+                version: 3,
+                singleLineStringErrors: false,
+                styleActiveLine: true,
+                lineNumbers: true,
+                lineWrapping: true
+            },
+            theme: 'material',
+            indentUnit: 4,
+            matchBrackets: true
+            })
+        editor.setOption('readOnly', 'nocursor')
+        editor.setValue(code)
+        for(var i=0; i<histories.length; i++){
+            if(histories[i].user == creator){
+                editor.markText({line: parseInt(histories[i].line), ch: parseInt(histories[i].ch)}, 
+                {line: parseInt(histories[i].line), ch: parseInt(histories[i].ch)+1}, 
+                {className: "styled-background"});
+            } else {
+                editor.markText({line: parseInt(histories[i].line), ch: parseInt(histories[i].ch)}, 
+                {line: parseInt(histories[i].line), ch: parseInt(histories[i].ch)+1}, 
+                {className: "styled-background-2"});
+            }
+        }
+        
