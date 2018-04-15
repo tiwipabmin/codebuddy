@@ -10,6 +10,7 @@ const Message = mongoose.model('Message')
 const Score = mongoose.model('Score')
 const User = mongoose.model('User')
 const Comment = mongoose.model('Comment')
+const History = mongoose.model('History')
 
 /**
  * @param {Object} server server instance
@@ -29,6 +30,7 @@ module.exports = (server) => {
     let curUser = ''
     let review = []
     var comments = []
+    var allhistory = []
     var index = null
     let pty;
 
@@ -228,8 +230,67 @@ module.exports = (server) => {
         // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
         client.to(projectId).emit('editor update', payload.code)
         console.log(payload);
-        console.log("code " + payload.code.text[0]);
+        console.log("line >>" + payload.code.from.line);
         redis.hset(`project:${projectId}`, 'editor', payload.editor)
+        
+        // ------ history -----
+        var entertext = payload.code.text
+        var deletetext = payload.code.removed
+        var enterline = payload.enterline
+        var action = payload.code.origin
+        
+        History.find({ pid: projectId }, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+          if (err) return handleError(err);
+          allhistory = res
+          
+        })           
+        
+        //save input text to mongoDB
+        if((entertext.length==1) && (action=='+input')){
+          console.log('>>>>>>1')
+            const historyModel = {
+              pid: projectId,
+              line: parseInt(payload.code.from.line),
+              ch: parseInt(payload.code.from.ch),
+              text: payload.code.text,
+              user: payload.user,
+              createdAt: Date.now()
+            }
+            new History(historyModel, (err) => {
+                if (err) throw err
+            }).save()
+
+        //delete text from mongoDB
+        } else if((deletetext.length==1) && (action=='+delete')){
+            History.findOne({
+              pid:  projectId,
+              line: parseInt(payload.code.from.line),
+              ch: parseInt(payload.code.from.ch),
+              text: payload.code.removed[0]
+            }).remove().exec()
+        
+        //update line when enter new line 
+        } else if((entertext.length==2) && (action=='+input')){
+          // console.log(allhistory)
+          for(var i=0; i<allhistory.length; i++){
+            console.log(allhistory[i].line + '>=' + enterline)
+            if(allhistory[i].line >= enterline){
+              
+              History.update({
+                pid: projectId,
+                line: allhistory[i].line,
+              }, {
+                $set: {
+                  line: allhistory[i].line+1
+                } 
+              }, (err) => {
+                if (err) throw err
+              })
+            }
+          }
+        }
+
+        // ------ end history -----
       }
     })
 

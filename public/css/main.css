@@ -263,3 +263,21 @@ fieldset {
 	margin-left: 56px;
 }
 
+#badge1 {
+    border-radius: 25px;
+    background-color:rgb(255, 245, 98);
+    padding-left: 20px; 
+    padding-top: 7px; 
+    width: 150px;
+    height: 40px; 
+}
+
+#badge2 {
+    border-radius: 25px;
+    background-color:rgb(219,40,40);
+    padding-left: 20px; 
+    padding-top: 7px;  
+    width: 150px;
+    height: 40px; 
+}
+
