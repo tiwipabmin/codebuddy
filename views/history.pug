@@ -12,7 +12,7 @@ block script
 block content
     .ui.container.segment
         .ui.grid
-            .sixteen.wide.column
+            .sixteen.wide.column(style='padding-bottom: 0rem;')
                 center
                     h1.ui.header(style='padding-top:5px;')= project.title
             .eight.wide.column.padding-left-20.padding-right-20
@@ -24,7 +24,7 @@ block content
                             p.user-role-label.text-center
                         div.content
                             if creator == curUser_obj.username
-                                p.header(id='badge1') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
+                                p.header(id='badge1' style='font-color:') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
                             else
                                 p.header(id='badge2') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
             .eight.wide.column.padding-left-20.padding-right-20
@@ -64,16 +64,14 @@ block content
         let editor = CodeMirror.fromTextArea(document.getElementById("demotext"), {
             lineNumbers: true,
             mode: {
-                name: 'python',
-                version: 3,
                 singleLineStringErrors: false,
                 styleActiveLine: true,
                 lineNumbers: true,
-                lineWrapping: true
+                lineWrapping: true,             
             },
             theme: 'material',
             indentUnit: 4,
-            matchBrackets: true
+            matchBrackets: true   
             })
         editor.setOption('readOnly', 'nocursor')
         editor.setValue(code)

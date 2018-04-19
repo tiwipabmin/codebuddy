@@ -265,19 +265,27 @@ fieldset {
 
 #badge1 {
     border-radius: 25px;
-    background-color:rgb(255, 245, 98);
+    background-color:#2185d0;
     padding-left: 20px; 
+    padding-right: 20px;
     padding-top: 7px; 
-    width: 150px;
+    margin-top: 22px;
+    margin-left: 10px;
+    display:inline-block;
     height: 40px; 
+    color: white;
 }
 
 #badge2 {
     border-radius: 25px;
-    background-color:rgb(219,40,40);
-    padding-left: 20px; 
+    background-color:#21ba45;
+    padding-left: 20px;
+    padding-right: 20px; 
     padding-top: 7px;  
-    width: 150px;
+    margin-top: 22px;
+    margin-left: 10px;
+    display:inline-block;
     height: 40px; 
+    color: white;
 }
 
