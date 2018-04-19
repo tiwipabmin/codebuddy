@@ -23,7 +23,10 @@ block content
                                 img(src=curUser_obj.img)
                             p.user-role-label.text-center
                         div.content
-                            p.header(id='badge1') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
+                            if creator == curUser_obj.username
+                                p.header(id='badge1') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
+                            else
+                                p.header(id='badge2') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
             .eight.wide.column.padding-left-20.padding-right-20
                 div.ui.relaxed.items
                     div.item
@@ -32,7 +35,10 @@ block content
                                 img(src=partner_obj.img)
                             p.user-role-label.text-center
                         div.content
-                            p.header(id='badge2') #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>                
+                            if creator == partner_obj.username
+                                p.header(id='badge1') #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>
+                            else
+                                p.header(id='badge2') #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>                
         .ui.divider
         br
         .ui.form

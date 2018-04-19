@@ -84,7 +84,7 @@ exports.getHistory = async (req, res) => {
   var collaborator = project.collaborator
   var curUser = req.query.curUser
 
-  if(curUser==project.creator){
+  if(curUser==creator){
     var curUser_obj = await User
     .findOne({ username: curUser})
     var partner_obj = await User
