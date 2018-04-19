@@ -30,7 +30,6 @@ module.exports = (server) => {
     let curUser = ''
     let review = []
     var comments = []
-    var allhistory = []
     var index = null
     let pty;
 
@@ -89,7 +88,7 @@ module.exports = (server) => {
 
     //move hilight when enter or delete
     client.on('move hilight', (payload) => {
-      var enterline = payload.enterline
+      var enterLine = payload.enterLine
       var remove = payload.remove
       var oldline = payload.oldline
       var isEnter = payload.isEnter
@@ -99,7 +98,7 @@ module.exports = (server) => {
       //check when enter new line
       if(isEnter){
         for(var i in comments){
-          if(comments[i].line > enterline){        
+          if(comments[i].line > enterLine){        
             Comment.update({
               pid: projectId,
               description: comments[i].description
@@ -117,7 +116,7 @@ module.exports = (server) => {
       //check when delete line
       if(isDelete){
         for(var i in comments){
-          if(comments[i].line > parseInt(enterline)-1){  
+          if(comments[i].line > parseInt(enterLine)-1){  
             Comment.update({
               pid: projectId,
               description: comments[i].description
@@ -223,63 +222,127 @@ module.exports = (server) => {
       if (origin) {
         // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
         client.to(projectId).emit('editor update', payload.code)
-        console.log(payload);
-        console.log("line >>" + payload.code.from.line);
         redis.hset(`project:${projectId}`, 'editor', payload.editor)
-        
+        console.log(payload); 
         // ------ history -----
-        var entertext = payload.code.text
-        var deletetext = payload.code.removed
-        var enterline = payload.enterline
+        var enterText = payload.code.text
+        var removeText = payload.code.removed
         var action = payload.code.origin
-        
-        History.find({ pid: projectId }, {line:1, ch:1, text:1, _id:0}, function (err, res) {
-          if (err) return handleError(err);
-          allhistory = res
-          
-        })           
-        
+        var fromLine = payload.code.from.line
+        var fromCh = payload.code.from.ch
+        var toLine = payload.code.to.line
+        var toCh = payload.code.to.ch
+        var text = enterText.toString().charCodeAt(0)
+        var moreLine = false
+        console.log('====='+ text)
+
+        for(var i=0; i<removeText.length; i++){
+          if(removeText[i].length){
+            moreLine = true
+            break
+          }
+        }
         //save input text to mongoDB
-        if((entertext.length==1) && (action=='+input')){
-          console.log('>>>>>>1')
+        if(action=='+input'){
+          console.log('>>>>>>save input')
+
+          if(enterText.length==1){
+            //input ch
+            //move right ch of cursor
+            History.find({ pid: projectId , line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+              if (err) return handleError(err);
+              var textInLine = res
+              console.log(res)
+              for(var i=0; i<textInLine.length; i++){
+                console.log(textInLine[i])
+                History.update({
+                  pid: projectId,
+                  line: textInLine[i].line,
+                  ch: textInLine[i].ch,
+                  text: textInLine[i].text
+                }, {
+                  $set: {
+                    line: fromLine,
+                    ch: fromCh+i+1
+                  } 
+                }, (err) => {
+                  if (err) throw err
+                })
+              }
+            })
+            //save ch to mongoDB
             const historyModel = {
               pid: projectId,
-              line: parseInt(payload.code.from.line),
-              ch: parseInt(payload.code.from.ch),
+              line: fromLine,
+              ch: fromCh,
               text: payload.code.text,
               user: payload.user,
               createdAt: Date.now()
             }
             new History(historyModel, (err) => {
                 if (err) throw err
-            }).save()
-
-        //delete text from mongoDB
-        } else if((deletetext.length==1) && (action=='+delete')){
-            History.findOne({
-              pid:  projectId,
-              line: parseInt(payload.code.from.line),
-              ch: parseInt(payload.code.from.ch),
-              text: payload.code.removed[0]
-            }).remove().exec()
+            }).save()         
+          }
+          
+            
         
-        //update line when enter new line 
-        } else if((entertext.length==2) && (action=='+input')){
-          // console.log(allhistory)
-          for(var i=0; i<allhistory.length; i++){
-            console.log(allhistory[i].line + '>=' + enterline)
-            if(allhistory[i].line >= enterline){
-              
-              History.update({
-                pid: projectId,
-                line: allhistory[i].line,
-              }, {
-                $set: {
-                  line: allhistory[i].line+1
-                } 
-              }, (err) => {
-                if (err) throw err
-              })
+        } else if(action=='+delete'){
+          //delete text from mongoDB        
+          if(removeText.length==1){        
+            if(removeText[0].length>1){
+              //delete in 1 line more than 1 text
+              console.log('>>>>>>delete in 1 line more than 1 text') 
+              History.find({
+                pid:  projectId,
+                line: fromLine,
+                ch: {$gte : fromCh,
+                    $lt: toCh}
+              }).remove().exec()
+              updateTextAfter(projectId, fromLine, fromLine, fromCh, toCh)
+            }else{
+              //delete one text
+              console.log('>>>>>>delete one text')
+              History.findOne({
+                pid:  projectId,
+                line: fromLine,
+                ch: fromCh,
+                text: removeText[0]
+              }).remove().exec()
+            }
+
+            //delete more than 1 line
+          }else if((removeText.length>1) && moreLine){            
+            var lineRange = toLine-fromLine
+            console.log('>>>>delete line' + lineRange)
+            for(var i=fromLine; i<=fromLine+lineRange; i++){
+              console.log('>---- '+ i)
+              //first line
+              if(i==fromLine){
+                console.log('   first line')
+                  History.findOne({
+                    pid: projectId,
+                    line: i,
+                    ch: {$gte : fromCh}
+                  }).remove().exec()            
+              }
+              //not last line
+              else if(i!=fromLine+lineRange){
+                console.log('   not first line')
+                History.find({
+                  pid:  projectId,
+                  line: i
+                }).remove().exec()
+              }
+              //last line
+              else {
+                console.log('   last line')
+                  History.find({
+                    pid:  projectId,
+                    line: i,
+                    ch: {$lt :toCh}
+                  }).remove().exec()
+                  updateTextAfter(projectId, i, fromLine, fromCh, toCh)
+              }
             }
           }
         }
@@ -639,5 +702,29 @@ module.exports = (server) => {
     //     if(comments[i].)
     //   }
     // }
-  })
+
+    function updateTextAfter(projectId, line, fromLine, fromCh, toCh){
+      History.find({ pid: projectId , line: line, ch: {$gte :toCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+        if (err) return handleError(err);
+        var textInLine = res
+        console.log(res)
+        for(var i=0; i<textInLine.length; i++){
+          console.log(textInLine[i])
+          History.update({
+            pid: projectId,
+            line: textInLine[i].line,
+            ch: textInLine[i].ch,
+            text: textInLine[i].text
+          }, {
+            $set: {
+              line: fromLine,
+              ch: fromCh+i
+            } 
+          }, (err) => {
+            if (err) throw err
+          })
+        }
+      })
+     }
+    })
 }
