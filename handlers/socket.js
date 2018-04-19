@@ -238,9 +238,7 @@ module.exports = (server) => {
         var fromCh = payload.code.from.ch
         var toLine = payload.code.to.line
         var toCh = payload.code.to.ch
-        var text = enterText.toString().charCodeAt(0)
         var moreLine = false
-        console.log('====='+ text)
 
         for(var i=0; i<removeText.length; i++){
           if(removeText[i].length){
@@ -289,7 +287,52 @@ module.exports = (server) => {
                 if (err) throw err
             }).save()         
           }
-          
+          else if(enterText.length==2){
+            //first line -> move right ch of cursor to new line
+            History.find({ pid: projectId , line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+              if (err) return handleError(err);
+              var textInLine = res
+              console.log(res)
+              for(var i=0; i<textInLine.length; i++){
+                History.update({
+                  pid: projectId,
+                  line: textInLine[i].line,
+                  ch: textInLine[i].ch,
+                  text: textInLine[i].text
+                }, {
+                  $set: {
+                    line: fromLine+1,
+                    ch: i
+                  } 
+                }, (err) => {
+                  if (err) throw err
+                })
+              }
+      
+            })
+
+            //not first line -> line+1
+            History.find({ pid: projectId , line: {$gt: fromLine}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+              if (err) return handleError(err);
+              var textInLine = res
+              console.log(res)
+              
+              for(var i=0; i<textInLine.length; i++){
+                History.update({
+                  pid: projectId,
+                  line: textInLine[i].line,
+                  ch: textInLine[i].ch,
+                  text: textInLine[i].text
+                }, {
+                  $set: {
+                    line: textInLine[i].line+1
+                  } 
+                }, (err) => {
+                  if (err) throw err
+                })
+              }
+            })
+          }
             
         
         } else if(action=='+delete'){
