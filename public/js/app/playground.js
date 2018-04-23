@@ -201,6 +201,14 @@ socket.on('role updated', (payload) => {
   // startCountdown()
 })
 
+socket.on('show reviewer active time', (payload) => {
+  if(roles.user === 'coder') {
+    $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs);
+  } else {
+    $('#buddy_counts_min_sec').text("test");
+  } 
+})
+
 /**
  * If user exit or going elsewhere which can be caused this project window closed
  * `beforeunload` event will fired and sending client disconnection to the server
@@ -587,11 +595,15 @@ $(function(){
 
   // send active time
   setInterval(function(){
-    console.log(uid);
-    console.log(roles);
-    console.log($('#counts_min_sec').attr('data-min'));
-    console.log($('#counts_min_sec').attr('data-sec'));
+    const counts = $('#counts_min_sec').attr('data-count');
+    const min = $('#counts_min_sec').attr('data-min');
+    const sec = $('#counts_min_sec').attr('data-sec');
     if(roles.user == "reviewer") {
+      socket.emit('reviewer active time', {
+        counts: counts,
+        mins : min,
+        secs: sec
+      })
     }
   }, 1000);
 

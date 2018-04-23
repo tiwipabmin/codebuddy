@@ -177,12 +177,12 @@ block content
               p#subTitle
               form#createRoom              
               p Buddy
-              .ui.red.circular.label(data-tooltip="Project Score" data-inverted="") active time: 
+              #buddy_counts_min_sec.ui.red.circular.label active time: 
               .videoContainer
                 #remoteVideo
               .ui.divider
               p You
-              #counts_min_sec.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") active time: 
+              #counts_min_sec.ui.red.circular.label active time: 
               .videoContainer
                 video#localVideo(style='height: 150px; transform: scaleX(-1);', oncontextmenu='return false;')
                 canvas(id="canvas" width="320" height="240" style="transform: scaleX(-1);")

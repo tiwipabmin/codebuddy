@@ -97,7 +97,7 @@ window.onload = function() {
             document.getElementById("mins").innerHTML=pad(parseInt(((Date.now()-sec)/1000)/60,10));
             document.getElementById("counts").innerHTML="active time: " + counts + " secs";
             document.getElementById("counts_min_sec").innerHTML="active time: " + pad(parseInt(counts/60)) + ":" + pad(counts%60) + " mins";
-            $("#counts_min_sec").attr("data-count", counts/60);
+            $("#counts_min_sec").attr("data-count", counts);
             $("#counts_min_sec").attr("data-min", pad(parseInt(counts/60)));
             $("#counts_min_sec").attr("data-sec", pad(counts%60));
             $(this).stop()
