@@ -234,6 +234,8 @@ module.exports = (server) => {
         var toCh = payload.code.to.ch
         var moreLine = false
 
+        console.log(removeText[0].length)
+
         for(var i=0; i<removeText.length; i++){
           if(removeText[i].length){
             moreLine = true
@@ -246,28 +248,45 @@ module.exports = (server) => {
 
           if(enterText.length==1){
             //input ch
-            //move right ch of cursor
-            History.find({ pid: projectId , line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
-              if (err) return handleError(err);
-              var textInLine = res
-              console.log(res)
-              for(var i=0; i<textInLine.length; i++){
-                console.log(textInLine[i])
-                History.update({
-                  pid: projectId,
-                  line: textInLine[i].line,
-                  ch: textInLine[i].ch,
-                  text: textInLine[i].text
-                }, {
-                  $set: {
-                    line: fromLine,
-                    ch: fromCh+i+1
-                  } 
-                }, (err) => {
-                  if (err) throw err
-                })
+            
+            if(removeText[0].length!=0){
+              //select some text and add input
+              if(removeText.length==1){        
+                //select text in 1 line
+                console.log('>>>>>>delete in 1 line more than 1 text') 
+                deleteInOneLine(projectId, fromLine, fromCh, toCh)
+                updateTextAfter(projectId, fromLine, fromLine, fromCh+1, toCh)
+                
+              }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
+                //select more than 1 line || delete line
+                deleteMoreLine(projectId, toLine, fromLine, fromCh, toCh, action)
               }
-            })
+              
+            }else{
+              //move right ch of cursor
+              History.find({ pid: projectId , line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+                if (err) return handleError(err);
+                var textInLine = res
+                console.log(res)
+                for(var i=0; i<textInLine.length; i++){
+                  console.log(textInLine[i])
+                  History.update({
+                    pid: projectId,
+                    line: textInLine[i].line,
+                    ch: textInLine[i].ch,
+                    text: textInLine[i].text
+                  }, {
+                    $set: {
+                      line: fromLine,
+                      ch: fromCh+i+1
+                    } 
+                  }, (err) => {
+                    if (err) throw err
+                  })
+                }
+              })
+            }
+            
             //save ch to mongoDB
             const historyModel = {
               pid: projectId,
@@ -279,10 +298,17 @@ module.exports = (server) => {
             }
             new History(historyModel, (err) => {
                 if (err) throw err
-            }).save()         
-          }
+            }).save()   
+                  
+          } 
           else if(enterText.length==2){
+            //enter new line
             //first line -> move right ch of cursor to new line
+            if(removeText[0].length!=0){
+              //enter delete text
+              deleteInOneLine(projectId, fromLine, fromCh, toCh)  
+            }
+
             History.find({ pid: projectId , line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
               if (err) return handleError(err);
               var textInLine = res
@@ -332,61 +358,14 @@ module.exports = (server) => {
         } else if(action=='+delete'){
           //delete text from mongoDB        
           if(removeText.length==1){        
-            if(removeText[0].length>1){
-              //delete in 1 line more than 1 text
+              //delete select text
               console.log('>>>>>>delete in 1 line more than 1 text') 
-              History.find({
-                pid:  projectId,
-                line: fromLine,
-                ch: {$gte : fromCh,
-                    $lt: toCh}
-              }).remove().exec()
+              deleteInOneLine(projectId, fromLine, fromCh, toCh)
               updateTextAfter(projectId, fromLine, fromLine, fromCh, toCh)
-            }else{
-              //delete one text
-              console.log('>>>>>>delete one text')
-              History.findOne({
-                pid:  projectId,
-                line: fromLine,
-                ch: fromCh,
-                text: removeText[0]
-              }).remove().exec()
-            }
 
-            //delete more than 1 line
-          }else if((removeText.length>1) && moreLine){            
-            var lineRange = toLine-fromLine
-            console.log('>>>>delete line' + lineRange)
-            for(var i=fromLine; i<=fromLine+lineRange; i++){
-              console.log('>---- '+ i)
-              //first line
-              if(i==fromLine){
-                console.log('   first line')
-                  History.findOne({
-                    pid: projectId,
-                    line: i,
-                    ch: {$gte : fromCh}
-                  }).remove().exec()            
-              }
-              //not last line
-              else if(i!=fromLine+lineRange){
-                console.log('   not first line')
-                History.find({
-                  pid:  projectId,
-                  line: i
-                }).remove().exec()
-              }
-              //last line
-              else {
-                console.log('   last line')
-                  History.find({
-                    pid:  projectId,
-                    line: i,
-                    ch: {$lt :toCh}
-                  }).remove().exec()
-                  updateTextAfter(projectId, i, fromLine, fromCh, toCh)
-              }
-            }
+          }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
+            //delete more than 1 line || delete line
+            deleteMoreLine(projectId, toLine, fromLine, fromCh, toCh, action)
           }
         }
 
@@ -740,11 +719,55 @@ module.exports = (server) => {
       }
     }
 
-    // function updateLine(line, description){
-    //   for(var i in comments) {
-    //     if(comments[i].)
-    //   }
-    // }
+    function deleteInOneLine(projectId, fromLine, fromCh, toCh){
+      History.find({
+        pid:  projectId,
+        line: fromLine,
+        ch: {$gte : fromCh,
+            $lt: toCh}
+      }).remove().exec()
+    }
+
+    function deleteMoreLine(projectId, toLine, fromLine, fromCh, toCh, action){
+      var lineRange = toLine-fromLine
+      console.log('>>>>delete line' + lineRange)
+      for(var i=fromLine; i<=fromLine+lineRange; i++){
+        console.log('>---- '+ i)
+        //first line
+        if(i==fromLine){
+          console.log('   first line')
+            History.findOne({
+              pid: projectId,
+              line: i,
+              ch: {$gte : fromCh}
+            }).remove().exec()            
+        }
+        //not last line
+        else if(i!=fromLine+lineRange){
+          console.log('   not first line')
+          History.find({
+            pid:  projectId,
+            line: i
+          }).remove().exec()
+        }
+        //last line
+        else {
+          console.log('   last line')
+            History.find({
+              pid:  projectId,
+              line: i,
+              ch: {$lt :toCh}
+            }).remove().exec()
+
+            if(action=='+input'){
+              updateTextAfter(projectId, i, fromLine, fromCh+1, toCh)
+            }else{
+              updateTextAfter(projectId, i, fromLine, fromCh, toCh)
+            }
+           
+        }
+      }
+    }
 
     function updateTextAfter(projectId, line, fromLine, fromCh, toCh){
       History.find({ pid: projectId , line: line, ch: {$gte :toCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
