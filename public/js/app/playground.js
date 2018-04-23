@@ -569,6 +569,7 @@ $(document)
         })
   }  
 });
+
 $(function(){
   console.log("is typing : " + $('#inputMessage').val())
   if($('#inputMessage').val() != "") {
@@ -582,8 +583,20 @@ $(function(){
           uid: uid,
           text: ''
         })
-  }  
+  }
+
+  // send active time
+  setInterval(function(){
+    console.log(uid);
+    console.log(roles);
+    console.log($('#counts_min_sec').attr('data-min'));
+    console.log($('#counts_min_sec').attr('data-sec'));
+    if(roles.user == "reviewer") {
+    }
+  }, 1000);
+
 });
+
 console.log("is typing : " + $('#inputMessage').val())
 if($('#inputMessage').val() != "") {
   console.log("is typing")
@@ -596,8 +609,7 @@ if($('#inputMessage').val() != "") {
         uid: uid,
         text: ''
       })
-}  
-  
+}
 
 $('.ui.video.toggle.button')
   .on('click', handler.activate);
