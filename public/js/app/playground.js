@@ -202,10 +202,11 @@ socket.on('role updated', (payload) => {
 })
 
 socket.on('show reviewer active time', (payload) => {
-  if(roles.user === 'coder') {
+  if(roles.user === 'coder' && payload.counts >= 0) {
+    $('#buddy_counts_min_sec').show();
     $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs + " mins");
   } else {
-    $('#buddy_counts_min_sec').text("test");
+    $('#buddy_counts_min_sec').hide();
   } 
 })
 
