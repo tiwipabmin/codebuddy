@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+var fs = require('fs')
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
@@ -109,6 +110,20 @@ exports.createProject = async (req, res) => {
       if (err) throw err
     })
     req.flash('success', `Successfully Created ${project.title} Project.`)
+    //create directory
+    var dir1 = './project_files';
+    var dir2 = './project_files/'+project.pid;
+    if (!fs.existsSync(dir1)){
+      fs.mkdirSync(dir1);
+    }
+    if (!fs.existsSync(dir2)){
+      fs.mkdirSync(dir2);
+    }
+    fs.open('./project_files/'+project.pid+'/main.py', 'w', function (err, file) {
+      if (err) throw err;
+      console.log('file '+project.pid+'.py is created');
+    })
+
   } else {
     req.flash('error', "Can't find @" + req.body.collaborator)
   }

@@ -223,11 +223,35 @@ module.exports = (server) => {
         if (err) throw err
       })
 
-      //create newfile
-      fs.open('./project_files/'+payload+'.py', 'w', function (err, file) {
+      //create new file  ./project_files/projectId/fileName.py
+      fs.open('./project_files/'+projectId+'/'+payload+'.py', 'w', function (err, file) {
         if (err) throw err;
         console.log('file '+payload+'.py is created');
       })
+    })
+
+    /**
+     * `delete file` event fired when user click delete file
+     * @param {Ibject} payload fileName
+     */
+
+    client.on('delete file', (payload) => {
+      //delete file in mongoDB
+      Project.update({
+        pid: projectId
+      }, {
+        $push: {
+          files: payload
+        }
+      }, (err) => {
+        if (err) throw err
+      })
+
+      //delete file
+      fs.unlink('./project_files/'+projectId+'/'+payload+'.py', function (err) {
+        if (err) throw err;
+        console.log(payload+'.py is deleted!');
+      });
     })
 
     /**

@@ -263,3 +263,18 @@ fieldset {
 	margin-left: 56px;
 }
 
+#delete-icon{
+    right:0; 
+    position: absolute; 
+    margin-top:-18px;
+    color:#b30202;
+}
+
+#delete-icon:hover{
+    right:0; 
+    position: absolute; 
+    margin-top:-18px;
+    color:#db2828;
+    
+}
+

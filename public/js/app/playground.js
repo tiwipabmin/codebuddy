@@ -653,13 +653,21 @@ function addFile(){
 }
 
 function createFile(){
-  
-  
   var id = document.getElementById("file-tabs").childElementCount;
   var fileName =  $('.filename').val()
-  $('.add-file').closest('a').before('<a class="item" data-tab="' + fileName + '">'+ fileName + '.py </a>');
+  $('.add-file').closest('a').before('<a class="item" data-tab="' + fileName + '">'+ fileName + '.py <span onClick="deleteFile(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
 	$('.tab-content').append('<div class="ui bottom attached tab segment" data-tab="' + fileName + '"> <textarea class="show" id="demotext"></textarea></div>');
   $('.menu .item').tab();
   socket.emit('create file', fileName)
+}
+
+function deleteFile(fileName){
+  $('.file.menu').on("click","span", function(e){
+    e.preventDefault();
+    var anchor = $(this).siblings('a')
+    $(this).parent().remove();
+    $(".file.menu").children('a').first().click();  
+  })
+  socket.emit('delete file', fileName)
 }
 
