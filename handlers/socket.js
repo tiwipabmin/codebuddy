@@ -4,6 +4,7 @@ const Redis = require('ioredis')
 const mongoose = require('mongoose')
 const timer = require('timers')
 const moment = require('moment')
+const fs = require('fs');
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
@@ -190,9 +191,43 @@ module.exports = (server) => {
 
         client.emit('init reviews', comments)
 
+        //combine 2 files
+        
+        // file = 'pytest.py'
+        // appendFile = 'main.py'
+        // readAppend(file, appendFile)
+        
+        // appendFile = 'file2.py'
+        // readAppend(file, appendFile)
+
+
       } catch (error) {
         winston.info(`catching error: ${error}`)
       }
+    })
+
+    /**
+     * `create file` event fired when user click create new file
+     * @param {Ibject} payload fileName
+     */
+
+    client.on('create file', (payload) => {
+      //save file name to mongoDB
+      Project.update({
+        pid: projectId
+      }, {
+        $push: {
+          files: payload
+        }
+      }, (err) => {
+        if (err) throw err
+      })
+
+      //create newfile
+      fs.open('./project_files/'+payload+'.py', 'w', function (err, file) {
+        if (err) throw err;
+        console.log('file '+payload+'.py is created');
+      })
     })
 
     /**
@@ -584,5 +619,20 @@ module.exports = (server) => {
     //     if(comments[i].)
     //   }
     // }
+
+    function readAppend(file, appendFile){
+      fs.readFile(appendFile, function(err, data){
+        if (err) throw err;
+        fs.appendFile(file, '\n', function(err){
+          
+        })
+        fs.appendFile(file, data, function(err){
+          console.log('combine!! ')
+        })
+      })
+      
+    }
+
+    
   })
 }

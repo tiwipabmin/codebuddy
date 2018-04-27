@@ -632,3 +632,34 @@ function updateScroll(){
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }
 
+//add file tab
+function addFile(){
+  $('#filename-modal')
+    .modal('show')
+  ;
+  $('.filename').val('')
+
+  //disable create button when input is empty
+  $('#createBtn').prop('disabled', true);
+  $('.filename').keyup(function() {
+    var disable = false;
+    $('.filename').each(function() {
+      if ($(this).val() == "") {
+        disable = true;
+      }
+    });
+    $('#createBtn').prop('disabled', disable);
+  });
+}
+
+function createFile(){
+  
+  
+  var id = document.getElementById("file-tabs").childElementCount;
+  var fileName =  $('.filename').val()
+  $('.add-file').closest('a').before('<a class="item" data-tab="' + fileName + '">'+ fileName + '.py </a>');
+	$('.tab-content').append('<div class="ui bottom attached tab segment" data-tab="' + fileName + '"> <textarea class="show" id="demotext"></textarea></div>');
+  $('.menu .item').tab();
+  socket.emit('create file', fileName)
+}
+
