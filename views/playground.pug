@@ -217,15 +217,16 @@ block content
                     //- textarea(id=file+'text').show
                 else
                   .ui.bottom.attached.tab.segment(data-tab=file)
-                    input
+                    textarea#demotext.show
                     //- textarea(id=file+'text').show
             input(type='hidden' id='projectFiles' value=project.files)
           .ui.small.modal#filename-modal
-            .header File name
+            .header Filename
             .content
               center.ui.form
                 input.filename(type='text' style='width: 70%;') 
                 label(style='font-size:17px;')  .py 
+              .file.name.exists.warning
             .actions
               button.ui.button.approve.green(id='createBtn' onClick='createFile()') Create
               .ui.button.approve.red(data-value='cancel') Cancel

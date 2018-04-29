@@ -40,7 +40,9 @@ function getParameterByName(name) {
 var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 console.log(projectFiles)
 var currentTab = 'main'
-
+for(var i=0; i<projectFiles.length; i++){
+  projectFiles
+}
 let editor = CodeMirror.fromTextArea(document.getElementById("demotext"), {
   lineNumbers: true,
   mode: {
@@ -659,18 +661,29 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 
 //add file tab
 function addFile(){
-  $('#filename-modal')
-    .modal('show')
-  ;
+  $('#filename-modal').modal('show')
   $('.filename').val('')
 
+  
   //disable create button when input is empty
   $('#createBtn').prop('disabled', true);
   $('.filename').keyup(function() {
     var disable = false;
+    var isExists = false;
+    var fileName = $('.filename').val()
+    isExists = projectFiles.indexOf(fileName)
+
     $('.filename').each(function() {
-      if ($(this).val() == "") {
+      if ($(this).val() == "" || isExists!=-1 || (!fileName.match(/^[0-9a-zA-Z\.]*$/)) || fileName.indexOf('.') !== -1) {
         disable = true;
+        if(isExists!=-1){
+          $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">This File name already exists.</p>')
+        }
+        if(!fileName.match(/^[0-9a-zA-Z\.]*$/) || fileName.indexOf('.') !== -1){
+          $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">Filename should not have special characters.</p>')
+        } 
+      }else{
+        $('.file.name.exists.warning').html('')
       }
     });
     $('#createBtn').prop('disabled', disable);
