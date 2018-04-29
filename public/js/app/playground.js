@@ -157,6 +157,25 @@ socket.on('init reviews', (payload) => {
 })
 
 /**
+ * Update tab when create or delete
+ */
+socket.on('update tab', (payload) => {
+  var fileName = payload.fileName
+  var action = payload.action
+  console.log(action)
+  if(action=='create'){
+    var id = document.getElementById("file-tabs").childElementCount;
+    $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="deleteFile(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
+    $('.tab-content').append('<div class="ui bottom attached tab segment" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
+    $('.menu .item').tab();
+  } else{
+    var tab = document.getElementById(fileName);
+    tab.remove();
+    $(".file.menu").children('a').first().click();
+  }
+})
+
+/**
  * If there's no one select the role, then first user that come to the project must choose one
  */
 socket.on('role selection', () => {
@@ -666,21 +685,11 @@ function getActiveTab(fileName){
 }
 
 function createFile(){
-  var id = document.getElementById("file-tabs").childElementCount;
   var fileName =  $('.filename').val()
-  $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="deleteFile(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
-	$('.tab-content').append('<div class="ui bottom attached tab segment" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
-  $('.menu .item').tab();
   socket.emit('create file', fileName)
 }
 
 function deleteFile(fileName){
-  $('.file.menu').on("click","span", function(e){
-    e.preventDefault();
-    var anchor = $(this).siblings('a')
-    $(this).parent().remove();
-    $(".file.menu").children('a').first().click();  
-  })
   socket.emit('delete file', fileName)
 }
 

@@ -228,6 +228,9 @@ module.exports = (server) => {
         if (err) throw err;
         console.log('file '+payload+'.py is created');
       })
+
+      var action = 'create'
+      io.in(projectId).emit('update tab', {fileName: payload, action: action})
     })
 
     /**
@@ -247,11 +250,14 @@ module.exports = (server) => {
         if (err) throw err
       })
 
-      //delete file
+      // delete file
       fs.unlink('./project_files/'+projectId+'/'+payload+'.py', function (err) {
         if (err) throw err;
         console.log(payload+'.py is deleted!');
       });
+
+      var action = 'delete'
+      io.in(projectId).emit('update tab', {fileName: payload, action: action})
     })
 
     /**
