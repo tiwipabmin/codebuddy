@@ -240,7 +240,7 @@ module.exports = (server) => {
       Project.update({
         pid: projectId
       }, {
-        $push: {
+        $pull: {
           files: payload
         }
       }, (err) => {

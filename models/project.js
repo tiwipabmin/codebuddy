@@ -28,7 +28,7 @@ const projectSchema = new mongoose.Schema({
   language: { type: String, default: 'py' },
   swaptime: {type : String, default: '5'},
   status: String,
-  files: { type : Array , default: ['main.py'] }
+  files: { type : Array , default: ['main'] }
 })
 
 /**

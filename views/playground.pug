@@ -142,7 +142,8 @@ block content
                         i.file.icon
                         .content
                           .header main.py
-                          .description Main python file          
+                          .description Main python file 
+                           a.ui.label(id='exportBtn' onClick='onClickExport()') export file         
           .ui.bottom.attached.tab.segment(data-tab='second')
             .ui.toggle.lightmodetoggle.checkbox
               input(type='checkbox',onChange='changeTheme()')#lightmodetoggle
@@ -199,13 +200,26 @@ block content
           //- file tab  
           .ui.form
             .ui.top.attached.tabular.file.menu(id='file-tabs')
-              a.active.item(data-tab='main') main.py              
+              each file, index in project.files
+                if index == 0
+                  a.active.item(data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
+                else
+                  a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'        
+                    span(onClick=`deleteFile(${JSON.stringify(file)})`)
+                      i.delete.icon(id='delete-icon')
               a.item(class='add-file' onClick='addFile()') 
                 i.plus.icon
             .ui.tab-content
-              .ui.bottom.attached.active.tab.segment(data-tab='main')
-                textarea#demotext.show
-
+              each file,index in project.files
+                if index == 0
+                  .ui.bottom.attached.active.tab.segment(data-tab='main')
+                    textarea#demotext.show
+                    //- textarea(id=file+'text').show
+                else
+                  .ui.bottom.attached.tab.segment(data-tab=file)
+                    input
+                    //- textarea(id=file+'text').show
+            input(type='hidden' id='projectFiles' value=project.files)
           .ui.small.modal#filename-modal
             .header File name
             .content

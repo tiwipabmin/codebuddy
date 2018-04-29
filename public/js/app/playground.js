@@ -36,6 +36,11 @@ function getParameterByName(name) {
 /**
  * Initiate local editor
  */
+  
+var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
+console.log(projectFiles)
+var currentTab = 'main'
+
 let editor = CodeMirror.fromTextArea(document.getElementById("demotext"), {
   lineNumbers: true,
   mode: {
@@ -215,7 +220,8 @@ $(window).on('beforeunload', () => {
 editor.on('change', (ins, data) => {
   socket.emit('code change', {
     code: data,
-    editor: editor.getValue()
+    editor: editor.getValue(),
+    currentTab: currentTab
   })
 
   var text = data.text.toString().charCodeAt(0)
@@ -652,11 +658,18 @@ function addFile(){
   });
 }
 
+function getActiveTab(fileName){
+  currentTab = fileName
+  // editor = setEditor(currentTab)
+  console.log(editor)
+  console.log(currentTab)
+}
+
 function createFile(){
   var id = document.getElementById("file-tabs").childElementCount;
   var fileName =  $('.filename').val()
-  $('.add-file').closest('a').before('<a class="item" data-tab="' + fileName + '">'+ fileName + '.py <span onClick="deleteFile(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
-	$('.tab-content').append('<div class="ui bottom attached tab segment" data-tab="' + fileName + '"> <textarea class="show" id="demotext"></textarea></div>');
+  $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="deleteFile(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
+	$('.tab-content').append('<div class="ui bottom attached tab segment" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
   $('.menu .item').tab();
   socket.emit('create file', fileName)
 }
@@ -669,5 +682,21 @@ function deleteFile(fileName){
     $(".file.menu").children('a').first().click();  
   })
   socket.emit('delete file', fileName)
+}
+
+function exportSingleFile(fileName, text){
+  var element = document.createElement('a')
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', fileName+'.py');
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
+function onClickExport(){
+  var text = editor.getValue()
+  var fileName = currentTab
+  exportSingleFile(fileName, text)
 }
 
