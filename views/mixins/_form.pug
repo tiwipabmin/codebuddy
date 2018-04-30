@@ -54,15 +54,14 @@ mixin registerForm(user)
 
 mixin signinForm(user)
   form.ui.large.form(action='/signin' method='POST')
-    .ui.stacked.segment
-      .field
-        .ui.left.icon.input
-          i.user.icon
-          |  
-          input(type='text' name='email' placeholder='Username' required)
-      .field
-        .ui.left.icon.input
-          i.lock.icon
-          |  
-          input(type='password' name='password' placeholder='Password' required)
-    button.ui.fluid.large.teal.submit.button(type='submit') Sign In
+    .field
+      .ui.left.icon.input
+        i.user.icon
+        |  
+        input(type='text' name='email' placeholder='Username' required)
+    .field
+      .ui.left.icon.input
+        i.lock.icon
+        |  
+        input(type='password' name='password' placeholder='Password' required)
+    button.ui.fluid.large.yellow.submit.button(type='submit' style='font-color:black !important;') Sign In
