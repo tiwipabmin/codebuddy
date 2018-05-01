@@ -40,24 +40,26 @@ function getParameterByName(name) {
 var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 console.log(projectFiles)
 var currentTab = 'main'
-let editor = ''
+let editor = {};
 setEditor(currentTab)
 
 function setEditor(fileName){
-  editor = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
-    lineNumbers: true,
-    mode: {
-      name: 'python',
-      version: 3,
-      singleLineStringErrors: false,
-      styleActiveLine: true,
+  if(!(fileName in editor)) {
+    editor[fileName] = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
       lineNumbers: true,
-      lineWrapping: true
-    },
-    theme: 'material',
-    indentUnit: 4,
-    matchBrackets: true
-  })
+      mode: {
+        name: 'python',
+        version: 3,
+        singleLineStringErrors: false,
+        styleActiveLine: true,
+        lineNumbers: true,
+        lineWrapping: true
+      },
+      theme: 'material',
+      indentUnit: 4,
+      matchBrackets: true
+    })
+  }
   console.log(editor)
 }
 
@@ -84,7 +86,7 @@ function changeTheme() {
 /**
  * Code review modal
  */
-editor.on('dblclick', () => {
+editor[currentTab].on('dblclick', () => {
   let A1 = editor.getCursor().line
   let A2 = editor.getCursor().ch
   let B1 = editor.findWordAt({
@@ -141,7 +143,7 @@ webrtc.on('readyToCall', function () {
  * After user join the project, user will recieve initiate data to perform in local editor
  */
 socket.on('init state', (payload) => {
-  editor.setValue(payload.editor)
+  editor[currentTab].setValue(payload.editor)
   // webrtc.on('readyToCall', function () {
   //   // you can name it anything
   //   webrtc.createRoom(getParameterByName('pid'));
@@ -223,7 +225,7 @@ socket.on('role updated', (payload) => {
   } else {
     roles.user = 'coder'
     roles.partner = 'reviewer'
-    editor.setOption('readOnly', false)
+    editor[currentTab].setOption('readOnly', false)
   }
   $(".partner-role-label").text(`${roles.partner}`)
   $(".user-role-label").text(`${roles.user}`)
@@ -241,10 +243,11 @@ $(window).on('beforeunload', () => {
 /**
  * Local editor value is changing, to handle that we'll emit our changes to server
  */
-editor.on('change', (ins, data) => {
+editor[currentTab].on('change', (ins, data) => {
   socket.emit('code change', {
+    fileName : currentTab,
     code: data,
-    editor: editor.getValue(),
+    editor: editor[currentTab].getValue(),
     currentTab: currentTab
   })
 
@@ -292,7 +295,7 @@ editor.on('change', (ins, data) => {
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on('editor update', (payload) => {
-  editor.replaceRange(payload.text, payload.from, payload.to)
+  editor[currentTab].replaceRange(payload.text, payload.from, payload.to)
 })
 
 /**
@@ -473,7 +476,7 @@ socket.on('auto update score', (payload) => {
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
-    code: editor.getValue()
+    code: editor[currentTab].getValue()
   })
   
 })
@@ -695,7 +698,6 @@ function addFile(){
 
 function getActiveTab(fileName){
   currentTab = fileName
-  editor = ''
   setEditor(currentTab)
   console.log(editor)
   console.log(currentTab)
