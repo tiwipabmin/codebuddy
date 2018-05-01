@@ -144,7 +144,14 @@ webrtc.on('readyToCall', function () {
  * After user join the project, user will recieve initiate data to perform in local editor
  */
 socket.on('init state', (payload) => {
-  editor[currentTab].setValue(payload.editor)
+  var editorValues = JSON.parse(payload.editor);
+  projectFiles.forEach(setEditorValue);
+  console.log(editorValues)
+
+  function setEditorValue(fileName) {
+    editor[fileName].setValue(editorValues[fileName])
+  }
+
   // webrtc.on('readyToCall', function () {
   //   // you can name it anything
   //   webrtc.createRoom(getParameterByName('pid'));
@@ -220,14 +227,22 @@ socket.on('countdown', (payload) => {
 
 socket.on('role updated', (payload) => {
   if (user === payload.roles.reviewer) {
-    editor.setOption('readOnly', 'nocursor')
     roles.user = 'reviewer'
     roles.partner = 'coder'
+    projectFiles.forEach(setOptionFileNoCursor)
   } else {
     roles.user = 'coder'
     roles.partner = 'reviewer'
-    editor[currentTab].setOption('readOnly', false)
+    projectFiles.forEach(setOptionFileShowCursor)
   }
+  
+  function setOptionFileNoCursor(fileName) {
+    editor[fileName].setOption('readOnly', 'nocursor')
+  }
+  function setOptionFileShowCursor(fileName) {
+    editor[fileName].setOption('readOnly', false)
+  }
+
   $(".partner-role-label").text(`${roles.partner}`)
   $(".user-role-label").text(`${roles.user}`)
   // startCountdown()
