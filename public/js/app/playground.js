@@ -40,24 +40,27 @@ function getParameterByName(name) {
 var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 console.log(projectFiles)
 var currentTab = 'main'
-for(var i=0; i<projectFiles.length; i++){
-  projectFiles
-}
-let editor = CodeMirror.fromTextArea(document.getElementById("demotext"), {
-  lineNumbers: true,
-  mode: {
-    name: 'python',
-    version: 3,
-    singleLineStringErrors: false,
-    styleActiveLine: true,
-    lineNumbers: true,
-    lineWrapping: true
-  },
-  theme: 'material',
-  indentUnit: 4,
-  matchBrackets: true
+let editor = ''
+setEditor(currentTab)
 
-})
+function setEditor(fileName){
+  editor = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
+    lineNumbers: true,
+    mode: {
+      name: 'python',
+      version: 3,
+      singleLineStringErrors: false,
+      styleActiveLine: true,
+      lineNumbers: true,
+      lineWrapping: true
+    },
+    theme: 'material',
+    indentUnit: 4,
+    matchBrackets: true
+  })
+  console.log(editor)
+}
+
 
 /**
  * Code Mirror Change Theme
@@ -692,7 +695,8 @@ function addFile(){
 
 function getActiveTab(fileName){
   currentTab = fileName
-  // editor = setEditor(currentTab)
+  editor = ''
+  setEditor(currentTab)
   console.log(editor)
   console.log(currentTab)
 }

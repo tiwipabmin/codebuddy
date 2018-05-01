@@ -213,12 +213,12 @@ block content
               each file,index in project.files
                 if index == 0
                   .ui.bottom.attached.active.tab.segment(data-tab='main')
-                    textarea#demotext.show
-                    //- textarea(id=file+'text').show
+                    //- textarea#demotext.show
+                    textarea(id=file+'text').show
                 else
                   .ui.bottom.attached.tab.segment(data-tab=file)
-                    textarea#demotext.show
-                    //- textarea(id=file+'text').show
+                    //- textarea#demotext.show
+                    textarea(id=file+'text').show
             input(type='hidden' id='projectFiles' value=project.files)
           .ui.small.modal#filename-modal
             .header Filename
