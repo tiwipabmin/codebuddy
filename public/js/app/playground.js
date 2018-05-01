@@ -41,7 +41,8 @@ var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 console.log(projectFiles)
 var currentTab = 'main'
 let editor = {};
-setEditor(currentTab)
+projectFiles.forEach(setEditor);
+projectFiles.forEach(setOnChangeEditer);
 
 function setEditor(fileName){
   if(!(fileName in editor)) {
@@ -238,57 +239,6 @@ socket.on('role updated', (payload) => {
  */
 $(window).on('beforeunload', () => {
   socket.disconnect()
-})
-
-/**
- * Local editor value is changing, to handle that we'll emit our changes to server
- */
-editor[currentTab].on('change', (ins, data) => {
-  socket.emit('code change', {
-    fileName : currentTab,
-    code: data,
-    editor: editor[currentTab].getValue(),
-    currentTab: currentTab
-  })
-
-  var text = data.text.toString().charCodeAt(0)
-  var enterline = parseInt(data.to.line)+1
-  var remove = data.removed
-  var isEnter = false
-  var isDelete = false
-
-  //check when enter new line
-  if(text==44){
-    console.log('enter '+enterline)
-      for(var i in comments){  
-        if(comments[i].line > enterline){          
-          isEnter = true
-          comments[i].line = parseInt(comments[i].line)+1
-        }
-      }
-    socket.emit('move hilight',{
-      comments: comments,
-      enterline: enterline,
-      isEnter: isEnter
-    })
-  }
-
-  //check when delete line
-  if(remove.length==2){
-    for(var i in comments){          
-      if(comments[i].line > enterline-1){
-        isDelete = true        
-        comments[i].line = parseInt(comments[i].line)-1
-      }
-    }
-    socket.emit('move hilight',{
-      comments: comments,
-      enterline: enterline,
-      isDelete: isDelete,
-    })
-  }
-
-  
 })
 
 /**
@@ -606,6 +556,7 @@ $(document)
   }  
 });
 $(function(){
+
   console.log("is typing : " + $('#inputMessage').val())
   if($('#inputMessage').val() != "") {
     console.log("is typing")
@@ -728,3 +679,59 @@ function onClickExport(){
   exportSingleFile(fileName, text)
 }
 
+function setOnChangeEditer(fileName) {
+  /**
+   * Local editor value is changing, to handle that we'll emit our changes to server
+   */
+  editor[fileName].on('change', (ins, data) => {
+    socket.emit('code change', {
+      fileName : fileName,
+      code: data,
+      editor: editor[fileName].getValue(),
+      currentTab: fileName
+    })
+
+    var text = data.text.toString().charCodeAt(0)
+    var enterline = parseInt(data.to.line)+1
+    var remove = data.removed
+    var isEnter = false
+    var isDelete = false
+
+    //check when enter new line
+    if(text==44){
+      console.log('enter '+enterline)
+        for(var i in comments){  
+          if(comments[i].line > enterline){          
+            isEnter = true
+            comments[i].line = parseInt(comments[i].line)+1
+          }
+        }
+      socket.emit('move hilight',{
+        comments: comments,
+        enterline: enterline,
+        isEnter: isEnter
+      })
+    }
+
+    //check when delete line
+    if(remove.length==2){
+      for(var i in comments){          
+        if(comments[i].line > enterline-1){
+          isDelete = true        
+          comments[i].line = parseInt(comments[i].line)-1
+        }
+      }
+      socket.emit('move hilight',{
+        comments: comments,
+        enterline: enterline,
+        isDelete: isDelete,
+      })
+    }
+
+    
+  })
+}
+
+// function setOnEditerUpdate(fileName) {
+//   editor[currentTab].replaceRange(payload.text, payload.from, payload.to)
+// }

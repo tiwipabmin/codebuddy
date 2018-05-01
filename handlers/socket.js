@@ -294,7 +294,15 @@ module.exports = (server) => {
         client.to(projectId).emit('editor update', payload.code)
         console.log(payload);
         console.log("code " + payload.code.text[0]);
-        redis.hset(`project:${projectId}`, 'editor', payload.editor)
+        editorName = payload.fileName;
+        redis.hgetall(`project:${projectId}`, function (err, obj) {
+          var editorJson = {};
+          if(obj.editor != undefined) {
+            var editorJson = JSON.parse(obj.editor);
+          }
+          editorJson[editorName] = payload.editor;
+          redis.hset(`project:${projectId}`, 'editor', JSON.stringify(editorJson))
+        });
       }
     })
 
