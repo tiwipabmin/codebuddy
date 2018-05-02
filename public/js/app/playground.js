@@ -265,7 +265,10 @@ $(window).on('beforeunload', () => {
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on('editor update', (payload) => {
-  editor[payload.fileName].replaceRange(payload.text, payload.from, payload.to)
+  editor[payload.fileName].replaceRange(payload.text, payload.from, payload.to);
+  setTimeout(function() {
+    editor[payload.fileName].refresh();
+  }, 1);
 })
 
 /**
@@ -677,6 +680,9 @@ function getActiveTab(fileName){
   currentTab = fileName
   currentTab = fileName
   setEditor(fileName)
+  setTimeout(function() {
+    editor[fileName].refresh();
+  }, 1);
   console.log(editor)
   console.log(currentTab)
 }
