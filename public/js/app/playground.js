@@ -73,15 +73,19 @@ var isLight = false;
 function changeTheme() {
   if (!isLight) {
     var theme = "default";
-    editor.setOption("theme", theme);
+    projectFiles.forEach(setTheme);
     location.hash = "#" + theme;
   }
   else {
     var theme = "material";
-    editor.setOption("theme", theme);
+    projectFiles.forEach(setTheme);
     location.hash = "#" + theme;
   }
   isLight = !isLight;
+
+  function setTheme(fileName) {
+    editor[fileName].setOption("theme", theme);
+  }
 }
 
 /**
