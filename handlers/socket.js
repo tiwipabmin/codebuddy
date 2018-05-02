@@ -291,6 +291,7 @@ module.exports = (server) => {
       // origin mustn't be an `undefined` or `setValue` type
       if (origin) {
         // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
+        payload.code.fileName = payload.fileName;
         client.to(projectId).emit('editor update', payload.code)
         console.log(payload);
         console.log("code " + payload.code.text[0]);

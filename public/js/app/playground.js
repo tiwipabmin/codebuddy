@@ -265,7 +265,7 @@ $(window).on('beforeunload', () => {
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on('editor update', (payload) => {
-  editor[currentTab].replaceRange(payload.text, payload.from, payload.to)
+  editor[payload.fileName].replaceRange(payload.text, payload.from, payload.to)
 })
 
 /**
