@@ -136,7 +136,7 @@ block content
                   .content
                     .header src
                     .description Source files for project
-                    .list
+                    .list#file-list
                       each file, index in project.files
                         .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
                           i.arrow.right.icon
@@ -147,7 +147,7 @@ block content
                               .description Main python file 
                             else
                               .header(id=file+'-header')=file+'.py'
-                      a.ui.label(id='exportBtn' onClick='onClickExport()') export file         
+                    a.ui.label(id='exportBtn' onClick='onClickExport()') export file         
           .ui.bottom.attached.tab.segment(data-tab='second')
             .ui.toggle.lightmodetoggle.checkbox
               input(type='checkbox',onChange='changeTheme()')#lightmodetoggle
@@ -216,11 +216,11 @@ block content
             .ui.tab-content
               each file,index in project.files
                 if index == 0
-                  .ui.bottom.attached.active.tab.segment(data-tab='main')
+                  .ui.bottom.attached.active.tab.segment(id=file+'-tab' data-tab='main')
                     //- textarea#f.show
                     textarea(id=file+'text').show
                 else
-                  .ui.bottom.attached.tab.segment(data-tab=file)
+                  .ui.bottom.attached.tab.segment(id=file+'-tab' data-tab=file)
                     //- textarea#demotext.show
                     textarea(id=file+'text').show
             input(type='hidden' id='projectFiles' value=project.files)

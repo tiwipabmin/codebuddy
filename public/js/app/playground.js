@@ -62,7 +62,7 @@ function setEditor(fileName){
       matchBrackets: true
     })
   }
-  console.log(editor)
+  console.log(editor[fileName])
 }
 
 
@@ -185,14 +185,20 @@ socket.on('update tab', (payload) => {
   console.log(action)
   if(action=='create'){
     var id = document.getElementById("file-tabs").childElementCount;
-    $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="deleteFile(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
-    $('.tab-content').append('<div class="ui bottom attached tab segment" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
+    $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
+    $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
     $('.menu .item').tab();
+
+    //setup file
+    setEditor(fileName);
+    setOnChangeEditer(fileName);
+    $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><i class="arrow right icon"></i><i class="file icon"></i><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
   } else{
     var tab = document.getElementById(fileName);
     tab.remove();
     $(".file.menu").children('a').first().click();
   }
+
 })
 
 /**
@@ -671,13 +677,17 @@ function addFile(){
 }
 
 function getActiveTab(fileName){
+  //old tab
   $('#'+currentTab).removeClass('active');
+  $('#'+currentTab+'-tab').removeClass('active');
   $('#'+currentTab+'-file').removeClass('file-active');
   $('#'+currentTab+'-header').removeClass('file-active');
+
+  //new tab
   $('#'+fileName).addClass('active');
+  $('#'+fileName+'-tab').addClass('active');
   $('#'+fileName+'-file').addClass('file-active');
   $('#'+fileName+'-header').addClass('file-active');
-  currentTab = fileName
   currentTab = fileName
   setEditor(fileName)
   setTimeout(function() {
@@ -768,3 +778,5 @@ function setOnChangeEditer(fileName) {
 // function setOnEditerUpdate(fileName) {
 //   editor[currentTab].replaceRange(payload.text, payload.from, payload.to)
 // }
+
+// '<div class="item cursor-pointer" id="'+file+'-file" onClick=`getActiveTab('+${JSON.stringify(file)}+')`><i class="arrow right icon"></i><i class="file icon"></i><div class="content"><div class="header" id="ggg-header">aaa</div><div class="description">des</div></div></div>'
