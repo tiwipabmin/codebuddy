@@ -43,6 +43,7 @@ var currentTab = 'main'
 let editor = {};
 projectFiles.forEach(setEditor);
 projectFiles.forEach(setOnChangeEditer);
+getActiveTab('main');
 
 function setEditor(fileName){
   if(!(fileName in editor)) {
@@ -667,8 +668,15 @@ function addFile(){
 }
 
 function getActiveTab(fileName){
+  $('#'+currentTab).removeClass('active');
+  $('#'+currentTab+'-file').removeClass('file-active');
+  $('#'+currentTab+'-header').removeClass('file-active');
+  $('#'+fileName).addClass('active');
+  $('#'+fileName+'-file').addClass('file-active');
+  $('#'+fileName+'-header').addClass('file-active');
   currentTab = fileName
-  setEditor(currentTab)
+  currentTab = fileName
+  setEditor(fileName)
   console.log(editor)
   console.log(currentTab)
 }
