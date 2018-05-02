@@ -138,7 +138,7 @@ block content
                     .description Source files for project
                     .list
                       each file, index in project.files
-                        .item(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
+                        .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
                           i.arrow.right.icon
                           i.file.icon
                           .content
