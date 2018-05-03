@@ -276,6 +276,7 @@ socket.on('new review', (payload) => {
 
 function deleteReview() {
   socket.emit('delete review', {
+    file: $('input.hidden.file.name').val(),
     line: $('input.disabled.line.no').val(),
     description: $('textarea.line.reviewer.description').val(),
   })
@@ -284,7 +285,7 @@ function deleteReview() {
 socket.on('update review', (payload) =>{
   comments = payload.comments
   deleteline = payload.deleteline
-  editor.removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
+  editor[payload.file].removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
 })
 
 socket.on('is typing', (payload) => {

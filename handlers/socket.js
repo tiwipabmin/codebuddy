@@ -81,16 +81,18 @@ module.exports = (server) => {
 
     client.on('delete review', (payload) => {
       Comment.findOne({
+        file: payload.file,
         pid:  projectId,
         line: payload.line
       }).remove().exec()
 
       deletecomments = comments.filter(function(el){
-        return el.line !== parseInt(payload.line);
+        return el.line !== parseInt(payload.line) && el.file != payload.file;
       })
       
       io.in(projectId).emit('update review', {
         comments: deletecomments,
+        file: payload.file,
         deleteline: payload.line})
     })
 
