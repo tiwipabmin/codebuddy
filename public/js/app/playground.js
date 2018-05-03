@@ -150,6 +150,7 @@ socket.on('update tab', (payload) => {
     //setup file
     newEditorFacade(fileName);
     $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><i id="'+fileName+'-file-icon" class="file icon"/><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
+    $('#export-checklist').append('<div class="item" id="export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
   } else{
     var tab = document.getElementById(fileName);
     tab.remove();
@@ -675,7 +676,6 @@ function getActiveTab(fileName){
   setTimeout(function() {
     editor[fileName].refresh();
   }, 1);
-  sendActiveTab(currentTab)
   console.log(editor)
   console.log(currentTab)
 }
@@ -699,10 +699,19 @@ function exportSingleFile(fileName, text){
   document.body.removeChild(element);
 }
 
+function showExportModal(){  
+  $('#export-modal').modal('show')
+}
+
 function onClickExport(){
-  var text = editor.getValue()
-  var fileName = currentTab
-  exportSingleFile(fileName, text)
+  var filenameList = []
+  $('[name="checkbox-file"]').each( function (){
+    if($(this).prop('checked') == true){
+        filenameList.push($(this).val())
+    }
+  })
+  socket.emit('export file', filenameList)
+  // exportSingleFile(fileName, text)
 }
 
 function setOnChangeEditer(fileName) {

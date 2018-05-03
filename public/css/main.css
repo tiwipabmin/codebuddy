@@ -286,3 +286,15 @@ fieldset {
     cursor: pointer;
 }
 
+#exportBtn{
+    margin-left: 10px;
+}
+
+#export-checklist{
+    margin-top: 10px; 
+}
+
+#export-file-item{
+    margin-left: 20px;
+    margin-top: 5px;    
+}
