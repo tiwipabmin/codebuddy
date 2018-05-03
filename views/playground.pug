@@ -144,6 +144,7 @@ block content
                   i.folder.icon
                   .content
                     .header src
+                      a.ui.label(id='exportBtn' onClick='showExportModal()') export file
                     .description Source files for project
                     .list#file-list
                       each file, index in project.files
@@ -155,7 +156,23 @@ block content
                               .description Main python file 
                             else
                               .header(id=file+'-header')=file+'.py'
-                    a.ui.label(id='exportBtn' onClick='onClickExport()') export file         
+          .ui.small.modal#export-modal
+            .header Export File
+            .content  
+              .item
+                .ui.master.checkbox
+                  input(type="checkbox" name="allfile")
+                  label Select all file
+                .list#export-checklist
+                  each file in project.files
+                    .item#export-file-item
+                      .ui.child.checkbox
+                        input(type="checkbox", name='checkbox-file', value=file)
+                        label=file+'.py'       
+            .actions
+              button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
+              .ui.button.approve.red(data-value='cancel') Cancel  
+
           .ui.bottom.attached.tab.segment(data-tab='second')
             .ui.toggle.lightmodetoggle.checkbox
               input(type='checkbox',onChange='changeTheme()')#lightmodetoggle
@@ -297,6 +314,7 @@ block content
       $(document).ready(function(){
           $('.demo.menu .item').tab({history:false});
           $('.file.menu .item').tab({history:false});
+
       });
     script(src='/codemirror/lib/codemirror.js')
     script(src='/codemirror/mode/python/python.js')
