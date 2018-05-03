@@ -139,7 +139,6 @@ block content
                     .list#file-list
                       each file, index in project.files
                         .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
-                          i.arrow.right.icon
                           i.file.icon
                           .content
                             if(file === 'main')

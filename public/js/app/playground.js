@@ -41,8 +41,7 @@ var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 console.log(projectFiles)
 var currentTab = 'main'
 let editor = {};
-projectFiles.forEach(setEditor);
-projectFiles.forEach(setOnChangeEditer);
+projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
 
 function setEditor(fileName){
@@ -190,9 +189,8 @@ socket.on('update tab', (payload) => {
     $('.menu .item').tab();
 
     //setup file
-    setEditor(fileName);
-    setOnChangeEditer(fileName);
-    $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><i class="arrow right icon"></i><i class="file icon"></i><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
+    newEditorFacade(fileName);
+    $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><i class="file icon"></i><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
   } else{
     var tab = document.getElementById(fileName);
     tab.remove();
@@ -773,6 +771,11 @@ function setOnChangeEditer(fileName) {
 
     
   })
+}
+
+function newEditorFacade(fileName) {
+  setEditor(fileName)
+  setOnChangeEditer(fileName)
 }
 
 // function setOnEditerUpdate(fileName) {
