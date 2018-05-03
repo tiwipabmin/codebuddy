@@ -145,11 +145,11 @@ block content
                   .content
                     .header src
                     .description Source files for project
-                    .list#file-list
+                    .list.relaxed#file-list(style="margin:0pxx")
                       each file, index in project.files
                         .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
-                          i.file.icon
-                          .content
+                          div(id=file+'-file-icon')
+                          .middle.aligned.content
                             if(file === 'main')
                               .header(id=file+'-header') main.py
                               .description Main python file 
@@ -293,6 +293,7 @@ block content
       let user="#{user.username}"
       let uid="#{user._id}"
       let partner="#{partner}"
+      let partner_img="#{partner_img}"
     script(type='text/javascript').
       $(document).ready(function(){
           $('.demo.menu .item').tab({history:false});

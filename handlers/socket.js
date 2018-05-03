@@ -377,6 +377,14 @@ module.exports = (server) => {
       })
     })
 
+    /**
+     * `send active tab` event fired when user change tab
+     * @param {Object} payload active tab
+     */
+    client.on('send active tab', (payload) => {
+      io.in(projectId).emit('show partner active tab', payload)
+    })
+
 
     client.on('is typing', (payload) => {
       io.in(projectId).emit('is typing', payload)

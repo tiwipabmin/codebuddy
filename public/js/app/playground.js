@@ -40,6 +40,7 @@ function getParameterByName(name) {
 var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 console.log(projectFiles)
 var currentTab = 'main'
+var partnerTab = 'main';
 let editor = {};
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
@@ -148,7 +149,7 @@ socket.on('update tab', (payload) => {
 
     //setup file
     newEditorFacade(fileName);
-    $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><i class="file icon"></i><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
+    $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><i id="'+fileName+'-file-icon" class="file icon"/><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
   } else{
     var tab = document.getElementById(fileName);
     tab.remove();
@@ -379,6 +380,16 @@ function sendMessage() {
 }
 
 /**
+ * Send Active Tab
+ */
+function sendActiveTab(tab) {
+  socket.emit('send active tab', {
+    uid: uid,
+    activeTab: tab
+  })
+}
+
+/**
  * Show score dialog
  */
 socket.on('show score', (payload) => {
@@ -430,6 +441,19 @@ socket.on('show auto update score', (payload) => {
     $('#partner-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2));
   }
   
+})
+
+/**
+ * Partner Active Tab
+ */
+socket.on('show partner active tab', (payload) => {
+  if(payload.uid !== uid){
+    $('#'+partnerTab+'-file-icon').replaceWith('<i id="'+partnerTab+'-file-icon" class="file icon"/>');
+
+    //set new partner actice tab
+    partnerTab = payload.activeTab
+    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image" src="'+partner_img+'"/>');
+  }
 })
 
 /**
@@ -651,6 +675,7 @@ function getActiveTab(fileName){
   setTimeout(function() {
     editor[fileName].refresh();
   }, 1);
+  sendActiveTab(currentTab)
   console.log(editor)
   console.log(currentTab)
 }
@@ -783,10 +808,11 @@ function newEditorFacade(fileName) {
   setEditor(fileName)
   setOnChangeEditer(fileName)
   setOnDoubleClickEditor(fileName)
+
+  //setup partner active tab
+  if(fileName == "main") {
+    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image" src="'+partner_img+'"/>');
+  } else {
+    $('#'+fileName+'-file-icon').replaceWith('<i id="'+fileName+'-file-icon" class="file icon"/>');
+  }
 }
-
-// function setOnEditerUpdate(fileName) {
-//   editor[currentTab].replaceRange(payload.text, payload.from, payload.to)
-// }
-
-// '<div class="item cursor-pointer" id="'+file+'-file" onClick=`getActiveTab('+${JSON.stringify(file)}+')`><i class="arrow right icon"></i><i class="file icon"></i><div class="content"><div class="header" id="ggg-header">aaa</div><div class="description">des</div></div></div>'
