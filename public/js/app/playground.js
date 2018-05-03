@@ -89,48 +89,6 @@ function changeTheme() {
 }
 
 /**
- * Code review modal
- */
-editor[currentTab].on('dblclick', () => {
-  let A1 = editor.getCursor().line
-  let A2 = editor.getCursor().ch
-  let B1 = editor.findWordAt({
-    line: A1,
-    ch: A2
-  }).anchor.ch
-  let B2 = editor.findWordAt({
-    line: A1,
-    ch: A2
-  }).head.ch
-  $('input.disabled.line.no').val(A1 + 1)
-  let line = $('input.disabled.line.no').val()
-  switch (roles.user) {
-    case 'coder':    
-      for(var i in comments){
-        if (comments[i].line == parseInt(line)) {
-          $('textarea.line.coder.disabled.description').val(comments[i].description)
-          break
-        }else{
-          $('textarea.line.coder.disabled.description').val('')
-        }
-      }     
-      $('.ui.coder.small.modal').modal('show')
-      break
-    case 'reviewer':
-      for(var i in comments){
-        if (comments[i].line == parseInt(line)) {
-          $('textarea.line.reviewer.description').val(comments[i].description)
-          break
-        }else{
-          $('textarea.line.reviewer.description').val('')
-        }
-      }
-      $('.ui.reviewer.small.modal').modal('show')
-      break
-  }
-})
-
-/**
  * User join the project
  */
 socket.emit('join project', {
@@ -302,6 +260,7 @@ socket.on('update status', (payload) => {
 
 function submitReview() {
   socket.emit('submit review', {
+    file: parseInt($('input.disabled.file.name').val()),
     line: parseInt($('input.disabled.line.no').val()),
     description: $('textarea.line.reviewer.description').val(),
   })
@@ -773,9 +732,55 @@ function setOnChangeEditer(fileName) {
   })
 }
 
+function setOnDoubleClickEditor(fileName) {
+  /**
+   * Code review modal
+   */
+  editor[fileName].on('dblclick', () => {
+    let A1 = editor[fileName].getCursor().line
+    let A2 = editor[fileName].getCursor().ch
+    let B1 = editor[fileName].findWordAt({
+      line: A1,
+      ch: A2
+    }).anchor.ch
+    let B2 = editor[fileName].findWordAt({
+      line: A1,
+      ch: A2
+    }).head.ch
+    $('input.disabled.line.no').val(A1 + 1)
+    $('input.disabled.file.name').val(fileName+".py")
+    let line = $('input.disabled.line.no').val()
+    switch (roles.user) {
+      case 'coder':    
+        for(var i in comments){
+          if (comments[i].line == parseInt(line)) {
+            $('textarea.line.coder.disabled.description').val(comments[i].description)
+            break
+          }else{
+            $('textarea.line.coder.disabled.description').val('')
+          }
+        }     
+        $('.ui.coder.small.modal').modal('show')
+        break
+      case 'reviewer':
+        for(var i in comments){
+          if (comments[i].line == parseInt(line)) {
+            $('textarea.line.reviewer.description').val(comments[i].description)
+            break
+          }else{
+            $('textarea.line.reviewer.description').val('')
+          }
+        }
+        $('.ui.reviewer.small.modal').modal('show')
+        break
+    }
+  })
+}
+
 function newEditorFacade(fileName) {
   setEditor(fileName)
   setOnChangeEditer(fileName)
+  setOnDoubleClickEditor(fileName)
 }
 
 // function setOnEditerUpdate(fileName) {
