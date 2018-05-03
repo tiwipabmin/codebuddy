@@ -676,6 +676,7 @@ function getActiveTab(fileName){
   setTimeout(function() {
     editor[fileName].refresh();
   }, 1);
+  sendActiveTab(currentTab)
   console.log(editor)
   console.log(currentTab)
 }
