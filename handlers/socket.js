@@ -45,7 +45,7 @@ module.exports = (server) => {
       } else {
         //edit comment in exist line => update in DB
         for (var i=0; i<comments.length; i++) {
-          if (comments[i].line==payload.line){ 
+          if (comments[i].line==payload.line  && comments[i].file == payload.file){ 
             found = true
             index = i
           }
@@ -53,12 +53,14 @@ module.exports = (server) => {
         if (found) {
           if (payload.description=='') {
             Comment.findOne({
+              file: payload.file,
               pid:  projectId,
               line: payload.line
             }).remove().exec()
             comments.splice(index,1)
           } else {
             Comment.update({
+              file: payload.file,
               pid: projectId,
               line: payload.line
             }, {
@@ -68,7 +70,7 @@ module.exports = (server) => {
             }, (err) => {
               if (err) throw err
             })
-            updateDesc(payload.line, payload.description);
+            updateDesc(payload.file, payload.line, payload.description);
           }
         } else {
           saveComment(payload)
@@ -151,7 +153,7 @@ module.exports = (server) => {
         client.join(projectId)
 
         comments = await Comment
-          .find({pid: payload.pid}, {line:1, description:1, _id:0})
+          .find({pid: payload.pid}, {file:1, line:1, description:1, _id:0})
           .sort({ line: 1 })        
 
         Project.update({
@@ -633,6 +635,7 @@ module.exports = (server) => {
 
     function saveComment(payload){
       const commentModel = {
+        file: payload.file,
         line: parseInt(payload.line),
         pid: projectId,
         description: payload.description,
@@ -644,9 +647,9 @@ module.exports = (server) => {
       comments.push(payload)
     }
 
-    function updateDesc(line, description){
+    function updateDesc(file, line, description){
       for (var i in comments) {
-        if (comments[i].line == line) {
+        if (comments[i].file == file && comments[i].line == line) {
            comments[i].description = description;
            break
         }

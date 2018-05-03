@@ -129,7 +129,7 @@ socket.on('init state', (payload) => {
 socket.on('init reviews', (payload) => {
   comments = payload
   payload.map((comment) => {
-      editor.addLineClass(parseInt(comment.line)-1, 'wrap', 'CodeMirror-activeline-background')
+      editor[comment.file].addLineClass(parseInt(comment.line)-1, 'wrap', 'CodeMirror-activeline-background')
   })
 })
 
@@ -260,7 +260,7 @@ socket.on('update status', (payload) => {
 
 function submitReview() {
   socket.emit('submit review', {
-    file: parseInt($('input.disabled.file.name').val()),
+    file: $('input.hidden.file.name').val(),
     line: parseInt($('input.disabled.line.no').val()),
     description: $('textarea.line.reviewer.description').val(),
   })
@@ -270,7 +270,7 @@ function submitReview() {
 socket.on('new review', (payload) => {
   comments = payload
   comments.map((comment) => {
-    editor.addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
+    editor[comment.file].addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
   })
 })
 
@@ -749,11 +749,12 @@ function setOnDoubleClickEditor(fileName) {
     }).head.ch
     $('input.disabled.line.no').val(A1 + 1)
     $('input.disabled.file.name').val(fileName+".py")
+    $('input.hidden.file.name').val(fileName)
     let line = $('input.disabled.line.no').val()
     switch (roles.user) {
       case 'coder':    
         for(var i in comments){
-          if (comments[i].line == parseInt(line)) {
+          if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
             $('textarea.line.coder.disabled.description').val(comments[i].description)
             break
           }else{
@@ -764,7 +765,7 @@ function setOnDoubleClickEditor(fileName) {
         break
       case 'reviewer':
         for(var i in comments){
-          if (comments[i].line == parseInt(line)) {
+          if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
             $('textarea.line.reviewer.description').val(comments[i].description)
             break
           }else{
