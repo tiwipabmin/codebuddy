@@ -233,8 +233,7 @@ module.exports = (server) => {
         console.log('file '+payload+'.py is created');
       })
 
-      var action = 'create'
-      io.in(projectId).emit('update tab', {fileName: payload, action: action})
+      io.in(projectId).emit('update tab', {fileName: payload, action: 'create'})
     })
 
     /**
@@ -260,8 +259,7 @@ module.exports = (server) => {
         console.log(payload+'.py is deleted!');
       });
 
-      var action = 'delete'
-      io.in(projectId).emit('update tab', {fileName: payload, action: action})
+      io.in(projectId).emit('update tab', {fileName: payload, action: 'delete'})
     })
 
     /**

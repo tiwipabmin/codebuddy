@@ -263,24 +263,43 @@ fieldset {
 	margin-left: 56px;
 }
 
-#delete-icon{
+#close-tab-icon{
     right:0; 
     position: absolute; 
     margin-top:-18px;
     color:#b30202;
 }
 
-#delete-icon:hover{
+#close-tab-icon:hover{
     right:0; 
     position: absolute; 
     margin-top:-18px;
     color:#db2828;
-    
+}
+
+#delete-icon{
+    right:0; 
+    position: absolute; 
+    margin-top:-15px;
+    color:#828282;
+}
+
+#delete-icon:hover{
+    right:0; 
+    position: absolute; 
+    margin-top:-15px;
+    color:#b30202;  
 }
 
 .file-active {
     color: #4183c4 !important;
 }
+
+.ui.avatar.image.partner-file-icon{
+    width:20px; 
+    height:20px;
+}
+
 
 .cursor-pointer {
     cursor: pointer;

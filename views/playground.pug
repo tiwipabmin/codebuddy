@@ -146,7 +146,7 @@ block content
                     .header src
                       a.ui.label(id='exportBtn' onClick='showExportModal()') export file
                     .description Source files for project
-                    .list.relaxed#file-list(style="margin:0pxx")
+                    .list.relaxed#file-list(style="margin:0px;")
                       each file, index in project.files
                         .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
                           div(id=file+'-file-icon')
@@ -157,6 +157,16 @@ block content
                               .description Main python file
                             else
                               .header(id=file+'-header')=file+'.py'
+                              .delete-file
+                                span(onClick=`showDeleteFileModal(${JSON.stringify(file)})`)
+                                  i.trash.alternate.outline.icon(id='delete-icon')
+                                .ui.small.modal(id=file+'-delete-file-modal')
+                                  .header Delete File
+                                  .content  
+                                    p='Do you want to delete ' + file + '.py?'
+                                  .actions
+                                    button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
+                                    .ui.button.approve.red(data-value='cancel') Cancel 
           .ui.small.modal#export-modal
             .header Export File
             .content  
@@ -235,8 +245,8 @@ block content
                   a.active.item(id=file data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
                 else
                   a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'        
-                    span(onClick=`deleteFile(${JSON.stringify(file)})`)
-                      i.delete.icon(id='delete-icon')
+                    span(onClick=`closeTab(${JSON.stringify(file)})`)
+                      i.delete.icon(id='close-tab-icon')
               a.item(class='add-file' onClick='addFile()') 
                 i.plus.icon
             .ui.tab-content

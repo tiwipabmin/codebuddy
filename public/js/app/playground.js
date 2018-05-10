@@ -41,6 +41,7 @@ var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 console.log(projectFiles)
 var currentTab = 'main'
 var partnerTab = 'main';
+var isCloseTab = false;
 let editor = {};
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
@@ -62,7 +63,7 @@ function setEditor(fileName){
       matchBrackets: true
     })
   }
-  console.log(editor[fileName])
+  // console.log(editor[fileName])
 }
 
 
@@ -143,17 +144,38 @@ socket.on('update tab', (payload) => {
   console.log(action)
   if(action=='create'){
     var id = document.getElementById("file-tabs").childElementCount;
-    $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
+    $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
     $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
     $('.menu .item').tab();
 
     //setup file
     newEditorFacade(fileName);
-    $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><div id="'+fileName+'-file-icon"/><i class="file icon"/><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
+    var html = '<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><div id="'+fileName+'-file-icon"/><i class="file icon"/><div class="middle aligned content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div>'+                        
+                            '<div class="delete-file">'+
+                              '<span onClick=showDeleteFileModal("'+fileName+'")>'+
+                                '<i class="trash alternate outline icon" id="delete-icon"></i>'+
+                              '</span>'+
+                              '<div class="ui small modal" id="'+fileName+'-delete-file-modal">'+
+                                '<div class="header"> Delete File </div>'+
+                                '<div class="content">'+
+                                  '<p> Do you want to delete ' + fileName + '.py? </p>'+
+                                '</div>'+
+                                '<div class="actions">'+
+                                  '<button class="ui button approve green" onClick=deleteFile("'+fileName+'")> Delete </button>'+
+                                  '<div class="ui button approve red" data-value="cancel"> Cancel </div>'+
+                                '</div>'+
+                              '</div>'+
+                          '</div>'+ 
+                          '</div></div>'
+    $('#file-list').append(html);
     $('#export-checklist').append('<div class="item" id="export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
   } else{
     var tab = document.getElementById(fileName);
     tab.remove();
+    var fileItem = document.getElementById(fileName+'-file');
+    fileItem.remove();
+    var modal = document.getElementById(fileName+'-delete-file-modal');
+    modal.remove();
     $(".file.menu").children('a').first().click();
   }
 
@@ -660,6 +682,25 @@ function addFile(){
 }
 
 function getActiveTab(fileName){
+  var isNewTab = true
+  var openNewTab = ''
+  if(fileName!='main'){
+    var fileTab = document.getElementById("file-tabs").children;
+    console.log(fileTab)
+    for(var i=0; i<fileTab.length; i++){
+      if(fileName==fileTab[i].id){
+        isNewTab = false
+      }
+    }
+    if(isNewTab&&(isCloseTab==false)){
+      $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
+      $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
+      $('.menu .item').tab();
+      console.log('open '+ fileName)
+    }      
+  }
+
+  if(isCloseTab){currentTab='main'; fileName='main';}
   //old tab
   $('#'+currentTab).removeClass('active');
   $('#'+currentTab+'-tab').removeClass('active');
@@ -671,23 +712,33 @@ function getActiveTab(fileName){
   $('#'+fileName+'-tab').addClass('active');
   $('#'+fileName+'-file').addClass('file-active');
   $('#'+fileName+'-header').addClass('file-active');
+
   currentTab = fileName
   setEditor(fileName)
   setTimeout(function() {
     editor[fileName].refresh();
   }, 1);
   sendActiveTab(currentTab)
-  console.log(editor)
-  console.log(currentTab)
+  isCloseTab=false
+}
+
+function closeTab(fileName){
+  var tab = document.getElementById(fileName);
+  tab.remove();
+  $(".file.menu").children('a').first().click();
+  $("#main").click();
+  isCloseTab = true;
+
+  var fileTab = document.getElementById("file-tabs").children;
+  setTimeout(function() {
+    editor[fileName].refresh();
+  }, 1);
+
 }
 
 function createFile(){
   var fileName =  $('.filename').val()
   socket.emit('create file', fileName)
-}
-
-function deleteFile(fileName){
-  socket.emit('delete file', fileName)
 }
 
 function exportSingleFile(fileName, text){
@@ -702,6 +753,15 @@ function exportSingleFile(fileName, text){
 
 function showExportModal(){  
   $('#export-modal').modal('show')
+}
+
+function showDeleteFileModal(fileName){  
+  console.log('show modal!!!'+ fileName)
+  $('#'+fileName+'-delete-file-modal').modal('show')
+}
+
+function deleteFile(fileName){
+  socket.emit('delete file', fileName)
 }
 
 function onClickExport(){
@@ -821,7 +881,7 @@ function newEditorFacade(fileName) {
 
   //setup partner active tab
   if(fileName == "main") {
-    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>');
+    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>');
   } else {
     $('#'+fileName+'-file-icon').replaceWith('<div id="'+fileName+'-file-icon"/>');
   }
