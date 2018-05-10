@@ -149,7 +149,7 @@ socket.on('update tab', (payload) => {
 
     //setup file
     newEditorFacade(fileName);
-    $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><i id="'+fileName+'-file-icon" class="file icon"/><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
+    $('#file-list').append('<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><div id="'+fileName+'-file-icon"/><i class="file icon"/><div class="content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div></div></div>');
     $('#export-checklist').append('<div class="item" id="export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
   } else{
     var tab = document.getElementById(fileName);
@@ -449,11 +449,11 @@ socket.on('show auto update score', (payload) => {
  */
 socket.on('show partner active tab', (payload) => {
   if(payload.uid !== uid){
-    $('#'+partnerTab+'-file-icon').replaceWith('<i id="'+partnerTab+'-file-icon" class="file icon"/>');
+    $('#'+partnerTab+'-file-icon').replaceWith('<div id="'+partnerTab+'-file-icon"/>');
 
     //set new partner actice tab
     partnerTab = payload.activeTab
-    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image" src="'+partner_img+'"/>');
+    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>');
   }
 })
 
@@ -821,8 +821,8 @@ function newEditorFacade(fileName) {
 
   //setup partner active tab
   if(fileName == "main") {
-    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image" src="'+partner_img+'"/>');
+    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>');
   } else {
-    $('#'+fileName+'-file-icon').replaceWith('<i id="'+fileName+'-file-icon" class="file icon"/>');
+    $('#'+fileName+'-file-icon').replaceWith('<div id="'+fileName+'-file-icon"/>');
   }
 }

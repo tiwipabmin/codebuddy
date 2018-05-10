@@ -150,10 +150,11 @@ block content
                       each file, index in project.files
                         .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
                           div(id=file+'-file-icon')
+                          i.file.icon
                           .middle.aligned.content
                             if(file === 'main')
                               .header(id=file+'-header') main.py
-                              .description Main python file 
+                              .description Main python file
                             else
                               .header(id=file+'-header')=file+'.py'
           .ui.small.modal#export-modal
