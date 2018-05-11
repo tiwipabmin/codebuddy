@@ -241,7 +241,7 @@ module.exports = (server) => {
      * @param {Ibject} payload fileName
      */
 
-    client.on('delete file', (payload) => {
+    client.on('delete file', async (payload) => {
       //delete file in mongoDB
       Project.update({
         pid: projectId
@@ -252,6 +252,11 @@ module.exports = (server) => {
       }, (err) => {
         if (err) throw err
       })
+
+      //delete code in redis
+      var code = JSON.parse(await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret))
+      delete code[payload]
+      redis.hset(`project:${projectId}`, 'editor', JSON.stringify(code))
 
       // delete file
       fs.unlink('./project_files/'+projectId+'/'+payload+'.py', function (err) {
