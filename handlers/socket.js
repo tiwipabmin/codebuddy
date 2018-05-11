@@ -186,7 +186,7 @@ module.exports = (server) => {
           winston.info(projects[projectId].count)
           client.emit('role updated', projects[projectId])
         }
-
+        
         client.emit('init state', {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
@@ -383,6 +383,12 @@ module.exports = (server) => {
       io.in(projectId).emit('show partner active tab', payload)
     })
 
+    client.on('open tab', async (payload) => {
+      var fileName = payload
+      var code = await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
+      console.log(code)
+      io.in(projectId).emit('set editor open tab', {fileName: fileName, editor: code})
+    })
 
     client.on('is typing', (payload) => {
       io.in(projectId).emit('is typing', payload)

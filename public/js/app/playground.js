@@ -36,7 +36,6 @@ function getParameterByName(name) {
 /**
  * Initiate local editor
  */
-  
 var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 console.log(projectFiles)
 var currentTab = 'main'
@@ -480,6 +479,15 @@ socket.on('show partner active tab', (payload) => {
 })
 
 /**
+ * set editor value into open tab
+ */
+socket.on('set editor open tab', (payload) => {
+  var code = JSON.parse(payload.editor)
+  var fileName = payload.fileName
+  editor[fileName].setValue(code[fileName])
+})
+
+/**
  * Terminal socket
  */
 socket.on('term update', (payload) => {
@@ -686,17 +694,14 @@ function getActiveTab(fileName){
   var openNewTab = ''
   if(fileName!='main'){
     var fileTab = document.getElementById("file-tabs").children;
-    console.log(fileTab)
     for(var i=0; i<fileTab.length; i++){
       if(fileName==fileTab[i].id){
         isNewTab = false
       }
     }
+    //open tab which is already closed
     if(isNewTab&&(isCloseTab==false)){
-      $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
-      $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
-      $('.menu .item').tab();
-      console.log('open '+ fileName)
+      openTab(fileName)
     }      
   }
 
@@ -714,26 +719,31 @@ function getActiveTab(fileName){
   $('#'+fileName+'-header').addClass('file-active');
 
   currentTab = fileName
-  setEditor(fileName)
   setTimeout(function() {
     editor[fileName].refresh();
   }, 1);
   sendActiveTab(currentTab)
-  isCloseTab=false
+  isCloseTab = false
 }
 
 function closeTab(fileName){
   var tab = document.getElementById(fileName);
   tab.remove();
+  var tabContent = document.getElementById(fileName+'-tab');
+  tabContent.remove();
+  delete editor[fileName]
   $(".file.menu").children('a').first().click();
   $("#main").click();
   isCloseTab = true;
-
   var fileTab = document.getElementById("file-tabs").children;
-  setTimeout(function() {
-    editor[fileName].refresh();
-  }, 1);
+}
 
+function openTab(fileName) {
+  $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
+  $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
+  $('.menu .item').tab();
+  newEditorFacade(fileName)
+  socket.emit('open tab', fileName)
 }
 
 function createFile(){
