@@ -301,7 +301,7 @@ function deleteReview() {
   })
 }
 
-socket.on('update review', (payload) =>{
+socket.on('update after delete review', (payload) =>{
   comments = payload.comments
   deleteline = payload.deleteline
   editor[payload.file].removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
@@ -803,12 +803,13 @@ function setOnChangeEditer(fileName) {
     if(text==44){
       console.log('enter '+enterline)
         for(var i in comments){  
-          if(comments[i].line > enterline){          
+          if((comments[i].line > enterline) && (comments[i].file==fileName)){
             isEnter = true
             comments[i].line = parseInt(comments[i].line)+1
           }
         }
       socket.emit('move hilight',{
+        fileName: fileName,
         comments: comments,
         enterline: enterline,
         isEnter: isEnter
@@ -818,12 +819,13 @@ function setOnChangeEditer(fileName) {
     //check when delete line
     if(remove.length==2){
       for(var i in comments){          
-        if(comments[i].line > enterline-1){
+        if((comments[i].line > enterline-1) && (comments[i].file==fileName)){
           isDelete = true        
           comments[i].line = parseInt(comments[i].line)-1
         }
       }
       socket.emit('move hilight',{
+        fileName: fileName,
         comments: comments,
         enterline: enterline,
         isDelete: isDelete,

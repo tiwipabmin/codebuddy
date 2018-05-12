@@ -93,7 +93,7 @@ module.exports = (server) => {
         }
       }
 
-      io.in(projectId).emit('update review', {
+      io.in(projectId).emit('update after delete review', {
         comments: comments,
         file: payload.file,
         deleteline: payload.line})
@@ -101,6 +101,7 @@ module.exports = (server) => {
 
     //move hilight when enter or delete
     client.on('move hilight', (payload) => {
+      var fileName = payload.fileName
       var enterline = payload.enterline
       var remove = payload.remove
       var oldline = payload.oldline
@@ -109,10 +110,11 @@ module.exports = (server) => {
       comments = payload.comments
 
       //check when enter new line
-      if(isEnter){
-        for(var i in comments){
-          if(comments[i].line > enterline){        
+      if(isEnter){       
+        for(var i in comments){    
+          if((comments[i].line > enterline) && (comments[i].file == fileName)){            
             Comment.update({
+              file: fileName,
               pid: projectId,
               description: comments[i].description
             }, {
@@ -129,8 +131,9 @@ module.exports = (server) => {
       //check when delete line
       if(isDelete){
         for(var i in comments){
-          if(comments[i].line > parseInt(enterline)-1){  
+          if((comments[i].line > parseInt(enterline)-1) && (comments[i].file == fileName)){  
             Comment.update({
+              file: fileName,
               pid: projectId,
               description: comments[i].description
             }, {
@@ -690,16 +693,12 @@ module.exports = (server) => {
     function readAppend(file, appendFile){
       fs.readFile(appendFile, function(err, data){
         if (err) throw err;
-        fs.appendFile(file, '\n', function(err){
-          
+        fs.appendFile(file, '\n', function(err){        
         })
         fs.appendFile(file, data, function(err){
           console.log('combine!! ')
         })
       })
-      
     }
-
-    
   })
 }
