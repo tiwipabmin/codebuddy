@@ -8,6 +8,10 @@ const shortid = require('shortid')
  * `Comment` model schema based on Mongoose schema
  */
 const commentSchema = new mongoose.Schema({
+    file: {
+        type: String,
+        required: [true, 'Please enter a file name']
+    },
     line: {
         type: Number,
         required: [true, 'Please enter a line']

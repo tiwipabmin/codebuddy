@@ -6,7 +6,7 @@ const roles = {
   user: '',
   partner: ''
 }
-var comments = null
+var comments = []
 
 var webrtc = new SimpleWebRTC({
   // the id/element dom element that will hold "our" video
@@ -36,29 +36,31 @@ function getParameterByName(name) {
 /**
  * Initiate local editor
  */
-  
 var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
-console.log(projectFiles)
 var currentTab = 'main'
-let editor = ''
-setEditor(currentTab)
+var partnerTab = 'main';
+var isCloseTab = false;
+let editor = {};
+projectFiles.forEach(newEditorFacade);
+getActiveTab('main');
 
 function setEditor(fileName){
-  editor = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
-    lineNumbers: true,
-    mode: {
-      name: 'python',
-      version: 3,
-      singleLineStringErrors: false,
-      styleActiveLine: true,
+  if(!(fileName in editor)) {
+    editor[fileName] = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
       lineNumbers: true,
-      lineWrapping: true
-    },
-    theme: 'material',
-    indentUnit: 4,
-    matchBrackets: true
-  })
-  console.log(editor)
+      mode: {
+        name: 'python',
+        version: 3,
+        singleLineStringErrors: false,
+        styleActiveLine: true,
+        lineNumbers: true,
+        lineWrapping: true
+      },
+      theme: 'material',
+      indentUnit: 4,
+      matchBrackets: true
+    })
+  }
 }
 
 
@@ -70,58 +72,20 @@ var isLight = false;
 function changeTheme() {
   if (!isLight) {
     var theme = "default";
-    editor.setOption("theme", theme);
+    projectFiles.forEach(setTheme);
     location.hash = "#" + theme;
   }
   else {
     var theme = "material";
-    editor.setOption("theme", theme);
+    projectFiles.forEach(setTheme);
     location.hash = "#" + theme;
   }
   isLight = !isLight;
-}
 
-/**
- * Code review modal
- */
-editor.on('dblclick', () => {
-  let A1 = editor.getCursor().line
-  let A2 = editor.getCursor().ch
-  let B1 = editor.findWordAt({
-    line: A1,
-    ch: A2
-  }).anchor.ch
-  let B2 = editor.findWordAt({
-    line: A1,
-    ch: A2
-  }).head.ch
-  $('input.disabled.line.no').val(A1 + 1)
-  let line = $('input.disabled.line.no').val()
-  switch (roles.user) {
-    case 'coder':    
-      for(var i in comments){
-        if (comments[i].line == parseInt(line)) {
-          $('textarea.line.coder.disabled.description').val(comments[i].description)
-          break
-        }else{
-          $('textarea.line.coder.disabled.description').val('')
-        }
-      }     
-      $('.ui.coder.small.modal').modal('show')
-      break
-    case 'reviewer':
-      for(var i in comments){
-        if (comments[i].line == parseInt(line)) {
-          $('textarea.line.reviewer.description').val(comments[i].description)
-          break
-        }else{
-          $('textarea.line.reviewer.description').val('')
-        }
-      }
-      $('.ui.reviewer.small.modal').modal('show')
-      break
+  function setTheme(fileName) {
+    editor[fileName].setOption("theme", theme);
   }
-})
+}
 
 /**
  * User join the project
@@ -141,7 +105,13 @@ webrtc.on('readyToCall', function () {
  * After user join the project, user will recieve initiate data to perform in local editor
  */
 socket.on('init state', (payload) => {
-  editor.setValue(payload.editor)
+  var editorValues = JSON.parse(payload.editor);
+  projectFiles.forEach(setEditorValue);
+
+  function setEditorValue(fileName) {
+    editor[fileName].setValue(editorValues[fileName])
+  }
+
   // webrtc.on('readyToCall', function () {
   //   // you can name it anything
   //   webrtc.createRoom(getParameterByName('pid'));
@@ -156,9 +126,9 @@ socket.on('init state', (payload) => {
 
 socket.on('init reviews', (payload) => {
   comments = payload
-  payload.map((comment) => {
-      editor.addLineClass(parseInt(comment.line)-1, 'wrap', 'CodeMirror-activeline-background')
-  })
+  for(var i in comments){
+    editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
+  }
 })
 
 /**
@@ -167,17 +137,43 @@ socket.on('init reviews', (payload) => {
 socket.on('update tab', (payload) => {
   var fileName = payload.fileName
   var action = payload.action
-  console.log(action)
   if(action=='create'){
     var id = document.getElementById("file-tabs").childElementCount;
-    $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="deleteFile(\''+fileName+'\')"><i class="delete icon" id="delete-icon"></i></span></a>');
-    $('.tab-content').append('<div class="ui bottom attached tab segment" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
+    $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
+    $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
     $('.menu .item').tab();
+
+    //setup file
+    newEditorFacade(fileName);
+    var html = '<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><div id="'+fileName+'-file-icon"/><i class="file icon"/><div class="middle aligned content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div>'+                        
+                            '<div class="delete-file">'+
+                              '<span onClick=showDeleteFileModal("'+fileName+'")>'+
+                                '<i class="trash alternate outline icon" id="delete-icon"></i>'+
+                              '</span>'+
+                              '<div class="ui small modal" id="'+fileName+'-delete-file-modal">'+
+                                '<div class="header"> Delete File </div>'+
+                                '<div class="content">'+
+                                  '<p> Do you want to delete ' + fileName + '.py? </p>'+
+                                '</div>'+
+                                '<div class="actions">'+
+                                  '<button class="ui button approve green" onClick=deleteFile("'+fileName+'")> Delete </button>'+
+                                  '<div class="ui button approve red" data-value="cancel"> Cancel </div>'+
+                                '</div>'+
+                              '</div>'+
+                          '</div>'+ 
+                          '</div></div>'
+    $('#file-list').append(html);
+    $('#export-checklist').append('<div class="item" id="export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
   } else{
     var tab = document.getElementById(fileName);
     tab.remove();
+    var fileItem = document.getElementById(fileName+'-file');
+    fileItem.remove();
+    var modal = document.getElementById(fileName+'-delete-file-modal');
+    modal.remove();
     $(".file.menu").children('a').first().click();
   }
+
 })
 
 /**
@@ -217,14 +213,22 @@ socket.on('countdown', (payload) => {
 
 socket.on('role updated', (payload) => {
   if (user === payload.roles.reviewer) {
-    editor.setOption('readOnly', 'nocursor')
     roles.user = 'reviewer'
     roles.partner = 'coder'
+    projectFiles.forEach(setOptionFileNoCursor)
   } else {
     roles.user = 'coder'
     roles.partner = 'reviewer'
-    editor.setOption('readOnly', false)
+    projectFiles.forEach(setOptionFileShowCursor)
   }
+  
+  function setOptionFileNoCursor(fileName) {
+    editor[fileName].setOption('readOnly', 'nocursor')
+  }
+  function setOptionFileShowCursor(fileName) {
+    editor[fileName].setOption('readOnly', false)
+  }
+
   $(".partner-role-label").text(`${roles.partner}`)
   $(".user-role-label").text(`${roles.user}`)
   // startCountdown()
@@ -239,60 +243,13 @@ $(window).on('beforeunload', () => {
 })
 
 /**
- * Local editor value is changing, to handle that we'll emit our changes to server
- */
-editor.on('change', (ins, data) => {
-  socket.emit('code change', {
-    code: data,
-    editor: editor.getValue(),
-    currentTab: currentTab
-  })
-
-  var text = data.text.toString().charCodeAt(0)
-  var enterline = parseInt(data.to.line)+1
-  var remove = data.removed
-  var isEnter = false
-  var isDelete = false
-
-  //check when enter new line
-  if(text==44){
-    console.log('enter '+enterline)
-      for(var i in comments){  
-        if(comments[i].line > enterline){          
-          isEnter = true
-          comments[i].line = parseInt(comments[i].line)+1
-        }
-      }
-    socket.emit('move hilight',{
-      comments: comments,
-      enterline: enterline,
-      isEnter: isEnter
-    })
-  }
-
-  //check when delete line
-  if(remove.length==2){
-    for(var i in comments){          
-      if(comments[i].line > enterline-1){
-        isDelete = true        
-        comments[i].line = parseInt(comments[i].line)-1
-      }
-    }
-    socket.emit('move hilight',{
-      comments: comments,
-      enterline: enterline,
-      isDelete: isDelete,
-    })
-  }
-
-  
-})
-
-/**
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on('editor update', (payload) => {
-  editor.replaceRange(payload.text, payload.from, payload.to)
+  editor[payload.fileName].replaceRange(payload.text, payload.from, payload.to);
+  setTimeout(function() {
+    editor[payload.fileName].refresh();
+  }, 1);
 })
 
 /**
@@ -322,6 +279,7 @@ socket.on('update status', (payload) => {
 
 function submitReview() {
   socket.emit('submit review', {
+    file: $('input.hidden.file.name').val(),
     line: parseInt($('input.disabled.line.no').val()),
     description: $('textarea.line.reviewer.description').val(),
   })
@@ -331,21 +289,22 @@ function submitReview() {
 socket.on('new review', (payload) => {
   comments = payload
   comments.map((comment) => {
-    editor.addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
+    editor[comment.file].addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
   })
 })
 
 function deleteReview() {
   socket.emit('delete review', {
+    file: $('input.hidden.file.name').val(),
     line: $('input.disabled.line.no').val(),
     description: $('textarea.line.reviewer.description').val(),
   })
 }
 
-socket.on('update review', (payload) =>{
+socket.on('update after delete review', (payload) =>{
   comments = payload.comments
   deleteline = payload.deleteline
-  editor.removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
+  editor[payload.file].removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
 })
 
 socket.on('is typing', (payload) => {
@@ -378,7 +337,6 @@ term.on('key', function (key, ev) {
 
   if (ev.keyCode == 13) {
     term.prompt();
-    console.log()
   } else if (ev.keyCode == 8) {
     // Do not delete the prompt
     if (term.x > 2) {
@@ -439,6 +397,16 @@ function sendMessage() {
 }
 
 /**
+ * Send Active Tab
+ */
+function sendActiveTab(tab) {
+  socket.emit('send active tab', {
+    uid: uid,
+    activeTab: tab
+  })
+}
+
+/**
  * Show score dialog
  */
 socket.on('show score', (payload) => {
@@ -473,7 +441,7 @@ socket.on('auto update score', (payload) => {
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
-    code: editor.getValue()
+    code: editor[currentTab].getValue()
   })
   
 })
@@ -490,6 +458,31 @@ socket.on('show auto update score', (payload) => {
     $('#partner-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2));
   }
   
+})
+
+/**
+ * Partner Active Tab
+ */
+socket.on('show partner active tab', (payload) => {
+  if(payload.uid !== uid){
+    $('#'+partnerTab+'-file-icon').replaceWith('<div id="'+partnerTab+'-file-icon"/>');
+
+    //set new partner actice tab
+    partnerTab = payload.activeTab
+    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>');
+  }
+})
+
+/**
+ * set editor value into open tab
+ */
+socket.on('set editor open tab', (payload) => {
+  var code = JSON.parse(payload.editor)
+  var fileName = payload.fileName
+  editor[fileName].setValue(code[fileName])
+  for(var i in comments){
+    editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
+  }
 })
 
 /**
@@ -603,6 +596,7 @@ $(document)
   }  
 });
 $(function(){
+
   console.log("is typing : " + $('#inputMessage').val())
   if($('#inputMessage').val() != "") {
     console.log("is typing")
@@ -666,7 +660,6 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 function addFile(){
   $('#filename-modal').modal('show')
   $('.filename').val('')
-
   
   //disable create button when input is empty
   $('#createBtn').prop('disabled', true);
@@ -694,20 +687,65 @@ function addFile(){
 }
 
 function getActiveTab(fileName){
+  var isNewTab = true
+  var openNewTab = ''
+  if(fileName!='main'){
+    var fileTab = document.getElementById("file-tabs").children;
+    for(var i=0; i<fileTab.length; i++){
+      if(fileName==fileTab[i].id){
+        isNewTab = false
+      }
+    }
+    //open tab which is already closed
+    if(isNewTab&&(isCloseTab==false)){
+      openTab(fileName)
+    }      
+  }
+
+  if(isCloseTab){currentTab='main'; fileName='main';}
+  //old tab
+  $('#'+currentTab).removeClass('active');
+  $('#'+currentTab+'-tab').removeClass('active');
+  $('#'+currentTab+'-file').removeClass('file-active');
+  $('#'+currentTab+'-header').removeClass('file-active');
+
+  //new tab
+  $('#'+fileName).addClass('active');
+  $('#'+fileName+'-tab').addClass('active');
+  $('#'+fileName+'-file').addClass('file-active');
+  $('#'+fileName+'-header').addClass('file-active');
+
   currentTab = fileName
-  editor = ''
-  setEditor(currentTab)
-  console.log(editor)
-  console.log(currentTab)
+  setTimeout(function() {
+    editor[fileName].refresh();
+  }, 1);
+  sendActiveTab(currentTab)
+  isCloseTab = false
+}
+
+function closeTab(fileName){
+  var tab = document.getElementById(fileName);
+  tab.remove();
+  var tabContent = document.getElementById(fileName+'-tab');
+  tabContent.remove();
+  delete editor[fileName]
+  $(".file.menu").children('a').first().click();
+  $("#main").click();
+  isCloseTab = true;
+  var fileTab = document.getElementById("file-tabs").children;
+}
+
+function openTab(fileName) {
+  $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
+  $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
+  $('.menu .item').tab();
+  newEditorFacade(fileName)
+  socket.emit('open tab', fileName)
 }
 
 function createFile(){
   var fileName =  $('.filename').val()
   socket.emit('create file', fileName)
-}
-
-function deleteFile(fileName){
-  socket.emit('delete file', fileName)
 }
 
 function exportSingleFile(fileName, text){
@@ -720,9 +758,139 @@ function exportSingleFile(fileName, text){
   document.body.removeChild(element);
 }
 
-function onClickExport(){
-  var text = editor.getValue()
-  var fileName = currentTab
-  exportSingleFile(fileName, text)
+function showExportModal(){  
+  $('#export-modal').modal('show')
 }
 
+function showDeleteFileModal(fileName){  
+  $('#'+fileName+'-delete-file-modal').modal('show')
+}
+
+function deleteFile(fileName){
+  socket.emit('delete file', fileName)
+}
+
+function onClickExport(){
+  var filenameList = []
+  $('[name="checkbox-file"]').each( function (){
+    if($(this).prop('checked') == true){
+        filenameList.push($(this).val())
+    }
+  })
+  socket.emit('export file', filenameList)
+  // exportSingleFile(fileName, text)
+}
+
+function setOnChangeEditer(fileName) {
+  /**
+   * Local editor value is changing, to handle that we'll emit our changes to server
+   */
+  editor[fileName].on('change', (ins, data) => {
+    socket.emit('code change', {
+      fileName : fileName,
+      code: data,
+      editor: editor[fileName].getValue(),
+      currentTab: fileName
+    })
+
+    var text = data.text.toString().charCodeAt(0)
+    var enterline = parseInt(data.to.line)+1
+    var remove = data.removed
+    var isEnter = false
+    var isDelete = false
+
+    //check when enter new line
+    if(text==44){
+      console.log('enter '+enterline)
+        for(var i in comments){  
+          if((comments[i].line > enterline) && (comments[i].file==fileName)){
+            isEnter = true
+            comments[i].line = parseInt(comments[i].line)+1
+          }
+        }
+      socket.emit('move hilight',{
+        fileName: fileName,
+        comments: comments,
+        enterline: enterline,
+        isEnter: isEnter
+      })
+    }
+
+    //check when delete line
+    if(remove.length==2){
+      for(var i in comments){          
+        if((comments[i].line > enterline-1) && (comments[i].file==fileName)){
+          isDelete = true        
+          comments[i].line = parseInt(comments[i].line)-1
+        }
+      }
+      socket.emit('move hilight',{
+        fileName: fileName,
+        comments: comments,
+        enterline: enterline,
+        isDelete: isDelete,
+      })
+    }
+
+    
+  })
+}
+
+function setOnDoubleClickEditor(fileName) {
+  /**
+   * Code review modal
+   */
+  editor[fileName].on('dblclick', () => {
+    let A1 = editor[fileName].getCursor().line
+    let A2 = editor[fileName].getCursor().ch
+    let B1 = editor[fileName].findWordAt({
+      line: A1,
+      ch: A2
+    }).anchor.ch
+    let B2 = editor[fileName].findWordAt({
+      line: A1,
+      ch: A2
+    }).head.ch
+    $('input.disabled.line.no').val(A1 + 1)
+    $('input.disabled.file.name').val(fileName+".py")
+    $('input.hidden.file.name').val(fileName)
+    let line = $('input.disabled.line.no').val()
+    switch (roles.user) {
+      case 'coder':    
+        for(var i in comments){
+          if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
+            $('textarea.line.coder.disabled.description').val(comments[i].description)
+            break
+          }else{
+            $('textarea.line.coder.disabled.description').val('')
+          }
+        }     
+        $('.ui.coder.small.modal').modal('show')
+        break
+      case 'reviewer':
+        for(var i in comments){
+          if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
+            $('textarea.line.reviewer.description').val(comments[i].description)
+            break
+          }else{
+            $('textarea.line.reviewer.description').val('')
+          }
+        }
+        $('.ui.reviewer.small.modal').modal('show')
+        break
+    }
+  })
+}
+
+function newEditorFacade(fileName) {
+  setEditor(fileName)
+  setOnChangeEditer(fileName)
+  setOnDoubleClickEditor(fileName)
+
+  //setup partner active tab
+  if(fileName == "main") {
+    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>');
+  } else {
+    $('#'+fileName+'-file-icon').replaceWith('<div id="'+fileName+'-file-icon"/>');
+  }
+}
