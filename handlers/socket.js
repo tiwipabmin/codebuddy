@@ -44,7 +44,7 @@ module.exports = (server) => {
         saveComment(payload)
       } else {
         //edit comment in exist line => update in DB
-        for (var i=0; i<comments.length; i++) {
+        for (var i in comments) {
           if (comments[i].line==payload.line  && comments[i].file == payload.file){ 
             found = true
             index = i
@@ -85,13 +85,16 @@ module.exports = (server) => {
         pid:  projectId,
         line: payload.line
       }).remove().exec()
+      //remove deleted comment from list
+      for(var i in comments){
+        if((comments[i].file == payload.file) && (comments[i].line==payload.line)){
+          comments.splice(i, 1)
+          break
+        }
+      }
 
-      deletecomments = comments.filter(function(el){
-        return el.line !== parseInt(payload.line) && el.file != payload.file;
-      })
-      
       io.in(projectId).emit('update review', {
-        comments: deletecomments,
+        comments: comments,
         file: payload.file,
         deleteline: payload.line})
     })
@@ -154,10 +157,17 @@ module.exports = (server) => {
         winston.info(`User ${payload.username} joined at pid: ${payload.pid}`)
         client.join(projectId)
 
-        comments = await Comment
+        var allcomment = await Comment
           .find({pid: payload.pid}, {file:1, line:1, description:1, _id:0})
           .sort({ line: 1 })        
 
+        for(var i in allcomment){
+          comments.push({
+            file: allcomment[i].file,
+            line: allcomment[i].line, 
+            description: allcomment[i].description})            
+        }
+      
         Project.update({
           pid: projectId
         }, {
@@ -391,7 +401,6 @@ module.exports = (server) => {
     client.on('open tab', async (payload) => {
       var fileName = payload
       var code = await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
-      console.log(code)
       io.in(projectId).emit('set editor open tab', {fileName: fileName, editor: code})
     })
 
@@ -663,7 +672,10 @@ module.exports = (server) => {
       new Comment(commentModel, (err) => {
           if (err) throw err
       }).save()
-      comments.push(payload)
+      comments.push({
+        file: payload.file,
+        line: parseInt(payload.line), 
+        description: payload.description})      
     }
 
     function updateDesc(file, line, description){
@@ -674,12 +686,6 @@ module.exports = (server) => {
         }
       }
     }
-
-    // function updateLine(line, description){
-    //   for(var i in comments) {
-    //     if(comments[i].)
-    //   }
-    // }
 
     function readAppend(file, appendFile){
       fs.readFile(appendFile, function(err, data){

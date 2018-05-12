@@ -6,7 +6,7 @@ const roles = {
   user: '',
   partner: ''
 }
-var comments = null
+var comments = []
 
 var webrtc = new SimpleWebRTC({
   // the id/element dom element that will hold "our" video
@@ -37,7 +37,6 @@ function getParameterByName(name) {
  * Initiate local editor
  */
 var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
-console.log(projectFiles)
 var currentTab = 'main'
 var partnerTab = 'main';
 var isCloseTab = false;
@@ -62,7 +61,6 @@ function setEditor(fileName){
       matchBrackets: true
     })
   }
-  // console.log(editor[fileName])
 }
 
 
@@ -109,7 +107,6 @@ webrtc.on('readyToCall', function () {
 socket.on('init state', (payload) => {
   var editorValues = JSON.parse(payload.editor);
   projectFiles.forEach(setEditorValue);
-  console.log(editorValues)
 
   function setEditorValue(fileName) {
     editor[fileName].setValue(editorValues[fileName])
@@ -129,9 +126,9 @@ socket.on('init state', (payload) => {
 
 socket.on('init reviews', (payload) => {
   comments = payload
-  payload.map((comment) => {
-      editor[comment.file].addLineClass(parseInt(comment.line)-1, 'wrap', 'CodeMirror-activeline-background')
-  })
+  for(var i in comments){
+    editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
+  }
 })
 
 /**
@@ -140,7 +137,6 @@ socket.on('init reviews', (payload) => {
 socket.on('update tab', (payload) => {
   var fileName = payload.fileName
   var action = payload.action
-  console.log(action)
   if(action=='create'){
     var id = document.getElementById("file-tabs").childElementCount;
     $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
@@ -341,7 +337,6 @@ term.on('key', function (key, ev) {
 
   if (ev.keyCode == 13) {
     term.prompt();
-    console.log()
   } else if (ev.keyCode == 8) {
     // Do not delete the prompt
     if (term.x > 2) {
@@ -485,6 +480,9 @@ socket.on('set editor open tab', (payload) => {
   var code = JSON.parse(payload.editor)
   var fileName = payload.fileName
   editor[fileName].setValue(code[fileName])
+  for(var i in comments){
+    editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
+  }
 })
 
 /**
@@ -662,7 +660,6 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 function addFile(){
   $('#filename-modal').modal('show')
   $('.filename').val('')
-
   
   //disable create button when input is empty
   $('#createBtn').prop('disabled', true);
@@ -766,7 +763,6 @@ function showExportModal(){
 }
 
 function showDeleteFileModal(fileName){  
-  console.log('show modal!!!'+ fileName)
   $('#'+fileName+'-delete-file-modal').modal('show')
 }
 
