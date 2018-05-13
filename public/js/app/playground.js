@@ -110,7 +110,9 @@ socket.on('init state', (payload) => {
   projectFiles.forEach(setEditorValue);
 
   function setEditorValue(fileName) {
-    editor[fileName].setValue(editorValues[fileName])
+    if(editorValues!=null){
+      editor[fileName].setValue(editorValues[fileName])
+    }    
   }
 
   code = payload.editor

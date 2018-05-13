@@ -334,6 +334,7 @@ module.exports = (server) => {
         var toLine = payload.code.to.line
         var toCh = payload.code.to.ch
         var moreLine = false
+        var fileName = payload.fileName
 
         console.log(removeText[0].length)
 
@@ -346,26 +347,24 @@ module.exports = (server) => {
         //save input text to mongoDB
         if(action=='+input'){
           console.log('>>>>>>save input')
-
           if(enterText.length==1){
-            //input ch
-            
+            //input ch            
             if(removeText[0].length!=0){
               //select some text and add input
               if(removeText.length==1){        
                 //select text in 1 line
                 console.log('>>>>>>delete in 1 line more than 1 text') 
-                deleteInOneLine(projectId, fromLine, fromCh, toCh)
-                updateTextAfter(projectId, fromLine, fromLine, fromCh+1, toCh)
+                deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
+                updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh+1, toCh)
                 
               }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
                 //select more than 1 line || delete line
-                deleteMoreLine(projectId, toLine, fromLine, fromCh, toCh, action)
+                deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
               }
               
             }else{
               //move right ch of cursor
-              History.find({ pid: projectId , line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+              History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
                 if (err) return handleError(err);
                 var textInLine = res
                 console.log(res)
@@ -373,6 +372,7 @@ module.exports = (server) => {
                   console.log(textInLine[i])
                   History.update({
                     pid: projectId,
+                    file: fileName,
                     line: textInLine[i].line,
                     ch: textInLine[i].ch,
                     text: textInLine[i].text
@@ -391,6 +391,7 @@ module.exports = (server) => {
             //save ch to mongoDB
             const historyModel = {
               pid: projectId,
+              file: fileName,
               line: fromLine,
               ch: fromCh,
               text: payload.code.text,
@@ -407,16 +408,17 @@ module.exports = (server) => {
             //first line -> move right ch of cursor to new line
             if(removeText[0].length!=0){
               //enter delete text
-              deleteInOneLine(projectId, fromLine, fromCh, toCh)  
+              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)  
             }
 
-            History.find({ pid: projectId , line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+            History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
               if (err) return handleError(err);
               var textInLine = res
               console.log(res)
               for(var i=0; i<textInLine.length; i++){
                 History.update({
                   pid: projectId,
+                  file: fileName,
                   line: textInLine[i].line,
                   ch: textInLine[i].ch,
                   text: textInLine[i].text
@@ -433,7 +435,7 @@ module.exports = (server) => {
             })
 
             //not first line -> line+1
-            History.find({ pid: projectId , line: {$gt: fromLine}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+            History.find({ pid: projectId , file: fileName, line: {$gt: fromLine}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
               if (err) return handleError(err);
               var textInLine = res
               console.log(res)
@@ -441,6 +443,7 @@ module.exports = (server) => {
               for(var i=0; i<textInLine.length; i++){
                 History.update({
                   pid: projectId,
+                  file: fileName,
                   line: textInLine[i].line,
                   ch: textInLine[i].ch,
                   text: textInLine[i].text
@@ -461,12 +464,12 @@ module.exports = (server) => {
           if(removeText.length==1){        
               //delete select text
               console.log('>>>>>>delete in 1 line more than 1 text') 
-              deleteInOneLine(projectId, fromLine, fromCh, toCh)
-              updateTextAfter(projectId, fromLine, fromLine, fromCh, toCh)
+              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
+              updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh, toCh)
 
           }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
             //delete more than 1 line || delete line
-            deleteMoreLine(projectId, toLine, fromLine, fromCh, toCh, action)
+            deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
           }
         }
 
@@ -847,16 +850,17 @@ module.exports = (server) => {
         })
       })
     }
-    function deleteInOneLine(projectId, fromLine, fromCh, toCh){
+    function deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh){
       History.find({
         pid:  projectId,
+        file: fileName,
         line: fromLine,
         ch: {$gte : fromCh,
             $lt: toCh}
       }).remove().exec()
     }
 
-    function deleteMoreLine(projectId, toLine, fromLine, fromCh, toCh, action){
+    function deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action){
       var lineRange = toLine-fromLine
       console.log('>>>>delete line' + lineRange)
       for(var i=fromLine; i<=fromLine+lineRange; i++){
@@ -866,6 +870,7 @@ module.exports = (server) => {
           console.log('   first line')
             History.findOne({
               pid: projectId,
+              file: fileName,
               line: i,
               ch: {$gte : fromCh}
             }).remove().exec()            
@@ -875,6 +880,7 @@ module.exports = (server) => {
           console.log('   not first line')
           History.find({
             pid:  projectId,
+            file: fileName,
             line: i
           }).remove().exec()
         }
@@ -883,22 +889,23 @@ module.exports = (server) => {
           console.log('   last line')
             History.find({
               pid:  projectId,
+              file: fileName,
               line: i,
               ch: {$lt :toCh}
             }).remove().exec()
 
             if(action=='+input'){
-              updateTextAfter(projectId, i, fromLine, fromCh+1, toCh)
+              updateTextAfter(projectId, fileName, i, fromLine, fromCh+1, toCh)
             }else{
-              updateTextAfter(projectId, i, fromLine, fromCh, toCh)
+              updateTextAfter(projectId, fileName, i, fromLine, fromCh, toCh)
             }
            
         }
       }
     }
 
-    function updateTextAfter(projectId, line, fromLine, fromCh, toCh){
-      History.find({ pid: projectId , line: line, ch: {$gte :toCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+    function updateTextAfter(projectId, fileName, line, fromLine, fromCh, toCh){
+      History.find({ pid: projectId , file: fileName, line: line, ch: {$gte :toCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
         if (err) return handleError(err);
         var textInLine = res
         console.log(res)
@@ -906,6 +913,7 @@ module.exports = (server) => {
           console.log(textInLine[i])
           History.update({
             pid: projectId,
+            file: fileName,
             line: textInLine[i].line,
             ch: textInLine[i].ch,
             text: textInLine[i].text

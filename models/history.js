@@ -12,6 +12,7 @@ const historySchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please enter a pid']
   },
+  file: String,
   line: {
     type: Number,
     required: [true, 'Please enter a line']
