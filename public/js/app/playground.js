@@ -245,58 +245,6 @@ $(window).on('beforeunload', () => {
 })
 
 /**
- * Local editor value is changing, to handle that we'll emit our changes to server
- */
-editor.on('change', (ins, data) => {
-
-  var text = data.text.toString().charCodeAt(0)
-  var enterline = parseInt(data.to.line)+1
-  var remove = data.removed
-  var isEnter = false
-  var isDelete = false
-
-  //check when enter new line
-  if(text==44){
-    console.log('enter '+enterline)
-      for(var i in comments){  
-        if(comments[i].line > enterline){          
-          isEnter = true
-          comments[i].line = parseInt(comments[i].line)+1
-        }
-      }
-    socket.emit('move hilight',{
-      comments: comments,
-      enterline: enterline,
-      isEnter: isEnter
-    })
-  }
-
-  //check when delete line
-  if(remove.length==2){
-    for(var i in comments){          
-      if(comments[i].line > enterline-1){
-        isDelete = true        
-        comments[i].line = parseInt(comments[i].line)-1
-      }
-    }
-    socket.emit('move hilight',{
-      comments: comments,
-      enterline: enterline,
-      isDelete: isDelete,
-    })
-  }
-
-  socket.emit('code change', {
-    code: data,
-    editor: editor.getValue(),
-    user: user,
-    enterline: enterline,
-    isEnter: isEnter,
-    isDelete: isDelete,
-  })
-})
-
-/**
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on('editor update', (payload) => {
@@ -840,13 +788,7 @@ function setOnChangeEditer(fileName) {
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
   editor[fileName].on('change', (ins, data) => {
-    socket.emit('code change', {
-      fileName : fileName,
-      code: data,
-      editor: editor[fileName].getValue(),
-      currentTab: fileName
-    })
-
+    
     var text = data.text.toString().charCodeAt(0)
     var enterline = parseInt(data.to.line)+1
     var remove = data.removed
@@ -886,7 +828,16 @@ function setOnChangeEditer(fileName) {
       })
     }
 
-    
+    socket.emit('code change', {
+      code: data,
+      editor: editor[fileName].getValue(),
+      user: user,
+      enterline: enterline,
+      isEnter: isEnter,
+      isDelete: isDelete,
+      currentTab: fileName,
+      fileName : fileName
+    })    
   })
 }
 
