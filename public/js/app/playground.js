@@ -105,8 +105,12 @@ webrtc.on('readyToCall', function () {
  * After user join the project, user will recieve initiate data to perform in local editor
  */
 socket.on('init state', (payload) => {
-  var editorValues = JSON.parse(payload.editor);
-  projectFiles.forEach(setEditorValue);
+  if(payload.editor != null) {
+    var editorValues = JSON.parse(payload.editor);
+    projectFiles.forEach(setEditorValue);
+  } else {
+    editor['main'].setValue('');
+  }
 
   function setEditorValue(fileName) {
     editor[fileName].setValue(editorValues[fileName])
