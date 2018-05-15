@@ -202,6 +202,7 @@ socket.on('role updated', (payload) => {
 })
 
 socket.on('show reviewer active time', (payload) => {
+  console.log(payload)
   if(roles.user === 'coder' && payload.counts >= 0) {
     $('#buddy_counts_min_sec').show();
     $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs + " mins");
@@ -598,15 +599,20 @@ $(function(){
   var session_flag = 0;
   // send active time
   setInterval(function(){
+    console.log($('#counts_min_sec').attr('data-count'))
     const counts = $('#counts_min_sec').attr('data-count');
     const min = $('#counts_min_sec').attr('data-min');
     const sec = $('#counts_min_sec').attr('data-sec');
-    if(roles.user === "reviewer" && session_flag === 0) {
+    console.log(counts !== undefined)
+    if(roles.user === "reviewer" && counts !== undefined && session_flag === 0) {
       session_flag = 1;
       acc = counts;
+      console.log(acc)
+      console.log(counts)
     }else if(roles.user === "coder" && session_flag === 1){
       session_flag = 0;
-    } else if(roles.user === "reviewer" && counts >= 0) {
+    } else if(roles.user === "reviewer" && counts >= 0 && session_flag === 1) {
+      console.log(counts, pad(parseInt((counts-acc)/60)), pad((counts-acc)%60), counts-acc, acc);
       socket.emit('reviewer active time', {
         counts: counts,
         mins : pad(parseInt((counts-acc)/60)),
