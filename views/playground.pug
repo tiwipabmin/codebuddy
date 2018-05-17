@@ -176,7 +176,7 @@ block content
                   label Select all file
                 .list#export-checklist
                   each file in project.files
-                    .item#export-file-item
+                    .item.export-file-item(id=file+'-export-file-item')
                       .ui.child.checkbox
                         input(type="checkbox", name='checkbox-file', value=file)
                         label=file+'.py'       

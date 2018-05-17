@@ -167,7 +167,7 @@ socket.on('update tab', (payload) => {
                           '</div>'+ 
                           '</div></div>'
     $('#file-list').append(html);
-    $('#export-checklist').append('<div class="item" id="export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
+    $('#export-checklist').append('<div class="item export-file-item" id="'+fileName+'-export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
   } else{
     var tab = document.getElementById(fileName);
     tab.remove();
@@ -175,6 +175,8 @@ socket.on('update tab', (payload) => {
     fileItem.remove();
     var modal = document.getElementById(fileName+'-delete-file-modal');
     modal.remove();
+    var exportFileItem = document.getElementById(fileName+'-export-file-item');
+    exportFileItem.remove();
     $(".file.menu").children('a').first().click();
   }
 

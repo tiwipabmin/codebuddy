@@ -325,7 +325,7 @@ fieldset {
     margin-top: 10px; 
 }
 
-#export-file-item{
+.export-file-item{
     margin-left: 20px;
     margin-top: 5px;    
 }
