@@ -177,13 +177,15 @@ block content
               p#subTitle
               form#createRoom              
               p Buddy
+              #buddy_counts_min_sec.ui.red.circular.label active time: 00:00 min
               .videoContainer
                 #remoteVideo
               .ui.divider
               p You
+              #counts_min_sec.ui.red.circular.label active time: 00:00 min
               .videoContainer
-                video#localVideo(style='height: 150px;', oncontextmenu='return false;')
-                canvas(id="canvas" width="320" height="240")
+                video#localVideo(style='height: 150px; transform: scaleX(-1);', oncontextmenu='return false;')
+                canvas(id="canvas" width="320" height="240" style="transform: scaleX(-1);")
                 #localVolume.volume_bar
         .twelve.wide.column.right
           .ui.grid
@@ -243,6 +245,18 @@ block content
                   .four.wide.column
                     button.ui.button.icon(type='submit', onClick='sendMessage()')
                       i.send.icon
+        .twelve.wide.column.right
+      style.
+        .face-tracking {
+          width: 320;
+          height: 240px;
+          position: relative;
+          background: #eee;
+          overflow: hidden;
+        }
+        .face-tracking video,canvas {
+          position: absolute;
+        }
 
     script.
       let user="#{user.username}"

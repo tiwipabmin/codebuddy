@@ -450,6 +450,14 @@ module.exports = (server) => {
       io.in(projectId).emit('is typing', payload)
     })
 
+    /**
+     * `submit code` event fired reviewer active time every 1 sec 
+     * @param {Object} payload time from face detection on main.js
+     */
+    client.on('reviewer active time', (payload) => {
+      io.in(projectId).emit('show reviewer active time', payload);
+    })
+
      /**
      * `submit code` event fired when user click on submit button from front-end
      * @param {Object} payload code from editor

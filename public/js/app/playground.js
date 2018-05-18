@@ -203,6 +203,15 @@ socket.on('role updated', (payload) => {
   // startCountdown()
 })
 
+socket.on('show reviewer active time', (payload) => {
+  if(roles.user === 'coder' && payload.counts >= 0) {
+    $('#buddy_counts_min_sec').show();
+    $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs + " mins");
+  } else {
+    $('#buddy_counts_min_sec').hide();
+  } 
+})
+
 /**
  * If user exit or going elsewhere which can be caused this project window closed
  * `beforeunload` event will fired and sending client disconnection to the server
@@ -577,6 +586,7 @@ $(document)
         })
   }  
 });
+
 $(function(){
   console.log("is typing : " + $('#inputMessage').val())
   if($('#inputMessage').val() != "") {
@@ -590,8 +600,31 @@ $(function(){
           uid: uid,
           text: ''
         })
-  }  
+  }
+
+  var acc = 0;
+  var session_flag = 0;
+  // send active time
+  setInterval(function(){
+    const counts = $('#counts_min_sec').attr('data-count');
+    const min = $('#counts_min_sec').attr('data-min');
+    const sec = $('#counts_min_sec').attr('data-sec');
+    if(roles.user === "reviewer" && counts !== undefined && session_flag === 0) {
+      session_flag = 1;
+      acc = counts;
+    }else if(roles.user === "coder" && session_flag === 1){
+      session_flag = 0;
+    } else if(roles.user === "reviewer" && counts >= 0 && session_flag === 1) {
+      socket.emit('reviewer active time', {
+        counts: counts,
+        mins : pad(parseInt((counts-acc)/60)),
+        secs: pad((counts-acc)%60)
+      })
+    }
+  }, 1000);
+
 });
+
 console.log("is typing : " + $('#inputMessage').val())
 if($('#inputMessage').val() != "") {
   console.log("is typing")
@@ -604,8 +637,7 @@ if($('#inputMessage').val() != "") {
         uid: uid,
         text: ''
       })
-}  
-  
+}
 
 $('.ui.video.toggle.button')
   .on('click', handler.activate);
