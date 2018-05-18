@@ -1,4 +1,3 @@
-
 // timer
 var sec=Date.now()
 var counts=0;
@@ -156,6 +155,14 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 			$parentCheckbox.checkbox('set indeterminate');
 		  }
 		}
-	  })
-
-});
+  })
+  
+  $(document).ready(function(){ 
+    $('.chat').hide(); 
+    $('#live-chat header').on('click', function() { 
+      $('.chat').slideToggle(300, 'swing'); 
+      $(".chat-history").animate({ scrollTop: $('.message-list').height() }, "fast"); 
+      $("#angle-up").toggleClass("rotate"); 
+    }); 
+   
+  });
