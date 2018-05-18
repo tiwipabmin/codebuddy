@@ -516,6 +516,17 @@ socket.on('update message', (payload) => {
   }
 })
 
+socket.on('download file', (payload) => {
+  var projectId = payload
+  var a = document.createElement("a");
+  document.body.appendChild(a);
+  a.style = "display: none";
+  a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
+  a.download = projectId+'.zip'
+  a.click();
+  document.body.removeChild(a);
+})
+
 /**
  * WebRTC TEST MUTING
  */

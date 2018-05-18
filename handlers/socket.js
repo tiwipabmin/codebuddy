@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 const timer = require('timers')
 const moment = require('moment')
 const fs = require('fs');
+var archiver = require('archiver');
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
@@ -241,8 +242,8 @@ module.exports = (server) => {
         if (err) throw err
       })
 
-      //create new file  ./project_files/projectId/fileName.py
-      fs.open('./project_files/'+projectId+'/'+payload+'.py', 'w', function (err, file) {
+      //create new file  ./public/project_files/projectId/fileName.py
+      fs.open('./public/project_files/'+projectId+'/'+payload+'.py', 'w', function (err, file) {
         if (err) throw err;
         console.log('file '+payload+'.py is created');
       })
@@ -269,11 +270,13 @@ module.exports = (server) => {
 
       //delete code in redis
       var code = JSON.parse(await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret))
-      delete code[payload]
-      redis.hset(`project:${projectId}`, 'editor', JSON.stringify(code))
+      if(code != null){
+        delete code[payload]
+        redis.hset(`project:${projectId}`, 'editor', JSON.stringify(code))
+      }
 
       // delete file
-      fs.unlink('./project_files/'+projectId+'/'+payload+'.py', function (err) {
+      fs.unlink('./public/project_files/'+projectId+'/'+payload+'.py', function (err) {
         if (err) throw err;
         console.log(payload+'.py is deleted!');
       });
@@ -755,6 +758,26 @@ module.exports = (server) => {
         winston.info(`catching error: ${error}`)
       }
     })
+
+    client.on('export file', (payload) => {
+      fileNameList = payload
+      var output = fs.createWriteStream('./public/project_files/'+projectId+'/'+projectId+'.zip');
+      var archive = archiver('zip', {
+          gzip: true,
+          zlib: { level: 9 } // Sets the compression level.
+      });
+      archive.on('error', function(err) {
+        throw err;
+      });
+      // pipe archive data to the output file
+      archive.pipe(output);
+      // append files
+      fileNameList.forEach(function(fileName) {  
+        archive.file('./public/project_files/'+projectId+'/'+fileName+'.py', {name: fileName+'.py'});
+      })
+      archive.finalize();
+      client.emit('download file', projectId )  
+     })
 
     function countdownTimer() {
         function intervalFunc() {
