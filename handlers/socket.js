@@ -493,14 +493,18 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('run code', (payload) => {
+      var code = payload.code;
       const fs = require('fs')
       const path = require('path')
-      fs.writeFile('pytest.py', payload.code, (err) => {
-        if (err) throw err
-      })
+      Object.keys(code).forEach(function(key) {
+        fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
+          if (err) throw err
+        })
+      });
+
       const nodepty = require('node-pty')
-      if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
-      else pty = nodepty.spawn('python', ['pytest.py'], {})
+      if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['./public/project_files/'+projectId+'/'+'main.py'], {})
+      else pty = nodepty.spawn('python', ['./public/project_files/'+projectId+'/'+'main.py'], {})
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })

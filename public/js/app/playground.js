@@ -152,6 +152,7 @@ socket.on('update tab', (payload) => {
     $('.menu .item').tab();
 
     //setup file
+    projectFiles.push(fileName);
     newEditorFacade(fileName);
     var html = '<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><div id="'+fileName+'-file-icon"/><i class="file icon"/><div class="middle aligned content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div>'+                        
                             '<div class="delete-file">'+
@@ -378,8 +379,13 @@ function pauseRunCode() {
  * Run code
  */
 function runCode() {
+  var codeEditors = {};
+  projectFiles.forEach(runCodeEachFile);
+  function runCodeEachFile(fileName) {
+    codeEditors[fileName] = editor[fileName].getValue();
+  }
   socket.emit('run code', {
-    code: editor.getValue()
+    code: codeEditors
   })
   term.writeln('Running pytest.py...')
 }
