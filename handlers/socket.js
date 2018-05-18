@@ -5,12 +5,14 @@ const mongoose = require('mongoose')
 const timer = require('timers')
 const moment = require('moment')
 const fs = require('fs');
+var archiver = require('archiver');
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
 const Score = mongoose.model('Score')
 const User = mongoose.model('User')
 const Comment = mongoose.model('Comment')
+const History = mongoose.model('History')
 
 /**
  * @param {Object} server server instance
@@ -240,8 +242,8 @@ module.exports = (server) => {
         if (err) throw err
       })
 
-      //create new file  ./project_files/projectId/fileName.py
-      fs.open('./project_files/'+projectId+'/'+payload+'.py', 'w', function (err, file) {
+      //create new file  ./public/project_files/projectId/fileName.py
+      fs.open('./public/project_files/'+projectId+'/'+payload+'.py', 'w', function (err, file) {
         if (err) throw err;
         console.log('file '+payload+'.py is created');
       })
@@ -268,11 +270,13 @@ module.exports = (server) => {
 
       //delete code in redis
       var code = JSON.parse(await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret))
-      delete code[payload]
-      redis.hset(`project:${projectId}`, 'editor', JSON.stringify(code))
+      if(code != null){
+        delete code[payload]
+        redis.hset(`project:${projectId}`, 'editor', JSON.stringify(code))
+      }
 
       // delete file
-      fs.unlink('./project_files/'+projectId+'/'+payload+'.py', function (err) {
+      fs.unlink('./public/project_files/'+projectId+'/'+payload+'.py', function (err) {
         if (err) throw err;
         console.log(payload+'.py is deleted!');
       });
@@ -324,6 +328,155 @@ module.exports = (server) => {
           editorJson[editorName] = payload.editor;
           redis.hset(`project:${projectId}`, 'editor', JSON.stringify(editorJson))
         });
+        // ------ history -----
+        var enterText = payload.code.text
+        var removeText = payload.code.removed
+        var action = payload.code.origin
+        var fromLine = payload.code.from.line
+        var fromCh = payload.code.from.ch
+        var toLine = payload.code.to.line
+        var toCh = payload.code.to.ch
+        var moreLine = false
+        var fileName = payload.fileName
+
+        console.log(removeText[0].length)
+
+        for(var i=0; i<removeText.length; i++){
+          if(removeText[i].length){
+            moreLine = true
+            break
+          }
+        }
+        //save input text to mongoDB
+        if(action=='+input'){
+          console.log('>>>>>>save input')
+          if(enterText.length==1){
+            //input ch            
+            if(removeText[0].length!=0){
+              //select some text and add input
+              if(removeText.length==1){        
+                //select text in 1 line
+                console.log('>>>>>>delete in 1 line more than 1 text') 
+                deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
+                updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh+1, toCh)
+                
+              }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
+                //select more than 1 line || delete line
+                deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
+              }
+              
+            }else{
+              //move right ch of cursor
+              History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+                if (err) return handleError(err);
+                var textInLine = res
+                console.log(res)
+                for(var i=0; i<textInLine.length; i++){
+                  console.log(textInLine[i])
+                  History.update({
+                    pid: projectId,
+                    file: fileName,
+                    line: textInLine[i].line,
+                    ch: textInLine[i].ch,
+                    text: textInLine[i].text
+                  }, {
+                    $set: {
+                      line: fromLine,
+                      ch: fromCh+i+1
+                    } 
+                  }, (err) => {
+                    if (err) throw err
+                  })
+                }
+              })
+            }
+            
+            //save ch to mongoDB
+            const historyModel = {
+              pid: projectId,
+              file: fileName,
+              line: fromLine,
+              ch: fromCh,
+              text: payload.code.text,
+              user: payload.user,
+              createdAt: Date.now()
+            }
+            new History(historyModel, (err) => {
+                if (err) throw err
+            }).save()   
+                  
+          } 
+          else if(enterText.length==2){
+            //enter new line
+            //first line -> move right ch of cursor to new line
+            if(removeText[0].length!=0){
+              //enter delete text
+              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)  
+            }
+
+            History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+              if (err) return handleError(err);
+              var textInLine = res
+              console.log(res)
+              for(var i=0; i<textInLine.length; i++){
+                History.update({
+                  pid: projectId,
+                  file: fileName,
+                  line: textInLine[i].line,
+                  ch: textInLine[i].ch,
+                  text: textInLine[i].text
+                }, {
+                  $set: {
+                    line: fromLine+1,
+                    ch: i
+                  } 
+                }, (err) => {
+                  if (err) throw err
+                })
+              }
+      
+            })
+
+            //not first line -> line+1
+            History.find({ pid: projectId , file: fileName, line: {$gt: fromLine}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+              if (err) return handleError(err);
+              var textInLine = res
+              console.log(res)
+              
+              for(var i=0; i<textInLine.length; i++){
+                History.update({
+                  pid: projectId,
+                  file: fileName,
+                  line: textInLine[i].line,
+                  ch: textInLine[i].ch,
+                  text: textInLine[i].text
+                }, {
+                  $set: {
+                    line: textInLine[i].line+1
+                  } 
+                }, (err) => {
+                  if (err) throw err
+                })
+              }
+            })
+          }
+            
+        
+        } else if(action=='+delete'){
+          //delete text from mongoDB        
+          if(removeText.length==1){        
+              //delete select text
+              console.log('>>>>>>delete in 1 line more than 1 text') 
+              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
+              updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh, toCh)
+
+          }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
+            //delete more than 1 line || delete line
+            deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
+          }
+        }
+
+        // ------ end history -----
       }
     })
 
@@ -606,6 +759,26 @@ module.exports = (server) => {
       }
     })
 
+    client.on('export file', (payload) => {
+      fileNameList = payload
+      var output = fs.createWriteStream('./public/project_files/'+projectId+'/'+projectId+'.zip');
+      var archive = archiver('zip', {
+          gzip: true,
+          zlib: { level: 9 } // Sets the compression level.
+      });
+      archive.on('error', function(err) {
+        throw err;
+      });
+      // pipe archive data to the output file
+      archive.pipe(output);
+      // append files
+      fileNameList.forEach(function(fileName) {  
+        archive.file('./public/project_files/'+projectId+'/'+fileName+'.py', {name: fileName+'.py'});
+      })
+      archive.finalize();
+      client.emit('download file', projectId )  
+     })
+
     function countdownTimer() {
         function intervalFunc() {
             redis.hgetall(`project:${projectId}`, function (err, obj) {
@@ -700,5 +873,83 @@ module.exports = (server) => {
         })
       })
     }
-  })
+    function deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh){
+      History.find({
+        pid:  projectId,
+        file: fileName,
+        line: fromLine,
+        ch: {$gte : fromCh,
+            $lt: toCh}
+      }).remove().exec()
+    }
+
+    function deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action){
+      var lineRange = toLine-fromLine
+      console.log('>>>>delete line' + lineRange)
+      for(var i=fromLine; i<=fromLine+lineRange; i++){
+        console.log('>---- '+ i)
+        //first line
+        if(i==fromLine){
+          console.log('   first line')
+            History.findOne({
+              pid: projectId,
+              file: fileName,
+              line: i,
+              ch: {$gte : fromCh}
+            }).remove().exec()            
+        }
+        //not last line
+        else if(i!=fromLine+lineRange){
+          console.log('   not first line')
+          History.find({
+            pid:  projectId,
+            file: fileName,
+            line: i
+          }).remove().exec()
+        }
+        //last line
+        else {
+          console.log('   last line')
+            History.find({
+              pid:  projectId,
+              file: fileName,
+              line: i,
+              ch: {$lt :toCh}
+            }).remove().exec()
+
+            if(action=='+input'){
+              updateTextAfter(projectId, fileName, i, fromLine, fromCh+1, toCh)
+            }else{
+              updateTextAfter(projectId, fileName, i, fromLine, fromCh, toCh)
+            }
+           
+        }
+      }
+    }
+
+    function updateTextAfter(projectId, fileName, line, fromLine, fromCh, toCh){
+      History.find({ pid: projectId , file: fileName, line: line, ch: {$gte :toCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+        if (err) return handleError(err);
+        var textInLine = res
+        console.log(res)
+        for(var i=0; i<textInLine.length; i++){
+          console.log(textInLine[i])
+          History.update({
+            pid: projectId,
+            file: fileName,
+            line: textInLine[i].line,
+            ch: textInLine[i].ch,
+            text: textInLine[i].text
+          }, {
+            $set: {
+              line: fromLine,
+              ch: fromCh+i
+            } 
+          }, (err) => {
+            if (err) throw err
+          })
+        }
+      })
+     }
+    })
 }

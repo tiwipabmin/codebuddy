@@ -269,6 +269,18 @@ fieldset {
     margin-top:-18px;
     color:#b30202;
 }
+#badge1 {
+    border-radius: 25px;
+    background-color:#2185d0;
+    padding-left: 20px; 
+    padding-right: 20px;
+    padding-top: 7px; 
+    margin-top: 22px;
+    margin-left: 10px;
+    display:inline-block;
+    height: 40px; 
+    color: white;
+}
 
 #close-tab-icon:hover{
     right:0; 
@@ -313,7 +325,21 @@ fieldset {
     margin-top: 10px; 
 }
 
-#export-file-item{
+.export-file-item{
     margin-left: 20px;
     margin-top: 5px;    
 }
+
+#badge2 {
+    border-radius: 25px;
+    background-color:#21ba45;
+    padding-left: 20px;
+    padding-right: 20px; 
+    padding-top: 7px;  
+    margin-top: 22px;
+    margin-left: 10px;
+    display:inline-block;
+    height: 40px; 
+    color: white;
+}
+

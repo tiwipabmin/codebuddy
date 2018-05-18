@@ -7,6 +7,7 @@ const roles = {
   partner: ''
 }
 var comments = []
+var code = null
 
 var webrtc = new SimpleWebRTC({
   // the id/element dom element that will hold "our" video
@@ -113,9 +114,12 @@ socket.on('init state', (payload) => {
   }
 
   function setEditorValue(fileName) {
-    editor[fileName].setValue(editorValues[fileName])
+    if(editorValues!=null){
+      editor[fileName].setValue(editorValues[fileName])
+    }    
   }
 
+  code = payload.editor
   // webrtc.on('readyToCall', function () {
   //   // you can name it anything
   //   webrtc.createRoom(getParameterByName('pid'));
@@ -167,7 +171,7 @@ socket.on('update tab', (payload) => {
                           '</div>'+ 
                           '</div></div>'
     $('#file-list').append(html);
-    $('#export-checklist').append('<div class="item" id="export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
+    $('#export-checklist').append('<div class="item export-file-item" id="'+fileName+'-export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
   } else{
     var tab = document.getElementById(fileName);
     tab.remove();
@@ -175,6 +179,8 @@ socket.on('update tab', (payload) => {
     fileItem.remove();
     var modal = document.getElementById(fileName+'-delete-file-modal');
     modal.remove();
+    var exportFileItem = document.getElementById(fileName+'-export-file-item');
+    exportFileItem.remove();
     $(".file.menu").children('a').first().click();
   }
 
@@ -514,6 +520,17 @@ socket.on('update message', (payload) => {
   }
 })
 
+socket.on('download file', (payload) => {
+  var projectId = payload
+  var a = document.createElement("a");
+  document.body.appendChild(a);
+  a.style = "display: none";
+  a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
+  a.download = projectId+'.zip'
+  a.click();
+  document.body.removeChild(a);
+})
+
 /**
  * WebRTC TEST MUTING
  */
@@ -790,13 +807,7 @@ function setOnChangeEditer(fileName) {
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
   editor[fileName].on('change', (ins, data) => {
-    socket.emit('code change', {
-      fileName : fileName,
-      code: data,
-      editor: editor[fileName].getValue(),
-      currentTab: fileName
-    })
-
+    
     var text = data.text.toString().charCodeAt(0)
     var enterline = parseInt(data.to.line)+1
     var remove = data.removed
@@ -836,7 +847,16 @@ function setOnChangeEditer(fileName) {
       })
     }
 
-    
+    socket.emit('code change', {
+      code: data,
+      editor: editor[fileName].getValue(),
+      user: user,
+      enterline: enterline,
+      isEnter: isEnter,
+      isDelete: isDelete,
+      currentTab: fileName,
+      fileName : fileName
+    })    
   })
 }
 
