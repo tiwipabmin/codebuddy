@@ -41,10 +41,25 @@ block content
                                 p.header(id='badge2') #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>                
         .ui.divider
         br
+        //- file tab  
         .ui.form
-            textarea#demotext(name="", cols="30", rows="10").show
-
+            .ui.top.attached.tabular.file.menu(id='file-tabs')
+                each file, index in project.files
+                    if index == 0
+                        a.active.item(id=file data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
+                    else
+                        a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'                        
+            .ui.tab-content
+                each file,index in project.files
+                    if index == 0
+                        .ui.bottom.attached.active.tab.segment(id=file+'-tab' data-tab='main')
+                            textarea(id=file+'text').show
+                    else
+                        .ui.bottom.attached.tab.segment(id=file+'-tab' data-tab=file)
+                            textarea(id=file+'text').show
+    
         //- pass value by input hidden
+        input(type='hidden' id='projectFiles' value=project.files)
         input(type='hidden' id='code' value=code)
         input(type='hidden' id='histories' value=histories)
         input(type='hidden' id='creator' value=creator)
@@ -55,35 +70,11 @@ block content
     script(src='/xterm/xterm.js')
     script(src='/xterm/addons/fit/fit.js')
     script(src='/js/app/main.js')
+    script(src='/js/app/multiple-history.js')
 
     script(type='text/javascript').
-        var code = document.getElementById('code').value;
-        var histories = JSON.parse(document.getElementById('histories').value);
-        var creator = document.getElementById('creator').value;
-        
-        let editor = CodeMirror.fromTextArea(document.getElementById("demotext"), {
-            lineNumbers: true,
-            mode: {
-                singleLineStringErrors: false,
-                styleActiveLine: true,
-                lineNumbers: true,
-                lineWrapping: true,             
-            },
-            theme: 'material',
-            indentUnit: 4,
-            matchBrackets: true   
-            })
-        editor.setOption('readOnly', 'nocursor')
-        editor.setValue(code)
-        for(var i=0; i<histories.length; i++){
-            if(histories[i].user == creator){
-                editor.markText({line: parseInt(histories[i].line), ch: parseInt(histories[i].ch)}, 
-                {line: parseInt(histories[i].line), ch: parseInt(histories[i].ch)+1}, 
-                {className: "styled-background"});
-            } else {
-                editor.markText({line: parseInt(histories[i].line), ch: parseInt(histories[i].ch)}, 
-                {line: parseInt(histories[i].line), ch: parseInt(histories[i].ch)+1}, 
-                {className: "styled-background-2"});
-            }
-        }
+        $(document).ready(function(){
+            $('.file.menu .item').tab({history:false});
+        });
+       
         
