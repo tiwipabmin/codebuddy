@@ -19,6 +19,10 @@ const scoreSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Please fill in score']
   },
+  time: {
+    type: Number,
+    required: [true, 'Please fill in time']
+  },
   createdAt: { type: Date, default: Date.now }
 })
 

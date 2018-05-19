@@ -259,8 +259,23 @@ socket.on('show reviewer active time', (payload) => {
  * `beforeunload` event will fired and sending client disconnection to the server
  */
 $(window).on('beforeunload', () => {
+  // socket.emit('submit code', {
+  //   mode: "auto",
+  //   uid: uid,
+  //   code: getAllFileEditor()
+  // })
+  storeActiveTime()
   socket.disconnect()
 })
+
+$(window).bind('hashchange', function() {
+  // socket.emit('submit code', {
+  //   mode: "auto",
+  //   uid: uid,
+  //   code: getAllFileEditor()
+  // })
+  storeActiveTime()
+ });
 
 /**
  * Recieve new changes editor value from server and applied them to local editor
@@ -958,5 +973,15 @@ function newEditorFacade(fileName) {
     $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>');
   } else {
     $('#'+fileName+'-file-icon').replaceWith('<div id="'+fileName+'-file-icon"/>');
+  }
+}
+
+function storeActiveTime() {
+  const counts = $('#counts_min_sec').attr('data-count');
+  if(counts !== undefined) {
+    socket.emit('save active time',{
+      uid: uid,
+      time: counts
+    })
   }
 }
