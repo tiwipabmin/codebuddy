@@ -379,13 +379,8 @@ function pauseRunCode() {
  * Run code
  */
 function runCode() {
-  var codeEditors = {};
-  projectFiles.forEach(runCodeEachFile);
-  function runCodeEachFile(fileName) {
-    codeEditors[fileName] = editor[fileName].getValue();
-  }
   socket.emit('run code', {
-    code: codeEditors
+    code: getAllFileEditor()
   })
   term.writeln('Running pytest.py...')
 }
@@ -942,6 +937,15 @@ function setOnDoubleClickEditor(fileName) {
         break
     }
   })
+}
+
+function getAllFileEditor() {
+  var codeEditors = {};
+  projectFiles.forEach(runCodeEachFile);
+  function runCodeEachFile(fileName) {
+    codeEditors[fileName] = editor[fileName].getValue();
+  }
+  return codeEditors;
 }
 
 function newEditorFacade(fileName) {
