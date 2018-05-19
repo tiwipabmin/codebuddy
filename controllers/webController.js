@@ -1,10 +1,13 @@
 const mongoose = require('mongoose')
+const Redis = require('ioredis')
+var fs = require('fs')
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
 const Score = mongoose.model('Score')
 const User = mongoose.model('User')
 const Comment = mongoose.model('Comment')
+const History = mongoose.model('History')
 
 exports.getHomepage = (req, res) => {
   res.render('index')
@@ -72,6 +75,33 @@ exports.getPlayground = async (req, res) => {
   res.render('playground', { project, title: `${project.title} - Playground`, messages, partner_obj})
 }
 
+exports.getHistory = async (req, res) => {
+  const redis = new Redis()
+  var code = await redis.hget(`project:${req.query.pid}`, 'editor', (err, ret) => ret)
+
+  const project = await Project
+    .findOne({ pid: req.query.pid})
+  var creator = project.creator
+  var collaborator = project.collaborator
+  var curUser = req.query.curUser
+
+  if(curUser==creator){
+    var curUser_obj = await User
+    .findOne({ username: curUser})
+    var partner_obj = await User
+      .findOne({ username: collaborator})
+  }else{
+    var curUser_obj = await User
+    .findOne({ username: curUser})
+    var partner_obj = await User
+      .findOne({ username: creator})
+  }
+  
+  const histories = await History
+    .find({ pid: req.query.pid})
+  res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, title: 'History' })
+}
+
 exports.getAboutUs = (req, res) => {
   res.render('aboutus')
 }
@@ -109,6 +139,20 @@ exports.createProject = async (req, res) => {
       if (err) throw err
     })
     req.flash('success', `Successfully Created ${project.title} Project.`)
+    //create directory
+    var dir1 = './public/project_files';
+    var dir2 = './public/project_files/'+project.pid;
+    if (!fs.existsSync(dir1)){
+      fs.mkdirSync(dir1);
+    }
+    if (!fs.existsSync(dir2)){
+      fs.mkdirSync(dir2);
+    }
+    fs.open('./public/project_files/'+project.pid+'/main.py', 'w', function (err, file) {
+      if (err) throw err;
+      console.log('file '+project.pid+'.py is created');
+    })
+
   } else {
     req.flash('error', "Can't find @" + req.body.collaborator)
   }

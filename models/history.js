@@ -8,31 +8,26 @@ const shortid = require('shortid')
  * `History` model schema based on Mongoose schema
  */
 const historySchema = new mongoose.Schema({
-  from: {
-    line: {
-      type: Number,
-      required: 'Please enter a line',
-    },
-    ch: {
-      type: Number,
-      required: 'Please enter a character',
-    }
-  }, 
-  to: {
-    line: {
-      type: Number,
-      required: 'Please enter a line',
-    },
-    ch: {
-      type: Number,
-      required: 'Please enter a character',
-    }
-  },   
-  text: {
-    type: Array,
+  pid: {
+    type: String,
+    required: [true, 'Please enter a pid']
   },
-  removed: {
-    type: Array,
+  file: String,
+  line: {
+    type: Number,
+    required: [true, 'Please enter a line']
+  },
+  ch: {
+    type: Number,
+    required: [true, 'Please enter a character']
+  },
+  text: {
+    type: String,
+    required: [true, 'Please enter a text']
+  },
+  user:{
+    type: String,
+    required: [true, 'Please enter a username']
   },
   createdAt: { type: Date, default: Date.now }
 })

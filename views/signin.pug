@@ -8,16 +8,16 @@ html
     title Code Buddy - Sign In
     style(type='text/css').
       body {
-        background-color: #d0d0d0
+        background: #1B1C1D;
+        background-image: url("../images/desk-office-hero-workspace.jpg") !important;
+        color: rgba(255, 255, 255, 0.9);
       }
       body > .grid {
-      height: 100%;
+        height: 100%;
       }
-      .image {
-      margin-top: -100px;
-      }
-      .column {
-      max-width: 450px;
+      .logo {
+        text-align: center;
+        overflow: hidden;
       }
     script.
       $(document)
@@ -55,16 +55,18 @@ html
     style#extension_grayscale(type='text/css').
       html *, * { filter: initial !important; }
   body
-    .ui.middle.aligned.center.aligned.grid
-      .column
-        h2.ui.teal.image.header
-          //img.image(src='/images/logo.png')
-          .content Sign In Account
-        +signinForm()
-          .ui.error.message
-        .ui.message
-          | New to us? 
-          a(href='/register') Register
+    .ui.one.column.stackable.center.aligned.middle.aligned.page.grid
+      .column.seven.wide
+        .logo
+          img(src='../images/logo-white-s.png')
+        .ui.stacked.segment 
+          h2.ui.yellow.image.header
+            .content Sign In Account
+          +signinForm()
+            .ui.error.message
+          .ui.message
+            | New to us? 
+            a(href='/register') Register
     link(rel='stylesheet', type='text/css', href='/semantic/dist/semantic.min.css')
     script(src='/js/static/jquery.min.js')
     script(src='/semantic/dist/components/form.js')

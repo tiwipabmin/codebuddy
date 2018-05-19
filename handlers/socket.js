@@ -4,12 +4,15 @@ const Redis = require('ioredis')
 const mongoose = require('mongoose')
 const timer = require('timers')
 const moment = require('moment')
+const fs = require('fs');
+var archiver = require('archiver');
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
 const Score = mongoose.model('Score')
 const User = mongoose.model('User')
 const Comment = mongoose.model('Comment')
+const History = mongoose.model('History')
 
 /**
  * @param {Object} server server instance
@@ -43,8 +46,8 @@ module.exports = (server) => {
         saveComment(payload)
       } else {
         //edit comment in exist line => update in DB
-        for (var i=0; i<comments.length; i++) {
-          if (comments[i].line==payload.line){ 
+        for (var i in comments) {
+          if (comments[i].line==payload.line  && comments[i].file == payload.file){ 
             found = true
             index = i
           }
@@ -52,12 +55,14 @@ module.exports = (server) => {
         if (found) {
           if (payload.description=='') {
             Comment.findOne({
+              file: payload.file,
               pid:  projectId,
               line: payload.line
             }).remove().exec()
             comments.splice(index,1)
           } else {
             Comment.update({
+              file: payload.file,
               pid: projectId,
               line: payload.line
             }, {
@@ -67,7 +72,7 @@ module.exports = (server) => {
             }, (err) => {
               if (err) throw err
             })
-            updateDesc(payload.line, payload.description);
+            updateDesc(payload.file, payload.line, payload.description);
           }
         } else {
           saveComment(payload)
@@ -77,16 +82,28 @@ module.exports = (server) => {
     })
 
     client.on('delete review', (payload) => {
-      // Comment.findOne({
-      //   pid:  projectId,
-      //   line: payload.line
-      // }).remove().exec()
-      // comments.splice(index,1)
-      // io.in(projectId).emit('update review', comments)
+      Comment.findOne({
+        file: payload.file,
+        pid:  projectId,
+        line: payload.line
+      }).remove().exec()
+      //remove deleted comment from list
+      for(var i in comments){
+        if((comments[i].file == payload.file) && (comments[i].line==payload.line)){
+          comments.splice(i, 1)
+          break
+        }
+      }
+
+      io.in(projectId).emit('update after delete review', {
+        comments: comments,
+        file: payload.file,
+        deleteline: payload.line})
     })
 
     //move hilight when enter or delete
     client.on('move hilight', (payload) => {
+      var fileName = payload.fileName
       var enterline = payload.enterline
       var remove = payload.remove
       var oldline = payload.oldline
@@ -95,10 +112,11 @@ module.exports = (server) => {
       comments = payload.comments
 
       //check when enter new line
-      if(isEnter){
-        for(var i in comments){
-          if(comments[i].line > enterline){        
+      if(isEnter){       
+        for(var i in comments){    
+          if((comments[i].line > enterline) && (comments[i].file == fileName)){            
             Comment.update({
+              file: fileName,
               pid: projectId,
               description: comments[i].description
             }, {
@@ -115,8 +133,9 @@ module.exports = (server) => {
       //check when delete line
       if(isDelete){
         for(var i in comments){
-          if(comments[i].line > parseInt(enterline)-1){  
+          if((comments[i].line > parseInt(enterline)-1) && (comments[i].file == fileName)){  
             Comment.update({
+              file: fileName,
               pid: projectId,
               description: comments[i].description
             }, {
@@ -143,10 +162,17 @@ module.exports = (server) => {
         winston.info(`User ${payload.username} joined at pid: ${payload.pid}`)
         client.join(projectId)
 
-        comments = await Comment
-          .find({pid: payload.pid}, {line:1, description:1, _id:0})
+        var allcomment = await Comment
+          .find({pid: payload.pid}, {file:1, line:1, description:1, _id:0})
           .sort({ line: 1 })        
 
+        for(var i in allcomment){
+          comments.push({
+            file: allcomment[i].file,
+            line: allcomment[i].line, 
+            description: allcomment[i].description})            
+        }
+      
         Project.update({
           pid: projectId
         }, {
@@ -175,7 +201,7 @@ module.exports = (server) => {
           winston.info(projects[projectId].count)
           client.emit('role updated', projects[projectId])
         }
-
+        
         client.emit('init state', {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
@@ -184,9 +210,78 @@ module.exports = (server) => {
 
         client.emit('init reviews', comments)
 
+        //combine 2 files
+        
+        // file = 'pytest.py'
+        // appendFile = 'main.py'
+        // readAppend(file, appendFile)
+        
+        // appendFile = 'file2.py'
+        // readAppend(file, appendFile)
+
+
       } catch (error) {
         winston.info(`catching error: ${error}`)
       }
+    })
+
+    /**
+     * `create file` event fired when user click create new file
+     * @param {Ibject} payload fileName
+     */
+
+    client.on('create file', (payload) => {
+      //save file name to mongoDB
+      Project.update({
+        pid: projectId
+      }, {
+        $push: {
+          files: payload
+        }
+      }, (err) => {
+        if (err) throw err
+      })
+
+      //create new file  ./public/project_files/projectId/fileName.py
+      fs.open('./public/project_files/'+projectId+'/'+payload+'.py', 'w', function (err, file) {
+        if (err) throw err;
+        console.log('file '+payload+'.py is created');
+      })
+
+      io.in(projectId).emit('update tab', {fileName: payload, action: 'create'})
+    })
+
+    /**
+     * `delete file` event fired when user click delete file
+     * @param {Ibject} payload fileName
+     */
+
+    client.on('delete file', async (payload) => {
+      //delete file in mongoDB
+      Project.update({
+        pid: projectId
+      }, {
+        $pull: {
+          files: payload
+        }
+      }, (err) => {
+        if (err) throw err
+      })
+
+      //delete code in redis
+      var code = JSON.parse(await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret))
+      if(code != null){
+        delete code[payload]
+        redis.hset(`project:${projectId}`, 'editor', JSON.stringify(code))
+      }
+
+      // delete file
+      fs.unlink('./public/project_files/'+projectId+'/'+payload+'.py', function (err) {
+        if (err) throw err;
+        console.log(payload+'.py is deleted!');
+      });
+
+      io.in(projectId).emit('update tab', {fileName: payload, action: 'delete'})
     })
 
     /**
@@ -220,10 +315,168 @@ module.exports = (server) => {
       // origin mustn't be an `undefined` or `setValue` type
       if (origin) {
         // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
+        payload.code.fileName = payload.fileName;
         client.to(projectId).emit('editor update', payload.code)
         console.log(payload);
         console.log("code " + payload.code.text[0]);
-        redis.hset(`project:${projectId}`, 'editor', payload.editor)
+        editorName = payload.fileName;
+        redis.hgetall(`project:${projectId}`, function (err, obj) {
+          var editorJson = {};
+          if(obj.editor != undefined) {
+            var editorJson = JSON.parse(obj.editor);
+          }
+          editorJson[editorName] = payload.editor;
+          redis.hset(`project:${projectId}`, 'editor', JSON.stringify(editorJson))
+        });
+        // ------ history -----
+        var enterText = payload.code.text
+        var removeText = payload.code.removed
+        var action = payload.code.origin
+        var fromLine = payload.code.from.line
+        var fromCh = payload.code.from.ch
+        var toLine = payload.code.to.line
+        var toCh = payload.code.to.ch
+        var moreLine = false
+        var fileName = payload.fileName
+
+        console.log(removeText[0].length)
+
+        for(var i=0; i<removeText.length; i++){
+          if(removeText[i].length){
+            moreLine = true
+            break
+          }
+        }
+        //save input text to mongoDB
+        if(action=='+input'){
+          console.log('>>>>>>save input')
+          if(enterText.length==1){
+            //input ch            
+            if(removeText[0].length!=0){
+              //select some text and add input
+              if(removeText.length==1){        
+                //select text in 1 line
+                console.log('>>>>>>delete in 1 line more than 1 text') 
+                deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
+                updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh+1, toCh)
+                
+              }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
+                //select more than 1 line || delete line
+                deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
+              }
+              
+            }else{
+              //move right ch of cursor
+              History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+                if (err) return handleError(err);
+                var textInLine = res
+                console.log(res)
+                for(var i=0; i<textInLine.length; i++){
+                  console.log(textInLine[i])
+                  History.update({
+                    pid: projectId,
+                    file: fileName,
+                    line: textInLine[i].line,
+                    ch: textInLine[i].ch,
+                    text: textInLine[i].text
+                  }, {
+                    $set: {
+                      line: fromLine,
+                      ch: fromCh+i+1
+                    } 
+                  }, (err) => {
+                    if (err) throw err
+                  })
+                }
+              })
+            }
+            
+            //save ch to mongoDB
+            const historyModel = {
+              pid: projectId,
+              file: fileName,
+              line: fromLine,
+              ch: fromCh,
+              text: payload.code.text,
+              user: payload.user,
+              createdAt: Date.now()
+            }
+            new History(historyModel, (err) => {
+                if (err) throw err
+            }).save()   
+                  
+          } 
+          else if(enterText.length==2){
+            //enter new line
+            //first line -> move right ch of cursor to new line
+            if(removeText[0].length!=0){
+              //enter delete text
+              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)  
+            }
+
+            History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+              if (err) return handleError(err);
+              var textInLine = res
+              console.log(res)
+              for(var i=0; i<textInLine.length; i++){
+                History.update({
+                  pid: projectId,
+                  file: fileName,
+                  line: textInLine[i].line,
+                  ch: textInLine[i].ch,
+                  text: textInLine[i].text
+                }, {
+                  $set: {
+                    line: fromLine+1,
+                    ch: i
+                  } 
+                }, (err) => {
+                  if (err) throw err
+                })
+              }
+      
+            })
+
+            //not first line -> line+1
+            History.find({ pid: projectId , file: fileName, line: {$gt: fromLine}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+              if (err) return handleError(err);
+              var textInLine = res
+              console.log(res)
+              
+              for(var i=0; i<textInLine.length; i++){
+                History.update({
+                  pid: projectId,
+                  file: fileName,
+                  line: textInLine[i].line,
+                  ch: textInLine[i].ch,
+                  text: textInLine[i].text
+                }, {
+                  $set: {
+                    line: textInLine[i].line+1
+                  } 
+                }, (err) => {
+                  if (err) throw err
+                })
+              }
+            })
+          }
+            
+        
+        } else if(action=='+delete'){
+          //delete text from mongoDB        
+          if(removeText.length==1){        
+              //delete select text
+              console.log('>>>>>>delete in 1 line more than 1 text') 
+              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
+              updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh, toCh)
+
+          }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
+            //delete more than 1 line || delete line
+            deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
+          }
+        }
+
+        // ------ end history -----
       }
     })
 
@@ -240,14 +493,18 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('run code', (payload) => {
+      var code = payload.code;
       const fs = require('fs')
       const path = require('path')
-      fs.writeFile('pytest.py', payload.code, (err) => {
-        if (err) throw err
-      })
+      Object.keys(code).forEach(function(key) {
+        fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
+          if (err) throw err
+        })
+      });
+
       const nodepty = require('node-pty')
-      if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['pytest.py'], {})
-      else pty = nodepty.spawn('python', ['pytest.py'], {})
+      if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['./public/project_files/'+projectId+'/'+'main.py'], {})
+      else pty = nodepty.spawn('python', ['./public/project_files/'+projectId+'/'+'main.py'], {})
       pty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
@@ -293,9 +550,30 @@ module.exports = (server) => {
       })
     })
 
+    /**
+     * `send active tab` event fired when user change tab
+     * @param {Object} payload active tab
+     */
+    client.on('send active tab', (payload) => {
+      io.in(projectId).emit('show partner active tab', payload)
+    })
+
+    client.on('open tab', async (payload) => {
+      var fileName = payload
+      var code = await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
+      io.in(projectId).emit('set editor open tab', {fileName: fileName, editor: code})
+    })
 
     client.on('is typing', (payload) => {
       io.in(projectId).emit('is typing', payload)
+    })
+
+    /**
+     * `submit code` event fired reviewer active time every 1 sec 
+     * @param {Object} payload time from face detection on main.js
+     */
+    client.on('reviewer active time', (payload) => {
+      io.in(projectId).emit('show reviewer active time', payload);
     })
 
      /**
@@ -306,15 +584,22 @@ module.exports = (server) => {
       console.log(payload.mode)
       const mode = payload.mode
       const uid = payload.uid
+      const code = payload.code
+
       const fs = require('fs')
       const path = require('path')
-      fs.writeFile('pytest.py', payload.code, (err) => {
-        if (err) throw err
-      })
-      const nodepty = require('node-pty')
+      var args = ['-j', '4']
+      Object.keys(code).forEach(function(key) {
+        args.push('./public/project_files/'+projectId+'/'+key+'.py')
+        fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
+          if (err) throw err
+        })
+      });
+      const nodepty = require('node-pty');
       let pty;
-      if(process.platform === 'win32') pty = nodepty.spawn('pylint', ['pytest.py'], {})
-      else pty = nodepty.spawn('pylint', ['pytest.py'], {})
+      if(process.platform === 'win32') pty = nodepty.spawn('pylint', args, {})
+      pty = nodepty.spawn('pylint', args, {});
+
       pty.on('data', (data) => {
         //get score from pylint
         console.log('data', data)
@@ -493,13 +778,33 @@ module.exports = (server) => {
       }
     })
 
+    client.on('export file', (payload) => {
+      fileNameList = payload
+      var output = fs.createWriteStream('./public/project_files/'+projectId+'/'+projectId+'.zip');
+      var archive = archiver('zip', {
+          gzip: true,
+          zlib: { level: 9 } // Sets the compression level.
+      });
+      archive.on('error', function(err) {
+        throw err;
+      });
+      // pipe archive data to the output file
+      archive.pipe(output);
+      // append files
+      fileNameList.forEach(function(fileName) {  
+        archive.file('./public/project_files/'+projectId+'/'+fileName+'.py', {name: fileName+'.py'});
+      })
+      archive.finalize();
+      client.emit('download file', projectId )  
+     })
+
     function countdownTimer() {
         function intervalFunc() {
             redis.hgetall(`project:${projectId}`, function (err, obj) {
                 var start = new Date(parseInt(obj.startTime))
                 let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
                 let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
-                console.log(seconds + "secound")
+                // console.log(seconds + "secound")
                 flag = 0
                 if(seconds == 0 && flag != 1){
                   flag = 1
@@ -553,6 +858,7 @@ module.exports = (server) => {
 
     function saveComment(payload){
       const commentModel = {
+        file: payload.file,
         line: parseInt(payload.line),
         pid: projectId,
         description: payload.description,
@@ -561,22 +867,108 @@ module.exports = (server) => {
       new Comment(commentModel, (err) => {
           if (err) throw err
       }).save()
-      comments.push(payload)
+      comments.push({
+        file: payload.file,
+        line: parseInt(payload.line), 
+        description: payload.description})      
     }
 
-    function updateDesc(line, description){
+    function updateDesc(file, line, description){
       for (var i in comments) {
-        if (comments[i].line == line) {
+        if (comments[i].file == file && comments[i].line == line) {
            comments[i].description = description;
            break
         }
       }
     }
 
-    // function updateLine(line, description){
-    //   for(var i in comments) {
-    //     if(comments[i].)
-    //   }
-    // }
-  })
+    function readAppend(file, appendFile){
+      fs.readFile(appendFile, function(err, data){
+        if (err) throw err;
+        fs.appendFile(file, '\n', function(err){        
+        })
+        fs.appendFile(file, data, function(err){
+          console.log('combine!! ')
+        })
+      })
+    }
+    function deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh){
+      History.find({
+        pid:  projectId,
+        file: fileName,
+        line: fromLine,
+        ch: {$gte : fromCh,
+            $lt: toCh}
+      }).remove().exec()
+    }
+
+    function deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action){
+      var lineRange = toLine-fromLine
+      console.log('>>>>delete line' + lineRange)
+      for(var i=fromLine; i<=fromLine+lineRange; i++){
+        console.log('>---- '+ i)
+        //first line
+        if(i==fromLine){
+          console.log('   first line')
+            History.findOne({
+              pid: projectId,
+              file: fileName,
+              line: i,
+              ch: {$gte : fromCh}
+            }).remove().exec()            
+        }
+        //not last line
+        else if(i!=fromLine+lineRange){
+          console.log('   not first line')
+          History.find({
+            pid:  projectId,
+            file: fileName,
+            line: i
+          }).remove().exec()
+        }
+        //last line
+        else {
+          console.log('   last line')
+            History.find({
+              pid:  projectId,
+              file: fileName,
+              line: i,
+              ch: {$lt :toCh}
+            }).remove().exec()
+
+            if(action=='+input'){
+              updateTextAfter(projectId, fileName, i, fromLine, fromCh+1, toCh)
+            }else{
+              updateTextAfter(projectId, fileName, i, fromLine, fromCh, toCh)
+            }
+           
+        }
+      }
+    }
+
+    function updateTextAfter(projectId, fileName, line, fromLine, fromCh, toCh){
+      History.find({ pid: projectId , file: fileName, line: line, ch: {$gte :toCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
+        if (err) return handleError(err);
+        var textInLine = res
+        console.log(res)
+        for(var i=0; i<textInLine.length; i++){
+          console.log(textInLine[i])
+          History.update({
+            pid: projectId,
+            file: fileName,
+            line: textInLine[i].line,
+            ch: textInLine[i].ch,
+            text: textInLine[i].text
+          }, {
+            $set: {
+              line: fromLine,
+              ch: fromCh+i
+            } 
+          }, (err) => {
+            if (err) throw err
+          })
+        }
+      })
+     }
+    })
 }

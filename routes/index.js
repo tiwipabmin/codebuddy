@@ -15,6 +15,7 @@ router.use('/aboutus', require('./aboutus'))
 router.use('/feature', require('./feature'))
 router.use('/profile', require('./profile'))
 router.use('/notifications', require('./notifications'))
+router.use('/history', require('./history'))
 router.use('/api', require('./api'))
 
 router.get('/editprofile', (req, res) => {

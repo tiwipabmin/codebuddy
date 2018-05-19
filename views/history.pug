@@ -1,0 +1,80 @@
+extends layout/layout.pug
+
+block script
+  link(rel='stylesheet' href='/css/main.css')
+  link(rel='stylesheet' href='/xterm/xterm.css')
+  link(rel='stylesheet' href='/codemirror/lib/codemirror.css')
+  link(rel='stylesheet' href='/codemirror/addon/selection/active-line.js')
+  link(rel='stylesheet' href='/codemirror/theme/blackboard.css')
+  link(rel='stylesheet' href='/codemirror/theme/seti.css')
+  link(rel='stylesheet' href='/codemirror/theme/material.css')
+
+block content
+    .ui.container.segment
+        .ui.grid
+            .sixteen.wide.column(style='padding-bottom: 0rem;')
+                center
+                    h1.ui.header(style='padding-top:5px;')= project.title
+            .eight.wide.column.padding-left-20.padding-right-20
+                div.ui.relaxed.items
+                    div.item
+                        div
+                            a.ui.tiny.image.circular
+                                img(src=curUser_obj.img)
+                            p.user-role-label.text-center
+                        div.content
+                            if creator == curUser_obj.username
+                                p.header(id='badge1' style='font-color:') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
+                            else
+                                p.header(id='badge2') #{curUser_obj.info.firstname}   #{curUser_obj.info.lastname} <b> (@#{curUser_obj.username}) </b>
+            .eight.wide.column.padding-left-20.padding-right-20
+                div.ui.relaxed.items
+                    div.item
+                        div
+                            a.ui.tiny.image.circular
+                                img(src=partner_obj.img)
+                            p.user-role-label.text-center
+                        div.content
+                            if creator == partner_obj.username
+                                p.header(id='badge1') #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>
+                            else
+                                p.header(id='badge2') #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>                
+        .ui.divider
+        br
+        //- file tab  
+        .ui.form
+            .ui.top.attached.tabular.file.menu(id='file-tabs')
+                each file, index in project.files
+                    if index == 0
+                        a.active.item(id=file data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
+                    else
+                        a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'                        
+            .ui.tab-content
+                each file,index in project.files
+                    if index == 0
+                        .ui.bottom.attached.active.tab.segment(id=file+'-tab' data-tab='main')
+                            textarea(id=file+'text').show
+                    else
+                        .ui.bottom.attached.tab.segment(id=file+'-tab' data-tab=file)
+                            textarea(id=file+'text').show
+    
+        //- pass value by input hidden
+        input(type='hidden' id='projectFiles' value=project.files)
+        input(type='hidden' id='code' value=code)
+        input(type='hidden' id='histories' value=histories)
+        input(type='hidden' id='creator' value=creator)
+
+    script(src='/codemirror/lib/codemirror.js')
+    script(src='/codemirror/mode/python/python.js')
+    script(src='/js/static/socket.io.min.js')
+    script(src='/xterm/xterm.js')
+    script(src='/xterm/addons/fit/fit.js')
+    script(src='/js/app/main.js')
+    script(src='/js/app/multiple-history.js')
+
+    script(type='text/javascript').
+        $(document).ready(function(){
+            $('.file.menu .item').tab({history:false});
+        });
+       
+        
