@@ -103,10 +103,10 @@ window.onload = function() {
     });  
   }  
 
-  var gui = new dat.GUI();
-  gui.add(tracker, 'edgesDensity', 0.1, 0.5).step(0.01);
-  gui.add(tracker, 'initialScale', 1.0, 10.0).step(0.1);
-  gui.add(tracker, 'stepSize', 1, 5).step(0.1);
+  // var gui = new dat.GUI();
+  // gui.add(tracker, 'edgesDensity', 0.1, 0.5).step(0.01);
+  // gui.add(tracker, 'initialScale', 1.0, 10.0).step(0.1);
+  // gui.add(tracker, 'stepSize', 1, 5).step(0.1);
 };
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }
