@@ -259,21 +259,21 @@ socket.on('show reviewer active time', (payload) => {
  * `beforeunload` event will fired and sending client disconnection to the server
  */
 $(window).on('beforeunload', () => {
-  // socket.emit('submit code', {
-  //   mode: "auto",
-  //   uid: uid,
-  //   code: getAllFileEditor()
-  // })
+  socket.emit('submit code', {
+    mode: "auto",
+    uid: uid,
+    code: getAllFileEditor()
+  })
   storeActiveTime()
   socket.disconnect()
 })
 
 $(window).bind('hashchange', function() {
-  // socket.emit('submit code', {
-  //   mode: "auto",
-  //   uid: uid,
-  //   code: getAllFileEditor()
-  // })
+  socket.emit('submit code', {
+    mode: "auto",
+    uid: uid,
+    code: getAllFileEditor()
+  })
   storeActiveTime()
  });
 
