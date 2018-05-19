@@ -584,15 +584,26 @@ module.exports = (server) => {
       console.log(payload.mode)
       const mode = payload.mode
       const uid = payload.uid
+      const code = payload.code
+
       const fs = require('fs')
       const path = require('path')
-      fs.writeFile('pytest.py', payload.code, (err) => {
-        if (err) throw err
-      })
+      console.log('code')
+      console.log(code)
+      Object.keys(code).forEach(function(key) {
+        console.log(key)
+        fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
+          if (err) throw err
+        })
+      });
       const nodepty = require('node-pty')
       let pty;
-      if(process.platform === 'win32') pty = nodepty.spawn('pylint', ['pytest.py'], {})
-      else pty = nodepty.spawn('pylint', ['pytest.py'], {})
+      //find ./public/project_files/ByBNHGnCM -name "*.py"
+      // if(process.platform === 'win32') pty = nodepty.spawn('pylint', ['pytest.py'], {}) 
+      // else pty = nodepty.spawn('pylint', ['pytest.py'], {}) 
+      // if(process.platform === 'win32') pty = nodepty.spawn('find ./public/project_files/ByBNHGnCM -name "*.py"', ['./public/project_files/ByBNHGnCM'], {})
+      // else 
+      pty = nodepty.spawn('find', ['./public/project_files/'+projectId, '-name', "*.py"], {});
       pty.on('data', (data) => {
         //get score from pylint
         console.log('data', data)
