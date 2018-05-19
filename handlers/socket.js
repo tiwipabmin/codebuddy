@@ -588,85 +588,17 @@ module.exports = (server) => {
 
       const fs = require('fs')
       const path = require('path')
-      console.log('code')
-      console.log(code)
       var args = ['-j', '4']
       Object.keys(code).forEach(function(key) {
-        console.log(key)
         args.push('./public/project_files/'+projectId+'/'+key+'.py')
         fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
           if (err) throw err
         })
       });
-      // const nodepty = require('child_process');
       const nodepty = require('node-pty');
-      // let pty;
-      //find ./public/project_files/ByBNHGnCM -name "*.py"
-      if(process.platform === 'win32') pty = nodepty.spawn('pylint', ['pytest.py'], {}) 
-      // else pty = nodepty.spawn('pylint', ['pytest.py'], {}) 
-      if(process.platform === 'win32') pty = nodepty.spawn('find', args, {})
-      // else 
-      // pty = nodepty.spawn('find', ['./public/project_files/'+projectId, '-name', "*.py", '-exec', 'pylint', '{}','\;'], {});
-      // pty = nodepty.spawn('find', ['./public/project_files/'+projectId, '-name', "*.py"], {});
+      let pty;
+      if(process.platform === 'win32') pty = nodepty.spawn('pylint', args, {})
       pty = nodepty.spawn('pylint', args, {});
-      // pty = nodepty.spawn('xargs', ['pylint'], {});
-      // const pty = require('child_process').exec;
-      // pty = nodepty('find ./public/project_files/ByBNHGnCM -name "*.py" | xargs pylint', (e, stdout, stderr)=> {
-      //   if (e instanceof Error) {
-      //       console.error(e);
-      //       throw e;
-      //   }
-      //   console.log('stdout ', stdout);
-      //   console.log('stderr ', stderr);
-      // });
-      // const { exec } = require('child_process');
-      // exec('find ./public/project_files/ByBNHGnCM -name "*.py" -exec pylint {} \;', (error, stdout, stderr) => {
-      //   if (error) {
-      //     console.error(`exec error: ${error}`);
-      //     return;
-      //   }
-
-      //   console.log(`stdout: ${stdout}`);
-      //   console.log(`stderr: ${stderr}`);
-      // });
-      // const { spawn } = require('child_process');
-
-      // const find = spawn('find', ['./public/project_files/ByBNHGnCM',  '-name',  '"*.py"'], {});
-      // // const wc = spawn('xargs', ['pylint']);
-
-      // // find.stdout.pipe(wc.stdin);
-
-      // find.stdout.on('data', (data) => {
-      //   console.log(`Number of files ${data}`);
-      // });
-
-      // wc.stdout.on('data', (data) => {
-      //   console.log(`Number of files ${data}`);
-      // });
-      // const { spawn } = require('child_process');
-      // const find = spawn('find', ['./public/project_files/ByBNHGnCM',  '-name',  '"*.py"']);
-      // const xargs = spawn('xargs', ['pylint']);
-      // find.stdout.pipe(xargs.stdin)
-      // find.stdout.on('data', (data) => {
-      //   console.log("----------------------")
-      // });
-
-      // xargs.stdout.on('data', (data) => {
-      //   console.log("----------------------")
-      // });
-      // const { exec } = require('child_process');
-
-      // exec('find ./public/project_files/ByBNHGnCM -name "*.py" | xargs node -e "console.log(\'aaa\')"', (err, stdout, stderr) => {
-      // exec('find ./public/project_files/ByBNHGnCM -name "*.py" -print0 | xargs -0 -I{} pylint {}', (err, stdout, stderr) => {
-        // exec('find ./public/project_files/ByBNHGnCM -name "*.py" -print0 | pylint ./public/project_files/ByBNHGnCM/main.py', (err, stdout, stderr) => {
-      // exec('pylint ./public/project_files/ByBNHGnCM/main.py', (err, stdout, stderr) => {
-      //   if (err) {
-      //     console.error(`exec error: ${err}`);
-      //     return;
-      //   }
-      //   console.log(`err ${stderr}`);
-      //   console.log(`Number of files ${stdout}`);
-      // });
 
       pty.on('data', (data) => {
         //get score from pylint
