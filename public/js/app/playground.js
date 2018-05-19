@@ -392,7 +392,7 @@ function submitCode() {
   socket.emit('submit code', {
     mode: 'button submit',
     uid: uid,
-    code: editor.getValue()
+    code: getAllFileEditor()
   })
   term.writeln('Scoring pytest.py...')
 }
@@ -461,7 +461,7 @@ socket.on('auto update score', (payload) => {
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
-    code: editor[currentTab].getValue()
+    code: getAllFileEditor()
   })
   
 })
