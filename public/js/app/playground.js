@@ -846,7 +846,10 @@ function onClickExport(){
         filenameList.push($(this).val())
     }
   })
-  socket.emit('export file', filenameList)
+  socket.emit('export file', {
+    fileNameList: filenameList, 
+    code: getAllFileEditor()
+  })
   // exportSingleFile(fileName, text)
 }
 
