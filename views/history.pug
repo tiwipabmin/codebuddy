@@ -11,10 +11,15 @@ block script
 
 block content
     .ui.container.segment
+        .back(style='margin-top:3px; margin-left:3px;')
+            a.back(href='/project?pid='+project.pid+'&user_role=creator')
+                i.arrow.left.icon(style='float:left; color:black;')
+                p(style='color:black;') Back to project
+        br
         .ui.grid
-            .sixteen.wide.column(style='padding-bottom: 0rem;')
+            .sixteen.wide.column(style='padding-bottom: 0rem; padding-top:0px; important!')
                 center
-                    h1.ui.header(style='padding-top:5px;')= project.title
+                    h1.ui.header(style='padding-top:3px;')= project.title
             .eight.wide.column.padding-left-20.padding-right-20
                 div.ui.relaxed.items
                     div.item
