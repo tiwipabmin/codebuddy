@@ -33,6 +33,7 @@ module.exports = (server) => {
     let review = []
     var comments = []
     var index = null
+    let runpty;
 
     winston.info('Client connected')
 
@@ -502,14 +503,13 @@ module.exports = (server) => {
       });
 
       const nodepty = require('node-pty')
-      let runpty;
-      if(process.platform === 'win32') pty = nodepty.spawn('python.exe', ['./public/project_files/'+projectId+'/'+'main.py'], {})
+      if(process.platform === 'win32') runpty = nodepty.spawn('python.exe', ['./public/project_files/'+projectId+'/'+'main.py'], {})
       else runpty = nodepty.spawn('python', ['./public/project_files/'+projectId+'/'+'main.py'], {})
       runpty.on('data', (data) => {
         io.in(projectId).emit('term update', data)
       })
 
-      setTimeout(runpty.kill.bind(runpty), 5000);
+      setTimeout(runpty.kill.bind(runpty), 3000);
     })
 
     /**
@@ -517,7 +517,10 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('pause run code', (payload) => {
-      setTimeout(runpty.kill.bind(runpty), 0);
+      console.log('run pty', runpty != undefined)
+      if(runpty != undefined) {
+        setTimeout(runpty.kill.bind(runpty), 0);
+      }
       io.in(projectId).emit('pause run code')
     })
 
