@@ -272,4 +272,40 @@ exports.declineInvite = async (req, res) => {
     })
 }
 
+exports.getProgress = async (req, res) => {
+  const uid = req.query.uid
+  let data = {};
+  let scoreGraph = [];
+  let timeGraph = [];
+
+  const user = await User.findOne( { 
+    _id: uid
+  })
+
+  const scores = await Score.find({
+    uid: uid
+  })
+
+  for(var i=0; i<scores.length; i++){
+    let dotScore = {};
+    let dotTime = {};
+    project = await Project.findOne({
+      pid: scores[i].pid
+    })
+    dotScore['label'] = project.title;
+    dotScore['y'] = scores[i].score;
+    scoreGraph.push(dotScore);
+
+    dotTime['label'] = project.title;
+    dotTime['y'] = scores[i].time/60;
+    timeGraph.push(dotTime)
+  }
+  data['user-score'] = user.avgScore;
+  data['user-time'] = user.totalTime/60;
+  data['scoreGraph'] = scoreGraph;
+  data['timeGraph'] = timeGraph;
+  console.log(data)
+  res.send(data)
+}
+
 
