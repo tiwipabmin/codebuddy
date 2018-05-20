@@ -576,6 +576,48 @@ module.exports = (server) => {
       io.in(projectId).emit('show reviewer active time', payload);
     })
 
+    /**
+     * `submit code` event fired reviewer active time every 1 sec 
+     * @param {Object} payload time from face detection on main.js
+     */
+    client.on('save active time', (payload) => {
+      console.log(payload)
+      console.log(projectId)
+
+      const score = Score.where({ pid: projectId, uid: payload.uid}).findOne(function(err, score){
+        if(err);
+        if(score){
+          Score.update({
+            pid: projectId,
+            uid: payload.uid
+          }, { 
+            $set: { 
+              time: parseInt(score.time) + parseInt(payload.time)
+            }
+          }, (err) => {
+                if (err) throw err
+          })
+        }
+      })
+
+      const user = User.where({ _id: payload.uid}).findOne(function(err, user){
+        if(err);
+        if(user){
+          User.update({
+            _id: payload.uid
+          }, { 
+            $set: { 
+              totalTime: parseInt(user.totalTime) + parseInt(payload.time)
+            }
+          }, (err) => {
+                if (err) throw err
+          })
+        }
+      })
+
+      console.log('time', payload.time);
+    })
+
      /**
      * `submit code` event fired when user click on submit button from front-end
      * @param {Object} payload code from editor
@@ -623,6 +665,7 @@ module.exports = (server) => {
                   pid: projectId,
                   uid: element,
                   score: score,
+                  time: 0,
                   createdAt: Date.now()
                 }
                 const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
