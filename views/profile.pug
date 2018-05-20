@@ -4,9 +4,16 @@ block script
     script(src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js")
     script(src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js")
     script(src='/js/app/profile.js')
+    link(rel='stylesheet' href='/css/main.css')
 block content
     .ui.grid.container
       .sixteen.wide.column
         input(type='hidden' id='userId' value=user._id)
-        div(id="scoreChartContainer" style="height: 500px; width: 100%;")
-        div(id="timeChartContainer" style="height: 500px; width: 100%;")
+        center
+          div.progress-text
+        a.ui.red.ribbon.label(id="score-label" style="font-size: 16px;") Your Average Score is
+        div(id="scoreChartContainer" style="height: 500px; width: 100%; margin-top: 30px;")
+        center
+          div.progress-text
+        a.ui.red.ribbon.label(id="time-label" style="font-size: 16px;") Your Total Active Time is
+        div(id="timeChartContainer" style="height: 500px; width: 100%; margin-top: 30px;")
