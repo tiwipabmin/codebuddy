@@ -121,7 +121,7 @@ exports.getNotifications = async (req, res) => {
   const projects = await Project
     .find({ $or: [{ creator: req.user.username }, { collaborator: req.user.username }] })
     .sort({ createdAt: -1 })
-  res.render('notifications', { projects })
+  res.render('notifications', { projects , title: 'Notifications'})
 }
 
 exports.createProject = async (req, res) => {
