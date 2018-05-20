@@ -829,7 +829,17 @@ module.exports = (server) => {
     })
 
     client.on('export file', (payload) => {
-      fileNameList = payload
+      var fileNameList = payload.fileNameList
+      console.log(payload)
+      var code = payload.code
+
+      for(var i in fileNameList){
+        fs.writeFile('./public/project_files/'+projectId+'/'+fileNameList[i]+'.py', code[fileNameList[i]], (err) => {
+          if (err) throw er
+        })
+      }
+ 
+
       var output = fs.createWriteStream('./public/project_files/'+projectId+'/'+projectId+'.zip');
       var archive = archiver('zip', {
           gzip: true,
