@@ -297,7 +297,7 @@ exports.getProgress = async (req, res) => {
 
     //calculate progress
     let acc = 0;
-    for(var j=0; j<i; j++){
+    for(var j=0; j<i+1; j++){
       acc = acc + scores[j].score;
     }
     dotProgress['x'] = i+1;
