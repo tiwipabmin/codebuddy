@@ -223,14 +223,22 @@ socket.on('countdown', (payload) => {
 })
 
 socket.on('role updated', (payload) => {
-  if (user === payload.roles.reviewer) {
+  if (user === payload.projectRoles.roles.reviewer) {
     roles.user = 'reviewer'
     roles.partner = 'coder'
     projectFiles.forEach(setOptionFileNoCursor)
-  } else {
+  } else if(user === payload.projectRoles.roles.coder) {
     roles.user = 'coder'
     roles.partner = 'reviewer'
     projectFiles.forEach(setOptionFileShowCursor)
+  }else{
+    if(user === payload.project.creator) {
+      roles.user = 'coder'
+      roles.partner = 'reviewer'
+    } else {
+      roles.user = 'reviewer'
+      roles.partner = 'coder'
+    }
   }
   
   function setOptionFileNoCursor(fileName) {

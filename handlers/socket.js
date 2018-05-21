@@ -197,9 +197,12 @@ module.exports = (server) => {
           winston.info(projects[projectId].count)
           client.emit('role selection')
         } else {
-          projects[projectId].count += 1
-          winston.info(projects[projectId].count)
-          client.emit('role updated', projects[projectId])
+          Project.findOne({ pid: projectId}, function (err, res) {
+            if (err) return handleError(err);
+            projects[projectId].count += 1
+            winston.info(projects[projectId].count)
+            client.emit('role updated', { projectRoles: projects[projectId], project: res})
+          })
         }
         
         client.emit('init state', {
@@ -291,7 +294,7 @@ module.exports = (server) => {
      */
 
     client.on('role selected', (payload) => {
-        countdownTimer()
+      countdownTimer()
       if (payload.select === 0) {
         projects[projectId].roles.reviewer = curUser
         projects[projectId].roles.coder = payload.partner
@@ -299,7 +302,11 @@ module.exports = (server) => {
         projects[projectId].roles.reviewer = payload.partner
         projects[projectId].roles.coder = curUser
       }
-      io.in(projectId).emit('role updated', projects[projectId])
+      console.log(projects[projectId])
+      Project.findOne({ pid: projectId}, function (err, res) {
+        if (err) return handleError(err);
+        io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
+      })
     })
 
     client.on('switch role', () => {
@@ -915,7 +922,10 @@ module.exports = (server) => {
           const temp = projects[projectId].roles.coder
           projects[projectId].roles.coder = projects[projectId].roles.reviewer
           projects[projectId].roles.reviewer = temp
-          io.in(projectId).emit('role updated', projects[projectId])
+          Project.findOne({ pid: projectId}, function (err, res) {
+            if (err) return handleError(err);
+            io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
+          })
         }
     }
 
