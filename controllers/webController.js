@@ -277,6 +277,7 @@ exports.getProgress = async (req, res) => {
   let data = {};
   let scoreGraph = [];
   let timeGraph = [];
+  let progressGraph = [];
 
   const user = await User.findOne( { 
     _id: uid
@@ -289,19 +290,31 @@ exports.getProgress = async (req, res) => {
   for(var i=0; i<scores.length; i++){
     let dotScore = {};
     let dotTime = {};
+    let dotProgress = {};
     project = await Project.findOne({
       pid: scores[i].pid
     })
+
+    //calculate progress
+    let acc = 0;
+    for(var j=0; j<i; j++){
+      acc = acc + scores[j].score;
+    }
+    dotProgress['x'] = i+1;
+    dotProgress['y'] = parseFloat(acc/(i+1));
+    progressGraph.push(dotProgress);
+
     dotScore['label'] = project.title;
     dotScore['y'] = scores[i].score;
     scoreGraph.push(dotScore);
 
     dotTime['label'] = project.title;
-    dotTime['y'] = scores[i].time/60;
+    dotTime['y'] = parseFloat(scores[i].time/60);
     timeGraph.push(dotTime)
   }
   data['user-score'] = user.avgScore;
-  data['user-time'] = user.totalTime/60;
+  data['user-time'] = parseFloat(user.totalTime/60);
+  data['progressGraph'] = progressGraph;
   data['scoreGraph'] = scoreGraph;
   data['timeGraph'] = timeGraph;
   console.log(data)

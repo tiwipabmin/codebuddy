@@ -647,7 +647,6 @@ module.exports = (server) => {
 
       pty.on('data', (data) => {
         //get score from pylint
-        if(data != '') {
           console.log('data', data)
           const before_score = data.indexOf("Your code has been rated at");
           let score = 0;
@@ -809,7 +808,6 @@ module.exports = (server) => {
           });
           console.log("score"+score)
           io.in(projectId).emit('term update', data)
-        }
       })
     })
 
