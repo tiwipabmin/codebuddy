@@ -11,15 +11,20 @@ window.onload = function() {
             },
             axisX: {
                 title: "Project name",
+                titleFontSize: 18,
                 labelAngle: -30,
-                interval: 1
+                interval: 1,
+                labelFontSize: 16,
             },
             axisY: {
                 title: "Score(100 points)",
+                titleFontSize: 18,
                 valueFormatString: "",
+                minimum: 0,
+                maximum: 100,
             },
             data: [{
-                type: "spline",
+                type: "column",
                 markerSize: 5,
                 yValueFormatString: "# points",
                 dataPoints: data.scoreGraph
@@ -35,17 +40,20 @@ window.onload = function() {
             },
             axisX: {
                 title: "Project name",
+                titleFontSize: 18,
                 labelAngle: -30,
-                interval: 1
+                interval: 1,
+                labelFontSize: 16,
             },
             axisY: {
                 title: "Time(minites)",
+                titleFontSize: 18,
                 valueFormatString: "",
             },
             data: [{
                 type: "column",
                 markerSize: 5,
-                yValueFormatString: "# minutes",
+                yValueFormatString: "#.## minutes",
                 dataPoints: data.timeGraph
             }]
         };

@@ -297,11 +297,11 @@ exports.getProgress = async (req, res) => {
     scoreGraph.push(dotScore);
 
     dotTime['label'] = project.title;
-    dotTime['y'] = scores[i].time/60;
+    dotTime['y'] = parseFloat(scores[i].time/60);
     timeGraph.push(dotTime)
   }
   data['user-score'] = user.avgScore;
-  data['user-time'] = user.totalTime/60;
+  data['user-time'] = parseFloat(user.totalTime/60);
   data['scoreGraph'] = scoreGraph;
   data['timeGraph'] = timeGraph;
   console.log(data)
