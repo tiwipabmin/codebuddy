@@ -34,6 +34,17 @@ module.exports = (server) => {
     var comments = []
     var index = null
     let runpty;
+    var cp = require('child_process');
+    if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
+    else runpty = cp.spawn('python', ['-i'], {})
+    runpty.stdout.on('data', (data) => {
+      console.log(data)
+      io.in(projectId).emit('term update', data.toString())
+    })
+    runpty.stderr.on('data', (data) => {
+      console.log(data)
+      io.in(projectId).emit('term update', data.toString())
+    })
 
     winston.info('Client connected')
 
@@ -509,14 +520,13 @@ module.exports = (server) => {
         })
       });
 
-      const nodepty = require('node-pty')
-      if(process.platform === 'win32') runpty = nodepty.spawn('python.exe', ['./public/project_files/'+projectId+'/'+'main.py'], {})
-      else runpty = nodepty.spawn('python', ['./public/project_files/'+projectId+'/'+'main.py'], {})
-      runpty.on('data', (data) => {
-        io.in(projectId).emit('term update', data)
-      })
+      fs.readFile('./public/project_files/'+projectId+'/'+'main.py', 'utf8', (err, data)=>{
+        if (err) throw err;
+        runpty.stdin.write(data);
+        runpty.stdin.write('\n');
+      });
 
-      setTimeout(runpty.kill.bind(runpty), 3000);
+      // setTimeout(runpty.kill.bind(runpty), 3000);
     })
 
     /**
