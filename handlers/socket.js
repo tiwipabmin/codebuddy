@@ -39,15 +39,15 @@ module.exports = (server) => {
 
     //set review to mongoDB
     client.on('submit review', (payload) => {
-      var found = false     
-      
+      var found = false
+
       //if there's no comment in array => add to DB and array
       if (comments.length==0) {
         saveComment(payload)
       } else {
         //edit comment in exist line => update in DB
         for (var i in comments) {
-          if (comments[i].line==payload.line  && comments[i].file == payload.file){ 
+          if (comments[i].line==payload.line  && comments[i].file == payload.file){
             found = true
             index = i
           }
@@ -68,7 +68,7 @@ module.exports = (server) => {
             }, {
               $set: {
                 description: payload.description
-              } 
+              }
             }, (err) => {
               if (err) throw err
             })
@@ -76,7 +76,7 @@ module.exports = (server) => {
           }
         } else {
           saveComment(payload)
-        } 
+        }
       }
       io.in(projectId).emit('new review', comments)
     })
@@ -112,9 +112,9 @@ module.exports = (server) => {
       comments = payload.comments
 
       //check when enter new line
-      if(isEnter){       
-        for(var i in comments){    
-          if((comments[i].line > enterline) && (comments[i].file == fileName)){            
+      if(isEnter){
+        for(var i in comments){
+          if((comments[i].line > enterline) && (comments[i].file == fileName)){
             Comment.update({
               file: fileName,
               pid: projectId,
@@ -122,18 +122,18 @@ module.exports = (server) => {
             }, {
               $set: {
                 line: comments[i].line
-              } 
+              }
             }, (err) => {
               if (err) throw err
             })
           }
-        }        
+        }
       }
 
       //check when delete line
       if(isDelete){
         for(var i in comments){
-          if((comments[i].line > parseInt(enterline)-1) && (comments[i].file == fileName)){  
+          if((comments[i].line > parseInt(enterline)-1) && (comments[i].file == fileName)){
             Comment.update({
               file: fileName,
               pid: projectId,
@@ -141,7 +141,7 @@ module.exports = (server) => {
             }, {
               $set: {
                 line: comments[i].line
-              } 
+              }
             }, (err) => {
               if (err) throw err
             })
@@ -164,15 +164,15 @@ module.exports = (server) => {
 
         var allcomment = await Comment
           .find({pid: payload.pid}, {file:1, line:1, description:1, _id:0})
-          .sort({ line: 1 })        
+          .sort({ line: 1 })
 
         for(var i in allcomment){
           comments.push({
             file: allcomment[i].file,
-            line: allcomment[i].line, 
-            description: allcomment[i].description})            
+            line: allcomment[i].line,
+            description: allcomment[i].description})
         }
-      
+
         Project.update({
           pid: projectId
         }, {
@@ -204,7 +204,7 @@ module.exports = (server) => {
             client.emit('role updated', { projectRoles: projects[projectId], project: res})
           })
         }
-        
+
         client.emit('init state', {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
@@ -214,11 +214,11 @@ module.exports = (server) => {
         client.emit('init reviews', comments)
 
         //combine 2 files
-        
+
         // file = 'pytest.py'
         // appendFile = 'main.py'
         // readAppend(file, appendFile)
-        
+
         // appendFile = 'file2.py'
         // readAppend(file, appendFile)
 
@@ -358,20 +358,20 @@ module.exports = (server) => {
         if(action=='+input'){
           console.log('>>>>>>save input')
           if(enterText.length==1){
-            //input ch            
+            //input ch
             if(removeText[0].length!=0){
               //select some text and add input
-              if(removeText.length==1){        
+              if(removeText.length==1){
                 //select text in 1 line
-                console.log('>>>>>>delete in 1 line more than 1 text') 
+                console.log('>>>>>>delete in 1 line more than 1 text')
                 deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
                 updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh+1, toCh)
-                
-              }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
+
+              }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){
                 //select more than 1 line || delete line
                 deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
               }
-              
+
             }else{
               //move right ch of cursor
               History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
@@ -390,14 +390,14 @@ module.exports = (server) => {
                     $set: {
                       line: fromLine,
                       ch: fromCh+i+1
-                    } 
+                    }
                   }, (err) => {
                     if (err) throw err
                   })
                 }
               })
             }
-            
+
             //save ch to mongoDB
             const historyModel = {
               pid: projectId,
@@ -410,15 +410,15 @@ module.exports = (server) => {
             }
             new History(historyModel, (err) => {
                 if (err) throw err
-            }).save()   
-                  
-          } 
+            }).save()
+
+          }
           else if(enterText.length==2){
             //enter new line
             //first line -> move right ch of cursor to new line
             if(removeText[0].length!=0){
               //enter delete text
-              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)  
+              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
             }
 
             History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
@@ -436,12 +436,12 @@ module.exports = (server) => {
                   $set: {
                     line: fromLine+1,
                     ch: i
-                  } 
+                  }
                 }, (err) => {
                   if (err) throw err
                 })
               }
-      
+
             })
 
             //not first line -> line+1
@@ -449,7 +449,7 @@ module.exports = (server) => {
               if (err) return handleError(err);
               var textInLine = res
               console.log(res)
-              
+
               for(var i=0; i<textInLine.length; i++){
                 History.update({
                   pid: projectId,
@@ -460,24 +460,24 @@ module.exports = (server) => {
                 }, {
                   $set: {
                     line: textInLine[i].line+1
-                  } 
+                  }
                 }, (err) => {
                   if (err) throw err
                 })
               }
             })
           }
-            
-        
+
+
         } else if(action=='+delete'){
-          //delete text from mongoDB        
-          if(removeText.length==1){        
+          //delete text from mongoDB
+          if(removeText.length==1){
               //delete select text
-              console.log('>>>>>>delete in 1 line more than 1 text') 
+              console.log('>>>>>>delete in 1 line more than 1 text')
               deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
               updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh, toCh)
 
-          }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
+          }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){
             //delete more than 1 line || delete line
             deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
           }
@@ -579,7 +579,7 @@ module.exports = (server) => {
     })
 
     /**
-     * `submit code` event fired reviewer active time every 1 sec 
+     * `submit code` event fired reviewer active time every 1 sec
      * @param {Object} payload time from face detection on main.js
      */
     client.on('reviewer active time', (payload) => {
@@ -587,7 +587,7 @@ module.exports = (server) => {
     })
 
     /**
-     * `submit code` event fired reviewer active time every 1 sec 
+     * `submit code` event fired reviewer active time every 1 sec
      * @param {Object} payload time from face detection on main.js
      */
     client.on('save active time', (payload) => {
@@ -600,8 +600,8 @@ module.exports = (server) => {
           Score.update({
             pid: projectId,
             uid: payload.uid
-          }, { 
-            $set: { 
+          }, {
+            $set: {
               time: parseInt(score.time) + parseInt(payload.time)
             }
           }, (err) => {
@@ -615,8 +615,8 @@ module.exports = (server) => {
         if(user){
           User.update({
             _id: payload.uid
-          }, { 
-            $set: { 
+          }, {
+            $set: {
               totalTime: parseInt(user.totalTime) + parseInt(payload.time)
             }
           }, (err) => {
@@ -632,191 +632,191 @@ module.exports = (server) => {
      * `submit code` event fired when user click on submit button from front-end
      * @param {Object} payload code from editor
      */
-    client.on('submit code', (payload) => {
-      console.log(payload.mode)
-      const mode = payload.mode
-      const uid = payload.uid
-      const code = payload.code
-
-      const fs = require('fs')
-      const path = require('path')
-      var args = ['-j', '4']
-      Object.keys(code).forEach(function(key) {
-        args.push('./public/project_files/'+projectId+'/'+key+'.py')
-        fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
-          if (err) throw err
-        })
-      });
-      const nodepty = require('node-pty');
-      let pty;
-      if(process.platform === 'win32') pty = nodepty.spawn('pylint', args, {})
-      pty = nodepty.spawn('pylint', args, {});
-
-      pty.on('data', (data) => {
-        //get score from pylint
-          console.log('data', data)
-          const before_score = data.indexOf("Your code has been rated at");
-          let score = 0;
-          if(before_score != -1) {
-            const after_score = data.indexOf("/10");
-            score = data.slice(before_score + 28, after_score)
-          } else if (data.indexOf('E:') < 0){
-            score = 0
-          }
-          console.log('pty data', data)
-          data = data.replace(/\/10/g, "/100.00")
-          const uid = payload.uid
-          const project = Project.where({pid: projectId}).findOne(function (err, project) {
-            if (err);
-            if (project) {
-              if (project.creator_id != null && project.collaborator_id != null){
-                const users = [project.creator_id, project.collaborator_id]
-                console.log(users);
-                users.forEach(function(element) {
-                  console.log('element ', element)
-                  const scoreModel = {
-                    pid: projectId,
-                    uid: element,
-                    score: score,
-                    time: 0,
-                    createdAt: Date.now()
-                  }
-                  const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
-                    if (err) {
-                      throw err
-                    }
-                    console.log("oldScore", oldScore);
-                    console.log(!oldScore)
-                    if (!oldScore) {
-                      new Score(scoreModel, (err) => {
-                        if (err) throw err
-                      }).save()
-                      
-                      //recalculate score
-                      sumScore = Score.aggregate([
-                        { $match:{
-                            uid: element
-                        }},
-                        { $group: {
-                            _id: '$uid',
-                            avg: {$avg: '$score'}
-                        }}
-                      ], function (err, results) {
-                          if (err) {
-                              console.log(err);
-                              return;
-                          }
-                          if (results) {
-                            // sum = 0;
-                            results.forEach(function(result) {
-                              console.log("avg: "+result._id+" "+result.score+" "+result.avg);
-                              //start update
-                              User.update({
-                                _id: element
-                              }, { 
-                                $set: { 
-                                  avgScore: result.avg
-                                }
-                              }, 
-                              function(err, userReturn){
-                                if (err) ;
-                                if (userReturn) {
-                                  console.log(userReturn)
-                                }
-
-                              });
-                              //end update
-                              const shownScore = {
-                                score: score,
-                                uid: element,
-                                avgScore: result.avg
-                              }
-                              if(mode == "auto"){
-                                io.in(projectId).emit('show auto update score', shownScore)
-                              } else {
-                                io.in(projectId).emit('show score', shownScore)
-                                io.in(projectId).emit('show auto update score', shownScore)
-                              }
-                            })
-                          }
-                      });
-                      //end recalculate score
-
-                    }
-                    if (oldScore) {
-                      Score.update({
-                        pid: projectId, 
-                        uid: element
-                      }, { 
-                        $set: { 
-                          score: score 
-                        }
-                      }, 
-                      function(err, scoreReturn){
-                        if(err) throw err;
-                        if(scoreReturn) {
-                          //recalculate score
-                          sumScore = Score.aggregate([
-                            { $match:{
-                                uid: element
-                            }},
-                            { $group: {
-                                _id: '$uid',
-                                avg: {$avg: '$score'}
-                            }}
-                          ], function (err, results) {
-                              if (err) {
-                                  console.log(err);
-                                  return;
-                              }
-                              if (results) {
-                                // sum = 0;
-                                results.forEach(function(result) {
-                                  console.log("avg: "+result._id+" "+result.avg);
-                                  //start update
-                                  User.update({
-                                    _id: element
-                                  }, { 
-                                    $set: { 
-                                      avgScore: result.avg
-                                    }
-                                  }, 
-                                  function(err, userReturn){
-                                    if (err) ;
-                                    if (userReturn) {
-                                      console.log(userReturn)
-                                    }
-
-                                  });
-                                  //end update
-                                  const shownScore = {
-                                    score: score,
-                                    uid: element,
-                                    avgScore: result.avg
-                                  }
-                                  if(mode == "auto"){
-                                    io.in(projectId).emit('show auto update score', shownScore)
-                                  } else {
-                                    io.in(projectId).emit('show score', shownScore)
-                                    io.in(projectId).emit('show auto update score', shownScore)
-                                  }
-                                })
-                              }
-                          });
-                          //end recalculate score
-                          
-                        }
-                      });
-                    }  
-                  });
-                }, this);
-              }
-            }
-          });
-          console.log("score"+score)
-          io.in(projectId).emit('term update', data)
-      })
-    })
+    // client.on('submit code', (payload) => {
+    //   console.log(payload.mode)
+    //   const mode = payload.mode
+    //   const uid = payload.uid
+    //   const code = payload.code
+    //
+    //   const fs = require('fs')
+    //   const path = require('path')
+    //   var args = ['-j', '4']
+    //   Object.keys(code).forEach(function(key) {
+    //     args.push('./public/project_files/'+projectId+'/'+key+'.py')
+    //     fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
+    //       if (err) throw err
+    //     })
+    //   });
+    //   const nodepty = require('node-pty');
+    //   let pty;
+    //   if(process.platform === 'win32') pty = nodepty.spawn('pylint', args, {})
+    //   pty = nodepty.spawn('pylint', args, {});
+    //
+    //   pty.on('data', (data) => {
+    //     //get score from pylint
+    //       console.log('data', data)
+    //       const before_score = data.indexOf("Your code has been rated at");
+    //       let score = 0;
+    //       if(before_score != -1) {
+    //         const after_score = data.indexOf("/10");
+    //         score = data.slice(before_score + 28, after_score)
+    //       } else if (data.indexOf('E:') < 0){
+    //         score = 0
+    //       }
+    //       console.log('pty data', data)
+    //       data = data.replace(/\/10/g, "/100.00")
+    //       const uid = payload.uid
+    //       const project = Project.where({pid: projectId}).findOne(function (err, project) {
+    //         if (err);
+    //         if (project) {
+    //           if (project.creator_id != null && project.collaborator_id != null){
+    //             const users = [project.creator_id, project.collaborator_id]
+    //             console.log(users);
+    //             users.forEach(function(element) {
+    //               console.log('element ', element)
+    //               const scoreModel = {
+    //                 pid: projectId,
+    //                 uid: element,
+    //                 score: score,
+    //                 time: 0,
+    //                 createdAt: Date.now()
+    //               }
+    //               const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
+    //                 if (err) {
+    //                   throw err
+    //                 }
+    //                 console.log("oldScore", oldScore);
+    //                 console.log(!oldScore)
+    //                 if (!oldScore) {
+    //                   new Score(scoreModel, (err) => {
+    //                     if (err) throw err
+    //                   }).save()
+    //
+    //                   //recalculate score
+    //                   sumScore = Score.aggregate([
+    //                     { $match:{
+    //                         uid: element
+    //                     }},
+    //                     { $group: {
+    //                         _id: '$uid',
+    //                         avg: {$avg: '$score'}
+    //                     }}
+    //                   ], function (err, results) {
+    //                       if (err) {
+    //                           console.log(err);
+    //                           return;
+    //                       }
+    //                       if (results) {
+    //                         // sum = 0;
+    //                         results.forEach(function(result) {
+    //                           console.log("avg: "+result._id+" "+result.score+" "+result.avg);
+    //                           //start update
+    //                           User.update({
+    //                             _id: element
+    //                           }, {
+    //                             $set: {
+    //                               avgScore: result.avg
+    //                             }
+    //                           },
+    //                           function(err, userReturn){
+    //                             if (err) ;
+    //                             if (userReturn) {
+    //                               console.log(userReturn)
+    //                             }
+    //
+    //                           });
+    //                           //end update
+    //                           const shownScore = {
+    //                             score: score,
+    //                             uid: element,
+    //                             avgScore: result.avg
+    //                           }
+    //                           if(mode == "auto"){
+    //                             io.in(projectId).emit('show auto update score', shownScore)
+    //                           } else {
+    //                             io.in(projectId).emit('show score', shownScore)
+    //                             io.in(projectId).emit('show auto update score', shownScore)
+    //                           }
+    //                         })
+    //                       }
+    //                   });
+    //                   //end recalculate score
+    //
+    //                 }
+    //                 if (oldScore) {
+    //                   Score.update({
+    //                     pid: projectId,
+    //                     uid: element
+    //                   }, {
+    //                     $set: {
+    //                       score: score
+    //                     }
+    //                   },
+    //                   function(err, scoreReturn){
+    //                     if(err) throw err;
+    //                     if(scoreReturn) {
+    //                       //recalculate score
+    //                       sumScore = Score.aggregate([
+    //                         { $match:{
+    //                             uid: element
+    //                         }},
+    //                         { $group: {
+    //                             _id: '$uid',
+    //                             avg: {$avg: '$score'}
+    //                         }}
+    //                       ], function (err, results) {
+    //                           if (err) {
+    //                               console.log(err);
+    //                               return;
+    //                           }
+    //                           if (results) {
+    //                             // sum = 0;
+    //                             results.forEach(function(result) {
+    //                               console.log("avg: "+result._id+" "+result.avg);
+    //                               //start update
+    //                               User.update({
+    //                                 _id: element
+    //                               }, {
+    //                                 $set: {
+    //                                   avgScore: result.avg
+    //                                 }
+    //                               },
+    //                               function(err, userReturn){
+    //                                 if (err) ;
+    //                                 if (userReturn) {
+    //                                   console.log(userReturn)
+    //                                 }
+    //
+    //                               });
+    //                               //end update
+    //                               const shownScore = {
+    //                                 score: score,
+    //                                 uid: element,
+    //                                 avgScore: result.avg
+    //                               }
+    //                               if(mode == "auto"){
+    //                                 io.in(projectId).emit('show auto update score', shownScore)
+    //                               } else {
+    //                                 io.in(projectId).emit('show score', shownScore)
+    //                                 io.in(projectId).emit('show auto update score', shownScore)
+    //                               }
+    //                             })
+    //                           }
+    //                       });
+    //                       //end recalculate score
+    //
+    //                     }
+    //                   });
+    //                 }
+    //               });
+    //             }, this);
+    //           }
+    //         }
+    //       });
+    //       console.log("score"+score)
+    //       io.in(projectId).emit('term update', data)
+    //   })
+    // })
 
     /**
      * `disconnect` event fired when user exit from playground page
@@ -846,7 +846,7 @@ module.exports = (server) => {
           if (err) throw er
         })
       }
- 
+
 
       var output = fs.createWriteStream('./public/project_files/'+projectId+'/'+projectId+'.zip');
       var archive = archiver('zip', {
@@ -859,11 +859,11 @@ module.exports = (server) => {
       // pipe archive data to the output file
       archive.pipe(output);
       // append files
-      fileNameList.forEach(function(fileName) {  
+      fileNameList.forEach(function(fileName) {
         archive.file('./public/project_files/'+projectId+'/'+fileName+'.py', {name: fileName+'.py'});
       })
       archive.finalize();
-      client.emit('download file', projectId )  
+      client.emit('download file', projectId )
      })
 
     function countdownTimer() {
@@ -940,8 +940,8 @@ module.exports = (server) => {
       }).save()
       comments.push({
         file: payload.file,
-        line: parseInt(payload.line), 
-        description: payload.description})      
+        line: parseInt(payload.line),
+        description: payload.description})
     }
 
     function updateDesc(file, line, description){
@@ -956,7 +956,7 @@ module.exports = (server) => {
     function readAppend(file, appendFile){
       fs.readFile(appendFile, function(err, data){
         if (err) throw err;
-        fs.appendFile(file, '\n', function(err){        
+        fs.appendFile(file, '\n', function(err){
         })
         fs.appendFile(file, data, function(err){
           console.log('combine!! ')
@@ -986,7 +986,7 @@ module.exports = (server) => {
               file: fileName,
               line: i,
               ch: {$gte : fromCh}
-            }).remove().exec()            
+            }).remove().exec()
         }
         //not last line
         else if(i!=fromLine+lineRange){
@@ -1012,7 +1012,7 @@ module.exports = (server) => {
             }else{
               updateTextAfter(projectId, fileName, i, fromLine, fromCh, toCh)
             }
-           
+
         }
       }
     }
@@ -1034,7 +1034,7 @@ module.exports = (server) => {
             $set: {
               line: fromLine,
               ch: fromCh+i
-            } 
+            }
           }, (err) => {
             if (err) throw err
           })

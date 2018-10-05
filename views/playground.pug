@@ -43,16 +43,16 @@ block content
         .ui.form
           .field
             label File :
-            |  
+            |
             input.disabled.file.name(type='text' placeholder='File', disabled='')
             input.hidden.file.name(type='hidden')
           .field
             label Line No :
-            |  
+            |
             input.disabled.line.no(type='text' placeholder='Your Project Name', disabled='')
           .field
             label Comment :
-            |  
+            |
             textarea.line.reviewer.description(rows='4' cols='50' placeholder='Something about this line')
           .ui.basic.center.aligned.segment()
             .actions
@@ -68,11 +68,11 @@ block content
         .ui.form
           .field
             label File :
-            |  
+            |
             input.disabled.file.name(type='text' placeholder='File', disabled='')
           .field
             label Line No :
-            |  
+            |
             input.disabled.line.no(type='text' placeholder='Line number', disabled='')
           .field
             label Comment :
@@ -114,7 +114,7 @@ block content
               - let partner = user.username === project.creator ? project.collaborator : project.creator
               - let curUser = user.username === project.creator ? project.creator : project.collaborator
         .six.wide.column
-          .ui.grid    
+          .ui.grid
             .sixteen.wide.column.padding-left-20.padding-right-20
               div.ui.relaxed.items
                 div.item
@@ -133,7 +133,7 @@ block content
         .four.wide.column
           .ui.top.attached.tabular.demo.menu
             a.active.item(data-tab='first') Project
-            |  
+            |
             a.item(data-tab='second') Setting
             .right.menu
               .item
@@ -162,14 +162,14 @@ block content
                                   i.trash.alternate.outline.icon(id='delete-icon')
                                 .ui.small.modal(id=file+'-delete-file-modal')
                                   .header Delete File
-                                  .content  
+                                  .content
                                     p='Do you want to delete ' + file + '.py?'
                                   .actions
                                     button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
-                                    .ui.button.approve.red(data-value='cancel') Cancel 
+                                    .ui.button.approve.red(data-value='cancel') Cancel
           .ui.small.modal#export-modal
             .header Export File
-            .content  
+            .content
               .item
                 .ui.master.checkbox
                   input(type="checkbox" name="allfile")
@@ -179,18 +179,18 @@ block content
                     .item.export-file-item(id=file+'-export-file-item')
                       .ui.child.checkbox
                         input(type="checkbox", name='checkbox-file', value=file)
-                        label=file+'.py'       
+                        label=file+'.py'
             .actions
               button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
-              .ui.button.approve.red(data-value='cancel') Cancel  
+              .ui.button.approve.red(data-value='cancel') Cancel
 
           .ui.bottom.attached.tab.segment(data-tab='second')
             .ui.toggle.lightmodetoggle.checkbox
               input(type='checkbox',onChange='changeTheme()')#lightmodetoggle
-              label Enable Light Mode 
+              label Enable Light Mode
           .ui.segments
             .ui.segment
-              p Video Chat 
+              p Video Chat
                 button.ui.mute.toggle.button.active(onClick='muteEvent(this)')
                   i.unmute.icon
                 button.ui.video.toggle.button.active(onClick='videoEvent(this)')
@@ -216,7 +216,7 @@ block content
                 background-color: #12acef;
                 }
               p#subTitle
-              form#createRoom              
+              form#createRoom
               p Buddy
               #buddy_counts_min_sec.ui.red.circular.label active time: 00:00 min
               .videoContainer
@@ -239,18 +239,18 @@ block content
                 i.play.icon
               button.ui.icon.button.negative.float-right(id='pause' onClick='pauseRunCode()' data-tooltip="Pause" data-inverted="")
                 i.pause.icon
-                
-          //- file tab  
+
+          //- file tab
           .ui.form
             .ui.top.attached.tabular.file.menu(id='file-tabs')
               each file, index in project.files
                 if index == 0
                   a.active.item(id=file data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
                 else
-                  a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'        
+                  a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'
                     span(onClick=`closeTab(${JSON.stringify(file)})`)
                       i.delete.icon(id='close-tab-icon')
-              a.item(class='add-file' onClick='addFile()') 
+              a.item(class='add-file' onClick='addFile()')
                 i.plus.icon
             .ui.tab-content
               each file,index in project.files
@@ -267,13 +267,13 @@ block content
             .header Filename
             .content
               center.ui.form
-                input.filename(type='text' style='width: 70%;') 
-                label(style='font-size:17px;')  .py 
+                input.filename(type='text' style='width: 70%;')
+                label(style='font-size:17px;')  .py
               .file.name.exists.warning
             .actions
               button.ui.button.approve.green(id='createBtn' onClick='createFile()') Create
               .ui.button.approve.red(data-value='cancel') Cancel
-                    
+
           .ui.segments
             .ui.segment
               .ui.grid
@@ -286,10 +286,10 @@ block content
 
     .ui.chatbox(id="live-chat")
       header.clearfix
-          eight.wide.column(style="float: left;") 
-            i.comments.icon(style="float: left;") 
+          eight.wide.column(style="float: left;")
+            i.comments.icon(style="float: left;")
             p Chat
-          eight.wide.column(style="float: right;") 
+          eight.wide.column(style="float: right;")
             i.angle.up.icon(id="angle-up")
       .chat
         .chat-history
@@ -303,12 +303,12 @@ block content
                   if (message.uid != user._id)
                     img.ui.avatar.image(src=partner_img)
                     .curve-box #{message.message}
-                  else 
+                  else
                     //- img.ui.avatar.image(src=`${user.img}`)
                     .content
                     .curve-box-user #{message.message}
                     //- a.header Thara
-                    
+
         .ui.chatbottom
           p#show-is-typing
             .ui.form(action='/project', method='POST')
