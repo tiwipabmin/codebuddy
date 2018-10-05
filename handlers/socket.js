@@ -38,12 +38,11 @@ module.exports = (server) => {
     if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
     else runpty = cp.spawn('python', ['-i'], {})
     runpty.stdout.on('data', (data) => {
-      console.log(data)
+      console.log(data.toString())
       io.in(projectId).emit('term update', data.toString())
     })
     runpty.stderr.on('data', (data) => {
-      console.log(data)
-      io.in(projectId).emit('term update', data.toString())
+      if(data.toString() !== '>>> ') io.in(projectId).emit('term update', data.toString());
     })
 
     winston.info('Client connected')
