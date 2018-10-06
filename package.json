@@ -23,7 +23,7 @@
     "lodash": "^4.17.4",
     "moment": "^2.18.1",
     "moment-timer": "^1.1.5",
-    "mongoose": "^5.3.1",
+    "mongoose": "4.8.3",
     "mongoose-mongodb-errors": "0.0.2",
     "morgan": "~1.7.0",
     "node-gyp": "^3.6.2",
