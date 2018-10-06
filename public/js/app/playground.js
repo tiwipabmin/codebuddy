@@ -1003,6 +1003,7 @@ function getAllFileEditor() {
   function runCodeEachFile(fileName) {
     codeEditors[fileName] = editor[detectFocus].getValue();
   }
+  console.log(codeEditors);
   return codeEditors;
 }
 

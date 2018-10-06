@@ -37,12 +37,16 @@ module.exports = (server) => {
     var cp = require('child_process');
     if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
     else runpty = cp.spawn('python', ['-i'], {})
+    // detection output is a execution code
     runpty.stdout.on('data', (data) => {
       console.log(data.toString())
       io.in(projectId).emit('term update', data.toString())
     })
+    var firstRunCode = '';
+    // detection code execute error
     runpty.stderr.on('data', (data) => {
-      if(data.toString() !== '>>> ') io.in(projectId).emit('term update', data.toString());
+      if(firstRunCode == '') firstRunCode = data.toString();
+      else if (data.toString() !== '>>> ' && firstRunCode !== '') io.in(projectId).emit('term update', data.toString());
     })
 
     winston.info('Client connected')
