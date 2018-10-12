@@ -416,7 +416,7 @@ function runCode() {
 /**
  * Add code block
  */
-function addBlock(fileName){
+function addBlock(){
   var codeBlockName = 'Block:' + queueBlock.toString();
   queueBlock++;
   editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(currentFileName+"text"), {
@@ -438,6 +438,20 @@ function addBlock(fileName){
     console.log("detectFocus: " + detectFocus)
   })
   console.log("Add " + editor[codeBlockName] + " Success!!");
+}
+
+/**
+ * Restart kernel
+ */
+function reKernel(){
+  var codeReKernel = {
+    main : "%reset -f"
+  };
+  socket.emit('run code', {
+    code: codeReKernel
+  })
+  console.log(codeReKernel)
+  term.writeln("start a restart kernel process")
 }
 
 /**

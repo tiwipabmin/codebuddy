@@ -34,19 +34,26 @@ module.exports = (server) => {
     var comments = []
     var index = null
     let runpty;
+    var amountRunCode = 1
+    var startIpython = '';
     var cp = require('child_process');
     if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
     else runpty = cp.spawn('python', ['-i'], {})
+
     // detection output is a execution code
     runpty.stdout.on('data', (data) => {
-      console.log(data.toString())
       io.in(projectId).emit('term update', data.toString())
     })
-    var firstRunCode = '';
     // detection code execute error
     runpty.stderr.on('data', (data) => {
-      if(firstRunCode == '') firstRunCode = data.toString();
-      else if (data.toString() !== '>>> ' && firstRunCode !== '') io.in(projectId).emit('term update', data.toString());
+      var output = data.toString()
+      var arrowLocation = output.indexOf('>>>')
+      var tripleDotLocation = output.indexOf('...')
+      if(startIpython == '') startIpython = data.toString();
+      else if (arrowLocation != 0 && tripleDotLocation != 0) {
+        var output = output.slice(0, arrowLocation - 1)
+        io.in(projectId).emit('term update', output)
+      }
     })
 
     winston.info('Client connected')
@@ -525,8 +532,9 @@ module.exports = (server) => {
 
       fs.readFile('./public/project_files/'+projectId+'/'+'main.py', 'utf8', (err, data)=>{
         if (err) throw err;
+        amountRunCode++;
         runpty.stdin.write(data);
-        runpty.stdin.write('\n');
+        runpty.stdin.write('\n\n');
       });
 
       // setTimeout(runpty.kill.bind(runpty), 3000);
