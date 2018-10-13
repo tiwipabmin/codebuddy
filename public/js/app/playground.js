@@ -414,6 +414,14 @@ function runCode() {
 }
 
 /**
+ * Restart a kernel
+ */
+function reKernel(){
+  socket.emit('restart a kernel')
+  term.writeln('Restart a kernel successes!')
+}
+
+/**
  * Add code block
  */
 function addBlock(){
@@ -438,20 +446,6 @@ function addBlock(){
     console.log("detectFocus: " + detectFocus)
   })
   console.log("Add " + editor[codeBlockName] + " Success!!");
-}
-
-/**
- * Restart kernel
- */
-function reKernel(){
-  var codeReKernel = {
-    main : "%reset -f"
-  };
-  socket.emit('run code', {
-    code: codeReKernel
-  })
-  console.log(codeReKernel)
-  term.writeln("start a restart kernel process")
 }
 
 /**
