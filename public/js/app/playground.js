@@ -408,15 +408,23 @@ function pauseRunCode() {
  */
 function runCode() {
   socket.emit('run code', {
-    code: getAllFileEditor()
+    code: getCodeFocusBlock()
   })
   term.writeln('Running pytest.py...')
 }
 
 /**
+ * Restart a kernel
+ */
+function reKernel(){
+  socket.emit('restart a kernel')
+  term.writeln('Restart a kernel successes!')
+}
+
+/**
  * Add code block
  */
-function addBlock(fileName){
+function addBlock(){
   var codeBlockName = 'Block:' + queueBlock.toString();
   queueBlock++;
   editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(currentFileName+"text"), {
@@ -1001,10 +1009,19 @@ function getAllFileEditor() {
   var codeEditors = {};
   projectFiles.forEach(runCodeEachFile);
   function runCodeEachFile(fileName) {
-    codeEditors[fileName] = editor[detectFocus].getValue();
+    codeEditors[fileName] = editor[fileName].getValue();
   }
-  console.log(codeEditors);
   return codeEditors;
+}
+
+function getCodeFocusBlock() {
+  var codeFocusBlock = {};
+  projectFiles.forEach(runCodeEachFile);
+  function runCodeEachFile(fileName) {
+    codeFocusBlock[fileName] = editor[detectFocus].getValue();
+  }
+  console.log(codeFocusBlock);
+  return codeFocusBlock;
 }
 
 function newEditorFacade(fileName) {

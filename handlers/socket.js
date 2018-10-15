@@ -33,21 +33,12 @@ module.exports = (server) => {
     let review = []
     var comments = []
     var index = null
-    let runpty;
+    var runpty;
+    var startPython = '';
     var cp = require('child_process');
-    if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
-    else runpty = cp.spawn('python', ['-i'], {})
-    // detection output is a execution code
-    runpty.stdout.on('data', (data) => {
-      console.log(data.toString())
-      io.in(projectId).emit('term update', data.toString())
-    })
-    var firstRunCode = '';
-    // detection code execute error
-    runpty.stderr.on('data', (data) => {
-      if(firstRunCode == '') firstRunCode = data.toString();
-      else if (data.toString() !== '>>> ' && firstRunCode !== '') io.in(projectId).emit('term update', data.toString());
-    })
+
+     spawnPython()
+     detectOutput()
 
     winston.info('Client connected')
 
@@ -526,11 +517,47 @@ module.exports = (server) => {
       fs.readFile('./public/project_files/'+projectId+'/'+'main.py', 'utf8', (err, data)=>{
         if (err) throw err;
         runpty.stdin.write(data);
-        runpty.stdin.write('\n');
+        runpty.stdin.write('\n\n');
       });
 
       // setTimeout(runpty.kill.bind(runpty), 3000);
     })
+
+    /**
+      * restart a kernel when user click on reKernel from front-end
+      */
+    client.on('restart a kernel', (payload) => {
+
+      spawnPython()
+      detectOutput()
+
+    })
+
+    function spawnPython(){
+      if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
+      else runpty = cp.spawn('python', ['-i'], {})
+    }
+
+    function detectOutput(){
+
+      startPython = '';
+
+      // detection output is a execution code
+      runpty.stdout.on('data', (data) => {
+        io.in(projectId).emit('term update', data.toString())
+      })
+      // detection code execute error
+      runpty.stderr.on('data', (data) => {
+        var output = data.toString()
+        var arrowLocation = output.indexOf('>>>')
+        var tripleDotLocation = output.indexOf('...')
+        if(startPython == '') startPython = data.toString();
+        else if (arrowLocation != 0 && tripleDotLocation != 0) {
+          var output = output.slice(0, arrowLocation - 1)
+          io.in(projectId).emit('term update', output)
+        }
+      })
+    }
 
     /**
      * `pause running code` event fired when user click on pause button from front-end
