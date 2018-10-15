@@ -235,12 +235,10 @@ block content
               a.ui.label(style='margin-left:10px;' href='/history?pid='+project.pid+'&curUser='+curUser) view history
               button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()' data-tooltip="Verify" data-inverted="")
                 i.unhide.icon
-              button.ui.icon.button.negative.float-right(id='pause' onClick='pauseRunCode()' data-tooltip="Pause" data-inverted="")
-                i.pause.icon
-              button.ui.icon.button.negative.float-right(id='reKernel' onClick='reKernel()' data-tooltip="Restart a Kernel" data-inverted="")
-                i.pause.icon
               button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
                 i.play.icon
+              button.ui.icon.button.negative.float-right(id='pause' onClick='pauseRunCode()' data-tooltip="Pause" data-inverted="")
+                i.pause.icon
               button.ui.icon.button.orange.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
                 i.plus.icon
 
@@ -262,6 +260,8 @@ block content
                   .ui.bottom.attached.active.tab.segment(id=file+'-tab' data-tab='main')
                     //- textarea#f.show
                     textarea(id=file+'text').show
+                  |
+                  .ui.segment(id='segmentCodeBlock')
                 else
                   .ui.bottom.attached.tab.segment(id=file+'-tab' data-tab=file)
                     //- textarea#demotext.show

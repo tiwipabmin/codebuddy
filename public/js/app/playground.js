@@ -41,12 +41,14 @@ var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 var currentTab = 'main';
 var partnerTab = 'main';
 var isCloseTab = false;
-var editor = {};
+var editor = {}
 var queueBlock = 0;
 var currentFileName = ''; //main
 var detectFocus = 0;
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
+
+var segmentCodeBlock = document.getElementById("segmentCodeBlock")
 
 function setEditor(fileName){
   if(!(fileName in editor)) {
@@ -64,7 +66,6 @@ function setEditor(fileName){
       indentUnit: 4,
       matchBrackets: true
     })
-  //  console.log('editor : ' + editor['main2'].toString())
   }
 }
 
@@ -425,9 +426,13 @@ function reKernel(){
  * Add code block
  */
 function addBlock(){
-  var codeBlockName = 'Block:' + queueBlock.toString();
+  var codeBlockName = 'Block:' + queueBlock.toString()
+  var codeBlock = document.createElement("textarea")
+
+  codeBlock.setAttribute('id', codeBlockName)
+  segmentCodeBlock.appendChild(codeBlock)
   queueBlock++;
-  editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(currentFileName+"text"), {
+  editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
     lineNumbers: true,
     mode: {
       name: 'python',
@@ -441,7 +446,7 @@ function addBlock(){
     indentUnit: 4,
     matchBrackets: true,
   })
-  editor[codeBlockName].on('focus', ()=>{
+  editor[codeBlockName].on('focus a code block', ()=>{
     detectFocus = codeBlockName
     console.log("detectFocus: " + detectFocus)
   })
