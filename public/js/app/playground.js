@@ -446,11 +446,11 @@ function addBlock(){
     indentUnit: 4,
     matchBrackets: true,
   })
-  editor[codeBlockName].on('focus a code block', ()=>{
+  editor[codeBlockName].on('focus', ()=>{
     detectFocus = codeBlockName
     console.log("detectFocus: " + detectFocus)
   })
-  console.log("Add " + editor[codeBlockName] + " Success!!");
+  console.log("Add " + editor[codeBlockName] + " Success!!!");
 }
 
 /**
