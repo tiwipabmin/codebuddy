@@ -452,6 +452,9 @@ function addBlock(){
   var codeBlockName = 'Block:' + queueBlock.toString()
   var divisionCodeBlock = document.createElement("div")
   var codeBlock = document.createElement("textarea")
+  var map = {"Alt-R": function(cm){
+    runCode()
+  }}
 
   divisionCodeBlock.setAttribute('id', codeBlockName + "div")
   codeBlock.setAttribute('id', codeBlockName)
@@ -476,6 +479,7 @@ function addBlock(){
     detectFocus = codeBlockName
     console.log("detectFocus: " + detectFocus)
   })
+  editor[codeBlockName].addKeyMap(map)
   console.log("Add " + editor[codeBlockName] + " Success!!!");
 }
 
