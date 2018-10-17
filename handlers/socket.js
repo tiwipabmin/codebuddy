@@ -544,7 +544,7 @@ module.exports = (server) => {
 
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
-        io.in(projectId).emit('term update', data.toString())
+        io.in(projectId).emit('show output', data.toString())
       })
       // detection code execute error
       runpty.stderr.on('data', (data) => {
@@ -554,7 +554,9 @@ module.exports = (server) => {
         if(startPython == '') startPython = data.toString();
         else if (arrowLocation != 0 && tripleDotLocation != 0) {
           var output = output.slice(0, arrowLocation - 1)
-          io.in(projectId).emit('term update', output)
+          io.in(projectId).emit('show output', output)
+        } else if (arrowLocation == 0) {
+          io.in(projectId).emit('show output', "don\'t have output")
         }
       })
     }

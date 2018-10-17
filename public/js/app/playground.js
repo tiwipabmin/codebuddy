@@ -42,9 +42,11 @@ var currentTab = 'main';
 var partnerTab = 'main';
 var isCloseTab = false;
 var editor = {}
+var output = {}
 var queueBlock = 0;
 var currentFileName = ''; //main
 var detectFocus = 0;
+
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
 
@@ -397,6 +399,27 @@ term.on('key', function (key, ev) {
   }
 });
 
+function addDivOutput(textOutput){
+      var divisionOutput = document.createElement("div")
+      var divisionCodeBlock = document.getElementById(detectFocus + "div")
+      var prefomattedText = document.createElement("pre")
+
+      divisionOutput.setAttribute("id", detectFocus + "output")
+      prefomattedText.setAttribute("id", detectFocus + "pre")
+      prefomattedText.appendChild(textOutput)
+      divisionOutput.appendChild(prefomattedText)
+      divisionCodeBlock.appendChild(divisionOutput)
+}
+
+socket.on('show output', (payload) => {
+  var textOutput = document.createTextNode(payload)
+  if(!(detectFocus in output) && payload != "don\'t have output"){
+    output[detectFocus] = textOutput
+    console.log("Output : " + payload)
+    addDivOutput(output[detectFocus])
+  }
+})
+
 /**
  * Pause running code
  */
@@ -427,10 +450,13 @@ function reKernel(){
  */
 function addBlock(){
   var codeBlockName = 'Block:' + queueBlock.toString()
+  var divisionCodeBlock = document.createElement("div")
   var codeBlock = document.createElement("textarea")
 
+  divisionCodeBlock.setAttribute('id', codeBlockName + "div")
   codeBlock.setAttribute('id', codeBlockName)
-  segmentCodeBlock.appendChild(codeBlock)
+  divisionCodeBlock.appendChild(codeBlock)
+  segmentCodeBlock.appendChild(divisionCodeBlock)
   queueBlock++;
   editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
     lineNumbers: true,
