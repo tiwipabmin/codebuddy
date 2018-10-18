@@ -413,10 +413,19 @@ function addDivOutput(textOutput){
 
 socket.on('show output', (payload) => {
   var textOutput = document.createTextNode(payload)
-  if(!(detectFocus in output) && payload != "don\'t have output"){
-    output[detectFocus] = textOutput
+  if(payload != "don\'t have output"){
+    if(detectFocus in output){
+      output[detectFocus] = textOutput
+      var preformattedText = document.getElementById(detectFocus + "pre")
+      preformattedText.removeChild(preformattedText.childNodes[0])
+      preformattedText.appendChild(textOutput)
+    } else {
+      output[detectFocus] = textOutput
+      addDivOutput(output[detectFocus])
+    }
+
     console.log("Output : " + payload)
-    addDivOutput(output[detectFocus])
+
   }
 })
 
