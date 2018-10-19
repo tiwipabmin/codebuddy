@@ -43,6 +43,7 @@ var partnerTab = 'main';
 var isCloseTab = false;
 var editor = {}
 var output = {}
+var sizeOutputObjects = 0;
 var queueBlock = 0;
 var currentFileName = ''; //main
 var detectFocus = 0;
@@ -409,6 +410,8 @@ function addDivOutput(textOutput){
       prefomattedText.appendChild(textOutput)
       divisionOutput.appendChild(prefomattedText)
       divisionCodeBlock.appendChild(divisionOutput)
+
+      sizeOutputObjects++;
 }
 
 socket.on('show output', (payload) => {
@@ -451,6 +454,15 @@ function runCode() {
  */
 function reKernel(){
   socket.emit('restart a kernel')
+  var keysList = Object.keys(output)
+  console.log(keysList)
+  for (key in keysList){
+    var divisionCodeBlock = document.getElementById(keysList[key] + "div")
+    console.log("divisionCodeBlock : " + divisionCodeBlock + ", Key : " + keysList[key])
+    divisionCodeBlock.removeChild(divisionCodeBlock.childNodes[2])
+  }
+  output = {}
+  sizeOutputObjects = 0
   term.writeln('Restart a kernel successes!')
 }
 
