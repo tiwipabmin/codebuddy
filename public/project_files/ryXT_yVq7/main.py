@@ -1,2 +1,1 @@
-for x in fruits:
-    print(x)
+print(1)

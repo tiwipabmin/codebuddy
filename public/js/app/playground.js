@@ -43,10 +43,11 @@ var partnerTab = 'main';
 var isCloseTab = false;
 var editor = {}
 var output = {}
+var codeAllBlock = {};
 var sizeOutputObjects = 0;
 var queueBlock = 0;
-var currentFileName = ''; //main
 var detectFocus = 0;
+
 
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
@@ -70,6 +71,40 @@ function setEditor(fileName){
       matchBrackets: true
     })
   }
+}
+
+function setBlock(codeBlockName, value){
+  var divisionCodeBlock = document.createElement("div")
+  var codeBlock = document.createElement("textarea")
+  var map = {"Alt-R": function(cm){
+    runCode()
+  }}
+
+  divisionCodeBlock.setAttribute('id', codeBlockName + "div")
+  codeBlock.setAttribute('id', codeBlockName)
+  divisionCodeBlock.appendChild(codeBlock)
+  segmentCodeBlock.appendChild(divisionCodeBlock)
+  editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
+    lineNumbers: true,
+    mode: {
+      name: 'python',
+      version: 3,
+      singleLineStringErrors: false,
+      styleActiveLine: true,
+      lineNumbers: true,
+      lineWrapping: true
+    },
+    theme: 'material',
+    indentUnit: 4,
+    matchBrackets: true,
+  })
+  editor[codeBlockName].on('focus', ()=>{
+    detectFocus = codeBlockName
+    console.log("detectFocus: " + codeBlockName)
+  })
+  setOnChangeFocusBlock(codeBlockName)
+  editor[codeBlockName].addKeyMap(map)
+  //editor[fileName].setValue(value)
 }
 
 /**
@@ -129,6 +164,34 @@ socket.on('init state', (payload) => {
   }
 
   code = payload.editor
+  // webrtc.on('readyToCall', function () {
+  //   // you can name it anything
+  //   webrtc.createRoom(getParameterByName('pid'));
+  //   webrtc.joinRoom(getParameterByName('pid'));
+  // });
+  // webrtc.emit('readyToCall')
+})
+
+/**
+ * After user join the project, user will recieve initiate data to perform in local editor
+ */
+socket.on('init block', (payload) => {
+  if(payload.json != null) {
+    var json = JSON.parse(payload.json)
+    var keysList = Object.keys(json)
+    keysList.forEach(setBlockValue);
+  }
+
+  function setBlockValue(codeBlockName) {
+    if(json != null){
+      var value = json[codeBlockName]
+      setBlock(codeBlockName, value)
+      setOnChangeFocusBlock(codeBlockName)
+      editor[codeBlockName].setValue(value)
+      console.log("Is fileName not null : " + currentFileName)
+    }
+  }
+
   // webrtc.on('readyToCall', function () {
   //   // you can name it anything
   //   webrtc.createRoom(getParameterByName('pid'));
@@ -425,11 +488,10 @@ socket.on('show output', (payload) => {
     } else {
       output[detectFocus] = textOutput
       addDivOutput(output[detectFocus])
+      console.log("Output : " + payload)
     }
-
-    console.log("Output : " + payload)
-
   }
+
 })
 
 /**
@@ -444,7 +506,8 @@ function pauseRunCode() {
  */
 function runCode() {
   socket.emit('run code', {
-    code: getCodeFocusBlock()
+    codeFocusBlock: getCodeFocusBlock(),
+    codeAllBlock: codeAllBlock
   })
   term.writeln('Running pytest.py...')
 }
@@ -471,36 +534,8 @@ function reKernel(){
  */
 function addBlock(){
   var codeBlockName = 'Block:' + queueBlock.toString()
-  var divisionCodeBlock = document.createElement("div")
-  var codeBlock = document.createElement("textarea")
-  var map = {"Alt-R": function(cm){
-    runCode()
-  }}
-
-  divisionCodeBlock.setAttribute('id', codeBlockName + "div")
-  codeBlock.setAttribute('id', codeBlockName)
-  divisionCodeBlock.appendChild(codeBlock)
-  segmentCodeBlock.appendChild(divisionCodeBlock)
-  queueBlock++;
-  editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
-    lineNumbers: true,
-    mode: {
-      name: 'python',
-      version: 3,
-      singleLineStringErrors: false,
-      styleActiveLine: true,
-      lineNumbers: true,
-      lineWrapping: true
-    },
-    theme: 'material',
-    indentUnit: 4,
-    matchBrackets: true,
-  })
-  editor[codeBlockName].on('focus', ()=>{
-    detectFocus = codeBlockName
-    console.log("detectFocus: " + detectFocus)
-  })
-  editor[codeBlockName].addKeyMap(map)
+  queueBlock++
+  setBlock(codeBlockName)
   console.log("Add " + editor[codeBlockName] + " Success!!!");
 }
 
@@ -964,6 +999,7 @@ function setOnChangeEditer(fileName) {
   editor[fileName].on('change', (ins, data) => {
 
     var text = data.text.toString().charCodeAt(0)
+    console.log("data.text.toString() : " + data.text.toString())
     var enterline = parseInt(data.to.line)+1
     var remove = data.removed
     var isEnter = false
@@ -1010,7 +1046,68 @@ function setOnChangeEditer(fileName) {
       isEnter: isEnter,
       isDelete: isDelete,
       currentTab: fileName,
-      fileName : fileName
+      fileName: fileName
+    })
+  })
+}
+
+function setOnChangeFocusBlock(fileName) {
+  /**
+   * Local editor value is changing, to handle that we'll emit our changes to server
+   */
+  editor[fileName].on('change', (ins, data) => {
+
+    setCodeAllBlock()
+
+    var text = data.text.toString().charCodeAt(0)
+    console.log("data.text.toString() : " + data.text.toString())
+    var enterline = parseInt(data.to.line)+1
+    var remove = data.removed
+    var isEnter = false
+    var isDelete = false
+
+    //check when enter new line
+    if(text==44){
+      console.log('enter '+enterline)
+        for(var i in comments){
+          if((comments[i].line > enterline) && (comments[i].file==fileName)){
+            isEnter = true
+            comments[i].line = parseInt(comments[i].line)+1
+          }
+        }
+      socket.emit('move hilight',{
+        fileName: fileName,
+        comments: comments,
+        enterline: enterline,
+        isEnter: isEnter
+      })
+    }
+
+    //check when delete line
+    if(remove.length==2){
+      for(var i in comments){
+        if((comments[i].line > enterline-1) && (comments[i].file==fileName)){
+          isDelete = true
+          comments[i].line = parseInt(comments[i].line)-1
+        }
+      }
+      socket.emit('move hilight',{
+        fileName: fileName,
+        comments: comments,
+        enterline: enterline,
+        isDelete: isDelete,
+      })
+    }
+
+    socket.emit('code change', {
+      code: data,
+      user: user,
+      enterline: enterline,
+      isEnter: isEnter,
+      isDelete: isDelete,
+      currentTab: fileName,
+      fileName: fileName,
+      json: codeAllBlock
     })
   })
 }
@@ -1071,13 +1168,22 @@ function getAllFileEditor() {
 }
 
 function getCodeFocusBlock() {
-  var codeFocusBlock = {};
-  projectFiles.forEach(runCodeEachFile);
-  function runCodeEachFile(fileName) {
-    codeFocusBlock[fileName] = editor[detectFocus].getValue();
-  }
+  var codeFocusBlock = editor[detectFocus].getValue();
   console.log(codeFocusBlock);
   return codeFocusBlock;
+}
+
+function setCodeAllBlock(){
+  if(!!Object.keys(codeAllBlock).length){
+    var keysList = Object.keys(editor)
+    keysList.forEach(runCodeAllBlock)
+    function runCodeAllBlock(fileName) {
+      codeAllBlock[fileName] = editor[fileName].getValue()
+    }
+  } else {
+    codeAllBlock[detectFocus] = editor[detectFocus].getValue()
+  }
+  return codeAllBlock;
 }
 
 function newEditorFacade(fileName) {

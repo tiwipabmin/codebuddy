@@ -214,6 +214,10 @@ module.exports = (server) => {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
 
+        client.emit('init block', {
+          json: await redis.hget(`project:${projectId}`, 'json', (err, ret) => ret)
+        })
+
         io.in(projectId).emit('auto update score')
 
         client.emit('init reviews', comments)
@@ -334,11 +338,13 @@ module.exports = (server) => {
         editorName = payload.fileName;
         redis.hgetall(`project:${projectId}`, function (err, obj) {
           var editorJson = {};
+          var json = payload.json
           if(obj.editor != undefined) {
             var editorJson = JSON.parse(obj.editor);
           }
           editorJson[editorName] = payload.editor;
           redis.hset(`project:${projectId}`, 'editor', JSON.stringify(editorJson))
+          redis.hset(`project:${projectId}`, 'json', JSON.stringify(json))
         });
         // ------ history -----
         var enterText = payload.code.text
@@ -505,14 +511,16 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('run code', (payload) => {
-      var code = payload.code;
+      var codeFocusBlock = payload.codeFocusBlock;
+      var codeAllBlock = JSON.stringify(payload.codeAllBlock)
       const fs = require('fs')
-      const path = require('path')
-      Object.keys(code).forEach(function(key) {
-        fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
+      fs.writeFile('./public/project_files/'+projectId+'/main.py', codeFocusBlock, (err) => {
+        if (err) throw err
+      })
+
+      fs.writeFile('./public/project_files/'+projectId+'/json.json', codeAllBlock, (err) => {
           if (err) throw err
-        })
-      });
+      })
 
       fs.readFile('./public/project_files/'+projectId+'/'+'main.py', 'utf8', (err, data)=>{
         if (err) throw err;
