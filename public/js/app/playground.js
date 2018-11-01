@@ -176,10 +176,11 @@ socket.on('init state', (payload) => {
  * After user join the project, user will recieve initiate data to perform in local editor
  */
 socket.on('init block', (payload) => {
+  var findLastQueue = []
   if(payload.json != null) {
     var json = JSON.parse(payload.json)
     var keysList = Object.keys(json)
-    keysList.forEach(setBlockValue);
+    keysList.forEach(setBlockValue)
   }
 
   function setBlockValue(codeBlockName) {
@@ -187,8 +188,13 @@ socket.on('init block', (payload) => {
       var value = json[codeBlockName]
       setBlock(codeBlockName, value)
       setOnChangeFocusBlock(codeBlockName)
+      var splitCodeBlockName = codeBlockName.split(':')
+      findLastQueue.push(splitCodeBlockName[splitCodeBlockName.length - 1])
+      findLastQueue.sort(function(a,b){
+        return a - b
+      })
+      queueBlock = parseInt(findQueue[findQueue.length - 1]) + 1
       editor[codeBlockName].setValue(value)
-      console.log("Is fileName not null : " + currentFileName)
     }
   }
 
