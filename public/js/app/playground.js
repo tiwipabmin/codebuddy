@@ -43,10 +43,19 @@ var partnerTab = 'main';
 var isCloseTab = false;
 var editor = {}
 var output = {}
-var codeAllBlock = {};
+var codeAllBlock = [];
 var sizeOutputObjects = 0;
 var queueBlock = 0;
-var detectFocus = 0;
+var detectFocusBlock = 0;
+var detectIndexBlock = 0;
+
+function getIndexBlock(key){
+  var index = codeAllBlock.map(function (e) { return e.key }).indexOf(key)
+  if(index < 0){
+    return codeAllBlock.length
+  }
+  return index
+}
 
 
 projectFiles.forEach(newEditorFacade);
@@ -73,38 +82,63 @@ function setEditor(fileName){
   }
 }
 
-function setBlock(codeBlockName, value){
-  var divisionCodeBlock = document.createElement("div")
-  var codeBlock = document.createElement("textarea")
-  var map = {"Alt-R": function(cm){
-    runCode()
-  }}
+function getBlock(codeBlockName, value){
+  if(codeBlockName != "main"){
+    var divisionCodeBlock = document.createElement("div")
+    var codeBlock = document.createElement("textarea")
+    var map = {"Alt-R": function(cm){
+      runCode()
+    }}
+    var index = getIndexBlock(codeBlockName)
 
-  divisionCodeBlock.setAttribute('id', codeBlockName + "div")
-  codeBlock.setAttribute('id', codeBlockName)
-  divisionCodeBlock.appendChild(codeBlock)
-  segmentCodeBlock.appendChild(divisionCodeBlock)
-  editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
-    lineNumbers: true,
-    mode: {
-      name: 'python',
-      version: 3,
-      singleLineStringErrors: false,
-      styleActiveLine: true,
+    divisionCodeBlock.setAttribute('id', codeBlockName + "div")
+    codeBlock.setAttribute('id', codeBlockName)
+
+    var isRedundancyIndex = redundancyIndex(index)
+    console.log("redundancyIndex : " + isRedundancyIndex)
+
+    if(isRedundancyIndex){
+      divisionCodeBlock.appendChild(codeBlock)
+      segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index])
+    } else {
+      divisionCodeBlock.appendChild(codeBlock)
+      segmentCodeBlock.appendChild(divisionCodeBlock)
+    }
+
+    editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
       lineNumbers: true,
-      lineWrapping: true
-    },
-    theme: 'material',
-    indentUnit: 4,
-    matchBrackets: true,
-  })
-  editor[codeBlockName].on('focus', ()=>{
-    detectFocus = codeBlockName
-    console.log("detectFocus: " + codeBlockName)
-  })
-  setOnChangeFocusBlock(codeBlockName)
-  editor[codeBlockName].addKeyMap(map)
-  //editor[fileName].setValue(value)
+      mode: {
+        name: 'python',
+        version: 3,
+        singleLineStringErrors: false,
+        styleActiveLine: true,
+        lineNumbers: true,
+        lineWrapping: true
+      },
+      theme: 'material',
+      indentUnit: 4,
+      matchBrackets: true,
+    })
+    editor[codeBlockName].on('focus', ()=>{
+      detectFocusBlock = codeBlockName
+      detectIndexBlock = index
+      setOnChangeFocusBlock(codeBlockName, index)
+      console.log("detectFocusBlock : " + codeBlockName + " and detectIndexBlock : " + detectIndexBlock)
+    })
+    editor[codeBlockName].addKeyMap(map)
+    editor[codeBlockName].setValue(value)
+    var newObjectBlock = {}
+    newObjectBlock["key"] = codeBlockName
+    newObjectBlock["value"] = value
+    return newObjectBlock
+  }
+}
+
+function redundancyIndex(index) {
+  if(index <= codeAllBlock.length - 1 && index >= 0){
+    return true
+  }
+  return false
 }
 
 /**
@@ -179,22 +213,23 @@ socket.on('init block', (payload) => {
   var findLastQueue = []
   if(payload.json != null) {
     var json = JSON.parse(payload.json)
-    var keysList = Object.keys(json)
-    keysList.forEach(setBlockValue)
+    json.forEach(setBlockValue)
   }
 
-  function setBlockValue(codeBlockName) {
-    if(json != null){
-      var value = json[codeBlockName]
-      setBlock(codeBlockName, value)
-      setOnChangeFocusBlock(codeBlockName)
-      var splitCodeBlockName = codeBlockName.split(':')
-      findLastQueue.push(splitCodeBlockName[splitCodeBlockName.length - 1])
+  function setBlockValue(objectBlock) {
+    if(json != null && objectBlock["key"] != "main"){
+      var key = objectBlock["key"]
+      var value = objectBlock["value"]
+      codeAllBlock.push(getBlock(key, value))
+      var splitCodeBlockName = key.split(':')
+      findLastQueue.push(parseInt(splitCodeBlockName[splitCodeBlockName.length - 1]))
       findLastQueue.sort(function(a,b){
         return a - b
       })
-      queueBlock = parseInt(findQueue[findQueue.length - 1]) + 1
-      editor[codeBlockName].setValue(value)
+      queueBlock = parseInt(findLastQueue[findLastQueue.length - 1]) + 1
+      console.log("queueBlock : " + queueBlock + "findLastQueue : " + findLastQueue)
+      // editor[codeBlockName].setValue(value)
+
     }
   }
 
@@ -471,11 +506,11 @@ term.on('key', function (key, ev) {
 
 function addDivOutput(textOutput){
       var divisionOutput = document.createElement("div")
-      var divisionCodeBlock = document.getElementById(detectFocus + "div")
+      var divisionCodeBlock = document.getElementById(detectFocusBlock + "div")
       var prefomattedText = document.createElement("pre")
 
-      divisionOutput.setAttribute("id", detectFocus + "output")
-      prefomattedText.setAttribute("id", detectFocus + "pre")
+      divisionOutput.setAttribute("id", detectFocusBlock + "output")
+      prefomattedText.setAttribute("id", detectFocusBlock + "pre")
       prefomattedText.appendChild(textOutput)
       divisionOutput.appendChild(prefomattedText)
       divisionCodeBlock.appendChild(divisionOutput)
@@ -486,14 +521,14 @@ function addDivOutput(textOutput){
 socket.on('show output', (payload) => {
   var textOutput = document.createTextNode(payload)
   if(payload != "don\'t have output"){
-    if(detectFocus in output){
-      output[detectFocus] = textOutput
-      var preformattedText = document.getElementById(detectFocus + "pre")
+    if(detectFocusBlock in output){
+      output[detectFocusBlock] = textOutput
+      var preformattedText = document.getElementById(detectFocusBlock + "pre")
       preformattedText.removeChild(preformattedText.childNodes[0])
       preformattedText.appendChild(textOutput)
     } else {
-      output[detectFocus] = textOutput
-      addDivOutput(output[detectFocus])
+      output[detectFocusBlock] = textOutput
+      addDivOutput(output[detectFocusBlock])
       console.log("Output : " + payload)
     }
   }
@@ -539,10 +574,13 @@ function reKernel(){
  * Add code block
  */
 function addBlock(){
-  var codeBlockName = 'Block:' + queueBlock.toString()
+  var key = 'Block:' + queueBlock.toString()
+  var value = ""
+  var index = getIndexBlock(key)
+  var newObjectBlock = getBlock(key, value)
+  codeAllBlock.push(newObjectBlock)
   queueBlock++
-  setBlock(codeBlockName)
-  console.log("Add " + editor[codeBlockName] + " Success!!!");
+  console.log("Add " + editor[key] + " Success!!!");
 }
 
 /**
@@ -1057,13 +1095,11 @@ function setOnChangeEditer(fileName) {
   })
 }
 
-function setOnChangeFocusBlock(fileName) {
+function setOnChangeFocusBlock(fileName, index) {
   /**
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
   editor[fileName].on('change', (ins, data) => {
-
-    setCodeAllBlock()
 
     var text = data.text.toString().charCodeAt(0)
     console.log("data.text.toString() : " + data.text.toString())
@@ -1104,6 +1140,8 @@ function setOnChangeFocusBlock(fileName) {
         isDelete: isDelete,
       })
     }
+
+    setCodeBlock(fileName, index)
 
     socket.emit('code change', {
       code: data,
@@ -1174,22 +1212,14 @@ function getAllFileEditor() {
 }
 
 function getCodeFocusBlock() {
-  var codeFocusBlock = editor[detectFocus].getValue();
+  var codeFocusBlock = editor[detectFocusBlock].getValue();
   console.log(codeFocusBlock);
   return codeFocusBlock;
 }
 
-function setCodeAllBlock(){
-  if(!!Object.keys(codeAllBlock).length){
-    var keysList = Object.keys(editor)
-    keysList.forEach(runCodeAllBlock)
-    function runCodeAllBlock(fileName) {
-      codeAllBlock[fileName] = editor[fileName].getValue()
-    }
-  } else {
-    codeAllBlock[detectFocus] = editor[detectFocus].getValue()
-  }
-  return codeAllBlock;
+function setCodeBlock(key, index){
+  var objectBlock = codeAllBlock[index]
+  objectBlock["value"] = editor[key].getValue()
 }
 
 function newEditorFacade(fileName) {
