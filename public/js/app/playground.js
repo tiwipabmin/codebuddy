@@ -47,7 +47,6 @@ var codeAllBlock = [];
 var sizeOutputObjects = 0;
 var queueBlock = 0;
 var detectFocusBlock = 0;
-var detectIndexBlock = 0;
 
 function getIndexBlock(key){
   var index = codeAllBlock.map(function (e) { return e.key }).indexOf(key)
@@ -89,7 +88,7 @@ function getBlock(codeBlockName, value){
     var map = {"Alt-R": function(cm){
       runCode()
     }}
-    var index = getIndexBlock(codeBlockName)
+    var index = getIndexBlock(detectFocusBlock)
 
     divisionCodeBlock.setAttribute('id', codeBlockName + "div")
     codeBlock.setAttribute('id', codeBlockName)
@@ -97,9 +96,9 @@ function getBlock(codeBlockName, value){
     var isRedundancyIndex = redundancyIndex(index)
     console.log("redundancyIndex : " + isRedundancyIndex)
 
-    if(isRedundancyIndex){
+    if(isRedundancyIndex) {
       divisionCodeBlock.appendChild(codeBlock)
-      segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index])
+      segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index + 1])
     } else {
       divisionCodeBlock.appendChild(codeBlock)
       segmentCodeBlock.appendChild(divisionCodeBlock)
@@ -119,12 +118,6 @@ function getBlock(codeBlockName, value){
       indentUnit: 4,
       matchBrackets: true,
     })
-    editor[codeBlockName].on('focus', ()=>{
-      detectFocusBlock = codeBlockName
-      detectIndexBlock = index
-      setOnChangeFocusBlock(codeBlockName, index)
-      console.log("detectFocusBlock : " + codeBlockName + " and detectIndexBlock : " + detectIndexBlock)
-    })
     editor[codeBlockName].addKeyMap(map)
     editor[codeBlockName].setValue(value)
     var newObjectBlock = {}
@@ -135,9 +128,11 @@ function getBlock(codeBlockName, value){
 }
 
 function redundancyIndex(index) {
-  if(index <= codeAllBlock.length - 1 && index >= 0){
+  if(index < (codeAllBlock.length - 1) && index >= 0){
+    console.log("In Function redun : " + index)
     return true
   }
+  console.log("In Function redun : " + index)
   return false
 }
 
@@ -221,6 +216,12 @@ socket.on('init block', (payload) => {
       var key = objectBlock["key"]
       var value = objectBlock["value"]
       codeAllBlock.push(getBlock(key, value))
+      var index = getIndexBlock(key)
+      editor[key].on('focus', ()=>{
+        detectFocusBlock = key
+        setOnChangeFocusBlock(key)
+        console.log("detectFocusBlock : " + key)
+      })
       var splitCodeBlockName = key.split(':')
       findLastQueue.push(parseInt(splitCodeBlockName[splitCodeBlockName.length - 1]))
       findLastQueue.sort(function(a,b){
@@ -576,9 +577,15 @@ function reKernel(){
 function addBlock(){
   var key = 'Block:' + queueBlock.toString()
   var value = ""
-  var index = getIndexBlock(key)
   var newObjectBlock = getBlock(key, value)
-  codeAllBlock.push(newObjectBlock)
+  codeAllBlock.splice(getIndexBlock(key), 0, newObjectBlock)
+  console.log(codeAllBlock)
+  var index = getIndexBlock(key)
+  editor[key].on('focus', ()=>{
+    detectFocusBlock = key
+    setOnChangeFocusBlock(key)
+    console.log("detectFocusBlock : " + key)
+  })
   queueBlock++
   console.log("Add " + editor[key] + " Success!!!");
 }
@@ -1095,7 +1102,7 @@ function setOnChangeEditer(fileName) {
   })
 }
 
-function setOnChangeFocusBlock(fileName, index) {
+function setOnChangeFocusBlock(fileName) {
   /**
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
@@ -1141,7 +1148,7 @@ function setOnChangeFocusBlock(fileName, index) {
       })
     }
 
-    setCodeBlock(fileName, index)
+    setCodeBlock(fileName)
 
     socket.emit('code change', {
       code: data,
@@ -1217,7 +1224,8 @@ function getCodeFocusBlock() {
   return codeFocusBlock;
 }
 
-function setCodeBlock(key, index){
+function setCodeBlock(key){
+  var index = getIndexBlock(key)
   var objectBlock = codeAllBlock[index]
   objectBlock["value"] = editor[key].getValue()
 }

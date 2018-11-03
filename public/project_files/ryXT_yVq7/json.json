@@ -1,1 +1,1 @@
-[{"key":"Block:0","value":"a = 1","index":0},{"key":"Block:1","value":"b = 2","index":1},{"key":"Block:2","value":"","index":2}]
+[{"key":"Block:0","value":"a = 1"},{"key":"Block:4","value":"c = 5"},{"key":"Block:3","value":"print(b)"},{"key":"Block:2","value":"print(a)"},{"key":"Block:1","value":"b = 2"},{"key":"Block:5","value":"e = 7"}]
