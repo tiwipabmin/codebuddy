@@ -257,17 +257,10 @@ block content
               a.item(class='add-file' onClick='addFile()')
                 i.plus.icon
             .ui.tab-content
-              each file,index in project.files
-                if index == 0
-                  .ui.bottom.attached.active.tab.segment(id=file+'-tab' data-tab='main')
-                    //- textarea#f.show
-                    textarea(id=file+'text').show
-                  |
-                  .ui.segment(id='segmentCodeBlock')
-                else
-                  .ui.bottom.attached.tab.segment(id=file+'-tab' data-tab=file)
-                    //- textarea#demotext.show
-                    textarea(id=file+'text').show
+                .ui.segment(id='segmentCodeBlock')
+                  each file in project.files
+                      div(id=file)
+                        textarea(id=file+'-text').show
             input(type='hidden' id='projectFiles' value=project.files)
           .ui.small.modal#filename-modal
             .header Filename
