@@ -83,6 +83,7 @@ function setEditor(fileName){
   cm.on('focus', (cm) => {
     // find index of focusing codemirror in editors array.
     detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
+    console.log(detectFocusBlock)
   })
   editors.push({ blockId: fileName, editor: cm })
 }
@@ -323,7 +324,7 @@ socket.on('update block', (payload) => {
     })
     editors.splice(index, 0, { blockId: blockId, editor: cm })
     setOnChangeEditer(blockId)
-    setOnDoubleClickEditor(blockId)    
+    setOnDoubleClickEditor(blockId)
   } else {
     // TODO: delete block
   }
@@ -538,13 +539,13 @@ term.on('key', function (key, ev) {
   }
 });
 
-function addDivOutput(textOutput){
+function addDivOutput(textOutput, blockId){
       var divisionOutput = document.createElement("div")
-      var divisionCodeBlock = document.getElementById(detectFocusBlock + "div")
+      var divisionCodeBlock = document.getElementById(blockId + "-div")
       var prefomattedText = document.createElement("pre")
 
-      divisionOutput.setAttribute("id", detectFocusBlock + "output")
-      prefomattedText.setAttribute("id", detectFocusBlock + "pre")
+      divisionOutput.setAttribute("id", blockId + "-output")
+      prefomattedText.setAttribute("id", blockId + "-pre")
       prefomattedText.appendChild(textOutput)
       divisionOutput.appendChild(prefomattedText)
       divisionCodeBlock.appendChild(divisionOutput)
@@ -554,15 +555,16 @@ function addDivOutput(textOutput){
 
 socket.on('show output', (payload) => {
   var textOutput = document.createTextNode(payload)
+  var blockId = editors[detectFocusBlock].blockId
   if(payload != "don\'t have output"){
     if(detectFocusBlock in output){
       output[detectFocusBlock] = textOutput
-      var preformattedText = document.getElementById(detectFocusBlock + "pre")
+      var preformattedText = document.getElementById(blockId + "-pre")
       preformattedText.removeChild(preformattedText.childNodes[0])
       preformattedText.appendChild(textOutput)
     } else {
       output[detectFocusBlock] = textOutput
-      addDivOutput(output[detectFocusBlock])
+      addDivOutput(output[detectFocusBlock], blockId)
       console.log("Output : " + payload)
     }
   }
@@ -633,6 +635,7 @@ function addBlock(){
 
   // random block id
   var random = '_' + Math.random().toString(36).substr(2, 9);
+  console.log("random : " + random.toString())
   socket.emit('add block', { blockId: random, index: detectFocusBlock+1, allBlockId: editors.map(function(obj) { return obj.blockId }) });
 }
 
@@ -1207,8 +1210,7 @@ function getAllFileEditor() {
 }
 
 function getCodeFocusBlock() {
-  var codeFocusBlock = editors[detectFocusBlock].getValue();
-  console.log(codeFocusBlock);
+  var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
   return codeFocusBlock;
 }
 
