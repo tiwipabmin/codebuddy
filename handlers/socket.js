@@ -34,6 +34,7 @@ module.exports = (server) => {
     var comments = []
     var index = null
     var runpty;
+    var focusBlock = "Block:0";
     var startPython = '';
     var cp = require('child_process');
 
@@ -513,6 +514,10 @@ module.exports = (server) => {
     client.on('run code', (payload) => {
       var codeFocusBlock = payload.codeFocusBlock;
       var codeAllBlock = JSON.stringify(payload.codeAllBlock)
+      focusBlock = payload.focusBlock
+
+      io.in(projectId).emit('focus block', focusBlock)
+
       const fs = require('fs')
       fs.writeFile('./public/project_files/'+projectId+'/main.py', codeFocusBlock, (err) => {
         if (err) throw err
@@ -538,6 +543,7 @@ module.exports = (server) => {
 
       spawnPython()
       detectOutput()
+      io.in(projectId).emit('restart a kernel')
 
     })
 
@@ -548,7 +554,7 @@ module.exports = (server) => {
 
     function detectOutput(){
 
-      startPython = '';
+      startPython = ""
 
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
@@ -556,15 +562,16 @@ module.exports = (server) => {
       })
       // detection code execute error
       runpty.stderr.on('data', (data) => {
-        var output = data.toString()
+        output = data.toString()
         var arrowLocation = output.indexOf('>>>')
         var tripleDotLocation = output.indexOf('...')
         if(startPython == '') startPython = data.toString();
         else if (arrowLocation != 0 && tripleDotLocation != 0) {
-          var output = output.slice(0, arrowLocation - 1)
+          output = output.slice(0, arrowLocation - 1)
           io.in(projectId).emit('show output', output)
         } else if (arrowLocation == 0) {
-          io.in(projectId).emit('show output', "don\'t have output")
+          output = "don\'t have output"
+          io.in(projectId).emit('show output', output)
         }
       })
     }

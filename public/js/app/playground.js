@@ -93,10 +93,11 @@ function getBlock(codeBlockName, value){
     divisionCodeBlock.setAttribute('id', codeBlockName + "div")
     codeBlock.setAttribute('id', codeBlockName)
 
-    var isRedundancyIndex = redundancyIndex(index)
-    console.log("redundancyIndex : " + isRedundancyIndex)
+    var isOutOfBound = outOfBound(index)
+    console.log("redundancyIndex : " + isOutOfBound)
 
-    if(isRedundancyIndex) {
+    //ถ้า true จะสามารถเพิ่ม Block ใหม่ข้างใต้ Block ที่สนใจได้ ถ้า false จะเพิ่ม Block เข้าไปท้ายสุด่
+    if(isOutOfBound) {
       divisionCodeBlock.appendChild(codeBlock)
       segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index + 1])
     } else {
@@ -127,12 +128,11 @@ function getBlock(codeBlockName, value){
   }
 }
 
-function redundancyIndex(index) {
+// ตรวจสอบ index ของ block ที่สนใจว่าเกินขอบเขตที่ index ของ array หรือไม่
+function outOfBound(index) {
   if(index < (codeAllBlock.length - 1) && index >= 0){
-    console.log("In Function redun : " + index)
     return true
   }
-  console.log("In Function redun : " + index)
   return false
 }
 
@@ -536,6 +536,11 @@ socket.on('show output', (payload) => {
 
 })
 
+//อัพเดท focus block ของทั้ง 2 คน
+socket.on('focus block', (payload) => {
+  detectFocusBlock = payload
+})
+
 /**
  * Pause running code
  */
@@ -549,7 +554,8 @@ function pauseRunCode() {
 function runCode() {
   socket.emit('run code', {
     codeFocusBlock: getCodeFocusBlock(),
-    codeAllBlock: codeAllBlock
+    codeAllBlock: codeAllBlock,
+    focusBlock: detectFocusBlock
   })
   term.writeln('Running pytest.py...')
 }
@@ -559,9 +565,12 @@ function runCode() {
  */
 function reKernel(){
   socket.emit('restart a kernel')
+}
+
+socket.on("restart a kernel", (payload) => {
   var keysList = Object.keys(output)
   console.log(keysList)
-  for (key in keysList){
+  for (key in keysList) {
     var divisionCodeBlock = document.getElementById(keysList[key] + "div")
     console.log("divisionCodeBlock : " + divisionCodeBlock + ", Key : " + keysList[key])
     divisionCodeBlock.removeChild(divisionCodeBlock.childNodes[2])
@@ -569,7 +578,7 @@ function reKernel(){
   output = {}
   sizeOutputObjects = 0
   term.writeln('Restart a kernel successes!')
-}
+})
 
 /**
  * Add code block
