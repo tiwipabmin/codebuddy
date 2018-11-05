@@ -41,16 +41,77 @@ var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
 var currentTab = 'main';
 var partnerTab = 'main';
 var isCloseTab = false;
-var editor = {};
+var editors = []
+var output = {}
+var codeAllBlock = [];
+var sizeOutputObjects = 0;
 var queueBlock = 0;
-var currentFileName = ''; //main
-var detectFocus = 0;
+var detectFocusBlock = 0;
+
+function getIndexBlock(key){
+  var index = codeAllBlock.map(function (e) { return e.key }).indexOf(key)
+  if(index < 0){
+    return codeAllBlock.length
+  }
+  return index
+}
+
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
 
+var segmentCodeBlock = document.getElementById("segmentCodeBlock")
+
 function setEditor(fileName){
-  if(!(fileName in editor)) {
-    editor[fileName] = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
+  var cm = CodeMirror.fromTextArea(document.getElementById(fileName+"-text"), {
+    lineNumbers: true,
+    mode: {
+      name: 'python',
+      version: 3,
+      singleLineStringErrors: false,
+      styleActiveLine: true,
+      lineNumbers: true,
+      lineWrapping: true
+    },
+    theme: 'material',
+    indentUnit: 4,
+    matchBrackets: true
+  })
+  cm.addKeyMap({
+    "Alt-R": function(cm) { runCode() },
+    "Ctrl-M": function(cm) { addBlock() }
+  })
+  cm.on('focus', (cm) => {
+    // find index of focusing codemirror in editors array.
+    detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
+  })
+  editors.push({ blockId: fileName, editor: cm })
+}
+
+function getBlock(codeBlockName, value){
+  if(codeBlockName != "main"){
+    var divisionCodeBlock = document.createElement("div")
+    var codeBlock = document.createElement("textarea")
+    var map = {"Alt-R": function(cm){
+      runCode()
+    }}
+    var index = getIndexBlock(detectFocusBlock)
+
+    divisionCodeBlock.setAttribute('id', codeBlockName + "div")
+    codeBlock.setAttribute('id', codeBlockName)
+
+    var isOutOfBound = outOfBound(index)
+    console.log("redundancyIndex : " + isOutOfBound)
+
+    //ถ้า true จะสามารถเพิ่ม Block ใหม่ข้างใต้ Block ที่สนใจได้ ถ้า false จะเพิ่ม Block เข้าไปท้ายสุด่
+    if(isOutOfBound) {
+      divisionCodeBlock.appendChild(codeBlock)
+      segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index + 1])
+    } else {
+      divisionCodeBlock.appendChild(codeBlock)
+      segmentCodeBlock.appendChild(divisionCodeBlock)
+    }
+
+    editors[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
       lineNumbers: true,
       mode: {
         name: 'python',
@@ -62,10 +123,23 @@ function setEditor(fileName){
       },
       theme: 'material',
       indentUnit: 4,
-      matchBrackets: true
+      matchBrackets: true,
     })
-  //  console.log('editor : ' + editor['main2'].toString())
+    editors[codeBlockName].addKeyMap(map)
+    editors[codeBlockName].setValue(value)
+    var newObjectBlock = {}
+    newObjectBlock["key"] = codeBlockName
+    newObjectBlock["value"] = value
+    return newObjectBlock
   }
+}
+
+// ตรวจสอบ index ของ block ที่สนใจว่าเกินขอบเขตที่ index ของ array หรือไม่
+function outOfBound(index) {
+  if(index < (codeAllBlock.length - 1) && index >= 0){
+    return true
+  }
+  return false
 }
 
 /**
@@ -87,7 +161,8 @@ function changeTheme() {
   isLight = !isLight;
 
   function setTheme(fileName) {
-    editor[fileName].setOption("theme", theme);
+    var blockObj = editors.find(obj => { return obj.blockId == fileName })
+    blockObj.editor.setOption("theme", theme);
   }
 }
 
@@ -113,14 +188,14 @@ socket.on('init state', (payload) => {
     var editorValues = JSON.parse(payload.editor);
     projectFiles.forEach(setEditorValue);
   } else {
-    editor['main'].setValue('');
+    editors['main'].setValue('');
   }
 
   function setEditorValue(fileName) {
     if(editorValues!=null){
-      editor[fileName].setValue(editorValues[fileName])
+      var blockObj = editors.find(obj => { return obj.blockId == fileName })
+      blockObj.editor.setValue(editorValues[fileName])
       currentFileName = fileName
-      console.log("Is fileName not null : " + currentFileName)
     }
   }
 
@@ -140,7 +215,8 @@ socket.on('init state', (payload) => {
 socket.on('init reviews', (payload) => {
   comments = payload
   for(var i in comments){
-    editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
+    var blockObj = editors.find(obj => { return obj.blockId == comments[i].file })
+    blockObj.editor.addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
   }
 })
 
@@ -190,6 +266,67 @@ socket.on('update tab', (payload) => {
     $(".file.menu").children('a').first().click();
   }
 
+})
+
+/**
+ * Update block when create or delete
+ */
+socket.on('update block', (payload) => {
+  var blockId = payload.blockId;
+  var index = payload.index;
+  var action = payload.action;
+
+  if (action == 'add') {
+    var divisionCodeBlock = document.createElement("div")
+    var codeBlock = document.createElement("textarea")
+
+    divisionCodeBlock.setAttribute('id', blockId + "div")
+    codeBlock.setAttribute('id', blockId+"-text")
+
+    // var isRedundancyIndex = redundancyIndex(index)
+    // console.log("redundancyIndex : " + isRedundancyIndex)
+
+    // if(isRedundancyIndex) {
+    //   divisionCodeBlock.appendChild(codeBlock)
+    //   segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index + 1])
+    // } else {
+    //   divisionCodeBlock.appendChild(codeBlock)
+    //   segmentCodeBlock.appendChild(divisionCodeBlock)
+    // }
+
+    divisionCodeBlock.appendChild(codeBlock)
+    segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.children[index])
+
+    // TODO: refactor setEditor with index parameter
+    // add codemirror of new into editors array
+    var cm = CodeMirror.fromTextArea(document.getElementById(blockId+"-text"), {
+      lineNumbers: true,
+      mode: {
+        name: 'python',
+        version: 3,
+        singleLineStringErrors: false,
+        styleActiveLine: true,
+        lineNumbers: true,
+        lineWrapping: true
+      },
+      theme: 'material',
+      indentUnit: 4,
+      matchBrackets: true
+    })
+    cm.addKeyMap({
+      "Alt-R": function(cm) { runCode() },
+      "Ctrl-M": function(cm) { addBlock() }
+    })
+    cm.on('focus', (cm) => {
+      // find index of focusing codemirror in editors array.
+      detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
+    })
+    editors.splice(index, 0, { blockId: blockId, editor: cm })
+    setOnChangeEditer(blockId)
+    setOnDoubleClickEditor(blockId)    
+  } else {
+    // TODO: delete block
+  }
 })
 
 /**
@@ -247,10 +384,12 @@ socket.on('role updated', (payload) => {
   }
 
   function setOptionFileNoCursor(fileName) {
-    editor[fileName].setOption('readOnly', 'nocursor')
+    var blockObj = editors.find(obj => { return obj.blockId == fileName })
+    blockObj.editor.setOption('readOnly', 'nocursor')
   }
   function setOptionFileShowCursor(fileName) {
-    editor[fileName].setOption('readOnly', false)
+    var blockObj = editors.find(obj => { return obj.blockId == fileName })
+    blockObj.editor.setOption('readOnly', false)
   }
 
   $(".partner-role-label").text(`${roles.partner}`)
@@ -294,9 +433,10 @@ $(window).bind('hashchange', function() {
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on('editor update', (payload) => {
-  editor[payload.fileName].replaceRange(payload.text, payload.from, payload.to);
+  var blockObj = editors.find(obj => { return obj.blockId == payload.fileName })
+  blockObj.editor.replaceRange(payload.text, payload.from, payload.to);
   setTimeout(function() {
-    editor[payload.fileName].refresh();
+    blockObj.editor.refresh();
   }, 1);
 })
 
@@ -337,7 +477,8 @@ function submitReview() {
 socket.on('new review', (payload) => {
   comments = payload
   comments.map((comment) => {
-    editor[comment.file].addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
+    var blockObj = editors.find(obj => { return obj.blockId == comment.file })
+    blockObj.editor.addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
   })
 })
 
@@ -352,7 +493,8 @@ function deleteReview() {
 socket.on('update after delete review', (payload) =>{
   comments = payload.comments
   deleteline = payload.deleteline
-  editor[payload.file].removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
+  var blockObj = editors.find(obj => { return obj.blockId == payload.file })
+  blockObj.editor.removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
 })
 
 socket.on('is typing', (payload) => {
@@ -396,6 +538,42 @@ term.on('key', function (key, ev) {
   }
 });
 
+function addDivOutput(textOutput){
+      var divisionOutput = document.createElement("div")
+      var divisionCodeBlock = document.getElementById(detectFocusBlock + "div")
+      var prefomattedText = document.createElement("pre")
+
+      divisionOutput.setAttribute("id", detectFocusBlock + "output")
+      prefomattedText.setAttribute("id", detectFocusBlock + "pre")
+      prefomattedText.appendChild(textOutput)
+      divisionOutput.appendChild(prefomattedText)
+      divisionCodeBlock.appendChild(divisionOutput)
+
+      sizeOutputObjects++;
+}
+
+socket.on('show output', (payload) => {
+  var textOutput = document.createTextNode(payload)
+  if(payload != "don\'t have output"){
+    if(detectFocusBlock in output){
+      output[detectFocusBlock] = textOutput
+      var preformattedText = document.getElementById(detectFocusBlock + "pre")
+      preformattedText.removeChild(preformattedText.childNodes[0])
+      preformattedText.appendChild(textOutput)
+    } else {
+      output[detectFocusBlock] = textOutput
+      addDivOutput(output[detectFocusBlock])
+      console.log("Output : " + payload)
+    }
+  }
+
+})
+
+//อัพเดท focus block ของทั้ง 2 คน
+socket.on('focus block', (payload) => {
+  detectFocusBlock = payload
+})
+
 /**
  * Pause running code
  */
@@ -408,7 +586,9 @@ function pauseRunCode() {
  */
 function runCode() {
   socket.emit('run code', {
-    code: getCodeFocusBlock()
+    codeFocusBlock: getCodeFocusBlock(),
+    codeAllBlock: codeAllBlock,
+    focusBlock: detectFocusBlock
   })
   term.writeln('Running pytest.py...')
 }
@@ -418,34 +598,42 @@ function runCode() {
  */
 function reKernel(){
   socket.emit('restart a kernel')
-  term.writeln('Restart a kernel successes!')
 }
+
+socket.on("restart a kernel", (payload) => {
+  var keysList = Object.keys(output)
+  console.log(keysList)
+  for (key in keysList) {
+    var divisionCodeBlock = document.getElementById(keysList[key] + "div")
+    console.log("divisionCodeBlock : " + divisionCodeBlock + ", Key : " + keysList[key])
+    divisionCodeBlock.removeChild(divisionCodeBlock.childNodes[2])
+  }
+  output = {}
+  sizeOutputObjects = 0
+  term.writeln('Restart a kernel successes!')
+})
 
 /**
  * Add code block
  */
 function addBlock(){
-  var codeBlockName = 'Block:' + queueBlock.toString();
-  queueBlock++;
-  editor[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(currentFileName+"text"), {
-    lineNumbers: true,
-    mode: {
-      name: 'python',
-      version: 3,
-      singleLineStringErrors: false,
-      styleActiveLine: true,
-      lineNumbers: true,
-      lineWrapping: true
-    },
-    theme: 'material',
-    indentUnit: 4,
-    matchBrackets: true,
-  })
-  editor[codeBlockName].on('focus', ()=>{
-    detectFocus = codeBlockName
-    console.log("detectFocus: " + detectFocus)
-  })
-  console.log("Add " + editor[codeBlockName] + " Success!!");
+  // var key = 'Block:' + queueBlock.toString()
+  // var value = ""
+  // var newObjectBlock = getBlock(key, value)
+  // codeAllBlock.splice(getIndexBlock(key), 0, newObjectBlock)
+  // console.log(codeAllBlock)
+  // var index = getIndexBlock(key)
+  // editor[key].on('focus', ()=>{
+  //   detectFocusBlock = key
+  //   setOnChangeFocusBlock(key)
+  //   console.log("detectFocusBlock : " + key)
+  // })
+  // queueBlock++
+  // console.log("Add " + editor[key] + " Success!!!");
+
+  // random block id
+  var random = '_' + Math.random().toString(36).substr(2, 9);
+  socket.emit('add block', { blockId: random, index: detectFocusBlock+1, allBlockId: editors.map(function(obj) { return obj.blockId }) });
 }
 
 /**
@@ -562,9 +750,9 @@ socket.on('show partner active tab', (payload) => {
 socket.on('set editor open tab', (payload) => {
   var code = JSON.parse(payload.editor)
   var fileName = payload.fileName
-  editor[fileName].setValue(code[fileName])
+  editors[fileName].setValue(code[fileName])
   for(var i in comments){
-    editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
+    editors[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
   }
 })
 
@@ -834,7 +1022,7 @@ function getActiveTab(fileName){
 
   currentTab = fileName
   setTimeout(function() {
-    editor[fileName].refresh();
+    editors[fileName].refresh();
   }, 1);
   sendActiveTab(currentTab)
   isCloseTab = false
@@ -845,7 +1033,7 @@ function closeTab(fileName){
   tab.remove();
   var tabContent = document.getElementById(fileName+'-tab');
   tabContent.remove();
-  delete editor[fileName]
+  delete editors[fileName]
   $(".file.menu").children('a').first().click();
   $("#main").click();
   isCloseTab = true;
@@ -905,9 +1093,11 @@ function setOnChangeEditer(fileName) {
   /**
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
-  editor[fileName].on('change', (ins, data) => {
+  var blockObj = editors.find(obj => { return obj.blockId == fileName })
+  blockObj.editor.on('change', (ins, data) => {
 
     var text = data.text.toString().charCodeAt(0)
+    console.log("data.text.toString() : " + data.text.toString())
     var enterline = parseInt(data.to.line)+1
     var remove = data.removed
     var isEnter = false
@@ -948,13 +1138,13 @@ function setOnChangeEditer(fileName) {
 
     socket.emit('code change', {
       code: data,
-      editor: editor[fileName].getValue(),
+      editor: blockObj.editor.getValue(),
       user: user,
       enterline: enterline,
       isEnter: isEnter,
       isDelete: isDelete,
       currentTab: fileName,
-      fileName : fileName
+      fileName: fileName
     })
   })
 }
@@ -963,14 +1153,15 @@ function setOnDoubleClickEditor(fileName) {
   /**
    * Code review modal
    */
-  editor[fileName].on('dblclick', () => {
-    let A1 = editor[fileName].getCursor().line
-    let A2 = editor[fileName].getCursor().ch
-    let B1 = editor[fileName].findWordAt({
+  var blockObj = editors.find(obj => { return obj.blockId == fileName })
+  blockObj.editor.on('dblclick', () => {
+    let A1 = blockObj.editor.getCursor().line
+    let A2 = blockObj.editor.getCursor().ch
+    let B1 = blockObj.editor.findWordAt({
       line: A1,
       ch: A2
     }).anchor.ch
-    let B2 = editor[fileName].findWordAt({
+    let B2 = blockObj.editor.findWordAt({
       line: A1,
       ch: A2
     }).head.ch
@@ -1009,19 +1200,22 @@ function getAllFileEditor() {
   var codeEditors = {};
   projectFiles.forEach(runCodeEachFile);
   function runCodeEachFile(fileName) {
-    codeEditors[fileName] = editor[fileName].getValue();
+    var blockObj = editors.find(obj => { return obj.blockId == fileName })
+    codeEditors[fileName] = blockObj.editor.getValue();
   }
   return codeEditors;
 }
 
 function getCodeFocusBlock() {
-  var codeFocusBlock = {};
-  projectFiles.forEach(runCodeEachFile);
-  function runCodeEachFile(fileName) {
-    codeFocusBlock[fileName] = editor[detectFocus].getValue();
-  }
+  var codeFocusBlock = editors[detectFocusBlock].getValue();
   console.log(codeFocusBlock);
   return codeFocusBlock;
+}
+
+function setCodeBlock(key){
+  var index = getIndexBlock(key)
+  var objectBlock = codeAllBlock[index]
+  objectBlock["value"] = editors[key].getValue()
 }
 
 function newEditorFacade(fileName) {

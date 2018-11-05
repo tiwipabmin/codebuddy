@@ -34,6 +34,7 @@ module.exports = (server) => {
     var comments = []
     var index = null
     var runpty;
+    var focusBlock = "Block:0";
     var startPython = '';
     var cp = require('child_process');
 
@@ -257,6 +258,42 @@ module.exports = (server) => {
       })
 
       io.in(projectId).emit('update tab', {fileName: payload, action: 'create'})
+    })
+
+    /**
+     * `add block` event fired when user add new block
+     * @param {Object} payload blockId
+     */
+
+    client.on('add block', (payload) => {
+      // add new blockId to selected index
+      var allBlockId = payload.allBlockId.splice(payload.index, 0, payload.blockId)
+
+      //save file name to mongoDB
+      Project.update({
+        pid: projectId
+      }, {
+        $set: {
+          files: payload.allBlockId
+        }
+      }, (err) => {
+        if (err) throw err
+      })
+
+      // Update JSON file
+      fs.readFile('./public/project_files/'+projectId+'/json.json', 'utf8', function (err, data) {
+        if (err) throw err;
+
+        // add block Obj to selected index
+        var blocks = JSON.parse(data);
+        blocks.splice(payload.index, 0, { id: payload.blockId, type: "code", source: "" });
+
+        fs.writeFile('./public/project_files/'+projectId+'/json.json', JSON.stringify(blocks), function (err) {
+          if (err) throw err;
+        });
+      });
+
+      io.in(projectId).emit('update block', {blockId: payload.blockId, index: payload.index, action: 'add'})
     })
 
     /**
@@ -505,14 +542,20 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('run code', (payload) => {
-      var code = payload.code;
+      var codeFocusBlock = payload.codeFocusBlock;
+      var codeAllBlock = JSON.stringify(payload.codeAllBlock)
+      focusBlock = payload.focusBlock
+
+      io.in(projectId).emit('focus block', focusBlock)
+
       const fs = require('fs')
-      const path = require('path')
-      Object.keys(code).forEach(function(key) {
-        fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
+      fs.writeFile('./public/project_files/'+projectId+'/main.py', codeFocusBlock, (err) => {
+        if (err) throw err
+      })
+
+      fs.writeFile('./public/project_files/'+projectId+'/json.json', codeAllBlock, (err) => {
           if (err) throw err
-        })
-      });
+      })
 
       fs.readFile('./public/project_files/'+projectId+'/'+'main.py', 'utf8', (err, data)=>{
         if (err) throw err;
@@ -530,6 +573,7 @@ module.exports = (server) => {
 
       spawnPython()
       detectOutput()
+      io.in(projectId).emit('restart a kernel')
 
     })
 
@@ -540,21 +584,24 @@ module.exports = (server) => {
 
     function detectOutput(){
 
-      startPython = '';
+      startPython = ""
 
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
-        io.in(projectId).emit('term update', data.toString())
+        io.in(projectId).emit('show output', data.toString())
       })
       // detection code execute error
       runpty.stderr.on('data', (data) => {
-        var output = data.toString()
+        output = data.toString()
         var arrowLocation = output.indexOf('>>>')
         var tripleDotLocation = output.indexOf('...')
         if(startPython == '') startPython = data.toString();
         else if (arrowLocation != 0 && tripleDotLocation != 0) {
-          var output = output.slice(0, arrowLocation - 1)
-          io.in(projectId).emit('term update', output)
+          output = output.slice(0, arrowLocation - 1)
+          io.in(projectId).emit('show output', output)
+        } else if (arrowLocation == 0) {
+          output = "don\'t have output"
+          io.in(projectId).emit('show output', output)
         }
       })
     }
