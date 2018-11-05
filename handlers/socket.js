@@ -215,10 +215,6 @@ module.exports = (server) => {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
 
-        client.emit('init block', {
-          json: await redis.hget(`project:${projectId}`, 'json', (err, ret) => ret)
-        })
-
         io.in(projectId).emit('auto update score')
 
         client.emit('init reviews', comments)
@@ -262,6 +258,42 @@ module.exports = (server) => {
       })
 
       io.in(projectId).emit('update tab', {fileName: payload, action: 'create'})
+    })
+
+    /**
+     * `add block` event fired when user add new block
+     * @param {Object} payload blockId
+     */
+
+    client.on('add block', (payload) => {
+      // add new blockId to selected index
+      var allBlockId = payload.allBlockId.splice(payload.index, 0, payload.blockId)
+
+      //save file name to mongoDB
+      Project.update({
+        pid: projectId
+      }, {
+        $set: {
+          files: payload.allBlockId
+        }
+      }, (err) => {
+        if (err) throw err
+      })
+
+      // Update JSON file
+      fs.readFile('./public/project_files/'+projectId+'/json.json', 'utf8', function (err, data) {
+        if (err) throw err;
+
+        // add block Obj to selected index
+        var blocks = JSON.parse(data);
+        blocks.splice(payload.index, 0, { id: payload.blockId, type: "code", source: "" });
+
+        fs.writeFile('./public/project_files/'+projectId+'/json.json', JSON.stringify(blocks), function (err) {
+          if (err) throw err;
+        });
+      });
+
+      io.in(projectId).emit('update block', {blockId: payload.blockId, index: payload.index, action: 'add'})
     })
 
     /**
@@ -339,13 +371,11 @@ module.exports = (server) => {
         editorName = payload.fileName;
         redis.hgetall(`project:${projectId}`, function (err, obj) {
           var editorJson = {};
-          var json = payload.json
           if(obj.editor != undefined) {
             var editorJson = JSON.parse(obj.editor);
           }
           editorJson[editorName] = payload.editor;
           redis.hset(`project:${projectId}`, 'editor', JSON.stringify(editorJson))
-          redis.hset(`project:${projectId}`, 'json', JSON.stringify(json))
         });
         // ------ history -----
         var enterText = payload.code.text
