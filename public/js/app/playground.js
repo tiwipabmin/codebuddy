@@ -557,14 +557,14 @@ socket.on('show output', (payload) => {
   var textOutput = document.createTextNode(payload)
   var blockId = editors[detectFocusBlock].blockId
   if(payload != "don\'t have output"){
-    if(detectFocusBlock in output){
-      output[detectFocusBlock] = textOutput
+    if(blockId in output){
+      output[blockId] = textOutput
       var preformattedText = document.getElementById(blockId + "-pre")
       preformattedText.removeChild(preformattedText.childNodes[0])
       preformattedText.appendChild(textOutput)
     } else {
-      output[detectFocusBlock] = textOutput
-      addDivOutput(output[detectFocusBlock], blockId)
+      output[blockId] = textOutput
+      addDivOutput(output[blockId], blockId)
       console.log("Output : " + payload)
     }
   }
@@ -606,7 +606,7 @@ socket.on("restart a kernel", (payload) => {
   var keysList = Object.keys(output)
   console.log(keysList)
   for (key in keysList) {
-    var divisionCodeBlock = document.getElementById(keysList[key] + "div")
+    var divisionCodeBlock = document.getElementById(keysList[key] + "-div")
     console.log("divisionCodeBlock : " + divisionCodeBlock + ", Key : " + keysList[key])
     divisionCodeBlock.removeChild(divisionCodeBlock.childNodes[2])
   }
