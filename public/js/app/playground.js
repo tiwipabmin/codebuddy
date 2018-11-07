@@ -303,18 +303,30 @@ socket.on('update block', (payload) => {
       indentUnit: 4,
       matchBrackets: true
     })
+
     cm.addKeyMap({
       "Alt-R": function(cm) { runCode() },
       "Alt-N": function(cm) { addBlock() },
       "Alt-D": function(cm) { deleteBlock() }
     })
+
     cm.on('focus', (cm) => {
       // find index of focusing codemirror in editors array.
       detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
     })
+    
     editors.splice(index, 0, { blockId: blockId, editor: cm })
     setOnChangeEditer(blockId)
-    setOnDoubleClickEditor(blockId)    
+    setOnDoubleClickEditor(blockId)
+
+    switch (roles.user) {
+      case 'coder':
+        cm.setOption('readOnly', false) // show cursor
+        break
+      case 'reviewer':
+        cm.setOption('readOnly', 'nocursor') // no cursor
+        break
+    }
   } else {
     var divisionCodeBlock = document.getElementById(blockId+'-div')
     divisionCodeBlock.remove()
