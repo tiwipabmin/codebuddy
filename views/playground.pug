@@ -259,7 +259,7 @@ block content
             .ui.tab-content
                 .ui.segment(id='segmentCodeBlock')
                   each file in project.files
-                      div(id=file)
+                      div(id=file+'-div')
                         textarea(id=file+'-text').show
             input(type='hidden' id='projectFiles' value=project.files)
           .ui.small.modal#filename-modal
