@@ -330,6 +330,44 @@ module.exports = (server) => {
     })
 
     /**
+     * `delete block` event fired when user click delete block
+     * @param {Object} payload fileName
+     */
+    client.on('delete block', async (payload) => {
+      //delete block id in mongoDB
+      Project.update({
+        pid: projectId
+      }, {
+        $pull: {
+          files: payload.blockId
+        }
+      }, (err) => {
+        if (err) throw err
+      })
+
+      //delete code in redis
+      var code = JSON.parse(await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret))
+      if(code != null){
+        delete code[payload.blockId]
+        redis.hset(`project:${projectId}`, 'editor', JSON.stringify(code))
+      }
+
+      // // Update JSON file
+      // fs.readFile('./public/project_files/'+projectId+'/json.json', 'utf8', function (err, data) {
+      //   if (err) throw err;
+
+      //   // add block Obj to selected index
+      //   var blocks = JSON.parse(data);
+
+      //   fs.writeFile('./public/project_files/'+projectId+'/json.json', JSON.stringify(blocks), function (err) {
+      //     if (err) throw err;
+      //   });
+      // });
+
+      io.in(projectId).emit('update block', {blockId: payload.blockId, action: 'delete'})
+    })
+
+    /**
      * `role selected` event fired when one of the project user select his role
      * @param {Ibject} payload user selected role and partner username
      * then socket will broadcast the role to his partner

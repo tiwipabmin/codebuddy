@@ -78,7 +78,8 @@ function setEditor(fileName){
   })
   cm.addKeyMap({
     "Alt-R": function(cm) { runCode() },
-    "Ctrl-M": function(cm) { addBlock() }
+    "Alt-N": function(cm) { addBlock() },
+    "Alt-D": function(cm) { deleteBlock() }
   })
   cm.on('focus', (cm) => {
     // find index of focusing codemirror in editors array.
@@ -281,19 +282,8 @@ socket.on('update block', (payload) => {
     var divisionCodeBlock = document.createElement("div")
     var codeBlock = document.createElement("textarea")
 
-    divisionCodeBlock.setAttribute('id', blockId + "div")
+    divisionCodeBlock.setAttribute('id', blockId+'-div')
     codeBlock.setAttribute('id', blockId+"-text")
-
-    // var isRedundancyIndex = redundancyIndex(index)
-    // console.log("redundancyIndex : " + isRedundancyIndex)
-
-    // if(isRedundancyIndex) {
-    //   divisionCodeBlock.appendChild(codeBlock)
-    //   segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index + 1])
-    // } else {
-    //   divisionCodeBlock.appendChild(codeBlock)
-    //   segmentCodeBlock.appendChild(divisionCodeBlock)
-    // }
 
     divisionCodeBlock.appendChild(codeBlock)
     segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.children[index])
@@ -314,14 +304,18 @@ socket.on('update block', (payload) => {
       indentUnit: 4,
       matchBrackets: true
     })
+
     cm.addKeyMap({
       "Alt-R": function(cm) { runCode() },
-      "Ctrl-M": function(cm) { addBlock() }
+      "Alt-N": function(cm) { addBlock() },
+      "Alt-D": function(cm) { deleteBlock() }
     })
+
     cm.on('focus', (cm) => {
       // find index of focusing codemirror in editors array.
       detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
     })
+    
     editors.splice(index, 0, { blockId: blockId, editor: cm })
     setOnChangeEditer(blockId)
     setOnDoubleClickEditor(blockId)
@@ -631,20 +625,6 @@ socket.on("restart a kernel", (payload) => {
  * Add code block
  */
 function addBlock(){
-  // var key = 'Block:' + queueBlock.toString()
-  // var value = ""
-  // var newObjectBlock = getBlock(key, value)
-  // codeAllBlock.splice(getIndexBlock(key), 0, newObjectBlock)
-  // console.log(codeAllBlock)
-  // var index = getIndexBlock(key)
-  // editor[key].on('focus', ()=>{
-  //   detectFocusBlock = key
-  //   setOnChangeFocusBlock(key)
-  //   console.log("detectFocusBlock : " + key)
-  // })
-  // queueBlock++
-  // console.log("Add " + editor[key] + " Success!!!");
-
   // random block id
   var random = '_' + Math.random().toString(36).substr(2, 9);
   console.log("random : " + random.toString())
@@ -1088,6 +1068,10 @@ function showDeleteFileModal(fileName){
 
 function deleteFile(fileName){
   socket.emit('delete file', fileName)
+}
+
+function deleteBlock() {
+  socket.emit('delete block', { blockId: editors[detectFocusBlock].blockId, index: detectFocusBlock });
 }
 
 function onClickExport(){
