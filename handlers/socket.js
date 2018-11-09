@@ -588,6 +588,7 @@ module.exports = (server) => {
 
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
+        console.log("data : " + data.toString())
         io.in(projectId).emit('show output', data.toString())
       })
       // detection code execute error
