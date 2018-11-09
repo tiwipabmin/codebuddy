@@ -325,8 +325,21 @@ socket.on('update block', (payload) => {
     editors.splice(index, 0, { blockId: blockId, editor: cm })
     setOnChangeEditer(blockId)
     setOnDoubleClickEditor(blockId)
+
+    switch (roles.user) {
+      case 'coder':
+        cm.setOption('readOnly', false) // show cursor
+        break
+      case 'reviewer':
+        cm.setOption('readOnly', 'nocursor') // no cursor
+        break
+    }
   } else {
     // TODO: delete block
+    var divisionCodeBlock = document.getElementById(blockId+'-div')
+    divisionCodeBlock.remove()
+
+    editors.splice(detectFocusBlock, 1)
   }
 })
 
