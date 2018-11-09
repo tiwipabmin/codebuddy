@@ -84,6 +84,7 @@ function setEditor(fileName){
   cm.on('focus', (cm) => {
     // find index of focusing codemirror in editors array.
     detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
+    console.log(detectFocusBlock)
   })
   editors.push({ blockId: fileName, editor: cm })
 }
@@ -544,13 +545,13 @@ term.on('key', function (key, ev) {
   }
 });
 
-function addDivOutput(textOutput){
+function addDivOutput(textOutput, blockId){
       var divisionOutput = document.createElement("div")
-      var divisionCodeBlock = document.getElementById(detectFocusBlock + "div")
+      var divisionCodeBlock = document.getElementById(blockId + "-div")
       var prefomattedText = document.createElement("pre")
 
-      divisionOutput.setAttribute("id", detectFocusBlock + "output")
-      prefomattedText.setAttribute("id", detectFocusBlock + "pre")
+      divisionOutput.setAttribute("id", blockId + "-output")
+      prefomattedText.setAttribute("id", blockId + "-pre")
       prefomattedText.appendChild(textOutput)
       divisionOutput.appendChild(prefomattedText)
       divisionCodeBlock.appendChild(divisionOutput)
@@ -560,15 +561,16 @@ function addDivOutput(textOutput){
 
 socket.on('show output', (payload) => {
   var textOutput = document.createTextNode(payload)
+  var blockId = editors[detectFocusBlock].blockId
   if(payload != "don\'t have output"){
-    if(detectFocusBlock in output){
-      output[detectFocusBlock] = textOutput
-      var preformattedText = document.getElementById(detectFocusBlock + "pre")
+    if(blockId in output){
+      output[blockId] = textOutput
+      var preformattedText = document.getElementById(blockId + "-pre")
       preformattedText.removeChild(preformattedText.childNodes[0])
       preformattedText.appendChild(textOutput)
     } else {
-      output[detectFocusBlock] = textOutput
-      addDivOutput(output[detectFocusBlock])
+      output[blockId] = textOutput
+      addDivOutput(output[blockId], blockId)
       console.log("Output : " + payload)
     }
   }
@@ -610,7 +612,7 @@ socket.on("restart a kernel", (payload) => {
   var keysList = Object.keys(output)
   console.log(keysList)
   for (key in keysList) {
-    var divisionCodeBlock = document.getElementById(keysList[key] + "div")
+    var divisionCodeBlock = document.getElementById(keysList[key] + "-div")
     console.log("divisionCodeBlock : " + divisionCodeBlock + ", Key : " + keysList[key])
     divisionCodeBlock.removeChild(divisionCodeBlock.childNodes[2])
   }
@@ -625,6 +627,7 @@ socket.on("restart a kernel", (payload) => {
 function addBlock(){
   // random block id
   var random = '_' + Math.random().toString(36).substr(2, 9);
+  console.log("random : " + random.toString())
   socket.emit('add block', { blockId: random, index: detectFocusBlock+1, allBlockId: editors.map(function(obj) { return obj.blockId }) });
 }
 
@@ -1203,8 +1206,7 @@ function getAllFileEditor() {
 }
 
 function getCodeFocusBlock() {
-  var codeFocusBlock = editors[detectFocusBlock].getValue();
-  console.log(codeFocusBlock);
+  var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
   return codeFocusBlock;
 }
 
