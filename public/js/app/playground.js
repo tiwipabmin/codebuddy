@@ -335,7 +335,6 @@ socket.on('update block', (payload) => {
         break
     }
   } else {
-    // TODO: delete block
     var divisionCodeBlock = document.getElementById(blockId+'-div')
     divisionCodeBlock.remove()
 
