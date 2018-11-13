@@ -595,11 +595,15 @@ module.exports = (server) => {
           if (err) throw err
       })
 
-      fs.readFile('./public/project_files/'+projectId+'/'+'main.py', 'utf8', (err, data)=>{
-        if (err) throw err;
-        runpty.stdin.write(data);
-        runpty.stdin.write('\n\n');
-      });
+      setTimeout(execCode, 100)
+
+      function execCode() {
+        // built-in functions of python version 2.7
+        runpty.stdin.write('execfile(\"./public/project_files/'+projectId+'/main.py\")\n');
+      }
+      
+      // built-in functions of python version 3
+      // runpty.stdin.write('exec(open(\'./public/project_files/'+projectId+'/main.py\').read())\n');
 
       // setTimeout(runpty.kill.bind(runpty), 3000);
     })
@@ -617,7 +621,7 @@ module.exports = (server) => {
 
     function spawnPython(){
       if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
-      else runpty = cp.spawn('python', ['-i'], {})
+      else runpty = cp.spawn('python', ['-i', '-u'], {})
     }
 
     function detectOutput(){
@@ -626,6 +630,7 @@ module.exports = (server) => {
 
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
+        console.log("data : " + data.toString())
         io.in(projectId).emit('show output', data.toString())
       })
       // detection code execute error
