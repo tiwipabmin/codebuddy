@@ -599,11 +599,11 @@ module.exports = (server) => {
 
       function execCode() {
         // built-in functions of python version 2.7
-        runpty.stdin.write('execfile(\"./public/project_files/'+projectId+'/main.py\")\n');
+        // runpty.stdin.write('execfile(\"./public/project_files/'+projectId+'/main.py\")\n');
+
+        // built-in functions of python version 3
+        runpty.stdin.write('exec(open(\'./public/project_files/'+projectId+'/main.py\').read())\n');
       }
-      
-      // built-in functions of python version 3
-      // runpty.stdin.write('exec(open(\'./public/project_files/'+projectId+'/main.py\').read())\n');
 
       // setTimeout(runpty.kill.bind(runpty), 3000);
     })
@@ -622,29 +622,50 @@ module.exports = (server) => {
     function spawnPython(){
       if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
       else runpty = cp.spawn('python', ['-i', '-u'], {})
+      runpty.stderr.on("data", function (data) {
+        console.log(data.toString())
+      })
     }
 
     function detectOutput(){
-
-      startPython = ""
-
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
-        console.log("data : " + data.toString())
-        io.in(projectId).emit('show output', data.toString())
+        dataPack = {
+          status: "processing",
+          data: data.toString()
+        }
+        // console.log("data : " + data.toString())
+        io.in(projectId).emit('show output', dataPack)
       })
       // detection code execute error
       runpty.stderr.on('data', (data) => {
         output = data.toString()
+
         var arrowLocation = output.indexOf('>>>')
+        var drawArrow = ''
+        if(arrowLocation != -1) {
+          if(arrowLocation == 0) {
+            drawArrow = output.slice(0, 3)
+          } else {
+            drawArrow = output.slice(arrowLocation, arrowLocation+3)
+          }
+        }
+        // triple dot occur in for loop case
         var tripleDotLocation = output.indexOf('...')
-        if(startPython == '') startPython = data.toString();
-        else if (arrowLocation != 0 && tripleDotLocation != 0) {
+        if (output.indexOf('Error') != -1) {
           output = output.slice(0, arrowLocation - 1)
-          io.in(projectId).emit('show output', output)
-        } else if (arrowLocation == 0) {
-          output = "don\'t have output"
-          io.in(projectId).emit('show output', output)
+          dataPack = {
+            status: "error",
+            data: output
+          }
+          io.in(projectId).emit('show output', dataPack)
+        }
+        if (drawArrow == '>>>') {
+          dataPack = {
+            status: "finished",
+            data: output
+          }
+          io.in(projectId).emit('show output', dataPack)
         }
       })
     }

@@ -47,6 +47,8 @@ var codeAllBlock = [];
 var sizeOutputObjects = 0;
 var queueBlock = 0;
 var detectFocusBlock = 0;
+var bufferOutput = {output:'', error:''};
+var hasError = false;
 
 function getIndexBlock(key){
   var index = codeAllBlock.map(function (e) { return e.key }).indexOf(key)
@@ -315,7 +317,7 @@ socket.on('update block', (payload) => {
       // find index of focusing codemirror in editors array.
       detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
     })
-    
+
     editors.splice(index, 0, { blockId: blockId, editor: cm })
     setOnChangeEditer(blockId)
     setOnDoubleClickEditor(blockId)
@@ -546,35 +548,60 @@ term.on('key', function (key, ev) {
 });
 
 function addDivOutput(textOutput, blockId){
-      var divisionOutput = document.createElement("div")
       var divisionCodeBlock = document.getElementById(blockId + "-div")
+      var divisionOutput = document.createElement("div")
       var prefomattedText = document.createElement("pre")
 
-      divisionOutput.setAttribute("id", blockId + "-output")
+      divisionOutput.setAttribute("id", blockId + "-stdout")
       prefomattedText.setAttribute("id", blockId + "-pre")
       prefomattedText.appendChild(textOutput)
       divisionOutput.appendChild(prefomattedText)
       divisionCodeBlock.appendChild(divisionOutput)
-
       sizeOutputObjects++;
 }
 
 socket.on('show output', (payload) => {
-  var textOutput = document.createTextNode(payload)
-  var blockId = editors[detectFocusBlock].blockId
-  if(payload != "don\'t have output"){
-    if(blockId in output){
-      output[blockId] = textOutput
+  if(payload.status == 'processing') {
+    bufferOutput.output += payload.data
+  } else if(payload.status == 'error') {
+    bufferOutput.error += payload.data
+    hasError = true
+  } else if(payload.status == 'finished' && (bufferOutput.output != '' || bufferOutput.error != '')) {
+    var blockId = editors[detectFocusBlock].blockId
+    if(blockId in output) {
       var preformattedText = document.getElementById(blockId + "-pre")
       preformattedText.removeChild(preformattedText.childNodes[0])
-      preformattedText.appendChild(textOutput)
+      if(hasError) {
+        output[blockId] = document.createTextNode(bufferOutput.error)
+      } else {
+        output[blockId] = document.createTextNode(bufferOutput.output)
+      }
+      preformattedText.appendChild(output[blockId])
     } else {
-      output[blockId] = textOutput
+      if(hasError) {
+        output[blockId] = document.createTextNode(bufferOutput.error)
+      } else {
+        output[blockId] = document.createTextNode(bufferOutput.output)
+      }
       addDivOutput(output[blockId], blockId)
-      console.log("Output : " + payload)
     }
+    bufferOutput.output = ''
+    bufferOutput.error = ''
+    hasError = false
   }
-
+  // if(payload != "don\'t have output"){
+    // if(blockId in output){
+    //   output[blockId] = textOutput
+    //   var preformattedText = document.getElementById(blockId + "-pre")
+    //   preformattedText.removeChild(preformattedText.childNodes[0])
+    //   preformattedText.appendChild(textOutput)
+    //   console.log("preformattedText.getValue : " + preformattedText.getValue())
+    // } else {
+    //   output[blockId] = textOutput
+    //   addDivOutput(output[blockId], blockId)
+    //   console.log("Output : " + payload)
+    // }
+  // }
 })
 
 //อัพเดท focus block ของทั้ง 2 คน
