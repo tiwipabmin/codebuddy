@@ -568,21 +568,23 @@ socket.on('show output', (payload) => {
     hasError = true
   } else if(payload.status == 'finished' && (bufferOutput.output != '' || bufferOutput.error != '')) {
     var blockId = editors[detectFocusBlock].blockId
+
+    var hasBlockIdInOutputObject = false
     if(blockId in output) {
+      hasBlockIdInOutputObject = true
+    }
+
+    if(hasError) {
+      output[blockId] = document.createTextNode(bufferOutput.error)
+    } else {
+      output[blockId] = document.createTextNode(bufferOutput.output)
+    }
+
+    if(hasBlockIdInOutputObject) {
       var preformattedText = document.getElementById(blockId + "-pre")
       preformattedText.removeChild(preformattedText.childNodes[0])
-      if(hasError) {
-        output[blockId] = document.createTextNode(bufferOutput.error)
-      } else {
-        output[blockId] = document.createTextNode(bufferOutput.output)
-      }
       preformattedText.appendChild(output[blockId])
     } else {
-      if(hasError) {
-        output[blockId] = document.createTextNode(bufferOutput.error)
-      } else {
-        output[blockId] = document.createTextNode(bufferOutput.output)
-      }
       addDivOutput(output[blockId], blockId)
     }
     bufferOutput.output = ''
