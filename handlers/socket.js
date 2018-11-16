@@ -37,6 +37,8 @@ module.exports = (server) => {
     var focusBlock = "Block:0";
     var startPython = '';
     var cp = require('child_process');
+    var isBugArrow = false;
+    var isError = false;
 
      spawnPython()
      detectOutput()
@@ -583,6 +585,8 @@ module.exports = (server) => {
       var codeFocusBlock = payload.codeFocusBlock;
       var codeAllBlock = JSON.stringify(payload.codeAllBlock)
       focusBlock = payload.focusBlock
+      isError = false
+      isBugArrow = false
 
       io.in(projectId).emit('focus block', focusBlock)
 
@@ -630,12 +634,14 @@ module.exports = (server) => {
     function detectOutput(){
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
-        dataPack = {
-          status: "processing",
-          data: data.toString()
+        if(!isBugArrow || !isError) {
+          dataPack = {
+            status: "processing",
+            data: data.toString()
+          }
+          // console.log("data : " + data.toString())
+          io.in(projectId).emit('show output', dataPack);
         }
-        // console.log("data : " + data.toString())
-        io.in(projectId).emit('show output', dataPack)
       })
       // detection code execute error
       runpty.stderr.on('data', (data) => {
@@ -643,16 +649,18 @@ module.exports = (server) => {
 
         var arrowLocation = output.indexOf('>>>')
         var drawArrow = ''
-        if(arrowLocation != -1) {
-          if(arrowLocation == 0) {
-            drawArrow = output.slice(0, 3)
-          } else {
-            drawArrow = output.slice(arrowLocation, arrowLocation+3)
-          }
+        if(arrowLocation == 0) {
+          drawArrow = output.slice(0, 3)
+        } else {
+          drawArrow = output.slice(arrowLocation, arrowLocation+3)
+          isBugArrow = true
         }
         // triple dot occur in for loop case
         var tripleDotLocation = output.indexOf('...')
         if (output.indexOf('Error') != -1) {
+          if(isBugArrow){
+            isError = true
+          }
           output = output.slice(0, arrowLocation - 1)
           dataPack = {
             status: "error",
