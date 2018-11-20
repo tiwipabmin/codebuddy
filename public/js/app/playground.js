@@ -43,20 +43,10 @@ var partnerTab = 'main';
 var isCloseTab = false;
 var editors = []
 var output = {}
-var codeAllBlock = [];
 var sizeOutputObjects = 0;
-var queueBlock = 0;
 var detectFocusBlock = 0;
 var bufferOutput = {output:'', error:''};
 var hasError = false;
-
-function getIndexBlock(key){
-  var index = codeAllBlock.map(function (e) { return e.key }).indexOf(key)
-  if(index < 0){
-    return codeAllBlock.length
-  }
-  return index
-}
 
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
@@ -89,61 +79,6 @@ function setEditor(fileName){
     console.log(detectFocusBlock)
   })
   editors.push({ blockId: fileName, editor: cm })
-}
-
-function getBlock(codeBlockName, value){
-  if(codeBlockName != "main"){
-    var divisionCodeBlock = document.createElement("div")
-    var codeBlock = document.createElement("textarea")
-    var map = {"Alt-R": function(cm){
-      runCode()
-    }}
-    var index = getIndexBlock(detectFocusBlock)
-
-    divisionCodeBlock.setAttribute('id', codeBlockName + "div")
-    codeBlock.setAttribute('id', codeBlockName)
-
-    var isOutOfBound = outOfBound(index)
-    console.log("redundancyIndex : " + isOutOfBound)
-
-    //ถ้า true จะสามารถเพิ่ม Block ใหม่ข้างใต้ Block ที่สนใจได้ ถ้า false จะเพิ่ม Block เข้าไปท้ายสุด่
-    if(isOutOfBound) {
-      divisionCodeBlock.appendChild(codeBlock)
-      segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index + 1])
-    } else {
-      divisionCodeBlock.appendChild(codeBlock)
-      segmentCodeBlock.appendChild(divisionCodeBlock)
-    }
-
-    editors[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
-      lineNumbers: true,
-      mode: {
-        name: 'python',
-        version: 3,
-        singleLineStringErrors: false,
-        styleActiveLine: true,
-        lineNumbers: true,
-        lineWrapping: true
-      },
-      theme: 'material',
-      indentUnit: 4,
-      matchBrackets: true,
-    })
-    editors[codeBlockName].addKeyMap(map)
-    editors[codeBlockName].setValue(value)
-    var newObjectBlock = {}
-    newObjectBlock["key"] = codeBlockName
-    newObjectBlock["value"] = value
-    return newObjectBlock
-  }
-}
-
-// ตรวจสอบ index ของ block ที่สนใจว่าเกินขอบเขตที่ index ของ array หรือไม่
-function outOfBound(index) {
-  if(index < (codeAllBlock.length - 1) && index >= 0){
-    return true
-  }
-  return false
 }
 
 /**
@@ -624,7 +559,6 @@ function pauseRunCode() {
 function runCode() {
   socket.emit('run code', {
     codeFocusBlock: getCodeFocusBlock(),
-    codeAllBlock: codeAllBlock,
     focusBlock: detectFocusBlock
   })
   term.writeln('Running pytest.py...')
@@ -1237,12 +1171,6 @@ function getAllFileEditor() {
 function getCodeFocusBlock() {
   var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
   return codeFocusBlock;
-}
-
-function setCodeBlock(key){
-  var index = getIndexBlock(key)
-  var objectBlock = codeAllBlock[index]
-  objectBlock["value"] = editors[key].getValue()
 }
 
 function newEditorFacade(fileName) {

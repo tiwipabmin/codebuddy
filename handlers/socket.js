@@ -583,7 +583,6 @@ module.exports = (server) => {
      */
     client.on('run code', (payload) => {
       var codeFocusBlock = payload.codeFocusBlock;
-      var codeAllBlock = JSON.stringify(payload.codeAllBlock)
       focusBlock = payload.focusBlock
       isError = false
       isBugArrow = false
@@ -593,10 +592,6 @@ module.exports = (server) => {
       const fs = require('fs')
       fs.writeFile('./public/project_files/'+projectId+'/main.py', codeFocusBlock, (err) => {
         if (err) throw err
-      })
-
-      fs.writeFile('./public/project_files/'+projectId+'/json.json', codeAllBlock, (err) => {
-          if (err) throw err
       })
 
       setTimeout(execCode, 100)
@@ -639,7 +634,7 @@ module.exports = (server) => {
             status: "processing",
             data: data.toString()
           }
-          // console.log("data : " + data.toString())
+          console.log("data : " + data.toString())
           io.in(projectId).emit('show output', dataPack);
         }
       })
