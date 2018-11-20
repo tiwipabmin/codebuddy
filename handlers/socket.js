@@ -35,10 +35,8 @@ module.exports = (server) => {
     var index = null
     var runpty;
     var focusBlock = "Block:0";
-    var startPython = '';
     var cp = require('child_process');
-    var isBugArrow = false;
-    var isError = false;
+    var bufferOutput = {output: '', error: ''}
 
      spawnPython()
      detectOutput()
@@ -582,10 +580,8 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('run code', (payload) => {
-      var codeFocusBlock = payload.codeFocusBlock;
+      var codeFocusBlock = payload.codeFocusBlock
       focusBlock = payload.focusBlock
-      isError = false
-      isBugArrow = false
 
       io.in(projectId).emit('focus block', focusBlock)
 
@@ -629,13 +625,8 @@ module.exports = (server) => {
     function detectOutput(){
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
-        if(!isBugArrow || !isError) {
-          dataPack = {
-            status: "processing",
-            data: data.toString()
-          }
-          console.log("data : " + data.toString())
-          io.in(projectId).emit('show output', dataPack);
+        if(bufferOutput.error == '' && data.toString() != '') {
+          bufferOutput.output = data.toString()
         }
       })
       // detection code execute error
@@ -644,31 +635,33 @@ module.exports = (server) => {
 
         var arrowLocation = output.indexOf('>>>')
         var drawArrow = ''
+
         if(arrowLocation == 0) {
           drawArrow = output.slice(0, 3)
         } else {
           drawArrow = output.slice(arrowLocation, arrowLocation+3)
-          isBugArrow = true
-        }
-        // triple dot occur in for loop case
-        var tripleDotLocation = output.indexOf('...')
-        if (output.indexOf('Error') != -1) {
-          if(isBugArrow){
-            isError = true
-          }
           output = output.slice(0, arrowLocation - 1)
-          dataPack = {
-            status: "error",
-            data: output
-          }
-          io.in(projectId).emit('show output', dataPack)
         }
-        if (drawArrow == '>>>') {
-          dataPack = {
-            status: "finished",
-            data: output
+
+        if (output.indexOf('Error') != -1) {
+          bufferOutput.error = output
+        }
+
+        // execute code process finished
+        if (drawArrow == '>>>' && output.indexOf('Python') == -1) {
+
+          if(bufferOutput.error == '' && bufferOutput.output != ''){
+            output = bufferOutput.output
+          } else {
+            output = bufferOutput.error
           }
-          io.in(projectId).emit('show output', dataPack)
+
+          if(output != '') {
+            io.in(projectId).emit('show output', output)
+          }
+
+          bufferOutput.output = ''
+          bufferOutput.error = ''
         }
       })
     }

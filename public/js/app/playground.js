@@ -45,7 +45,6 @@ var editors = []
 var output = {}
 var sizeOutputObjects = 0;
 var detectFocusBlock = 0;
-var bufferOutput = {output:'', error:''};
 var hasError = false;
 
 projectFiles.forEach(newEditorFacade);
@@ -496,49 +495,18 @@ function addDivOutput(textOutput, blockId){
 }
 
 socket.on('show output', (payload) => {
-  if(payload.status == 'processing') {
-    bufferOutput.output += payload.data
-  } else if(payload.status == 'error') {
-    bufferOutput.error += payload.data
-    hasError = true
-  } else if(payload.status == 'finished' && (bufferOutput.output != '' || bufferOutput.error != '')) {
-    var blockId = editors[detectFocusBlock].blockId
-
-    var hasBlockIdInOutputObject = false
-    if(blockId in output) {
-      hasBlockIdInOutputObject = true
-    }
-
-    if(hasError) {
-      output[blockId] = document.createTextNode(bufferOutput.error)
-    } else {
-      output[blockId] = document.createTextNode(bufferOutput.output)
-    }
-
-    if(hasBlockIdInOutputObject) {
-      var preformattedText = document.getElementById(blockId + "-pre")
-      preformattedText.removeChild(preformattedText.childNodes[0])
-      preformattedText.appendChild(output[blockId])
-    } else {
-      addDivOutput(output[blockId], blockId)
-    }
-    bufferOutput.output = ''
-    bufferOutput.error = ''
-    hasError = false
+  var textOutput = document.createTextNode(payload)
+  var blockId = editors[detectFocusBlock].blockId
+  if(blockId in output){
+    output[blockId] = textOutput
+    var preformattedText = document.getElementById(blockId + "-pre")
+    preformattedText.removeChild(preformattedText.childNodes[0])
+    preformattedText.appendChild(output[blockId])
+  } else {
+    output[blockId] = textOutput
+    addDivOutput(output[blockId], blockId)
+    console.log("Output : " + payload)
   }
-  // if(payload != "don\'t have output"){
-    // if(blockId in output){
-    //   output[blockId] = textOutput
-    //   var preformattedText = document.getElementById(blockId + "-pre")
-    //   preformattedText.removeChild(preformattedText.childNodes[0])
-    //   preformattedText.appendChild(textOutput)
-    //   console.log("preformattedText.getValue : " + preformattedText.getValue())
-    // } else {
-    //   output[blockId] = textOutput
-    //   addDivOutput(output[blockId], blockId)
-    //   console.log("Output : " + payload)
-    // }
-  // }
 })
 
 //อัพเดท focus block ของทั้ง 2 คน
