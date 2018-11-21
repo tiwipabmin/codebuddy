@@ -39,6 +39,7 @@ module.exports = (server) => {
     var cp = require('child_process');
     var isBugArrow = false;
     var isError = false;
+    var isSpawnText = false;
     var executionCount = 0;
 
      spawnPython()
@@ -588,6 +589,7 @@ module.exports = (server) => {
       focusBlock = payload.focusBlock
       isError = false
       isBugArrow = false
+      isSpawnText = false
 
       io.in(projectId).emit('focus block', focusBlock)
 
@@ -627,11 +629,11 @@ module.exports = (server) => {
     })
 
     function spawnPython(){
-      if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
-      else runpty = cp.spawn('python', ['-i', '-u'], {})
-      runpty.stderr.on("data", function (data) {
-        console.log(data.toString())
-      })
+      if(process.platform === 'win32')
+        runpty = cp.spawn('python', ['-i'], {})
+      else
+        runpty = cp.spawn('python', ['-i', '-u'], {})
+      isSpawnText = true
     }
 
     function detectOutput(){
@@ -649,17 +651,19 @@ module.exports = (server) => {
       // detection code execute error
       runpty.stderr.on('data', (data) => {
         output = data.toString()
-
         var arrowLocation = output.indexOf('>>>')
         var drawArrow = ''
+
         if(arrowLocation == 0) {
           drawArrow = output.slice(0, 3)
         } else {
           drawArrow = output.slice(arrowLocation, arrowLocation+3)
           isBugArrow = true
         }
+
         // triple dot occur in for loop case
         var tripleDotLocation = output.indexOf('...')
+
         if (output.indexOf('Error') != -1) {
           if(isBugArrow){
             isError = true
@@ -671,7 +675,7 @@ module.exports = (server) => {
           }
           io.in(projectId).emit('show output', dataPack)
         }
-        if (drawArrow == '>>>') {
+        if (drawArrow == '>>>' && !isSpawnText) {
           dataPack = {
             status: "finished",
             data: output

@@ -567,36 +567,42 @@ function addDivOutput(textOutput, blockId){
 }
 
 socket.on('show output', (payload) => {
+  console.log(payload.status)
   if(payload.status == 'processing') {
     bufferOutput.output += payload.data
   } else if(payload.status == 'error') {
     bufferOutput.error += payload.data
     hasError = true
-  } else if(payload.status == 'finished' && (bufferOutput.output != '' || bufferOutput.error != '')) {
-    var blockId = editors[detectFocusBlock].blockId
+  } else if(payload.status == 'finished') {
+    console.log('bufferOutput: '+bufferOutput.output)
+    console.log('bufferError: '+bufferOutput.error)
+    if(bufferOutput.output != '' || bufferOutput.error != '') {
+      var blockId = editors[detectFocusBlock].blockId
+      var hasBlockIdInOutputObject = false
 
-    var hasBlockIdInOutputObject = false
-    if(blockId in output) {
-      hasBlockIdInOutputObject = true
+      if(blockId in output) {
+        hasBlockIdInOutputObject = true
+      }
+
+      if(hasError) {
+        output[blockId] = document.createTextNode(bufferOutput.error)
+      } else {
+        output[blockId] = document.createTextNode(bufferOutput.output)
+      }
+
+      if(hasBlockIdInOutputObject) {
+        var preformattedText = document.getElementById(blockId + "-pre")
+        preformattedText.removeChild(preformattedText.childNodes[0])
+        preformattedText.appendChild(output[blockId])
+      } else {
+        addDivOutput(output[blockId], blockId)
+      }
+
+      bufferOutput.output = ''
+      bufferOutput.error = ''
+      hasError = false
     }
-
-    if(hasError) {
-      output[blockId] = document.createTextNode(bufferOutput.error)
-    } else {
-      output[blockId] = document.createTextNode(bufferOutput.output)
-    }
-
-    if(hasBlockIdInOutputObject) {
-      var preformattedText = document.getElementById(blockId + "-pre")
-      preformattedText.removeChild(preformattedText.childNodes[0])
-      preformattedText.appendChild(output[blockId])
-    } else {
-      addDivOutput(output[blockId], blockId)
-    }
-    bufferOutput.output = ''
-    bufferOutput.error = ''
-    hasError = false
-
+    
     // increment execution count
     socket.emit("increment execution count")
   }
