@@ -282,13 +282,19 @@ socket.on('update block', (payload) => {
 
   if (action == 'add') {
     var divisionCodeBlock = document.createElement("div")
-    var codeBlock = document.createElement("textarea")
+    var html =  '<div class="code-block">' +
+                  '<div id="'+blockId+'-in">In [  ]:</div>' +
+                  '<div><textarea id="'+blockId+'-text"></textarea></div>' +
+                '</div>' +
+                '<div id="'+blockId+'-div-output" class="code-block">' +
+                  '<div></div>' +
+                '</div>'
 
     divisionCodeBlock.setAttribute('id', blockId+'-div')
-    codeBlock.setAttribute('id', blockId+"-text")
+    divisionCodeBlock.innerHTML = html
 
-    divisionCodeBlock.appendChild(codeBlock)
     segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.children[index])
+    $()
 
     // TODO: refactor setEditor with index parameter
     // add codemirror of new into editors array
@@ -548,7 +554,7 @@ term.on('key', function (key, ev) {
 });
 
 function addDivOutput(textOutput, blockId){
-      var divisionCodeBlock = document.getElementById(blockId + "-div")
+      var divisionCodeBlock = document.getElementById(blockId + "-div-output")
       var divisionOutput = document.createElement("div")
       var prefomattedText = document.createElement("pre")
 
@@ -590,6 +596,9 @@ socket.on('show output', (payload) => {
     bufferOutput.output = ''
     bufferOutput.error = ''
     hasError = false
+
+    // increment execution count
+    socket.emit("increment execution count")
   }
   // if(payload != "don\'t have output"){
     // if(blockId in output){
@@ -604,6 +613,11 @@ socket.on('show output', (payload) => {
     //   console.log("Output : " + payload)
     // }
   // }
+})
+
+socket.on('update execution count', (payload) => {
+  var blockId = editors[detectFocusBlock].blockId
+  document.getElementById(blockId+'-in').innerHTML = 'In ['+payload+']:'
 })
 
 //อัพเดท focus block ของทั้ง 2 คน
@@ -638,13 +652,19 @@ function reKernel(){
 }
 
 socket.on("restart a kernel", (payload) => {
+  // remove output div
   var keysList = Object.keys(output)
-  console.log(keysList)
   for (key in keysList) {
-    var divisionCodeBlock = document.getElementById(keysList[key] + "-div")
-    console.log("divisionCodeBlock : " + divisionCodeBlock + ", Key : " + keysList[key])
-    divisionCodeBlock.removeChild(divisionCodeBlock.childNodes[2])
+    var divisionCodeBlock = document.getElementById(keysList[key] + "-stdout")
+    divisionCodeBlock.remove()
   }
+
+  // reset execution count
+  var allBlockId = editors.map(function(obj) { return obj.blockId })
+  for (i = 0; i < allBlockId.length; i++) {
+    document.getElementById(allBlockId[i]+'-in').innerHTML = 'In [&nbsp;&nbsp;]:'
+  }
+
   output = {}
   sizeOutputObjects = 0
   term.writeln('Restart a kernel successes!')

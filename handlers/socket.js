@@ -39,6 +39,7 @@ module.exports = (server) => {
     var cp = require('child_process');
     var isBugArrow = false;
     var isError = false;
+    var executionCount = 0;
 
      spawnPython()
      detectOutput()
@@ -610,13 +611,15 @@ module.exports = (server) => {
       }
 
       // setTimeout(runpty.kill.bind(runpty), 3000);
+
+      io.in(projectId).emit('update execution count', '*')
     })
 
     /**
       * restart a kernel when user click on reKernel from front-end
       */
     client.on('restart a kernel', (payload) => {
-
+      executionCount = 0
       spawnPython()
       detectOutput()
       io.in(projectId).emit('restart a kernel')
@@ -677,6 +680,10 @@ module.exports = (server) => {
         }
       })
     }
+
+    client.on('increment execution count', (payload) => {
+      io.in(projectId).emit('update execution count', ++executionCount)
+    })
 
     /**
      * `pause running code` event fired when user click on pause button from front-end
