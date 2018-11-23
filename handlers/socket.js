@@ -617,9 +617,9 @@ module.exports = (server) => {
     function spawnPython(){
       if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
       else runpty = cp.spawn('python', ['-i', '-u'], {})
-      runpty.stderr.on("data", function (data) {
-        console.log(data.toString())
-      })
+      // runpty.stderr.on("data", function (data) {
+      //   console.log(data.toString())
+      // })
     }
 
     function detectOutput(){
@@ -657,6 +657,7 @@ module.exports = (server) => {
           }
 
           if(output != '') {
+            console.log("emit output to playground.js : " + output)
             setTimeout(emitOutputToPG, 100)
           }
 
