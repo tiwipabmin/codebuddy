@@ -645,6 +645,7 @@ module.exports = (server) => {
 
         if (output.indexOf('Error') != -1) {
           bufferOutput.error = output
+          console.log("bufferOutput.error : " + bufferOutput.error)
         }
 
         // execute code process finised
@@ -657,7 +658,6 @@ module.exports = (server) => {
           }
 
           if(output != '') {
-            console.log("bufferOutput.output : " + bufferOutput.output + ", bufferOutput.error : " + bufferOutput.error)
             io.in(projectId).emit('show output', output)
           }
 
