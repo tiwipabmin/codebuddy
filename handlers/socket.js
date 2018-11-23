@@ -617,9 +617,9 @@ module.exports = (server) => {
     function spawnPython(){
       if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
       else runpty = cp.spawn('python', ['-i', '-u'], {})
-      runpty.stderr.on("data", function (data) {
-        console.log(data.toString())
-      })
+      // runpty.stderr.on("data", function (data) {
+      //   console.log(data.toString())
+      // })
     }
 
     function detectOutput(){
@@ -647,7 +647,7 @@ module.exports = (server) => {
           bufferOutput.error = output
         }
 
-        // execute code process finished
+        // execute code process finised
         if (drawArrow == '>>>' && output.indexOf('Python') == -1) {
 
           if(bufferOutput.error == '' && bufferOutput.output != ''){
@@ -657,6 +657,12 @@ module.exports = (server) => {
           }
 
           if(output != '') {
+            console.log("emit output to playground.js : " + output)
+            setTimeout(emitOutputToPG, 100)
+          }
+
+          // emit output to playground.js file
+          function emitOutputToPG() {
             io.in(projectId).emit('show output', output)
           }
 
