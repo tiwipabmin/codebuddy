@@ -647,7 +647,7 @@ module.exports = (server) => {
           bufferOutput.error = output
         }
 
-        // execute code process finished
+        // execute code process finised
         if (drawArrow == '>>>' && output.indexOf('Python') == -1) {
 
           if(bufferOutput.error == '' && bufferOutput.output != ''){
@@ -657,6 +657,11 @@ module.exports = (server) => {
           }
 
           if(output != '') {
+            setTimeout(emitOutputToPG, 100)
+          }
+
+          // emit output to playground.js file
+          function emitOutputToPG() {
             io.in(projectId).emit('show output', output)
           }
 
