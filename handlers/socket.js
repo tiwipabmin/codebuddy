@@ -657,12 +657,7 @@ module.exports = (server) => {
           }
 
           if(output != '') {
-            console.log("emit output to playground.js : " + output)
-            setTimeout(emitOutputToPG, 100)
-          }
-
-          // emit output to playground.js file
-          function emitOutputToPG() {
+            console.log("bufferOutput.output : " + bufferOutput.output + ", bufferOutput.error : " + bufferOutput.error)
             io.in(projectId).emit('show output', output)
           }
 
