@@ -647,7 +647,7 @@ module.exports = (server) => {
         if (output.indexOf('Error') != -1) {
           bufferOutput.error += output
         } else if(drawArrow != '>>>' && output.indexOf('Python') == -1){
-          bufferOutput.error += output
+          bufferOutput.error = bufferOutput.error + output + '\n'
         }
 
         // execute code process finised
