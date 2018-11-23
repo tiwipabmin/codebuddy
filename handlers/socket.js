@@ -633,6 +633,7 @@ module.exports = (server) => {
       runpty.stderr.on('data', (data) => {
         output = data.toString()
 
+        console.log("error : " + output)
         var arrowLocation = output.indexOf('>>>')
         var drawArrow = ''
 
@@ -645,7 +646,6 @@ module.exports = (server) => {
 
         if (output.indexOf('Error') != -1) {
           bufferOutput.error = output
-          console.log("bufferOutput.error : " + bufferOutput.error)
         }
 
         // execute code process finised
