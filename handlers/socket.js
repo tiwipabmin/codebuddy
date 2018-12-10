@@ -35,10 +35,8 @@ module.exports = (server) => {
     var index = null
     var runpty;
     var focusBlock = "Block:0";
-    var startPython = '';
     var cp = require('child_process');
-    var isBugArrow = false;
-    var isError = false;
+    var bufferOutput = {output: '', error: ''}
     var isSpawnText = false;
     var executionCount = 0;
 
@@ -584,11 +582,8 @@ module.exports = (server) => {
      * @param {Object} payload code from editor
      */
     client.on('run code', (payload) => {
-      var codeFocusBlock = payload.codeFocusBlock;
-      var codeAllBlock = JSON.stringify(payload.codeAllBlock)
+      var codeFocusBlock = payload.codeFocusBlock
       focusBlock = payload.focusBlock
-      isError = false
-      isBugArrow = false
       isSpawnText = false
 
       io.in(projectId).emit('focus block', focusBlock)
@@ -596,10 +591,6 @@ module.exports = (server) => {
       const fs = require('fs')
       fs.writeFile('./public/project_files/'+projectId+'/main.py', codeFocusBlock, (err) => {
         if (err) throw err
-      })
-
-      fs.writeFile('./public/project_files/'+projectId+'/json.json', codeAllBlock, (err) => {
-          if (err) throw err
       })
 
       setTimeout(execCode, 100)
@@ -614,6 +605,7 @@ module.exports = (server) => {
 
       // setTimeout(runpty.kill.bind(runpty), 3000);
 
+      // display In[*]
       io.in(projectId).emit('update execution count', '*')
     })
 
@@ -639,18 +631,15 @@ module.exports = (server) => {
     function detectOutput(){
       // detection output is a execution code
       runpty.stdout.on('data', (data) => {
-        if(!isBugArrow || !isError) {
-          dataPack = {
-            status: "processing",
-            data: data.toString()
-          }
-          // console.log("data : " + data.toString())
-          io.in(projectId).emit('show output', dataPack);
+        if(bufferOutput.error == '' && data.toString() != '') {
+          bufferOutput.output = data.toString()
         }
       })
       // detection code execute error
       runpty.stderr.on('data', (data) => {
         output = data.toString()
+        console.log("error : " + output)
+        
         var arrowLocation = output.indexOf('>>>')
         var drawArrow = ''
 
@@ -658,36 +647,36 @@ module.exports = (server) => {
           drawArrow = output.slice(0, 3)
         } else {
           drawArrow = output.slice(arrowLocation, arrowLocation+3)
-          isBugArrow = true
+          output = output.slice(0, arrowLocation - 1)
         }
-
-        // triple dot occur in for loop case
-        var tripleDotLocation = output.indexOf('...')
 
         if (output.indexOf('Error') != -1) {
-          if(isBugArrow){
-            isError = true
-          }
-          output = output.slice(0, arrowLocation - 1)
-          dataPack = {
-            status: "error",
-            data: output
-          }
-          io.in(projectId).emit('show output', dataPack)
+          bufferOutput.error += output
+        } else if(drawArrow != '>>>' && !isSpawnText){
+          bufferOutput.error = bufferOutput.error + output + '\n'
         }
+
+        // execute code process finised
         if (drawArrow == '>>>' && !isSpawnText) {
-          dataPack = {
-            status: "finished",
-            data: output
+
+          if(bufferOutput.error == '' && bufferOutput.output != ''){
+            output = bufferOutput.output
+          } else {
+            output = bufferOutput.error
           }
-          io.in(projectId).emit('show output', dataPack)
+
+          if(output != '') {
+            io.in(projectId).emit('show output', output)
+          }
+
+          bufferOutput.output = ''
+          bufferOutput.error = ''
+
+          // increment execution count
+          io.in(projectId).emit('update execution count', ++executionCount)
         }
       })
     }
-
-    client.on('increment execution count', (payload) => {
-      io.in(projectId).emit('update execution count', ++executionCount)
-    })
 
     /**
      * `pause running code` event fired when user click on pause button from front-end

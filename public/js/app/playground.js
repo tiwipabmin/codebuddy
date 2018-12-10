@@ -43,20 +43,9 @@ var partnerTab = 'main';
 var isCloseTab = false;
 var editors = []
 var output = {}
-var codeAllBlock = [];
 var sizeOutputObjects = 0;
-var queueBlock = 0;
 var detectFocusBlock = 0;
-var bufferOutput = {output:'', error:''};
 var hasError = false;
-
-function getIndexBlock(key){
-  var index = codeAllBlock.map(function (e) { return e.key }).indexOf(key)
-  if(index < 0){
-    return codeAllBlock.length
-  }
-  return index
-}
 
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
@@ -89,61 +78,6 @@ function setEditor(fileName){
     console.log(detectFocusBlock)
   })
   editors.push({ blockId: fileName, editor: cm })
-}
-
-function getBlock(codeBlockName, value){
-  if(codeBlockName != "main"){
-    var divisionCodeBlock = document.createElement("div")
-    var codeBlock = document.createElement("textarea")
-    var map = {"Alt-R": function(cm){
-      runCode()
-    }}
-    var index = getIndexBlock(detectFocusBlock)
-
-    divisionCodeBlock.setAttribute('id', codeBlockName + "div")
-    codeBlock.setAttribute('id', codeBlockName)
-
-    var isOutOfBound = outOfBound(index)
-    console.log("redundancyIndex : " + isOutOfBound)
-
-    //ถ้า true จะสามารถเพิ่ม Block ใหม่ข้างใต้ Block ที่สนใจได้ ถ้า false จะเพิ่ม Block เข้าไปท้ายสุด่
-    if(isOutOfBound) {
-      divisionCodeBlock.appendChild(codeBlock)
-      segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.childNodes[index + 1])
-    } else {
-      divisionCodeBlock.appendChild(codeBlock)
-      segmentCodeBlock.appendChild(divisionCodeBlock)
-    }
-
-    editors[codeBlockName] = CodeMirror.fromTextArea(document.getElementById(codeBlockName), {
-      lineNumbers: true,
-      mode: {
-        name: 'python',
-        version: 3,
-        singleLineStringErrors: false,
-        styleActiveLine: true,
-        lineNumbers: true,
-        lineWrapping: true
-      },
-      theme: 'material',
-      indentUnit: 4,
-      matchBrackets: true,
-    })
-    editors[codeBlockName].addKeyMap(map)
-    editors[codeBlockName].setValue(value)
-    var newObjectBlock = {}
-    newObjectBlock["key"] = codeBlockName
-    newObjectBlock["value"] = value
-    return newObjectBlock
-  }
-}
-
-// ตรวจสอบ index ของ block ที่สนใจว่าเกินขอบเขตที่ index ของ array หรือไม่
-function outOfBound(index) {
-  if(index < (codeAllBlock.length - 1) && index >= 0){
-    return true
-  }
-  return false
 }
 
 /**
@@ -273,7 +207,7 @@ socket.on('update tab', (payload) => {
 })
 
 /**
- * Update block when create or delete
+ * Update block when add or delete
  */
 socket.on('update block', (payload) => {
   var blockId = payload.blockId;
@@ -283,7 +217,7 @@ socket.on('update block', (payload) => {
   if (action == 'add') {
     var divisionCodeBlock = document.createElement("div")
     var html =  '<div class="code-block">' +
-                  '<div id="'+blockId+'-in">In [  ]:</div>' +
+                  '<div id="'+blockId+'-in">In [&nbsp;&nbsp;]:</div>' +
                   '<div><textarea id="'+blockId+'-text"></textarea></div>' +
                 '</div>' +
                 '<div id="'+blockId+'-div-output" class="code-block">' +
@@ -567,58 +501,18 @@ function addDivOutput(textOutput, blockId){
 }
 
 socket.on('show output', (payload) => {
-  console.log(payload.status)
-  if(payload.status == 'processing') {
-    bufferOutput.output += payload.data
-  } else if(payload.status == 'error') {
-    bufferOutput.error += payload.data
-    hasError = true
-  } else if(payload.status == 'finished') {
-    console.log('bufferOutput: '+bufferOutput.output)
-    console.log('bufferError: '+bufferOutput.error)
-    if(bufferOutput.output != '' || bufferOutput.error != '') {
-      var blockId = editors[detectFocusBlock].blockId
-      var hasBlockIdInOutputObject = false
-
-      if(blockId in output) {
-        hasBlockIdInOutputObject = true
-      }
-
-      if(hasError) {
-        output[blockId] = document.createTextNode(bufferOutput.error)
-      } else {
-        output[blockId] = document.createTextNode(bufferOutput.output)
-      }
-
-      if(hasBlockIdInOutputObject) {
-        var preformattedText = document.getElementById(blockId + "-pre")
-        preformattedText.removeChild(preformattedText.childNodes[0])
-        preformattedText.appendChild(output[blockId])
-      } else {
-        addDivOutput(output[blockId], blockId)
-      }
-
-      bufferOutput.output = ''
-      bufferOutput.error = ''
-      hasError = false
-    }
-    
-    // increment execution count
-    socket.emit("increment execution count")
+  var textOutput = document.createTextNode(payload)
+  var blockId = editors[detectFocusBlock].blockId
+  if(blockId in output){
+    output[blockId] = textOutput
+    var preformattedText = document.getElementById(blockId + "-pre")
+    preformattedText.removeChild(preformattedText.childNodes[0])
+    preformattedText.appendChild(output[blockId])
+  } else {
+    output[blockId] = textOutput
+    addDivOutput(output[blockId], blockId)
+    console.log("Output : " + payload)
   }
-  // if(payload != "don\'t have output"){
-    // if(blockId in output){
-    //   output[blockId] = textOutput
-    //   var preformattedText = document.getElementById(blockId + "-pre")
-    //   preformattedText.removeChild(preformattedText.childNodes[0])
-    //   preformattedText.appendChild(textOutput)
-    //   console.log("preformattedText.getValue : " + preformattedText.getValue())
-    // } else {
-    //   output[blockId] = textOutput
-    //   addDivOutput(output[blockId], blockId)
-    //   console.log("Output : " + payload)
-    // }
-  // }
 })
 
 socket.on('update execution count', (payload) => {
@@ -644,7 +538,6 @@ function pauseRunCode() {
 function runCode() {
   socket.emit('run code', {
     codeFocusBlock: getCodeFocusBlock(),
-    codeAllBlock: codeAllBlock,
     focusBlock: detectFocusBlock
   })
   term.writeln('Running pytest.py...')
@@ -1263,12 +1156,6 @@ function getAllFileEditor() {
 function getCodeFocusBlock() {
   var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
   return codeFocusBlock;
-}
-
-function setCodeBlock(key){
-  var index = getIndexBlock(key)
-  var objectBlock = codeAllBlock[index]
-  objectBlock["value"] = editors[key].getValue()
 }
 
 function newEditorFacade(fileName) {
