@@ -147,26 +147,32 @@ block content
                       a.ui.label(id='exportBtn' onClick='showExportModal()') export file
                     .description Source files for project
                     .list.relaxed#file-list(style="margin:0px;")
-                      each file, index in project.files
-                        .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
-                          div(id=file+'-file-icon')
+                      //- each file, index in project.files
+                      //-   .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
+                      //-     div(id=file+'-file-icon')
+                      //-     i.file.icon
+                      //-     .middle.aligned.content
+                      //-       if(file === 'main')
+                      //-         .header(id=file+'-header') main.py
+                      //-         .description Main python file
+                      //-       else
+                      //-         .header(id=file+'-header')=file+'.py'
+                      //-         .delete-file
+                      //-           span(onClick=`showDeleteFileModal(${JSON.stringify(file)})`)
+                      //-             i.trash.alternate.outline.icon(id='delete-icon')
+                      //-           .ui.small.modal(id=file+'-delete-file-modal')
+                      //-             .header Delete File
+                      //-             .content
+                      //-               p='Do you want to delete ' + file + '.py?'
+                      //-             .actions
+                      //-               button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
+                      //-               .ui.button.approve.red(data-value='cancel') Cancel
+                      .item.cursor-pointer(id='main-file')
+                        div(id='main-file-icon')
                           i.file.icon
                           .middle.aligned.content
-                            if(file === 'main')
-                              .header(id=file+'-header') main.py
-                              .description Main python file
-                            else
-                              .header(id=file+'-header')=file+'.py'
-                              .delete-file
-                                span(onClick=`showDeleteFileModal(${JSON.stringify(file)})`)
-                                  i.trash.alternate.outline.icon(id='delete-icon')
-                                .ui.small.modal(id=file+'-delete-file-modal')
-                                  .header Delete File
-                                  .content
-                                    p='Do you want to delete ' + file + '.py?'
-                                  .actions
-                                    button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
-                                    .ui.button.approve.red(data-value='cancel') Cancel
+                            .header(id='main-header') main
+                            .description Main file
           .ui.small.modal#export-modal
             .header Export File
             .content
@@ -235,32 +241,38 @@ block content
               a.ui.label(style='margin-left:10px;' href='/history?pid='+project.pid+'&curUser='+curUser) view history
               button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()' data-tooltip="Verify" data-inverted="")
                 i.unhide.icon
-              button.ui.icon.button.negative.float-right(id='pause' onClick='pauseRunCode()' data-tooltip="Pause" data-inverted="")
+              //- button.ui.icon.button.negative.float-right(id='pause' onClick='pauseRunCode()' data-tooltip="Pause" data-inverted="")
                 i.pause.icon
               button.ui.icon.button.negative.float-right(id='reKernel' onClick='reKernel()' data-tooltip="Restart a Kernel" data-inverted="")
-                i.pause.icon
+                i.repeat.icon
               button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
                 i.play.icon
-              button.ui.icon.button.orange.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
+              button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
                 i.plus.icon
 
           //- file tab
           .ui.form
             .ui.top.attached.tabular.file.menu(id='file-tabs')
-              each file, index in project.files
-                if index == 0
-                  a.active.item(id=file data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
-                else
-                  a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'
-                    span(onClick=`closeTab(${JSON.stringify(file)})`)
-                      i.delete.icon(id='close-tab-icon')
-              a.item(class='add-file' onClick='addFile()')
-                i.plus.icon
+              //- each file, index in project.files
+              //-   if index == 0
+              //-     a.active.item(id=file data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
+              //-   else
+              //-     a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'
+              //-       span(onClick=`closeTab(${JSON.stringify(file)})`)
+              //-         i.delete.icon(id='close-tab-icon')
+              a.active.item(id=file data-tab='main') main
+              //- a.item(class='add-file' onClick='addFile()')
+              //-   i.plus.icon
             .ui.tab-content
                 .ui.segment(id='segmentCodeBlock')
                   each file in project.files
-                      div(id=file+'-div')
-                        textarea(id=file+'-text').show
+                    div(id=file+'-div')
+                      .code-block
+                        .nowrap(id=file+'-in') In [&nbsp;&nbsp;]:
+                        div
+                          textarea(id=file+'-text').show
+                      .code-block(id=file+'-div-output')
+                        div
             input(type='hidden' id='projectFiles' value=project.files)
           .ui.small.modal#filename-modal
             .header Filename

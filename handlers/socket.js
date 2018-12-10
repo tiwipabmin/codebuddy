@@ -37,6 +37,8 @@ module.exports = (server) => {
     var focusBlock = "Block:0";
     var cp = require('child_process');
     var bufferOutput = {output: '', error: ''}
+    var isSpawnText = false;
+    var executionCount = 0;
 
      spawnPython()
      detectOutput()
@@ -582,6 +584,7 @@ module.exports = (server) => {
     client.on('run code', (payload) => {
       var codeFocusBlock = payload.codeFocusBlock
       focusBlock = payload.focusBlock
+      isSpawnText = false
 
       io.in(projectId).emit('focus block', focusBlock)
 
@@ -601,13 +604,16 @@ module.exports = (server) => {
       }
 
       // setTimeout(runpty.kill.bind(runpty), 3000);
+
+      // display In[*]
+      io.in(projectId).emit('update execution count', '*')
     })
 
     /**
       * restart a kernel when user click on reKernel from front-end
       */
     client.on('restart a kernel', (payload) => {
-
+      executionCount = 0
       spawnPython()
       detectOutput()
       io.in(projectId).emit('restart a kernel')
@@ -615,11 +621,11 @@ module.exports = (server) => {
     })
 
     function spawnPython(){
-      if(process.platform === 'win32') runpty = cp.spawn('python', ['-i'], {})
-      else runpty = cp.spawn('python', ['-i', '-u'], {})
-      // runpty.stderr.on("data", function (data) {
-      //   console.log(data.toString())
-      // })
+      if(process.platform === 'win32')
+        runpty = cp.spawn('python', ['-i'], {})
+      else
+        runpty = cp.spawn('python', ['-i', '-u'], {})
+      isSpawnText = true
     }
 
     function detectOutput(){
@@ -632,8 +638,8 @@ module.exports = (server) => {
       // detection code execute error
       runpty.stderr.on('data', (data) => {
         output = data.toString()
-
         console.log("error : " + output)
+        
         var arrowLocation = output.indexOf('>>>')
         var drawArrow = ''
 
@@ -646,12 +652,12 @@ module.exports = (server) => {
 
         if (output.indexOf('Error') != -1) {
           bufferOutput.error += output
-        } else if(drawArrow != '>>>' && output.indexOf('Python') == -1){
+        } else if(drawArrow != '>>>' && !isSpawnText){
           bufferOutput.error = bufferOutput.error + output + '\n'
         }
 
         // execute code process finised
-        if (drawArrow == '>>>' && output.indexOf('Python') == -1) {
+        if (drawArrow == '>>>' && !isSpawnText) {
 
           if(bufferOutput.error == '' && bufferOutput.output != ''){
             output = bufferOutput.output
@@ -665,6 +671,9 @@ module.exports = (server) => {
 
           bufferOutput.output = ''
           bufferOutput.error = ''
+
+          // increment execution count
+          io.in(projectId).emit('update execution count', ++executionCount)
         }
       })
     }
