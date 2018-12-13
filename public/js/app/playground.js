@@ -259,6 +259,7 @@ socket.on('update block', (payload) => {
     })
 
     editors.splice(index, 0, { blockId: blockId, editor: cm })
+    projectFiles.splice(index, 0, blockId)
     setOnChangeEditer(blockId)
     setOnDoubleClickEditor(blockId)
 
@@ -275,6 +276,7 @@ socket.on('update block', (payload) => {
     divisionCodeBlock.remove()
 
     editors.splice(detectFocusBlock, 1)
+    projectFiles.splice(blockId, 1)
   }
 })
 
