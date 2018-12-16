@@ -1,1 +1,1 @@
-[{"key":"Block:0","value":"a = 1"},{"key":"Block:4","value":"c = 5"},{"key":"Block:3","value":"print(b)"},{"key":"Block:2","value":"print(a)"},{"key":"Block:1","value":"b = 2"},{"key":"Block:5","value":"e = 7"},{"key":"Block:6","value":""}]
+[{"key":"Block:0","value":"a = 1"},{"id":"_fzp0dotmd","type":"code","source":""},{"id":"_gbr7lne2q","type":"code","source":""},{"key":"Block:4","value":"c = 5"},{"key":"Block:3","value":"print(b)"},{"key":"Block:2","value":"print(a)"},{"key":"Block:1","value":"b = 2"},{"key":"Block:5","value":"e = 7"},{"key":"Block:6","value":""}]

@@ -46,6 +46,18 @@ var output = {}
 var sizeOutputObjects = 0;
 var detectFocusBlock = 0;
 var hasError = false;
+// var fs = require('fs')
+var blocks = []
+// fs.readFile('./public/project_files/'+projectId+'/json.json', 'utf8', function (err, data) {
+//   if (err) throw err;
+//
+//   var json = JSON.parse(data);
+//   json.forEach(getBlockType)
+//
+//   function getBlockType(block){
+//     blocks.push(block)
+//   }
+// });
 
 projectFiles.forEach(newEditorFacade);
 getActiveTab('main');
@@ -53,6 +65,8 @@ getActiveTab('main');
 var segmentCodeBlock = document.getElementById("segmentCodeBlock")
 
 function setEditor(fileName){
+  // var blockType = blocks.map( function (obj) { return obj.blockId == fileName } ).type
+  // console.log("block type : " + blockType)
   var cm = CodeMirror.fromTextArea(document.getElementById(fileName+"-text"), {
     lineNumbers: true,
     mode: {
@@ -133,7 +147,6 @@ socket.on('init state', (payload) => {
     if(editorValues!=null){
       var blockObj = editors.find(obj => { return obj.blockId == fileName })
       blockObj.editor.setValue(editorValues[fileName])
-      currentFileName = fileName
     }
   }
 
@@ -213,6 +226,7 @@ socket.on('update block', (payload) => {
   var blockId = payload.blockId;
   var index = payload.index;
   var action = payload.action;
+  var type = payload.type;
 
   if (action == 'add') {
     var divisionCodeBlock = document.createElement("div")
@@ -224,12 +238,16 @@ socket.on('update block', (payload) => {
     divisionCodeBlock.appendChild(codeBlock)
     segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.children[index])
 
+    var mode = 'python'
+    if(type == 'markdown') {
+      mode = type
+    }
     // TODO: refactor setEditor with index parameter
     // add codemirror of new into editors array
     var cm = CodeMirror.fromTextArea(document.getElementById(blockId+"-text"), {
       lineNumbers: true,
       mode: {
-        name: 'python',
+        name: mode,
         version: 3,
         singleLineStringErrors: false,
         styleActiveLine: true,
@@ -559,7 +577,17 @@ function addBlock(){
   // random block id
   var random = '_' + Math.random().toString(36).substr(2, 9);
   console.log("random : " + random.toString())
-  socket.emit('add block', { blockId: random, index: detectFocusBlock+1, allBlockId: editors.map(function(obj) { return obj.blockId }) });
+  socket.emit('add block', { blockId: random, index: detectFocusBlock+1, allBlockId: editors.map(function(obj) { return obj.blockId }), type: "code" });
+}
+
+/**
+ * Add code block
+ */
+function addMarkdownBlock(){
+  // random block id
+  var random = '_' + Math.random().toString(36).substr(2, 9);
+  console.log("random : " + random.toString())
+  socket.emit('add block', { blockId: random, index: detectFocusBlock+1, allBlockId: editors.map(function(obj) { return obj.blockId }), type: "markdown" });
 }
 
 /**

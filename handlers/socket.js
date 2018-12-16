@@ -286,14 +286,14 @@ module.exports = (server) => {
 
         // add block Obj to selected index
         var blocks = JSON.parse(data);
-        blocks.splice(payload.index, 0, { id: payload.blockId, type: "code", source: "" });
+        blocks.splice(payload.index, 0, { id: payload.blockId, type: payload.type, source: "" });
 
         fs.writeFile('./public/project_files/'+projectId+'/json.json', JSON.stringify(blocks), function (err) {
           if (err) throw err;
         });
       });
 
-      io.in(projectId).emit('update block', {blockId: payload.blockId, index: payload.index, action: 'add'})
+      io.in(projectId).emit('update block', {blockId: payload.blockId, index: payload.index, action: 'add', type: payload.type})
     })
 
     /**
@@ -590,6 +590,7 @@ module.exports = (server) => {
         if (err) throw err
       })
 
+      // wait write file completed before execution
       setTimeout(execCode, 100)
 
       function execCode() {
