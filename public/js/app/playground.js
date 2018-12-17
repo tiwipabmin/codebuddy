@@ -73,8 +73,12 @@ function setEditor(fileName){
     "Alt-D": function(cm) { deleteBlock() }
   })
   cm.on('focus', (cm) => {
+    var prevFocusBlock = detectFocusBlock
+
     // find index of focusing codemirror in editors array.
     detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
+
+    socket.emit('codemirror on focus', { prevFocus: prevFocusBlock, newFocus: detectFocusBlock })
     console.log(detectFocusBlock)
   })
   editors.push({ blockId: fileName, editor: cm })
@@ -215,7 +219,7 @@ socket.on('update block', (payload) => {
   var action = payload.action;
 
   if (action == 'add') {
-    var divisionCodeBlock = document.createElement("div")
+    var divisionCodeBlock = document.createElement("div").className = 'code-block-container'
     var html =  '<div class="code-block">' +
                   '<div id="'+blockId+'-in">In [&nbsp;&nbsp;]:</div>' +
                   '<div><textarea id="'+blockId+'-text"></textarea></div>' +
@@ -228,7 +232,6 @@ socket.on('update block', (payload) => {
     divisionCodeBlock.innerHTML = html
 
     segmentCodeBlock.insertBefore(divisionCodeBlock, segmentCodeBlock.children[index])
-    $()
 
     // TODO: refactor setEditor with index parameter
     // add codemirror of new into editors array
@@ -254,8 +257,12 @@ socket.on('update block', (payload) => {
     })
 
     cm.on('focus', (cm) => {
+      var prevFocusBlock = detectFocusBlock
+
       // find index of focusing codemirror in editors array.
       detectFocusBlock = editors.map(function(obj) { return obj.editor }).indexOf(cm);
+
+      socket.emit('codemirror on focus', { prevFocus: prevFocusBlock, newFocus: detectFocusBlock })
     })
 
     editors.splice(index, 0, { blockId: blockId, editor: cm })
@@ -520,6 +527,11 @@ socket.on('show output', (payload) => {
 socket.on('update execution count', (payload) => {
   var blockId = editors[detectFocusBlock].blockId
   document.getElementById(blockId+'-in').innerHTML = 'In ['+payload+']:'
+})
+
+socket.on('update block highlight', (payload) => {
+  document.getElementById(editors[payload.prevFocus].blockId+'-div').style.border = ''
+  document.getElementById(editors[payload.newFocus].blockId+'-div').style.border = '2px solid #dddddd'
 })
 
 //อัพเดท focus block ของทั้ง 2 คน
