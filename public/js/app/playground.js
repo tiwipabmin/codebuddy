@@ -465,37 +465,37 @@ socket.on('is typing', (payload) => {
 /**
  * Run code
  */
-const term = new Terminal({
-  cols: 60,
-  rows: 10,
-  cursorBlink: true
-})
-term.open(document.getElementById('xterm-container'), false)
-term._initialized = true;
+// const term = new Terminal({
+//   cols: 60,
+//   rows: 10,
+//   cursorBlink: true
+// })
+// term.open(document.getElementById('xterm-container'), false)
+// term._initialized = true;
 
-var shellprompt = '\033[1;3;31m$ \033[0m';
+// var shellprompt = '\033[1;3;31m$ \033[0m';
 
-term.prompt = function () {
-  term.write('\r\n' + shellprompt);
-};
-term.prompt()
-term.on('key', function (key, ev) {
-  var printable = (
-    !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey
-  );
+// term.prompt = function () {
+//   term.write('\r\n' + shellprompt);
+// };
+// term.prompt()
+// term.on('key', function (key, ev) {
+//   var printable = (
+//     !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey
+//   );
 
-  if (ev.keyCode == 13) {
-    term.prompt();
-  } else if (ev.keyCode == 8) {
-    // Do not delete the prompt
-    if (term.x > 2) {
-      term.write('\b \b');
-    }
-  } else if (printable) {
-    // console.log(`printable : ${key}`)
-    term.write(key);
-  }
-});
+//   if (ev.keyCode == 13) {
+//     term.prompt();
+//   } else if (ev.keyCode == 8) {
+//     // Do not delete the prompt
+//     if (term.x > 2) {
+//       term.write('\b \b');
+//     }
+//   } else if (printable) {
+//     // console.log(`printable : ${key}`)
+//     term.write(key);
+//   }
+// });
 
 function addDivOutput(textOutput, blockId){
       var divisionCodeBlock = document.getElementById(blockId + "-div-output")
