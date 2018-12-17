@@ -219,7 +219,7 @@ socket.on('update block', (payload) => {
   var action = payload.action;
 
   if (action == 'add') {
-    var divisionCodeBlock = document.createElement("div").className = 'code-block-container'
+    var divisionCodeBlock = document.createElement("div")
     var html =  '<div class="code-block">' +
                   '<div id="'+blockId+'-in">In [&nbsp;&nbsp;]:</div>' +
                   '<div><textarea id="'+blockId+'-text"></textarea></div>' +
@@ -228,6 +228,7 @@ socket.on('update block', (payload) => {
                   '<div></div>' +
                 '</div>'
 
+    divisionCodeBlock.className = 'code-block-container'
     divisionCodeBlock.setAttribute('id', blockId+'-div')
     divisionCodeBlock.innerHTML = html
 
