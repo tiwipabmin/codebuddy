@@ -577,6 +577,10 @@ module.exports = (server) => {
       client.to(projectId).emit('update status', payload)
     })
 
+    client.on('codemirror on focus', (payload) => {
+      io.in(projectId).emit('update block highlight', { prevFocus: payload.prevFocus, newFocus: payload.newFocus })
+    })
+
     /**
      * `run code` event fired when user click on run button from front-end
      * @param {Object} payload code from editor
@@ -624,7 +628,7 @@ module.exports = (server) => {
       if(process.platform === 'win32')
         runpty = cp.spawn('python', ['-i'], {})
       else
-        runpty = cp.spawn('python', ['-i', '-u'], {})
+        runpty = cp.spawn('python', ['-i'], {})
       isSpawnText = true
     }
 

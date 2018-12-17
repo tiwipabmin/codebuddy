@@ -353,6 +353,14 @@ fieldset {
     color: white;
 }
 
+.code-block-container {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    margin-bottom: 3px;
+}
+
 .code-block {
     display: flex;
     flex-wrap: wrap;

@@ -266,7 +266,7 @@ block content
             .ui.tab-content
                 .ui.segment(id='segmentCodeBlock')
                   each file in project.files
-                    div(id=file+'-div')
+                    .code-block-container(id=file+'-div')
                       .code-block
                         .nowrap(id=file+'-in') In [&nbsp;&nbsp;]:
                         div
