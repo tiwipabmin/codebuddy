@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const con = require('../mySql')
 const Redis = require('ioredis')
 var fs = require('fs')
 
@@ -19,10 +20,11 @@ exports.userSignout = (req, res) => {
 }
 
 exports.getDashboard = async (req, res) => {
+  console.log('teacher_id : ' + req.user.teacher_id)
   const projects = await Project
     .find({ $and : [
         {status: {$ne : "pending"} },
-        {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]} 
+        {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]}
       ]
     })
     .sort({ createdAt: -1 })
@@ -53,8 +55,53 @@ exports.getDashboard = async (req, res) => {
   //   element.partner_img = partner.img
   //   console.log(element.partner_img)
   // });
-  
+  var occupation;
+  if(req.user.info.occupation == 'student') {
+    occupation = 0
+  } else if(req.user.info.occupation == 'teacher') {
+    occupation = 1
+  }
+
   res.render('dashboard', { projects, invitations, pendings, title: 'Dashboard' })
+}
+
+exports.getLobby = async (req, res) => {
+  const querySection = 'SELECT * FROM section AS s JOIN course AS c ON s.course_id = c.course_id JOIN teacher AS t ON c.teacher_id = t.teacher_id AND t.email = \'' + req.user.email + '\''
+  var sections;
+  con.getSection(querySection, function(err, result){
+    if(err) throw err;
+    sections = result
+  })
+  const projects = await Project
+    .find({ $and : [
+        {status: {$ne : "pending"} },
+        {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]}
+      ]
+    })
+    .sort({ createdAt: -1 })
+  const invitations =  await Project
+    .find({ $and : [
+          {status: "pending" },
+          {collaborator: req.user.username }
+        ]
+      })
+    .sort({ createdAt: -1 })
+  const pendings =  await Project
+  .find({ $and : [
+        {status: "pending" },
+        {creator: req.user.username }
+      ]
+    })
+  .sort({ createdAt: -1 })
+  var occupation = req.user.info.occupation;
+  if(occupation == 'teacher') {
+    occupation = 0
+    console.log("occupation : " + occupation + ", teacher : " + req.user.info.occupation)
+  } else {
+    occupation = 1
+    console.log("occupation : " + occupation + ", student : " + req.user.info.occupation)
+  }
+  res.render('lobby', { projects, invitations, pendings, occupation, sections, title: 'Lobby' })
 }
 
 exports.getPlayground = async (req, res) => {
@@ -96,7 +143,7 @@ exports.getHistory = async (req, res) => {
     var partner_obj = await User
       .findOne({ username: creator})
   }
-  
+
   const histories = await History
     .find({ pid: req.query.pid})
   res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, title: 'History' })
@@ -148,10 +195,10 @@ exports.createProject = async (req, res) => {
     if (!fs.existsSync(dir2)){
       fs.mkdirSync(dir2);
     }
-    fs.open('./public/project_files/'+project.pid+'/main.py', 'w', function (err, file) {
+    fs.writeFile('./public/project_files/'+project.pid+'/json.json', JSON.stringify([{ id:'0', type:'code', source:''}]), function (err) {
       if (err) throw err;
-      console.log('file '+project.pid+'.py is created');
-    })
+      console.log('file '+project.pid+'.json is created');
+    });
 
   } else {
     req.flash('error', "Can't find @" + req.body.collaborator)
@@ -159,19 +206,84 @@ exports.createProject = async (req, res) => {
   res.redirect('dashboard')
 }
 
+exports.createClassroom = async (req, res) => {
+  console.log('req : ' + req.body.section + ', ' + req.body.room + ', ' + req.body.day + ', ' + req.body.time_start + ', ' + req.body.time_end)
+  const courseQuery = 'INSERT INTO course (teacher_id, course_name) VALUES ?';
+  const teacherQuery = 'SELECT teacher_id FROM teacher WHERE username = \'' + req.user.username + '\''
+  con.connect.query(teacherQuery, function (err, result) {
+    if(err) throw err;
+    const courseValues = [[result[0].teacher_id, req.body.course_name]]
+    con.connect.query(courseQuery, [courseValues], function (err, result) {
+        if(err) throw err;
+        con.isDuplicateClassCode(result.insertId, req.body)
+      }
+    )
+  })
+  res.redirect('lobby')
+}
+
+exports.getClassroom = async (req, res) => {
+    console.log('Classroom : ' + req.query.course_name)
+    const projects = await Project
+        .find({
+            $and: [
+                { status: { $ne: "pending" } },
+                { $or: [{ creator: req.user.username }, { collaborator: req.user.username }] }
+            ]
+        })
+        .sort({ createdAt: -1 })
+    const invitations = await Project
+        .find({
+            $and: [
+                { status: "pending" },
+                { collaborator: req.user.username }
+            ]
+        })
+        .sort({ createdAt: -1 })
+    const pendings = await Project
+        .find({
+            $and: [
+                { status: "pending" },
+                { creator: req.user.username }
+            ]
+        })
+        .sort({ createdAt: -1 })
+    // projects.forEach(element => {
+    //   console.log(element)
+    //   let partner = ''
+    //   if(req.user.username == element.creator) {
+    //     partner = await User
+    //     .findOne(req.user.username)
+    //   } else {
+    //     partner = await User
+    //     .findOne(req.user.username)
+    //   }
+    //   element.partner_img = partner.img
+    //   console.log(element.partner_img)
+    // });
+    var occupation;
+    if (req.user.info.occupation == 'student') {
+        occupation = 0
+    } else if (req.user.info.occupation == 'teacher') {
+        occupation = 1
+    }
+
+    res.render('classroom', { projects, invitations, pendings, title: req.query.course_name })
+}
+
 exports.editProject = async (req, res) => {
   const id = req.body.pid
-  Project.update({ 
+  Project.update({
       pid: id
-    }, { 
-      $set: { 
+    }, {
+      $set: {
         title: req.body.title,
         description: req.body.description,
         swaptime: req.body.swaptime
       }
     }, function(err, result){
       if(err) throw err
-    }) 
+    })
   res.redirect('/dashboard')
 }
 
@@ -182,29 +294,29 @@ exports.deleteProject = async (req, res) => {
     },  function(err, result){
       if(err) throw err
   })
-  Project.remove({ 
+  Project.remove({
       pid: id
     },  function(err, result){
       if(err) throw err
-    }) 
-  Message.remove({ 
+    })
+  Message.remove({
       pid: id
     }, function(err, result){
       if(err) throw err
-    }) 
-  Comment.remove({ 
+    })
+  Comment.remove({
       pid: id
     }, function(err, result){
       if(err) throw err
       res.end()
-    }) 
-  
+    })
+
 }
 
 exports.searchUser = async (req, res) => {
   const keyword = req.query.search
-  console.log(req.query.search) 
-  const users = await User.find( { 
+  console.log(req.query.search)
+  const users = await User.find( {
     username: {$regex: '.*' + keyword + '.*'}
   })
   res.send(users)
@@ -244,31 +356,31 @@ exports.searchUserByPurpose = async (req, res) => {
 
 exports.acceptInvite = async (req, res) => {
   const id = req.body.id
-  Project.update({ 
+  Project.update({
       pid: id
-    }, { 
-      $set: { 
-        status: "" 
+    }, {
+      $set: {
+        status: ""
       }
     }, function(err, result){
       if(err) res.send("error")
       if(result) {
         res.send("success")
         // res.redirect(303,'/dashboard')
-      }  
-    }) 
+      }
+    })
 }
 
 exports.declineInvite = async (req, res) => {
   const id = req.body.id
-  Project.remove({ 
+  Project.remove({
       pid: id
     }, function(err, result){
       if(err) res.send("error")
       if(result) {
         res.send("success")
         // res.redirect(303,'/dashboard')
-      }  
+      }
     })
 }
 
@@ -279,7 +391,7 @@ exports.getProgress = async (req, res) => {
   let timeGraph = [];
   let progressGraph = [];
 
-  const user = await User.findOne( { 
+  const user = await User.findOne( {
     _id: uid
   })
 
@@ -320,5 +432,3 @@ exports.getProgress = async (req, res) => {
   console.log(data)
   res.send(data)
 }
-
-

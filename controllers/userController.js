@@ -1,5 +1,6 @@
 const passport = require('passport')
 const mongoose = require('mongoose')
+const con = require('../mySql')
 
 const User = mongoose.model('User')
 
@@ -11,7 +12,7 @@ exports.getSigninForm = (req, res) => {
 }
 
 exports.postSigninForm = passport.authenticate('local-signin', {
-  successRedirect: '/dashboard',
+  successRedirect: '/lobby',
   failureRedirect: '/signin',
   failureFlash: true
 })
@@ -24,7 +25,7 @@ exports.getRegisterForm = (req, res) => {
 }
 
 exports.postRegisterForm = passport.authenticate('local-register', {
-  successRedirect: '/dashboard',
+  successRedirect: '/lobby',
   failureRedirect: '/register',
   failureFlash: true
 })

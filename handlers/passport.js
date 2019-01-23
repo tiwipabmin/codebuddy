@@ -5,6 +5,9 @@ const mongoose = require('mongoose')
 const LocalStrategy = require('passport-local').Strategy
 
 const User = mongoose.model('User')
+const bcrypt = require('bcrypt')
+const Redis = require('ioredis')
+const con = require('../mySql')
 
 function config(passport) {
   /**
@@ -55,6 +58,14 @@ function config(passport) {
         gender: req.body.gender
       }
     }).save()
+
+    var occupation = req.body.occupation
+    var insertQuery = "INSERT INTO " + occupation + " (username, first_name, last_name, email, gender) VALUES ?";
+    var values = [[req.body.username, req.body.firstname, req.body.lastname, email, req.body.gender]]
+    con.connect.query(insertQuery, [values], function(err, rows){
+          if(err) console.log("Insert into " + occupation + " err : " + err);
+          console.log("Insert into " + occupation + " successful!")
+    });
     return done(null, user)
   }))
 
@@ -67,10 +78,24 @@ function config(passport) {
     passReqToCallback: true
   }, async (req, email, password, done) => {
     try {
+      const redis = new Redis()
       const user = await User.findOne({ $or: [{ email }, { username: email }]})
+      var teacher_id;
       if (!user) {
         return done(null, false, { message: 'Username or Email is not exist'})
       }
+        if (user.occupation == 'teacher') {
+            var selectTeacher = 'SELECT teacher_id FROM teacher WHERE username = \"' + email + '\"'
+            con.connect.query(selectTeacher, function (err, result) {
+                if (err) throw err;
+                teacher_id = result[0].teacher_id
+                var selectCourse = 'SELECT course_name FROM course, teacher WHERE course.teacher_id = teacher.teacher_id AND course.teacher_id = \"' + teacher_id + '\"'
+                con.connect.query(selectCourse, function (err, result) {
+                    if (err) throw err;
+                    redis.hset(`course:${email}`, 'course', JSON.stringify(result))
+                })
+            })
+        }
       return user.verifyPassword(password) ? done(null, user) : done(null, false, { message: 'Wrong password' })
     } catch (err) {
       return done(err)
