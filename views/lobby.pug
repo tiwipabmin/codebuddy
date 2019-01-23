@@ -1,0 +1,245 @@
+extends layout/layout.pug
+
+block script
+    //- script(src='/js/app/dashboard.js')
+    script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+    script(src='/jquery-timepicker/jquery.timepicker.min.js')
+    link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+    link(rel='stylesheet', href='/jquery-timepicker/jquery.timepicker.css')
+    link(rel='stylesheet' href='/css/main.css')
+
+    script(src='/datepair/dist/datepair.js')
+    script(src='/datepair/dist/jquery.datepair.js')
+
+    script(type='text/javascript').
+      const options = {}
+      $.ajax({
+        url: '/api/usernames',
+        success: function (result) {
+          options.data = result
+          console.log('Ajax : ' + options)
+        }
+      })
+      $(document).ready(function () {
+        $('.newClassroom').click(function () {
+          $('#newClassroom-modal').modal('show');
+        });
+        $('.enterToClass').click(function () {
+          $('#settingProject-modal').modal('show');
+        });
+        $('.joinClassroom').click(function () {
+          $('#joinClassroom-modal').modal('show');
+        });
+        $("#collaborator").easyAutocomplete(options);
+        $('#datepair .time').timepicker({
+            'showDuration': true,
+            'timeFormat': 'g:ia'
+        });
+        $('#datepair').datepair();
+      });
+
+    style.
+      @media (min-height: 200px) {
+      .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+      position: absolute;
+      width: 100%;
+      }
+      }
+
+block content
+    .ui.small.modal#newClassroom-modal
+      i.close.icon
+      .header Create New Classroom
+      .content
+        form.ui.form(action='/classroom', method='POST')
+          .field
+            label Class Name :
+            |
+            input(type='text', name='course_name', placeholder='Your class name', maxlength='100', pattern='[A-Z].{2,100}', title='Must class name is upper case')
+            //- select.ui.dropdown(id='selectCourse', name='courses')
+            //-script.
+              var courses = !{courses}
+              courses = !{JSON.parse(courses)}
+              var selectCourse = document.getElementById('selectCourse')
+              for (course in courses) {
+                console.log('course : ' + course)
+                let option = document.createElement('option')
+                let course_name = courses[course].course_name
+                option.value = course_name
+                option.text = course_name
+                selectCourse.add(option)
+            //  }
+          .ui.grid
+            .two.column.row
+              .column
+                .field
+                  label Section :
+                  |
+                  input(type='text', name='section', placeholder='Your section', maxlength='2', pattern='[0-9]{1,2}', title='Must 0-9')
+              .column
+                .field
+                  label Room :
+                  |
+                  input(type='text', name='room', placeholder='Your room', maxlength='4', pattern='[A-Za-z0-9].{1,4}')
+          .content
+            .ui.grid
+              .six.wide.column
+                .field
+                  label Date  :
+                  select.ui.dropdown(name='day')
+                     option(value='Mon.') Monday
+                     option(value='Tue.') Tuesday
+                     option(value='Wed.') Wednesday
+                     option(value='Thu.') Thursday
+                     option(value='Fri.') Friday
+                     option(value='Sat.') Saturday
+                     option(value='Sun.') Sunday
+              div#datepair
+                .five.wide.column
+                  .field
+                    label Time start  :
+                    input(type="text", class="time start", name="time_start", autocomplete="off", maxlength="7", pattern="[0-9]?[0-9]{1}:{1}[0-9]{1}[0-9]{1}[ap]{1}m{1}", title="eg., 12:00pm", placeholder='Time start')
+                .five.wide.column
+                  .field
+                    label Time end :
+                    input(type="text", class="time end", name="time_end", autocomplete="off", maxlength="7", pattern="[0-9]?[0-9]{1}:{1}[0-9]{1}[0-9]{1}[ap]{1}m{1}", title="eg., 12:00pm", placeholder='Time end')
+          .ui.basic.center.aligned.segment
+            .actions
+              button.ui.button.approve.green(type='submit') Create
+              .ui.button.approve.red(data-value='cancel') Cancel
+
+    .ui.mini.modal#joinClassroom-modal
+        i.close.icon
+        .header Join Classroom
+        .content
+            form.ui.form(action='/classroom', method='GET')
+                .field
+                    |
+                    input(type='text', placeholder='Code classroom', maxlength='9')
+                .ui.basic.center.aligned.segment
+                    .actions
+                        button.ui.button.approve.green(type='submit') Create
+                        .ui.button.approve.red(data-value='cancel') Cancel
+
+    +displayFlashes(flashes)
+    .ui.small.modal#select-partner-modal
+      i.close.icon
+      .header Select partner
+      .content
+        .ui.top.attached.tabular.menu
+          a.item.active(data-tab="purpose") Select by purpose
+          a.item(data-tab="search") Search partner
+        .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
+          a.ui.red.ribbon.label Recommended
+          .ui.grid
+            .six.wide.column
+                #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.chart.icon
+                  .row
+                    | Quality oriented
+                #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.idea.icon
+                  .row
+                    | Mutual improvement
+                #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+                  .row
+                    i.large.circular.inverted.teal.line.student.icon.center.aligned
+                  .row
+                    | Teaching &amp; Learning
+            .ten.wide.column
+              .ui.circular.labels.your-score-label
+                  a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
+              .ui.segment.container.user-purpose.box
+                .ui.middle.aligned.animated.list.user-purpose-list
+                    li.ui.item Please select your purpose.
+        .ui.bottom.attached.tab.segment.purpose-tab(data-tab="search")
+          .ui.grid
+            .six.wide.column
+              .ui.category.search
+                .ui.icon.input
+                  input.prompt(type="text" placeholder="Search by username..." id="search-user-input")
+                  i.search.icon
+            .ten.wide.column
+                .ui.segment.container.user-purpose.box
+                  .ui.middle.aligned.animated.list.user-list
+                    li.ui.item Search result
+    .ui.raised.very.padded.text.container.segment
+      .ui.two.column.doubling.stackable.grid.container
+        .column
+          h1.ui.header My Classroom
+        .right.column
+          a.right
+            case occupation
+              when 0
+                button#new.ui.button.approve.green.newClassroom(style='float: right;') Create New Classroom
+              default
+                button#new.ui.button.approve.green.joinClassroom(style='float: right;') Join Classroom
+
+      br
+      //- invitation
+      //- .ui.cards
+      //-   .card.invitation-card
+      //-     .content
+      //-       img.right.floated.mini.ui.image(src='https://cdn0.iconfinder.com/data/icons/pokemon-go-vol-2/135/_Pokemon_Egg-128.png')
+      //-       .header Header
+      //-       .meta Meta
+      //-       .description Des
+      //-     .extra.content
+      //-       .ui.two.buttons
+      //-         .ui.basic.green.button Approve
+      //-         .ui.basic.red.button Decline
+      if invitations.length > 0
+        .ui.relaxed.list.segment
+          each invite in invitations
+              .item
+                img.ui.avatar.image(src='/images/christian.jpg')
+                .content
+                  a.header #{invite.creator}
+                  .description @#{invite.creator} has invited you to join <b>#{invite.title}</b> project.
+                .right.floated.content
+                  .ui.two.buttons
+                    .ui.basic.green.button.accept-invite-button(onclick='onClickAcceptInvite("'+invite.pid+'")') Accept
+                    .ui.basic.red.button.accept-decline-button(onclick='onClickDeclineInvite("'+invite.pid+'")') Decline
+      if pendings.length > 0
+        .ui.items.segment
+          each pending in pendings
+            .item.disabled
+              a.ui.tiny.image
+                img(src='/images/blue-folder.png')(style='position: absolute;')
+                img.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;left:25px;top: 20px;')
+              .content
+                .ui.grid
+                  .eleven.wide.column
+                    b.header= pending.title
+                    .description= pending.description
+                    | Last updated #{moment(pending.createdAt).fromNow()}
+                    | (@#{pending.collaborator})
+                  .five.wide.column
+                    .ui.right.floated.alignedvertical
+                      .ui.red.circular.label pending
+
+      .ui.devided.items.segment
+        if sections.length > 0
+          each section in sections
+            if user.info.occupation === 'teacher'
+                    .item(id=`${section.section_id}`, style='padding-top:2px; padding-bottom:5px;')
+                        .content
+                            .ui.segment
+                                .ui.grid
+                                    .eleven.wide.column
+                                        b(style='font-size:1.2em;')
+                                            header= section.course_name
+                                        .description
+                                            p   Section !{section.section} Room !{section.room}
+                                            p   !{section.day} !{section.time_start}. - !{section.time_end}.
+                                    .five.wide.column
+                                        a.ui.right.floated.alignedvertical.animated.enterToClass.button(href='/classroom?course_id='+section.course_id+'&course_name='+section.course_name)
+                                            .hidden.content Enter
+                                            .visible.content
+                                                i.sign.in.alternate.icon.icon
+            //- else
+            //  each enrollment in enrollments
+        else
+          p.text-center No classroom.
