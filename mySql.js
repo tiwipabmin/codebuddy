@@ -34,10 +34,48 @@ exports.isDuplicateClassCode = (course_id, body) => {
   })
 }
 
-exports.getSection = (query, callback) => {
-  con.query(query, function(err, result){
-    if(err) callback(err, null);
-    callback(null, result)
+exports.getCourse = (query) => {
+  return new Promise(function(resolve, reject) {
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
+  })
+}
+
+exports.getSection = (query) => {
+  return new Promise(function(resolve, reject) {
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
+  })
+}
+
+exports.getEnrollment = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
+  })
+}
+
+exports.postEnrollment = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function(err, res){
+      if(err) reject(err);
+      resolve('Insert into enrollment complete!');
+    })
+  })
+}
+
+exports.getStudent = (query) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
   })
 }
 

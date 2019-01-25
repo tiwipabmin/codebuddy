@@ -66,12 +66,6 @@ exports.getDashboard = async (req, res) => {
 }
 
 exports.getLobby = async (req, res) => {
-  const querySection = 'SELECT * FROM section AS s JOIN course AS c ON s.course_id = c.course_id JOIN teacher AS t ON c.teacher_id = t.teacher_id AND t.email = \'' + req.user.email + '\''
-  var sections;
-  con.getSection(querySection, function(err, result){
-    if(err) throw err;
-    sections = result
-  })
   const projects = await Project
     .find({ $and : [
         {status: {$ne : "pending"} },
@@ -94,13 +88,20 @@ exports.getLobby = async (req, res) => {
     })
   .sort({ createdAt: -1 })
   var occupation = req.user.info.occupation;
+  var querySection = 'SELECT * FROM section WHERE class_code = \'xxxxxxxxx\'';
+  var sections = [];
   if(occupation == 'teacher') {
     occupation = 0
+    querySection = 'SELECT * FROM section AS s JOIN course AS c ON s.course_id = c.course_id JOIN teacher AS t ON c.teacher_id = t.teacher_id AND t.email = \'' + req.user.email + '\''
+    sections = await con.getSection(querySection)
     console.log("occupation : " + occupation + ", teacher : " + req.user.info.occupation)
   } else {
     occupation = 1
+    querySection = 'SELECT * FROM course AS c JOIN section AS s ON c.course_id = s.course_id JOIN enrollment AS e ON s.section_id = e.section_id JOIN student AS st ON e.student_id = st.student_id AND st.email = \'' + req.user.email + '\''
+    sections = await con.getSection(querySection)
     console.log("occupation : " + occupation + ", student : " + req.user.info.occupation)
   }
+  if(!sections.length) sections = []
   res.render('lobby', { projects, invitations, pendings, occupation, sections, title: 'Lobby' })
 }
 
@@ -269,6 +270,25 @@ exports.getClassroom = async (req, res) => {
     }
 
     res.render('classroom', { projects, invitations, pendings, title: req.query.course_name })
+}
+
+exports.joinClass = async (req, res) => {
+  var querySection = 'SELECT * FROM section WHERE class_code = \'' + req.body.class_code + '\''
+  var queryStudent = 'SELECT * FROM student WHERE username = \'' + req.user.username + '\''
+  var section = await con.getSection(querySection).then(function(res) {
+    console.log('section : ' + res[0])
+    return res
+  })
+  var student = await con.getStudent(queryStudent).then(function(res) {
+    console.log('student : ' + res[0])
+    return res
+  })
+  if(section.length) {
+    var queryEnrollment = 'INSERT INTO enrollment (student_id, section_id, grade) VALUES ?'
+    var values = [[student[0].student_id, section[0].section_id, '4']]
+    var status = await con.postEnrollment(queryEnrollment, values)
+  }
+  res.redirect('/lobby')
 }
 
 exports.editProject = async (req, res) => {

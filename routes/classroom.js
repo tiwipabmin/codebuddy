@@ -21,6 +21,8 @@ router
   .get(webController.getClassroom)
   .post(catchErrors(webController.createClassroom))
 
+router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
+
 /**
  * Expose `router`
  */
