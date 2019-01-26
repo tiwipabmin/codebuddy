@@ -226,10 +226,13 @@ exports.createClassroom = async (req, res) => {
 exports.getClassroom = async (req, res) => {
   var occupation = req.user.info.occupation;
   var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
+  var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = \'' + req.query.section_id + '\''
   var section = [];
+  var students = [];
   if(occupation == 'teacher') {
     occupation = 0
     section = await con.getSection(querySection)
+    students = await con.getStudent(queryStudent)
     console.log("occupation : " + occupation + ", teacher : " + req.user.info.occupation + ", section_id : " + section.course_name)
   } else {
     occupation = 1
@@ -237,7 +240,9 @@ exports.getClassroom = async (req, res) => {
   }
   if(!section.length) section = []
   else section = section[0]
-  res.render('classroom', { occupation, section, title: 'Lobby' })
+
+  if(!students.length) students = []
+  res.render('classroom', { occupation, section, students, title: 'Lobby' })
 }
 
 exports.joinClass = async (req, res) => {

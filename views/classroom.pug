@@ -18,6 +18,15 @@ block script
         $('.newProject').click(function () {
           $('#newProject-modal').modal('show');
         });
+        $('.students').click(function () {
+          $('#students-modal').modal('show');
+        });
+        $('.pairs').click(function () {
+          $('#pairs-modal').modal('show');
+        });
+        $('.settings').click(function () {
+          $('#settings-modal').modal('show');
+        });
       });
     style.
       @media (min-height: 200px) {
@@ -68,24 +77,83 @@ block content
                option(value='5') 5 minutes
                option(value='1') 1 minute
             input(type='hidden' name='status' value="pending")
-          .ui.form
-            .inline.fields
-              //- .fields
-              //-   label(for='theme') Select your theme:
-              //-   .field
-              //-     .radio.checkbox
-              //-       input.hidden(type='radio', name='theme', checked='', tabindex='0')
-              //-       |
-              //-       label White (default)
-              //-       img.logo.small(src='images/whiteEditorTheme.PNG' ,width='80%', height='15%')
-              //-   .field
-              //-     .radio.checkbox
-              //-       input.hidden(type='radio', name='theme', tabindex='0')
-              //-       |
-              //-       label Blackboard
-              //-       img.logo.small(src='images/darkEditorTheme.PNG' ,width='80%',height='15%')
 
           .ui.basic.center.aligned.segment()
+            .actions
+              button.ui.button.approve.green(type='submit') Create
+              .ui.button.approve.red(data-value='cancel') Cancel
+
+    .ui.longer.modal#students-modal
+      i.close.icon
+      .red.inverted.header Class Code !{section.class_code}
+      .content
+        .ui.items
+          if students.length > 0
+            each student in students
+              .item(id=`${student.student_id}`, style='padding-top:2px; padding-bottom:5px;')
+                  .content
+                      .ui.segment
+                          .ui.grid
+                              .eleven.wide.column
+                                  b(style='font-size:1.2em;')
+                                      header !{student.first_name} !{student.last_name}
+                                  .description
+                                      p
+                                        font(color='blue') STUDENT ID
+                              .five.wide.column
+                                  a.ui.right.floated.alignedvertical.animated.enterToClass.button
+                                      .hidden.content Delete
+                                      .visible.content
+                                          i.trash.icon
+
+    .ui.longer.modal#pairs-modal
+      i.close.icon
+      .red.inverted.header Pairs
+      .content
+
+    .ui.small.modal#settings-modal
+      i.close.icon
+      .red.inverted.header Settings Classroom
+      .content
+        form.ui.form(action='/classroom', method='POST')
+          .field
+            label Class Name :
+            |
+            input(type='text', name='course_name', placeholder='Your class name', maxlength='100', pattern='[A-Z].{2,100}', title='Must class name is upper case')
+          .ui.grid
+            .two.column.row
+              .column
+                .field
+                  label Section :
+                  |
+                  input(type='text', name='section', placeholder='Your section', maxlength='2', pattern='[0-9]{1,2}', title='Must 0-9')
+              .column
+                .field
+                  label Room :
+                  |
+                  input(type='text', name='room', placeholder='Your room', maxlength='4', pattern='[A-Za-z0-9].{1,4}')
+          .ui.grid
+            .six.wide.column
+              .field
+                label Date  :
+                select.ui.dropdown(name='day')
+                   option(value='Mon.') Monday
+                   option(value='Tue.') Tuesday
+                   option(value='Wed.') Wednesday
+                   option(value='Thu.') Thursday
+                   option(value='Fri.') Friday
+                   option(value='Sat.') Saturday
+                   option(value='Sun.') Sunday
+            div#datepair
+              .five.wide.column
+                .field
+                  label Time start  :
+                  input(type="text", class="time start", name="time_start", autocomplete="off", maxlength="7", pattern="[0-9]?[0-9]{1}:{1}[0-9]{1}[0-9]{1}[ap]{1}m{1}", title="eg., 12:00pm", placeholder='Time start')
+              .five.wide.column
+                .field
+                  label Time end :
+                  input(type="text", class="time end", name="time_end", autocomplete="off", maxlength="7", pattern="[0-9]?[0-9]{1}:{1}[0-9]{1}[0-9]{1}[ap]{1}m{1}", title="eg., 12:00pm", placeholder='Time end')
+          .ui.basic.center.aligned.segment
             .actions
               button.ui.button.approve.green(type='submit') Create
               .ui.button.approve.red(data-value='cancel') Cancel
@@ -109,13 +177,21 @@ block content
                     .description
                       p
                         i.student.icon
-                        font(color='blue') Students
+                        button.btn.students Students
+                case occupation
+                  when 0
+                    .item
+                      .content
+                        .description
+                          p
+                            i.sitemap.icon
+                            button.btn.pairs Pairs
                 .item
                   .content
                     .description
                       p
                         i.setting.icon
-                        font(color='blue') Settings
+                        button.btn.settings Settings
 
         .ten.wide.column
           .ui.segment
@@ -123,16 +199,16 @@ block content
               .column
                 case occupation
                   when 0
-                    h1.ui.header Assignments
+                    h1.ui.header#headerContainer Assignments
                   default
-                    h1.ui.header My Projects
+                    h1.ui.header#headerContainer My Projects
               .right.column
                 a.right
                   case occupation
                     when 0
-                      button#new.ui.button.approve.green.newClassroom(style='float: right;') Create New Assignment
+                      button#new.ui.button.approve.green.newAssignment(style='float: right;') Create New Assignment
                     default
-                      button#new.ui.button.approve.green.joinClassroom(style='float: right;') Create New Project
+                      button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
             //- .ui.items.segment
               if sections.length > 0
                 each section in sections
