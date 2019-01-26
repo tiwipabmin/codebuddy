@@ -224,52 +224,20 @@ exports.createClassroom = async (req, res) => {
 }
 
 exports.getClassroom = async (req, res) => {
-    console.log('Classroom : ' + req.query.course_name)
-    const projects = await Project
-        .find({
-            $and: [
-                { status: { $ne: "pending" } },
-                { $or: [{ creator: req.user.username }, { collaborator: req.user.username }] }
-            ]
-        })
-        .sort({ createdAt: -1 })
-    const invitations = await Project
-        .find({
-            $and: [
-                { status: "pending" },
-                { collaborator: req.user.username }
-            ]
-        })
-        .sort({ createdAt: -1 })
-    const pendings = await Project
-        .find({
-            $and: [
-                { status: "pending" },
-                { creator: req.user.username }
-            ]
-        })
-        .sort({ createdAt: -1 })
-    // projects.forEach(element => {
-    //   console.log(element)
-    //   let partner = ''
-    //   if(req.user.username == element.creator) {
-    //     partner = await User
-    //     .findOne(req.user.username)
-    //   } else {
-    //     partner = await User
-    //     .findOne(req.user.username)
-    //   }
-    //   element.partner_img = partner.img
-    //   console.log(element.partner_img)
-    // });
-    var occupation;
-    if (req.user.info.occupation == 'student') {
-        occupation = 0
-    } else if (req.user.info.occupation == 'teacher') {
-        occupation = 1
-    }
-
-    res.render('classroom', { projects, invitations, pendings, title: req.query.course_name })
+  var occupation = req.user.info.occupation;
+  var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
+  var section = [];
+  if(occupation == 'teacher') {
+    occupation = 0
+    section = await con.getSection(querySection)
+    console.log("occupation : " + occupation + ", teacher : " + req.user.info.occupation + ", section_id : " + section.course_name)
+  } else {
+    occupation = 1
+    section = await con.getSection(querySection)
+  }
+  if(!section.length) section = []
+  else section = section[0]
+  res.render('classroom', { occupation, section, title: 'Lobby' })
 }
 
 exports.joinClass = async (req, res) => {

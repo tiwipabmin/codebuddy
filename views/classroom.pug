@@ -90,18 +90,67 @@ block content
               button.ui.button.approve.green(type='submit') Create
               .ui.button.approve.red(data-value='cancel') Cancel
 
-    .ui.raised.very.padded.text.container.segment
-      .ui.raised.very.padded.text.container.segment
-        .ui.two.column.doubling.stackable.grid.container
-          .column
-            h1.ui.header My Projects
-          .right.column
-            a.right
-              button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
-      .ui.raised.very.padded.text.container.segment
-        .ui.two.column.doubling.stackable.grid.container
-          .column
-            h1.ui.header My Projects
-          .right.column
-            a.right
-              button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
+    .ui.raised.very.padded.container
+      .ui.centered.grid(style='padding-top:20px;')
+        .five.wide.column
+          .ui.segments
+            .ui.red.inverted.segment
+              .item
+                .content
+                  b(style='font-size:1.2em;')
+                    header= section.course_name
+                  .description
+                    p   Section !{section.section} Room !{section.room}
+                    p   !{section.day} !{section.time_start}. - !{section.time_end}.
+            .ui.segment
+              .ui.items
+                .item
+                  .content
+                    .description
+                      p
+                        i.student.icon
+                        font(color='blue') Students
+                .item
+                  .content
+                    .description
+                      p
+                        i.setting.icon
+                        font(color='blue') Settings
+
+        .ten.wide.column
+          .ui.segment
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px;')
+              .column
+                case occupation
+                  when 0
+                    h1.ui.header Assignments
+                  default
+                    h1.ui.header My Projects
+              .right.column
+                a.right
+                  case occupation
+                    when 0
+                      button#new.ui.button.approve.green.newClassroom(style='float: right;') Create New Assignment
+                    default
+                      button#new.ui.button.approve.green.joinClassroom(style='float: right;') Create New Project
+            //- .ui.items.segment
+              if sections.length > 0
+                each section in sections
+                  if user.info.occupation === 'teacher'
+                          .item(id=`${section.section_id}`, style='padding-top:2px; padding-bottom:5px;')
+                              .content
+                                  .ui.grid
+                                      .eleven.wide.column
+                                          b(style='font-size:1.2em;')
+                                              header= section.course_name
+                                          .description
+                                              p   Section !{section.section} Room !{section.room}
+                                              p   !{section.day} !{section.time_start}. - !{section.time_end}.
+                                      .five.wide.column
+                                          a.ui.right.floated.alignedvertical.animated.enterToClass.button(href='/classroom?course_id='+section.course_id+'&course_name='+section.course_name)
+                                              .hidden.content Edit
+                                              .visible.content
+                                                  i.setting.icon
+                  else
+                    p.text-center No classroom.
+            //
