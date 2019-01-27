@@ -12,9 +12,11 @@
   display: inline-block;
 }
 
+.main {color: blue;}
 .students {color: blue;}
 .pairs {color: blue;}
 .settings {color: blue;}
+.main:hover {color: violet;}
 .students:hover {color: violet;}
 .pairs:hover {color: violet;}
 .settings:hover {color: violet;}

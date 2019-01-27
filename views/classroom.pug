@@ -18,49 +18,55 @@ block script
         $('.newProject').click(function () {
           $('#newProject-modal').modal('show');
         });
+        $('.main').click(function () {
+          $('#main').show();
+          $('#students').hide();
+        });
         $('.students').click(function () {
-          $('#students-modal').modal('show');
-          $.ajax({
-            url: '/api/students',
-            data: {
-              section_id: !{section.section_id}
-            },
-            success: function (res) {
-              $('#studentList').remove()
-              var items = $('<div id=\'studentList\' class=\'ui items\' style=\'margin-left:50px; margin-right:50px;\'></div>');
-              $('#students-modal').append(items)
-              for(student in res){
-                var item = $('<div class=\'item ' + res[student].student_id + '\'></div>')
-                var content = $('<div class=\'content\'></div>')
-                var segment = $('<div class=\'ui segment\'></div>')
-                var grid = $('<div class=\'ui grid\'></div>')
-                var column1 = $('<div class=\'eleven wide column\'></div>')
-                var description = $('<div class=\'description\'></div>')
-                description.append($('<p><font color=\'blue\'> STUDENT ID </font></p>'))
-                var column2 = $('<div class=\'five wide column\'></div>')
-                column2.append($('<div id=\'' + res[student].student_id + '\' class=\'ui right floated alignedvertical animated removeStudent button\' name=\'' + res[student].first_name + ' ' + res[student].last_name + '\'><div class=\'hidden content\'>Delete</div><div class=\'visible content\'><i class=\'trash icon\'></i></div></div>'))
-                column1.append($('<b style=\'font-size:1.2em;\'><div class=\'header\'>' + res[student].first_name + ' ' + res[student].last_name + '</div></b>'))
-                column1.append(description)
-                grid.append(column1)
-                grid.append(column2)
-                segment.append(grid)
-                content.append(segment)
-                item.append(content)
-                $('#studentList').append(item)
-              }
-              $('.removeStudent').click(function () {
-                var name = $(this).attr('name');
-                $('#messageConfirm').text('Are you sure to remove student: \"' + name + '\" from the classroom?')
-                $('#confirmRemoveStudent').modal('show');
-                //var student = $(this).attr('id')
-                //$('#' + student).remove()
-                //alert($(this).attr('id'));
-              });
-              $('.no').click(function () {
-                $('#students-modal').modal('show');
-              });
-            }
-          })
+          //$('#students-modal').modal('show');
+          //$.ajax({
+          //  url: '/api/students',
+          //  data: {
+          //    section_id: !{section.section_id}
+          //  },
+          //  success: function (res) {
+          //    $('#studentList').remove()
+          //    var items = $('<div id=\'studentList\' class=\'ui items\' style=\'margin-left:50px; margin-right:50px;\'></div>');
+          //    $('#students-modal').append(items)
+          //    for(student in res){
+          //      var item = $('<div class=\'item ' + res[student].student_id + '\'></div>')
+          //      var content = $('<div class=\'content\'></div>')
+          //      var segment = $('<div class=\'ui segment\'></div>')
+          //      var grid = $('<div class=\'ui grid\'></div>')
+          //      var column1 = $('<div class=\'eleven wide column\'></div>')
+          //      var description = $('<div class=\'description\'></div>')
+          //      description.append($('<p><font color=\'blue\'> STUDENT ID </font></p>'))
+          //      var column2 = $('<div class=\'five wide column\'></div>')
+          //      column2.append($('<div id=\'' + res[student].student_id + '\' class=\'ui right floated alignedvertical animated removeStudent button\' name=\'' + res[student].first_name + ' ' + res[student].last_name + '\'><div class=\'hidden content\'>Delete</div><div class=\'visible content\'><i class=\'trash icon\'></i></div></div>'))
+          //      column1.append($('<b style=\'font-size:1.2em;\'><div class=\'header\'>' + res[student].first_name + ' ' + res[student].last_name + '</div></b>'))
+          //      column1.append(description)
+          //      grid.append(column1)
+          //      grid.append(column2)
+          //      segment.append(grid)
+          //      content.append(segment)
+          //      item.append(content)
+          //      $('#studentList').append(item)
+          //    }
+          //    $('.removeStudent').click(function () {
+          //      var name = $(this).attr('name');
+          //      $('#messageConfirm').text('Are you sure to remove student: \"' + name + '\" from the classroom?')
+          //      $('#confirmRemoveStudent').modal('show');
+          //      var student = $(this).attr('id')
+          //      $('#' + student).remove()
+          //      alert($(this).attr('id'));
+          //    });
+          //    $('.no').click(function () {
+          //      $('#students-modal').modal('show');
+          //    });
+          //  }
+          //})
+          $('#main').hide();
+          $('#students').show();
         });
         $('.pairs').click(function () {
           $('#pairs-modal').modal('show');
@@ -77,42 +83,19 @@ block script
               letters
             },
             success: function (res) {
-              $('#studentList').remove()
-              var items = $('<div id=\'studentList\' class=\'ui items\' style=\'margin-left:50px; margin-right:50px;\'></div>');
-              $('#students-modal').append(items)
-              for(student in res){
-                var item = $('<div class=\'item ' + res[student].student_id + '\'></div>')
-                var content = $('<div class=\'content\'></div>')
-                var segment = $('<div class=\'ui segment\'></div>')
-                var grid = $('<div class=\'ui grid\'></div>')
-                var column1 = $('<div class=\'eleven wide column\'></div>')
-                var description = $('<div class=\'description\'></div>')
-                description.append($('<p><font color=\'blue\'> STUDENT ID </font></p>'))
-                var column2 = $('<div class=\'five wide column\'></div>')
-                column2.append($('<div id=\'' + res[student].student_id + '\' class=\'ui right floated alignedvertical animated removeStudent button\' name=\'' + res[student].first_name + ' ' + res[student].last_name + '\'><div class=\'hidden content\'>Delete</div><div class=\'visible content\'><i class=\'trash icon\'></i></div></div>'))
-                column1.append($('<b style=\'font-size:1.2em;\'><div class=\'header\'>' + res[student].first_name + ' ' + res[student].last_name + '</div></b>'))
-                column1.append(description)
-                grid.append(column1)
-                grid.append(column2)
-                segment.append(grid)
-                content.append(segment)
-                item.append(content)
-                $('#studentList').append(item)
-              }
-              $('.removeStudent').click(function () {
-                var name = $(this).attr('name');
-                $('#messageConfirm').text('Are you sure to remove student: \"' + name + '\" from the classroom?')
-                $('#confirmRemoveStudent').modal('show');
-                //var student = $(this).attr('id')
-                //$('#' + student).remove()
-                //alert($(this).attr('id'));
-              });
-              $('.no').click(function () {
-                $('#students-modal').modal('show');
-              });
+
             }
           })
         })
+        $('#students').hide();
+        $('.removeStudent').click(function () {
+          var name = $(this).attr('name');
+          $('#messageConfirm').text('Are you sure to remove student: \"' + name + '\" from the classroom?')
+          $('#confirmRemoveStudent').modal('show');
+          //var student = $(this).attr('id')
+          //$('#' + student).remove()
+          //alert($(this).attr('id'));
+        });
       });
     style.
       @media (min-height: 200px) {
@@ -275,6 +258,18 @@ block content
                 .item
                   .content
                     .description
+                      case occupation
+                        when 0
+                          p
+                            i.book.icon
+                            button.btn.main Assignments
+                        default
+                          p
+                            i.file.icon
+                            button.btn.main Projects
+                .item
+                  .content
+                    .description
                       p
                         i.student.icon
                         button.btn.students Students
@@ -293,7 +288,7 @@ block content
                         i.setting.icon
                         button.btn.settings Settings
 
-        .ten.wide.column
+        .ten.wide.column#main
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px;')
               .column
@@ -329,4 +324,31 @@ block content
                                                   i.setting.icon
                   else
                     p.text-center No classroom.
-            //
+
+        .ten.wide.column#students
+          .ui.segment
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px;')
+              .column
+                h1.ui.header#headerContainer Students
+              .right.column
+                a.right
+                  button#new.ui.button.approve.green.newAssignment(style='float: right;') Create New Assignment
+
+            .ui.items.studentList
+              if students.length > 0
+                each student in students
+                  .item(id=`${student.student_id}`, style='padding-top:2px; padding-bottom:5px;')
+                    .content
+                      .ui.segment
+                        .ui.grid
+                          .eleven.wide.column
+                            b(style='font-size:1.2em;')
+                              header !{student.first_name} !{student.last_name}
+                            .description
+                              p
+                                font(color='blue') STUDENT ID
+                          .five.wide.column
+                            a.ui.right.floated.alignedvertical.animated.removeStudent.button(id=`${student.student_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`)
+                              .hidden.content Remove
+                              .visible.content
+                                i.sign.out.icon
