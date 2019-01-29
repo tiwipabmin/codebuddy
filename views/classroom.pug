@@ -23,48 +23,6 @@ block script
           $('#students').hide();
         });
         $('.students').click(function () {
-          //$('#students-modal').modal('show');
-          //$.ajax({
-          //  url: '/api/students',
-          //  data: {
-          //    section_id: !{section.section_id}
-          //  },
-          //  success: function (res) {
-          //    $('#studentList').remove()
-          //    var items = $('<div id=\'studentList\' class=\'ui items\' style=\'margin-left:50px; margin-right:50px;\'></div>');
-          //    $('#students-modal').append(items)
-          //    for(student in res){
-          //      var item = $('<div class=\'item ' + res[student].student_id + '\'></div>')
-          //      var content = $('<div class=\'content\'></div>')
-          //      var segment = $('<div class=\'ui segment\'></div>')
-          //      var grid = $('<div class=\'ui grid\'></div>')
-          //      var column1 = $('<div class=\'eleven wide column\'></div>')
-          //      var description = $('<div class=\'description\'></div>')
-          //      description.append($('<p><font color=\'blue\'> STUDENT ID </font></p>'))
-          //      var column2 = $('<div class=\'five wide column\'></div>')
-          //      column2.append($('<div id=\'' + res[student].student_id + '\' class=\'ui right floated alignedvertical animated removeStudent button\' name=\'' + res[student].first_name + ' ' + res[student].last_name + '\'><div class=\'hidden content\'>Delete</div><div class=\'visible content\'><i class=\'trash icon\'></i></div></div>'))
-          //      column1.append($('<b style=\'font-size:1.2em;\'><div class=\'header\'>' + res[student].first_name + ' ' + res[student].last_name + '</div></b>'))
-          //      column1.append(description)
-          //      grid.append(column1)
-          //      grid.append(column2)
-          //      segment.append(grid)
-          //      content.append(segment)
-          //      item.append(content)
-          //      $('#studentList').append(item)
-          //    }
-          //    $('.removeStudent').click(function () {
-          //      var name = $(this).attr('name');
-          //      $('#messageConfirm').text('Are you sure to remove student: \"' + name + '\" from the classroom?')
-          //      $('#confirmRemoveStudent').modal('show');
-          //      var student = $(this).attr('id')
-          //      $('#' + student).remove()
-          //      alert($(this).attr('id'));
-          //    });
-          //    $('.no').click(function () {
-          //      $('#students-modal').modal('show');
-          //    });
-          //  }
-          //})
           $('#main').hide();
           $('#students').show();
         });
@@ -74,28 +32,31 @@ block script
         $('.settings').click(function () {
           $('#settings-modal').modal('show');
         });
-        $('#searchStudents').keyup(function (e) {
-          var letters = $(this).val();
-          var students = [];
+        $('#students').hide();
+        $('.removeStudent').click(function () {
+          $('#messageConfirm').text('Are you sure to remove \"' + $(this).attr('name') + '\" from the classroom?')
+          $('.enrollment_id').attr('value', $(this).attr('id'))
+          $('.student_id').attr('value', $(this).attr('value'))
+          //$('#form1').attr('action', $('#form1').attr('action') + 'student_id=' + $('this').attr('id') + '&section_id=' + !{section.section_id})
+          $('#confirmRemoveStudent').modal('show');
+        });
+        $('.yesIamSure').click(function (e) {
+          var enrollment_id = $('.enrollment_id').attr('value')
           $.ajax({
-            url: '/api/search',
+            url: '/api/removeStudent',
+            type: 'post',
             data: {
-              letters
+              enrollment_id
             },
             success: function (res) {
-
+              if(res.status == 'Remove the student from the classroom complete.') {
+                $('#' + $('.student_id').attr('value')).remove()
+              } else {
+                alert(res.status)
+              }
             }
           })
         })
-        $('#students').hide();
-        $('.removeStudent').click(function () {
-          var name = $(this).attr('name');
-          $('#messageConfirm').text('Are you sure to remove student: \"' + name + '\" from the classroom?')
-          $('#confirmRemoveStudent').modal('show');
-          //var student = $(this).attr('id')
-          //$('#' + student).remove()
-          //alert($(this).attr('id'));
-        });
       });
     style.
       @media (min-height: 200px) {
@@ -156,38 +117,14 @@ block content
       i.close.icon
       .header Remove Student
       .content
+        // form.ui.form(id='form1', action='/classroom/removeStudent', method='POST')
         p#messageConfirm Are you sure to remove the student from the classroom?
-      .ui.basic.center.aligned.segment
-        .actions
-          button.ui.button.approve.green.yes Yes
-          .ui.button.approve.red.no No
-
-    .ui.longer.modal#students-modal
-      i.close.icon
-      .header Class Code !{section.class_code}
-      .content
-        .ui.fluid.action.input
-          input#searchStudents(type='text', name='student_name', placeholder='Search...')
-          button.ui.icon.button
-            i.search.icon
-        //- .ui.items.studentList
-          if students.length > 0
-            each student in students
-              .item(id=`${student.student_id}`, style='padding-top:2px; padding-bottom:5px;')
-                  .content
-                      .ui.segment
-                          .ui.grid
-                              .eleven.wide.column
-                                  b(style='font-size:1.2em;')
-                                      header !{student.first_name} !{student.last_name}
-                                  .description
-                                      p
-                                        font(color='blue') STUDENT ID
-                              .five.wide.column
-                                  a.ui.right.floated.alignedvertical.animated.removeStudent.button(id=`${student.student_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`)
-                                      .hidden.content Delete
-                                      .visible.content
-        //                                i.trash.icon
+        input.enrollment_id(type='hidden', name='enrollment_id')
+        input.student_id(type='hidden', name='student_id')
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green.yesIamSure Yes
+            .ui.button.approve.red.noIamNotSure No
 
     .ui.longer.modal#pairs-modal
       i.close.icon
@@ -281,12 +218,14 @@ block content
                           p
                             i.sitemap.icon
                             button.btn.pairs Pairs
-                .item
-                  .content
-                    .description
-                      p
-                        i.setting.icon
-                        button.btn.settings Settings
+                case occupation
+                  when 0
+                    .item
+                      .content
+                        .description
+                          p
+                            i.setting.icon
+                            button.btn.settings Settings
 
         .ten.wide.column#main
           .ui.segment
@@ -304,35 +243,12 @@ block content
                       button#new.ui.button.approve.green.newAssignment(style='float: right;') Create New Assignment
                     default
                       button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
-            //- .ui.items.segment
-              if sections.length > 0
-                each section in sections
-                  if user.info.occupation === 'teacher'
-                          .item(id=`${section.section_id}`, style='padding-top:2px; padding-bottom:5px;')
-                              .content
-                                  .ui.grid
-                                      .eleven.wide.column
-                                          b(style='font-size:1.2em;')
-                                              header= section.course_name
-                                          .description
-                                              p   Section !{section.section} Room !{section.room}
-                                              p   !{section.day} !{section.time_start}. - !{section.time_end}.
-                                      .five.wide.column
-                                          a.ui.right.floated.alignedvertical.animated.enterToClass.button(href='/classroom?course_id='+section.course_id+'&course_name='+section.course_name)
-                                              .hidden.content Edit
-                                              .visible.content
-                                                  i.setting.icon
-                  else
-                    p.text-center No classroom.
 
         .ten.wide.column#students
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px;')
               .column
                 h1.ui.header#headerContainer Students
-              .right.column
-                a.right
-                  button#new.ui.button.approve.green.newAssignment(style='float: right;') Create New Assignment
 
             .ui.items.studentList
               if students.length > 0
@@ -348,7 +264,9 @@ block content
                               p
                                 font(color='blue') STUDENT ID
                           .five.wide.column
-                            a.ui.right.floated.alignedvertical.animated.removeStudent.button(id=`${student.student_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`)
-                              .hidden.content Remove
-                              .visible.content
-                                i.sign.out.icon
+                            case occupation
+                              when 0
+                                a.ui.right.floated.alignedvertical.animated.removeStudent.button(id=`${student.enrollment_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`, value=`${student.student_id}`)
+                                  .hidden.content Remove
+                                  .visible.content
+                                    i.sign.out.icon

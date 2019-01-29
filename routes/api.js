@@ -9,5 +9,6 @@ const router = express.Router()
 router.get('/usernames', auth.isSignedIn, catchErrors(userController.getUsernames))
 router.get('/students', auth.isSignedIn, catchErrors(webController.getStudents))
 router.get('/search', auth.isSignedIn, catchErrors(webController.searchStudents))
+router.post('/removeStudent', auth.isSignedIn, catchErrors(webController.removeStudent))
 
 module.exports = router

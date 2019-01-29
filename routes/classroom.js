@@ -11,9 +11,9 @@ const router = express.Router()
 
 /**
  * `Project` route used as `/project`
- * Return the playground page used in pair-programming collaboration
- * @method {GET} return rendered `playground.pug`
- * @method {POST} handle create new project form on `dashboard` page
+ * Return the classroom page used in pair-programming collaboration
+ * @method {GET} return rendered `classroom.pug`
+ * @method {POST} handle create new project form on `classroom` page
  */
 router
   .use(auth.isSignedIn)

@@ -2727,9 +2727,9 @@ mongoose-mongodb-errors@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/mongoose-mongodb-errors/-/mongoose-mongodb-errors-0.0.2.tgz#7feacb8c901b5f899c616652337b2f499717291c"
 
-mongoose@^5.4.6:
-  version "5.4.6"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-5.4.6.tgz#5b2830a4a0cd1caf1ed91501b25e6874389c4ba5"
+mongoose@^5.4.7:
+  version "5.4.7"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-5.4.7.tgz#eac012b38636a4b9075f66480263dd426e65c5c1"
   dependencies:
     async "2.6.1"
     bson "~1.1.0"

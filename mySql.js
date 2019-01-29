@@ -79,6 +79,15 @@ exports.getStudent = (query) => {
   })
 }
 
+exports.removeStudent = (query) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject('Remove the student from the classroom fail.');
+      resolve('Remove the student from the classroom complete.');
+    })
+  })
+}
+
 exports.searchStudents = (letters) => {
   return new Promise(function(resolve, reject){
     const query = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id AND (s.first_name LIKE \'%' + letters + '%\' OR s.last_name LIKE \'%' + letters + '%\')'

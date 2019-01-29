@@ -231,18 +231,26 @@ exports.getClassroom = async (req, res) => {
   var students = [];
   if(occupation == 'teacher') {
     occupation = 0
-    section = await con.getSection(querySection)
-    students = await con.getStudent(queryStudent)
-    console.log("occupation : " + occupation + ", teacher : " + req.user.info.occupation + ", section_id : " + section.course_name)
   } else {
     occupation = 1
-    section = await con.getSection(querySection)
   }
+  section = await con.getSection(querySection)
+  students = await con.getStudent(queryStudent)
   if(!section.length) section = []
   else section = section[0]
 
   if(!students.length) students = []
-  res.render('classroom', { occupation, section, students, title: 'Lobby' })
+  res.render('classroom', { occupation, section, students, title: section.course_name })
+}
+
+exports.removeStudent = async (req, res) => {
+  console.log('student_id : ' + req.body.enrollment_id)
+  var removeStudent = 'DELETE FROM enrollment WHERE enrollment_id = ' + req.body.enrollment_id;
+  var status = await con.removeStudent(removeStudent);
+  let temp = {}
+  temp['status'] = status
+  console.log('temp : ' + temp + ', ' + status)
+  res.json(temp).status(200)
 }
 
 exports.searchStudents = async (req, res) => {
