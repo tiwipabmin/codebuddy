@@ -43,11 +43,29 @@ exports.getCourse = (query) => {
   })
 }
 
+exports.updateCourse = (query) => {
+  return new Promise(function(resolve, reject) {
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      resolve('Update course complete.');
+    })
+  })
+}
+
 exports.getSection = (query) => {
   return new Promise(function(resolve, reject) {
     con.query(query, function(err, res){
       if(err) reject(err);
       resolve(res);
+    })
+  })
+}
+
+exports.updateSection = (query) => {
+  return new Promise(function(resolve, reject) {
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      resolve('Update section complete.');
     })
   })
 }

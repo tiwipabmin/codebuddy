@@ -207,7 +207,7 @@ exports.createProject = async (req, res) => {
   res.redirect('dashboard')
 }
 
-exports.createClassroom = async (req, res) => {
+exports.createSection = async (req, res) => {
   console.log('req : ' + req.body.section + ', ' + req.body.room + ', ' + req.body.day + ', ' + req.body.time_start + ', ' + req.body.time_end)
   const courseQuery = 'INSERT INTO course (teacher_id, course_name) VALUES ?';
   const teacherQuery = 'SELECT teacher_id FROM teacher WHERE username = \'' + req.user.username + '\''
@@ -223,7 +223,17 @@ exports.createClassroom = async (req, res) => {
   res.redirect('lobby')
 }
 
-exports.getClassroom = async (req, res) => {
+exports.updateSection = async (req, res) => {
+  const time_start = req.body.time_start_hh + ':' + req.body.time_start_mm + '' + req.body.time_start_ap
+  const time_end = req.body.time_end_hh + ':' + req.body.time_end_mm + '' + req.body.time_end_ap
+  const queryCourse = 'UPDATE course SET course_name = \'' + req.body.course_name + '\' WHERE course_id = ' + req.body.course_id;
+  const querySection = 'UPDATE section SET section = ' + req.body.section + ', room = \'' + req.body.room + '\', day = \'' + req.body.day + '\', time_start = \'' + time_start + '\', time_end = \'' + time_end + '\' WHERE section_id = ' + req.body.section_id;
+  var courseStatus = await con.updateCourse(queryCourse);
+  var sectionStatus = await con.updateSection(querySection);
+  res.redirect('/classroom?section_id=' + req.body.section_id)
+}
+
+exports.getSection = async (req, res) => {
   var occupation = req.user.info.occupation;
   var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
   var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = \'' + req.query.section_id + '\''

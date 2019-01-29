@@ -30,6 +30,22 @@ block script
           $('#pairs-modal').modal('show');
         });
         $('.settings').click(function () {
+          var day = '!{section.day}'
+          var time_start = '!{section.time_start}'
+          var time_end = '!{section.time_end}'
+          var time_start_hh = time_start[0] + time_start[1]
+          var time_start_mm = time_start[3] + time_start[4]
+          var time_start_ap = time_start[5] + time_start[6]
+          var time_end_hh = time_end[0] + time_end[1]
+          var time_end_mm = time_end[3] + time_end[4]
+          var time_end_ap = time_end[5] + time_end[6]
+          $('.day option[value=\'' + day + '\']').attr('selected', 'selected');
+          $('.timeStartHh option[value=' + time_start_hh + ']').attr('selected', 'selected');
+          $('.timeStartMm option[value=' + time_start_mm + ']').attr('selected', 'selected');
+          $('.timeStartAp option[value=' + time_start_ap + ']').attr('selected', 'selected');
+          $('.timeEndHh option[value=' + time_end_hh + ']').attr('selected', 'selected');
+          $('.timeEndMm option[value=' + time_end_mm + ']').attr('selected', 'selected');
+          $('.timeEndAp option[value=' + time_end_ap + ']').attr('selected', 'selected');
           $('#settings-modal').modal('show');
         });
         $('#students').hide();
@@ -37,7 +53,6 @@ block script
           $('#messageConfirm').text('Are you sure to remove \"' + $(this).attr('name') + '\" from the classroom?')
           $('.enrollment_id').attr('value', $(this).attr('id'))
           $('.student_id').attr('value', $(this).attr('value'))
-          //$('#form1').attr('action', $('#form1').attr('action') + 'student_id=' + $('this').attr('id') + '&section_id=' + !{section.section_id})
           $('#confirmRemoveStudent').modal('show');
         });
         $('.yesIamSure').click(function (e) {
@@ -135,28 +150,28 @@ block content
       i.close.icon
       .red.inverted.header Settings Classroom
       .content
-        form.ui.form(action='/classroom', method='POST')
+        form.ui.form(action='/classroom/updateSection', method='POST')
           .field
             label Class Name :
             |
-            input(type='text', name='course_name', placeholder='Your class name', maxlength='100', pattern='[A-Z].{2,100}', title='Must class name is upper case')
+            input(type='text', name='course_name', placeholder='Your class name', maxlength='100', pattern='[A-Z].{2,100}', title='Must class name is upper case', value=`${section.course_name}`)
           .ui.grid
             .two.column.row
               .column
                 .field
                   label Section :
                   |
-                  input(type='text', name='section', placeholder='Your section', maxlength='2', pattern='[0-9]{1,2}', title='Must 0-9')
+                  input(type='text', name='section', placeholder='Your section', maxlength='2', pattern='[0-9]{1,2}', title='Must 0-9', value=`${section.section}`)
               .column
                 .field
                   label Room :
                   |
-                  input(type='text', name='room', placeholder='Your room', maxlength='4', pattern='[A-Za-z0-9].{1,4}')
+                  input(type='text', name='room', placeholder='Your room', maxlength='4', pattern='[A-Za-z0-9].{1,4}', value=`${section.room}`)
           .ui.grid
-            .six.wide.column
+            .four.wide.column
               .field
-                label Date  :
-                select.ui.dropdown(name='day')
+                label Day  :
+                select.ui.dropdown.day(name='day')
                    option(value='Mon.') Monday
                    option(value='Tue.') Tuesday
                    option(value='Wed.') Wednesday
@@ -164,18 +179,77 @@ block content
                    option(value='Fri.') Friday
                    option(value='Sat.') Saturday
                    option(value='Sun.') Sunday
-            div#datepair
-              .five.wide.column
-                .field
-                  label Time start  :
-                  input(type="text", class="time start", name="time_start", autocomplete="off", maxlength="7", pattern="[0-9]?[0-9]{1}:{1}[0-9]{1}[0-9]{1}[ap]{1}m{1}", title="eg., 12:00pm", placeholder='Time start')
-              .five.wide.column
-                .field
-                  label Time end :
-                  input(type="text", class="time end", name="time_end", autocomplete="off", maxlength="7", pattern="[0-9]?[0-9]{1}:{1}[0-9]{1}[0-9]{1}[ap]{1}m{1}", title="eg., 12:00pm", placeholder='Time end')
+            .six.wide.column(style='text-align:center;')
+              b Time start
+              .ui.labeled.input
+                select.ui.dropdown.timeStartHh(name='time_start_hh')
+                  option(value='01')  01
+                  option(value='02')  02
+                  option(value='03')  03
+                  option(value='04')  04
+                  option(value='05')  05
+                  option(value='06')  06
+                  option(value='07')  07
+                  option(value='08')  08
+                  option(value='09')  09
+                  option(value='10')  10
+                  option(value='11')  11
+                  option(value='12')  12
+                .ui.label
+                  b(color='black') :
+                select.ui.dropdown.timeStartMm(name='time_start_mm')
+                  option(value='05')  05
+                  option(value='10')  10
+                  option(value='15')  15
+                  option(value='20')  20
+                  option(value='25')  25
+                  option(value='30')  30
+                  option(value='35')  35
+                  option(value='40')  40
+                  option(value='45')  45
+                  option(value='50')  50
+                  option(value='55')  55
+                select.ui.dropdown.timeStartAp(name='time_start_ap')
+                  option(value='am.')  am.
+                  option(value='pm.')  pm.
+            .six.wide.column(style='text-align:center;')
+              b Time end
+              .ui.labeled.input
+                select.ui.dropdown.timeEndHh(name='time_end_hh')
+                  option(value='01')  01
+                  option(value='02')  02
+                  option(value='03')  03
+                  option(value='04')  04
+                  option(value='05')  05
+                  option(value='06')  06
+                  option(value='07')  07
+                  option(value='08')  08
+                  option(value='09')  09
+                  option(value='10')  10
+                  option(value='11')  11
+                  option(value='12')  12
+                .ui.label
+                  b(color='black') :
+                select.ui.dropdown.timeEndMm(name='time_end_mm')
+                  option(value='05')  05
+                  option(value='10')  10
+                  option(value='15')  15
+                  option(value='20')  20
+                  option(value='25')  25
+                  option(value='30')  30
+                  option(value='35')  35
+                  option(value='40')  40
+                  option(value='45')  45
+                  option(value='50')  50
+                  option(value='55')  55
+                select.ui.dropdown.timeEndAp(name='time_end_ap')
+                  option(value='am.')  am.
+                  option(value='pm.')  pm.
+          input(type='hidden', name='course_id', value=`${section.course_id}`)
+          input(type='hidden', name='section_id', value=`${section.section_id}`)
           .ui.basic.center.aligned.segment
             .actions
-              button.ui.button.approve.green(type='submit') Create
+              button.ui.button.approve.green(type='submit') Confirm
               .ui.button.approve.red(data-value='cancel') Cancel
 
     .ui.raised.very.padded.container
@@ -189,7 +263,7 @@ block content
                     header= section.course_name
                   .description
                     p   Section !{section.section} Room !{section.room}
-                    p   !{section.day} !{section.time_start}. - !{section.time_end}.
+                    p   !{section.day} !{section.time_start} - !{section.time_end}
             .ui.segment
               .ui.items
                 .item

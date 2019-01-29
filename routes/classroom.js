@@ -18,10 +18,11 @@ const router = express.Router()
 router
   .use(auth.isSignedIn)
   .route('/')
-  .get(webController.getClassroom)
-  .post(catchErrors(webController.createClassroom))
+  .get(webController.getSection)
+  .post(catchErrors(webController.createSection))
 
 router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
+router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
 
 /**
  * Expose `router`
