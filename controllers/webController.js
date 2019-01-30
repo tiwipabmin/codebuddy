@@ -263,32 +263,6 @@ exports.removeStudent = async (req, res) => {
   res.json(temp).status(200)
 }
 
-exports.searchStudents = async (req, res) => {
-  var letters = req.query.letters
-  console.log('letters : ' + letters)
-  const students = await con.searchStudents(letters)
-  console.log('students : ' + students)
-  let temp = []
-  for (student in students) {
-    temp[student] = students[student]
-  }
-  console.log('temp : ' + temp)
-  res.json(temp).status(200)
-}
-
-exports.getStudents = async (req, res) => {
-  var letters = req.query.section_id
-  var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = \'' + req.query.section_id + '\''
-  const students = await con.getStudent(queryStudent)
-  console.log('students : ' + students)
-  let temp = []
-  for (student in students) {
-    temp[student] = students[student]
-  }
-  console.log('temp : ' + temp)
-  res.json(temp).status(200)
-}
-
 exports.joinClass = async (req, res) => {
   var querySection = 'SELECT * FROM section WHERE class_code = \'' + req.body.class_code + '\''
   var queryStudent = 'SELECT * FROM student WHERE username = \'' + req.user.username + '\''
