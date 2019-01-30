@@ -208,18 +208,18 @@ exports.createProject = async (req, res) => {
 }
 
 exports.createSection = async (req, res) => {
-  console.log('req : ' + req.body.section + ', ' + req.body.room + ', ' + req.body.day + ', ' + req.body.time_start + ', ' + req.body.time_end)
-  const courseQuery = 'INSERT INTO course (teacher_id, course_name) VALUES ?';
-  const teacherQuery = 'SELECT teacher_id FROM teacher WHERE username = \'' + req.user.username + '\''
-  con.connect.query(teacherQuery, function (err, result) {
-    if(err) throw err;
-    const courseValues = [[result[0].teacher_id, req.body.course_name]]
-    con.connect.query(courseQuery, [courseValues], function (err, result) {
-        if(err) throw err;
-        con.isDuplicateClassCode(result.insertId, req.body)
-      }
-    )
-  })
+  const queryCourse = 'INSERT INTO course (teacher_id, course_name) VALUES ?';
+  const queryTeacher = 'SELECT teacher_id FROM teacher WHERE username = \'' + req.user.username + '\''
+  const querySection = 'INSERT INTO section (course_id, section, room, class_code, day, time_start, time_end) VALUES ?';
+  const teacher = await con.getTeacher(queryTeacher)
+  const teacher_id = teacher[0].teacher_id
+  const courseValues = [[teacher_id, req.body.course_name]]
+  const course_id = await con.createCourse(queryCourse, courseValues)
+  const classCode = await con.isDuplicateClassCode()
+  const time_start = req.body.time_start_hh + ':' + req.body.time_start_mm + '' + req.body.time_start_ap
+  const time_end = req.body.time_end_hh + ':' + req.body.time_end_mm + '' + req.body.time_end_ap
+  const sectionValues = [[course_id, req.body.section, req.body.room, classCode, req.body.day, time_start, time_end]]
+  const sections = await con.createSection(querySection, sectionValues)
   res.redirect('lobby')
 }
 

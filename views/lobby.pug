@@ -52,19 +52,6 @@ block content
             label Class Name :
             |
             input(type='text', name='course_name', placeholder='Your class name', maxlength='100', pattern='[A-Z].{2,100}', title='Must class name is upper case')
-            //- select.ui.dropdown(id='selectCourse', name='courses')
-            //-script.
-              var courses = !{courses}
-              courses = !{JSON.parse(courses)}
-              var selectCourse = document.getElementById('selectCourse')
-              for (course in courses) {
-                console.log('course : ' + course)
-                let option = document.createElement('option')
-                let course_name = courses[course].course_name
-                option.value = course_name
-                option.text = course_name
-                selectCourse.add(option)
-            //  }
           .ui.grid
             .two.column.row
               .column
@@ -77,28 +64,86 @@ block content
                   label Room :
                   |
                   input(type='text', name='room', placeholder='Your room', maxlength='4', pattern='[A-Za-z0-9].{1,4}')
-          .content
-            .ui.grid
-              .six.wide.column
-                .field
-                  label Date  :
-                  select.ui.dropdown(name='day')
-                     option(value='Mon.') Monday
-                     option(value='Tue.') Tuesday
-                     option(value='Wed.') Wednesday
-                     option(value='Thu.') Thursday
-                     option(value='Fri.') Friday
-                     option(value='Sat.') Saturday
-                     option(value='Sun.') Sunday
-              div#datepair
-                .five.wide.column
-                  .field
-                    label Time start  :
-                    input(type="text", class="time start", name="time_start", autocomplete="off", maxlength="7", pattern="[0-9]?[0-9]{1}:{1}[0-9]{1}[0-9]{1}[ap]{1}m{1}", title="eg., 12:00pm", placeholder='Time start')
-                .five.wide.column
-                  .field
-                    label Time end :
-                    input(type="text", class="time end", name="time_end", autocomplete="off", maxlength="7", pattern="[0-9]?[0-9]{1}:{1}[0-9]{1}[0-9]{1}[ap]{1}m{1}", title="eg., 12:00pm", placeholder='Time end')
+          .ui.grid
+            .four.wide.column
+              .field
+                label Day  :
+                select.ui.dropdown.day(name='day')
+                  option(value='Mon.') Monday
+                  option(value='Tue.') Tuesday
+                  option(value='Wed.') Wednesday
+                  option(value='Thu.') Thursday
+                  option(value='Fri.') Friday
+                  option(value='Sat.') Saturday
+                  option(value='Sun.') Sunday
+            .six.wide.column(style='text-align:center;')
+              b Time start
+              .ui.labeled.input
+                select.ui.dropdown.timeStartHh(name='time_start_hh')
+                  option(value='01')  01
+                  option(value='02')  02
+                  option(value='03')  03
+                  option(value='04')  04
+                  option(value='05')  05
+                  option(value='06')  06
+                  option(value='07')  07
+                  option(value='08')  08
+                  option(value='09')  09
+                  option(value='10')  10
+                  option(value='11')  11
+                  option(value='12')  12
+                .ui.label
+                  b(color='black') :
+                select.ui.dropdown.timeStartMm(name='time_start_mm')
+                  option(value='00')  00
+                  option(value='05')  05
+                  option(value='10')  10
+                  option(value='15')  15
+                  option(value='20')  20
+                  option(value='25')  25
+                  option(value='30')  30
+                  option(value='35')  35
+                  option(value='40')  40
+                  option(value='45')  45
+                  option(value='50')  50
+                  option(value='55')  55
+                select.ui.dropdown.timeStartAp(name='time_start_ap')
+                  option(value='am.')  am.
+                  option(value='pm.')  pm.
+            .six.wide.column(style='text-align:center;')
+              b Time end
+              .ui.labeled.input
+                select.ui.dropdown.timeEndHh(name='time_end_hh')
+                  option(value='01')  01
+                  option(value='02')  02
+                  option(value='03')  03
+                  option(value='04')  04
+                  option(value='05')  05
+                  option(value='06')  06
+                  option(value='07')  07
+                  option(value='08')  08
+                  option(value='09')  09
+                  option(value='10')  10
+                  option(value='11')  11
+                  option(value='12')  12
+                .ui.label
+                  b(color='black') :
+                select.ui.dropdown.timeEndMm(name='time_end_mm')
+                  option(value='00')  00
+                  option(value='05')  05
+                  option(value='10')  10
+                  option(value='15')  15
+                  option(value='20')  20
+                  option(value='25')  25
+                  option(value='30')  30
+                  option(value='35')  35
+                  option(value='40')  40
+                  option(value='45')  45
+                  option(value='50')  50
+                  option(value='55')  55
+                select.ui.dropdown.timeEndAp(name='time_end_ap')
+                  option(value='am.')  am.
+                  option(value='pm.')  pm.
           .ui.basic.center.aligned.segment
             .actions
               button.ui.button.approve.green(type='submit') Create
@@ -142,7 +187,7 @@ block content
                                             header= section.course_name
                                         .description
                                             p   Section !{section.section} Room !{section.room}
-                                            p   !{section.day} !{section.time_start}. - !{section.time_end}.
+                                            p   !{section.day} !{section.time_start} - !{section.time_end}
                                     .five.wide.column
                                         a.ui.right.floated.alignedvertical.animated.enterToClass.button(href='/classroom?section_id='+section.section_id)
                                             .hidden.content Enter

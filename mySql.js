@@ -13,24 +13,44 @@ con.connect(function(err){
   console.log("Connected!")
 })
 
-exports.isDuplicateClassCode = (course_id, body) => {
-  shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@')
-  const classCode = shortid.generate()
-  const selectQuery = 'SELECT class_code FROM section WHERE class_code = \"' + classCode + '\"'
-  const sectionQuery = 'INSERT INTO section (course_id, section, room, class_code, day, time_start, time_end) VALUES ?';
-  con.query(selectQuery, function(err, result){
-    if(err) throw err;
-    else if(result.length){
-      isDuplicateClassCode(course_id, body)
-      return;
-    } else {
-      const sectionValues = [[course_id, body.section, body.room, classCode, body.day, body.time_start, body.time_end]]
-      con.query(sectionQuery, [sectionValues], function (err, result) {
-          if(err) throw err;
-          console.log('Class code is not duplicate! : ' + classCode + 'and create a classroom successfully!')
-        }
-      )
-    }
+function makeClassCode(){
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 8; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
+
+exports.isDuplicateClassCode = () => {
+  return new Promise(function (resolve, reject) {
+    const classCode = makeClassCode()
+    const queryClassCode = 'SELECT class_code FROM section WHERE class_code = \"' + classCode + '\"'
+    con.query(queryClassCode, function(err, res) {
+      if(err) reject(err);
+      else if(res.length) {
+        isDuplicateClassCode()
+      } else resolve(classCode)
+    })
+  })
+}
+
+exports.createSection = (query, values) => {
+  return new Promise(function(resolve, reject) {
+    con.query(query, [values], function(err, res){
+      if(err) reject(err);
+      resolve('Create section complete.')
+    })
+  })
+}
+
+exports.createCourse = (query, values) => {
+  return new Promise(function(resolve, reject) {
+    con.query(query, [values], function(err, res){
+      if(err) reject(err);
+      resolve(res.insertId)
+    })
   })
 }
 
@@ -109,6 +129,15 @@ exports.removeStudent = (query) => {
 exports.searchStudents = (letters) => {
   return new Promise(function(resolve, reject){
     const query = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id AND (s.first_name LIKE \'%' + letters + '%\' OR s.last_name LIKE \'%' + letters + '%\')'
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
+  })
+}
+
+exports.getTeacher = (query) => {
+  return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject(err);
       resolve(res);
