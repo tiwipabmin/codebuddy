@@ -46,6 +46,10 @@ block script
                 {
                   type   : 'empty',
                   prompt : 'Please enter your course name'
+                },
+                {
+                  type : 'regExp[[a-zA-Z0-9]]',
+                  prompt : 'This course name is not valid!'
                 }
               ]
             },
@@ -55,6 +59,10 @@ block script
                 {
                   type   : 'empty',
                   prompt : 'Please enter your section'
+                },
+                {
+                  type : 'regExp[[0-9]]',
+                  prompt : 'This section is not valid!'
                 }
               ]
             },
@@ -121,12 +129,12 @@ block content
                 .field
                   label Section :
                   |
-                  input(type='text', name='section', placeholder='Your section')
+                  input(type='text', name='section', placeholder='Your section', maxlength='2')
               .column
                 .field
                   label Room :
                   |
-                  input(type='text', name='room', placeholder='Your room')
+                  input(type='text', name='room', placeholder='Your room', maxlength='4')
           .ui.grid
             .four.wide.column
               .field

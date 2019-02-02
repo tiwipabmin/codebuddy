@@ -15,6 +15,14 @@ block script
         }
       })
       $(document).ready(function () {
+        $('#settings-modal').modal({
+          closable: false,
+          transition: 'fade up',
+          onApprove : function() {
+            //$('.ui.form').submit();
+            return false;
+          },
+        })
         $('.newProject').click(function () {
           $('#newProject-modal').modal('show');
         });
@@ -46,8 +54,53 @@ block script
           $('.timeEndHh option[value=' + time_end_hh + ']').attr('selected', 'selected');
           $('.timeEndMm option[value=' + time_end_mm + ']').attr('selected', 'selected');
           $('.timeEndAp option[value=' + time_end_ap + ']').attr('selected', 'selected');
+          $('.ui.form').trigger('reset');
+          $('.ui.form .field.error').removeClass('error');
+          $('.ui.form.error').removeClass('error');
           $('#settings-modal').modal('show');
         });
+        $('.ui.form.updateSection').form({
+          fields: {
+            course_name: {
+              identifier: 'course_name',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your course name'
+                },
+                {
+                  type : 'regExp[[a-zA-Z0-9]]',
+                  prompt : 'This course name is not valid!'
+                }
+              ]
+            },
+            section: {
+              identifier: 'section',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your section'
+                },
+                {
+                  type : 'regExp[[0-9]]',
+                  prompt : 'This section is not valid!'
+                }
+              ]
+            },
+            room: {
+              identifier: 'room',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your room'
+                }
+              ]
+            }
+          },
+          onSuccess : function() {
+            $('#newClassroom-modal').modal('hide');
+          },
+        })
         $('#students').hide();
         $('.removeStudent').click(function () {
           $('#messageConfirm').text('Are you sure to remove \"' + $(this).attr('name') + '\" from the classroom?')
@@ -132,7 +185,6 @@ block content
       i.close.icon
       .header Remove Student
       .content
-        // form.ui.form(id='form1', action='/classroom/removeStudent', method='POST')
         p#messageConfirm Are you sure to remove the student from the classroom?
         input.enrollment_id(type='hidden', name='enrollment_id')
         input.student_id(type='hidden', name='student_id')
@@ -150,23 +202,23 @@ block content
       i.close.icon
       .red.inverted.header Settings Classroom
       .content
-        form.ui.form(action='/classroom/updateSection', method='POST')
+        form.ui.form.updateSection.segment(action='/classroom/updateSection', method='POST')
           .field
             label Class Name :
             |
-            input(type='text', name='course_name', placeholder='Your class name', maxlength='100', pattern='[A-Z].{2,100}', title='Must class name is upper case', value=`${section.course_name}`)
+            input(type='text', name='course_name', placeholder='Your class name', value=`${section.course_name}`)
           .ui.grid
             .two.column.row
               .column
                 .field
                   label Section :
                   |
-                  input(type='text', name='section', placeholder='Your section', maxlength='2', pattern='[0-9]{1,2}', title='Must 0-9', value=`${section.section}`)
+                  input(type='text', name='section', placeholder='Your section', maxlength='2', value=`${section.section}`)
               .column
                 .field
                   label Room :
                   |
-                  input(type='text', name='room', placeholder='Your room', maxlength='4', pattern='[A-Za-z0-9].{1,4}', value=`${section.room}`)
+                  input(type='text', name='room', placeholder='Your room', maxlength='4', value=`${section.room}`)
           .ui.grid
             .four.wide.column
               .field
@@ -250,7 +302,8 @@ block content
           .ui.basic.center.aligned.segment
             .actions
               button.ui.button.approve.green(type='submit') Confirm
-              .ui.button.approve.red(data-value='cancel') Cancel
+              .ui.button.cancel.red(data-value='cancel') Cancel
+          .ui.error.message
 
     .ui.raised.very.padded.container
       .ui.centered.grid(style='padding-top:20px;')
