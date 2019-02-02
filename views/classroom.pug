@@ -59,7 +59,7 @@ block script
           var enrollment_id = $('.enrollment_id').attr('value')
           $.ajax({
             url: '/api/removeStudent',
-            type: 'post',
+            type: 'delete',
             data: {
               enrollment_id
             },

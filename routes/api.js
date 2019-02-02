@@ -7,6 +7,7 @@ const { catchErrors } = require('../handlers/errorHandlers')
 const router = express.Router()
 
 router.get('/usernames', auth.isSignedIn, catchErrors(userController.getUsernames))
-router.post('/removeStudent', auth.isSignedIn, catchErrors(webController.removeStudent))
+router.delete('/removeStudent', auth.isSignedIn, catchErrors(webController.removeStudent))
+router.delete('/deleteSection', auth.isSignedIn, catchErrors(webController.deleteSection))
 
 module.exports = router

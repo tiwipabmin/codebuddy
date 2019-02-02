@@ -223,6 +223,15 @@ exports.createSection = async (req, res) => {
   res.redirect('lobby')
 }
 
+exports.deleteSection = async (req, res) => {
+  const deleteSection = 'DELETE FROM section WHERE section_id = ' + req.body.section_id;
+  const status = await con.deleteSection(deleteSection)
+  let temp = {}
+  temp['status'] = status
+  console.log('temp : ' + temp.status + ', ' + req.body.section_id)
+  res.json(temp).status(200)
+}
+
 exports.updateSection = async (req, res) => {
   const time_start = req.body.time_start_hh + ':' + req.body.time_start_mm + '' + req.body.time_start_ap
   const time_end = req.body.time_end_hh + ':' + req.body.time_end_mm + '' + req.body.time_end_ap
@@ -321,7 +330,6 @@ exports.deleteProject = async (req, res) => {
       if(err) throw err
       res.end()
     })
-
 }
 
 exports.searchUser = async (req, res) => {

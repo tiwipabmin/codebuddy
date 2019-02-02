@@ -45,6 +45,15 @@ exports.createSection = (query, values) => {
   })
 }
 
+exports.deleteSection = (query) => {
+  return new Promise(function(resolve, reject) {
+    con.query(query, function(err, res){
+      if(err) reject('Delete the section fail.');
+      resolve('Delete the section complete.')
+    })
+  })
+}
+
 exports.createCourse = (query, values) => {
   return new Promise(function(resolve, reject) {
     con.query(query, [values], function(err, res){
