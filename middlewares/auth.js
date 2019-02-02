@@ -10,5 +10,5 @@ exports.isSignedIn = (req, res, next) => {
 }
 
 exports.isLoggedOut = (req, res, next) => {
-  return req.isAuthenticated() ? res.redirect('/dashboard') : next()
+  return req.isAuthenticated() ? res.redirect('/lobby') : next()
 }

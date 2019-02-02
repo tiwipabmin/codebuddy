@@ -2,9 +2,12 @@
       .ui.container
         img.logo.large(src='/images/logo-codebuddy-s.png')
         if (user)
-          a.item(href='/dashboard')
+          //- a.item(href='/dashboard')
             i.grid.layout.icon
-            |  Dashboard
+          //  |  Dashboard
+          a.item(href='/lobby')
+            i.coffee.icon
+            |  Lobby
           a.item(href='/notifications')
             i.Alarm.icon
             |  Notifications
@@ -17,9 +20,9 @@
               .menu
                 .item
                   i.info.icon
-                  | Signed in as 
+                  | Signed in as
                   = user.username
-                .ui.inverted.divider  
+                .ui.inverted.divider
                 a.item(href='/profile/'+user.username)
                   i.unhide.icon
                   |  Your Profile
@@ -42,4 +45,3 @@
             a.right.item(href='/signin')
               i.sign.in.icon
               |  Sign in
-            

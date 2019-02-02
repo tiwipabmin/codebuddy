@@ -21,12 +21,57 @@ block script
         }
       })
       $(document).ready(function () {
+        $('#newClassroom-modal').modal({
+          closable: false,
+          transition: 'fade up',
+          onApprove : function() {
+            //$('.ui.form').submit();
+            return false;
+          },
+        })
         $('.newClassroom').click(function () {
+          $('.ui.form').trigger('reset');
+          $('.ui.form .field.error').removeClass('error');
+          $('.ui.form.error').removeClass('error');
           $('#newClassroom-modal').modal('show');
         });
         $('.joinClassroom').click(function () {
           $('#joinClassroom-modal').modal('show');
         });
+        $('.ui.form').form({
+          fields: {
+            course_name: {
+              identifier: 'course_name',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your course name'
+                }
+              ]
+            },
+            section: {
+              identifier: 'section',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your section'
+                }
+              ]
+            },
+            room: {
+              identifier: 'room',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your room'
+                }
+              ]
+            }
+          },
+          onSuccess : function() {
+            $('#newClassroom-modal').modal('hide');
+          },
+        })
       });
       function onClickDeleteSection(section_id, course_name, section) {
         $('#messageConfirm').text('Are you sure to delete a ' + course_name + ' course in section ' + section + ' from the system?')
@@ -51,6 +96,7 @@ block script
         })
       }
 
+
     style.
       @media (min-height: 200px) {
       .ui.footer.form-page { /* Increased specificity for SO snippet priority */
@@ -64,26 +110,27 @@ block content
       i.close.icon
       .header Create New Classroom
       .content
-        form.ui.form(action='/classroom', method='POST')
+        form.ui.form.segment(action='/classroom', method='POST')
           .field
             label Class Name :
             |
-            input(type='text', name='course_name', placeholder='Your class name', maxlength='100', pattern='[A-Z].{2,100}', title='Must class name is upper case')
+            input(type='text', name='course_name', placeholder='Your class name')
           .ui.grid
             .two.column.row
               .column
                 .field
                   label Section :
                   |
-                  input(type='text', name='section', placeholder='Your section', maxlength='2', pattern='[0-9]{1,2}', title='Must 0-9')
+                  input(type='text', name='section', placeholder='Your section')
               .column
                 .field
                   label Room :
                   |
-                  input(type='text', name='room', placeholder='Your room', maxlength='4', pattern='[A-Za-z0-9].{1,4}')
+                  input(type='text', name='room', placeholder='Your room')
           .ui.grid
             .four.wide.column
               .field
+                |
                 label Day  :
                 select.ui.dropdown.day(name='day')
                   option(value='Mon.') Monday
@@ -164,7 +211,8 @@ block content
           .ui.basic.center.aligned.segment
             .actions
               button.ui.button.approve.green(type='submit') Create
-              .ui.button.approve.red(data-value='cancel') Cancel
+              .ui.button.cancel.red(data-value='cancel') Cancel
+          .ui.error.message
 
     .ui.mini.modal#joinClassroom-modal
         i.close.icon
@@ -188,7 +236,7 @@ block content
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green.yesIamSure(onclick='onClickYes()') Yes
-            .ui.button.approve.red.noIamNotSure No
+            .ui.button.cancel.red.noIamNotSure No
 
     .ui.raised.very.padded.text.container.segment
       .ui.two.column.doubling.stackable.grid.container
