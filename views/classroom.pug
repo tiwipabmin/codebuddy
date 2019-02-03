@@ -29,13 +29,17 @@ block script
         $('.main').click(function () {
           $('#main').show();
           $('#students').hide();
+          $('#pairs').hide();
         });
         $('.students').click(function () {
           $('#main').hide();
           $('#students').show();
+          $('#pairs').hide();
         });
         $('.pairs').click(function () {
-          $('#pairs-modal').modal('show');
+          $('#main').hide();
+          $('#students').hide();
+          $('#pairs').show();
         });
         $('.settings').click(function () {
           var day = '!{section.day}'
@@ -102,6 +106,11 @@ block script
           },
         })
         $('#students').hide();
+        $('#pairs').hide();
+        $('.newStudentPairing').click(function () {
+          $('#date_time').attr('value', new Date())
+          $('#studentPairing-modal').modal('show');
+        });
         $('.removeStudent').click(function () {
           $('#messageConfirm').text('Are you sure to remove \"' + $(this).attr('name') + '\" from the classroom?')
           $('.enrollment_id').attr('value', $(this).attr('id'))
@@ -193,10 +202,20 @@ block content
             button.ui.button.approve.green.yesIamSure Yes
             .ui.button.approve.red.noIamNotSure No
 
-    .ui.longer.modal#pairs-modal
+    .ui.longer.modal#studentPairing-modal
       i.close.icon
-      .red.inverted.header Pairs
+      .red.inverted.header Student Pairing
       .content
+        form.ui.form.segment(action='', method='POST')
+          .field
+            label Date time :
+            |
+            input#date_time(type='text', name='date_time')
+          .ui.basic.center.aligned.segment
+            .actions
+              button.ui.button.approve.green(type='submit') Create
+              .ui.button.cancel.red(data-value='cancel') Cancel
+
 
     .ui.small.modal#settings-modal
       i.close.icon
@@ -235,6 +254,7 @@ block content
               b Time start
               .ui.labeled.input
                 select.ui.dropdown.timeStartHh(name='time_start_hh')
+                  option(value='00')  00
                   option(value='01')  01
                   option(value='02')  02
                   option(value='03')  03
@@ -250,6 +270,7 @@ block content
                 .ui.label
                   b(color='black') :
                 select.ui.dropdown.timeStartMm(name='time_start_mm')
+                  option(value='00')  00
                   option(value='05')  05
                   option(value='10')  10
                   option(value='15')  15
@@ -268,6 +289,7 @@ block content
               b Time end
               .ui.labeled.input
                 select.ui.dropdown.timeEndHh(name='time_end_hh')
+                  option(value='00')  00
                   option(value='01')  01
                   option(value='02')  02
                   option(value='03')  03
@@ -283,6 +305,7 @@ block content
                 .ui.label
                   b(color='black') :
                 select.ui.dropdown.timeEndMm(name='time_end_mm')
+                  option(value='00')  00
                   option(value='05')  05
                   option(value='10')  10
                   option(value='15')  15
@@ -370,6 +393,15 @@ block content
                       button#new.ui.button.approve.green.newAssignment(style='float: right;') Create New Assignment
                     default
                       button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
+
+        .ten.wide.column#pairs
+          .ui.segment
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px;')
+              .column
+                h1.ui.header#headerContainer Pairs
+              .right.column
+                a.right
+                  button#new.ui.button.approve.green.newStudentPairing(style='float: right;') Create Student Pairing
 
         .ten.wide.column#students
           .ui.segment
