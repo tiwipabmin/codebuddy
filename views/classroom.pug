@@ -23,6 +23,10 @@ block script
             return false;
           },
         })
+        $('#alert-modal').modal({
+          closable: false,
+          transition: 'fade up',
+        })
         $('.newProject').click(function () {
           $('#newProject-modal').modal('show');
         });
@@ -107,10 +111,47 @@ block script
         })
         $('#students').hide();
         $('#pairs').hide();
-        $('.newStudentPairing').click(function () {
-          $('#date_time').attr('value', new Date())
-          $('#studentPairing-modal').modal('show');
+        $('.newPairingDateTime').click(function () {
+          var date_time = new Date()
+          var str_date_time = date_time.toString()
+          var split_date_time = str_date_time.split(' ')
+          var slice_date_time = split_date_time.slice(0, 5)
+          date_time = slice_date_time.join(' ')
+          $('#date_time').attr('value', date_time)
+          $('#pairingDateTime-modal').modal('show');
         });
+        $('#createPairingDateTime').click(function () {
+          const date_time = $('#date_time').attr('value')
+          const section_id = $('#section_id').attr('value')
+          const status = $(this).attr('value')
+          console.log('status : ' + status)
+          if(status == 0){
+            $.ajax({
+              url: '/api/createPairingDateTime',
+              type: 'post',
+              data: {
+                date_time,
+                section_id
+              },
+              success: function (res) {
+                if (typeof res.pairing_date_time_id == 'number') {
+                  var item = $('<div id=\'pairing' + res.pairing_date_time_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px;\'></div>')
+                  var content = $('<div class=\'content\'></div>')
+                  var grid = $('<div class=\'ui grid\'></div>')
+                  var extra = $('<div class=\'extra\'><div class=\'ui label\' style=\'background-color:#16AB39; color:white;\'>ACTIVE</div></div>')
+                  var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em\'><header>Pairing Date Time</header></b><div class=\'description\'><font>' + res.date_time + '</font></div></div>')
+                  var fiveColumn = $('<div class=\'five wide column\'><div class=\'ui right floated alignedvertical animated pairStudents button\' style=\'background-color:#1678C2;\' value=\'' + res.pairing_date_time_id + '\'><div class=\'hidden content\'>Pair now</div><div class=\'visible content\'><i class=\'sitemap icon\'></i></div></div></div>')
+                  grid.append(elevenColumn)
+                  grid.append(fiveColumn)
+                  content.append(grid)
+                  content.append(extra)
+                  item.append(content)
+                  $('#pairingDateTime').prepend(item)
+                }
+              }
+            })
+          } else $('#alert-modal').modal('show')
+        })
         $('.removeStudent').click(function () {
           $('#messageConfirm').text('Are you sure to remove \"' + $(this).attr('name') + '\" from the classroom?')
           $('.enrollment_id').attr('value', $(this).attr('id'))
@@ -202,24 +243,29 @@ block content
             button.ui.button.approve.green.yesIamSure Yes
             .ui.button.approve.red.noIamNotSure No
 
-    .ui.longer.modal#studentPairing-modal
+    .ui.small.modal#pairingDateTime-modal
       i.close.icon
-      .red.inverted.header Student Pairing
+      .header Pairing Date Time
       .content
-        form.ui.form.segment(action='', method='POST')
-          .field
-            label Date time :
-            |
-            input#date_time(type='text', name='date_time')
-          .ui.basic.center.aligned.segment
-            .actions
-              button.ui.button.approve.green(type='submit') Create
-              .ui.button.cancel.red(data-value='cancel') Cancel
+        .ui.fluid.action.input
+          input#date_time(type='text', name='date_time')
+          input#section_id(type='hidden', value=`${section.section_id}`)
+          .ui.button.blue#createPairingDateTime(value='' + pairingDateTimes[0].status)
+            b(style='font-size:1.2em;') Create
+
+    .ui.small.modal#alert-modal
+      i.close.icon
+      .header Alert!
+      .content
+        p Something content
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.cancel.green(data-value='cancel') OK
 
 
     .ui.small.modal#settings-modal
       i.close.icon
-      .red.inverted.header Settings Classroom
+      .header Settings Classroom
       .content
         form.ui.form.updateSection.segment(action='/classroom/updateSection', method='POST')
           .field
@@ -330,56 +376,10 @@ block content
 
     .ui.raised.very.padded.container
       .ui.centered.grid(style='padding-top:20px;')
-        .five.wide.column
-          .ui.segments
-            .ui.red.inverted.segment
-              .item
-                .content
-                  b(style='font-size:1.2em;')
-                    header= section.course_name
-                  .description
-                    p   Section !{section.section} Room !{section.room}
-                    p   !{section.day} !{section.time_start} - !{section.time_end}
-            .ui.segment
-              .ui.items
-                .item
-                  .content
-                    .description
-                      case occupation
-                        when 0
-                          p
-                            i.book.icon
-                            button.btn.main Assignments
-                        default
-                          p
-                            i.file.icon
-                            button.btn.main Projects
-                .item
-                  .content
-                    .description
-                      p
-                        i.student.icon
-                        button.btn.students Students
-                case occupation
-                  when 0
-                    .item
-                      .content
-                        .description
-                          p
-                            i.sitemap.icon
-                            button.btn.pairs Pairs
-                case occupation
-                  when 0
-                    .item
-                      .content
-                        .description
-                          p
-                            i.setting.icon
-                            button.btn.settings Settings
-
+        +detailSection(sections, occupation)
         .ten.wide.column#main
           .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px;')
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 case occupation
                   when 0
@@ -396,36 +396,71 @@ block content
 
         .ten.wide.column#pairs
           .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px;')
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
-                h1.ui.header#headerContainer Pairs
+                h1.ui.header#headerContainer Pairing Date Time
               .right.column
                 a.right
-                  button#new.ui.button.approve.green.newStudentPairing(style='float: right;') Create Student Pairing
+                  button#new.ui.button.approve.green.newPairingDateTime(style='float: right;') Create Pairing Date Time
+            .ui.divided.items#pairingDateTime
+              if pairingDateTimes.length > 0
+                each pairingDateTime, index in pairingDateTimes
+                  .item(id=`${pairingDateTime.pairing_date_time_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
+                    .content
+                      .ui.grid
+                        .eleven.wide.column
+                          b(style='font-size:1.2em;')
+                            case pairingDateTime.status
+                              when 0
+                                header(style='color:#5D5D5D;') Pairing Time : !{pairingTimes - index}
+                              when 1
+                                header Pairing Time : !{pairingTimes - index}
+                          .description
+                            case pairingDateTime.status
+                              when 0
+                                font(color='#5D5D5D') !{pairingDateTime.date_time}
+                              when 1
+                                font !{pairingDateTime.date_time}
+                        .five.wide.column
+                          case pairingDateTime.status
+                            when 0
+                              .ui.right.floated.alignedvertical.animated.pairStudents.button(value=`${pairingDateTime.pairing_date_time_id}`)
+                                .hidden.content(style='color:#5D5D5D;') View
+                                .visible.content
+                                  i.eye.icon
+                            when 1
+                              .ui.right.floated.alignedvertical.animated.pairStudents.button.blue(value=`${pairingDateTime.pairing_date_time_id}`)
+                                .hidden.content(style='color:white;') Pairs
+                                .visible.content
+                                  i.sitemap.icon
+                      .extra
+                        case pairingDateTime.status
+                          when 0
+                            .ui.label INACTIVE
+                          when 1
+                            .ui.label(style='background-color:#16AB39; color:white;') ACTIVE
 
         .ten.wide.column#students
           .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px;')
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 h1.ui.header#headerContainer Students
 
-            .ui.items.studentList
+            .ui.divided.items.studentList
               if students.length > 0
                 each student in students
-                  .item(id=`${student.student_id}`, style='padding-top:2px; padding-bottom:5px;')
-                    .content
-                      .ui.segment
-                        .ui.grid
-                          .eleven.wide.column
-                            b(style='font-size:1.2em;')
-                              header !{student.first_name} !{student.last_name}
-                            .description
-                              p
-                                font(color='blue') STUDENT ID
-                          .five.wide.column
-                            case occupation
-                              when 0
-                                a.ui.right.floated.alignedvertical.animated.removeStudent.button(id=`${student.enrollment_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`, value=`${student.student_id}`)
-                                  .hidden.content Remove
-                                  .visible.content
-                                    i.sign.out.icon
+                  .item(id=`${student.student_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
+                    .ui.simple.dropdown
+                      img.ui.avatar.image(src='images/user_img_0.jpg')
+                    .content(style='padding-left:10px;')
+                      .ui.grid
+                        .eleven.wide.column
+                          .description
+                            p !{student.first_name} !{student.last_name}
+                        .five.wide.column
+                          case occupation
+                            when 0
+                              a.ui.right.floated.alignedvertical.animated.removeStudent.button.red(id=`${student.enrollment_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`, value=`${student.student_id}`)
+                                .hidden.content(style='color:white;') Remove
+                                .visible.content
+                                  i.sign.out.icon

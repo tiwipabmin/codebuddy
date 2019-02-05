@@ -1,5 +1,6 @@
 include ../mixins/_displayFlashes
 include ../mixins/_form
+include ../mixins/_detailSection.pug
 html
   head
     title= `${title} | CodeBuddy`
@@ -13,5 +14,5 @@ html
   body
     include menu
     block content
-    include footer  
+    include footer
     block footerExtend

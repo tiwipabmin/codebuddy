@@ -223,6 +223,24 @@ exports.createSection = async (req, res) => {
   res.redirect('lobby')
 }
 
+exports.createPairingDateTime = async (req, res) => {
+  const queryPairingDateTime = 'INSERT INTO pairing_date_time (section_id, date_time, status) VALUES ?'
+  const querySection = 'SELECT * FROM section AS s WHERE s.section_id = ' + req.body.section_id + '';
+  const section = await con.getSection(querySection);
+  console.log('section_id : ' + section[0].section_id)
+  const date_time = req.body.date_time
+  const section_id =
+  console.log('date_time : ' + date_time)
+  const values = [[section[0].section_id, date_time, 1]]
+  const pairing_date_time_id = await con.createPairingDateTime(queryPairingDateTime, values)
+  let temp = {}
+  temp['pairing_date_time_id'] = pairing_date_time_id
+  temp['section_id'] = section[0].section_id
+  temp['date_time'] = date_time
+  temp['status'] = 1
+  res.json(temp).status(200)
+}
+
 exports.deleteSection = async (req, res) => {
   const deleteSection = 'DELETE FROM section WHERE section_id = ' + req.body.section_id;
   const status = await con.deleteSection(deleteSection)
@@ -245,9 +263,11 @@ exports.updateSection = async (req, res) => {
 exports.getSection = async (req, res) => {
   var occupation = req.user.info.occupation;
   var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
-  var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = \'' + req.query.section_id + '\''
+  var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
+  var queryPairingDateTime = 'SELECT * FROM pairing_date_time AS pdt WHERE pdt.section_id = ' + req.query.section_id + ' ORDER BY pdt.pairing_date_time_id DESC';
   var section = [];
   var students = [];
+  var pairingDateTimes = [];
   if(occupation == 'teacher') {
     occupation = 0
   } else {
@@ -255,11 +275,15 @@ exports.getSection = async (req, res) => {
   }
   section = await con.getSection(querySection)
   students = await con.getStudent(queryStudent)
+  pairingDateTimes = await con.getPairingDateTime(queryPairingDateTime)
   if(!section.length) section = []
   else section = section[0]
 
   if(!students.length) students = []
-  res.render('classroom', { occupation, section, students, title: section.course_name })
+  const pairingTimes = pairingDateTimes.length
+  if(!pairingTimes) pairingDateTimes = []
+
+  res.render('classroom', { occupation, section, students, pairingDateTimes, pairingTimes, title: section.course_name })
 }
 
 exports.removeStudent = async (req, res) => {

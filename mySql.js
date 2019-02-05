@@ -117,6 +117,34 @@ exports.postEnrollment = (query, values) => {
   })
 }
 
+exports.createPairingDateTime = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function(err, res){
+      if(err) reject('Create pairing date time fail!');
+      else resolve(res.insertId);
+    })
+  })
+}
+
+exports.getPairingDateTime = (query) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      else resolve(res);
+    })
+  })
+}
+
+exports.get = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function(err, res){
+      if(err) reject('Create pairing date time fail!');
+      else resolve(res.insertId);
+    })
+  })
+}
+
+
 exports.getStudent = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){

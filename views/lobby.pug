@@ -271,11 +271,11 @@ block content
                                     p   Section !{section.section} Room !{section.room}
                                     p   !{section.day} !{section.time_start} - !{section.time_end}
                                 .extra
-                                    a.ui.right.floated.primary.alignedvertical.animated.enterToClass.button(href='/classroom?section_id='+section.section_id)
+                                    a.ui.right.floated.alignedvertical.animated.enterToClass.button.green(href='/classroom?section_id='+section.section_id)
                                         .hidden.content Enter
                                         .visible.content
                                             i.sign.in.alternate.icon.icon
-                                    a.ui.right.floated.primary.alignedvertical.animated.deleteSection.button(tabindex='0', onclick='onClickDeleteSection(' + section.section_id + ', \'' + section.course_name + '\', ' + section.section + ')')
+                                    a.ui.right.floated.alignedvertical.animated.deleteSection.button.red(tabindex='0', onclick='onClickDeleteSection(' + section.section_id + ', \'' + section.course_name + '\', ' + section.section + ')')
                                         .hidden.content Delete
                                         .visible.content
                                             i.trash.alternate.icon

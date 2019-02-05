@@ -1,0 +1,47 @@
+mixin detailSection(sections, occupation)
+  .five.wide.column
+    .ui.segments
+      .ui.red.inverted.segment
+        .item
+          .content
+            b(style='font-size:1.2em;')
+              header= section.course_name
+            .description
+              p   Section !{section.section} Room !{section.room}
+              p   !{section.day} !{section.time_start} - !{section.time_end}
+      .ui.segment
+        .ui.items
+          .item
+            .content
+              .description
+                case occupation
+                  when 0
+                    p
+                      i.book.icon
+                      button.btn.main Assignments
+                  default
+                    p
+                      i.file.icon
+                      button.btn.main Projects
+          .item
+            .content
+              .description
+                p
+                  i.student.icon
+                  button.btn.students Students
+          case occupation
+            when 0
+              .item
+                .content
+                  .description
+                    p
+                      i.sitemap.icon
+                      button.btn.pairs Pairs
+          case occupation
+            when 0
+              .item
+                .content
+                  .description
+                    p
+                      i.setting.icon
+                      button.btn.settings Settings
