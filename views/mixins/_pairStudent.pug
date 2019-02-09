@@ -1,0 +1,15 @@
+mixin pairStudent(user, students)
+  .ui.small.modal#student-list-modal
+    i.close.icon
+    .header Student List
+    .content
+      .ui.fluid.container.student-list-container.box
+        .ui.segment
+          .ui.two.column.very.relaxed.grid
+            .column
+              .ui.middle.aligned.animated.divided.list.student-list
+                li.ui.item No student.
+            .column
+              .ui.middle.aligned.animated.divided.list.partner-list
+                li.ui.item No student.
+          .ui.vertical.divider

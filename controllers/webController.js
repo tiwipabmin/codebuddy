@@ -281,7 +281,9 @@ exports.getSection = async (req, res) => {
 
   if(!students.length) students = []
   const pairingTimes = pairingDateTimes.length
-  if(!pairingTimes) pairingDateTimes = []
+  if(!pairingTimes) {
+    pairingDateTimes = [{status: -1}]
+  }
 
   res.render('classroom', { occupation, section, students, pairingDateTimes, pairingTimes, title: section.course_name })
 }

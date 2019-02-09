@@ -12,14 +12,14 @@
   display: inline-block;
 }
 
-.main {color: blue;}
-.students {color: blue;}
-.pairs {color: blue;}
-.settings {color: blue;}
-.main:hover {color: violet;}
-.students:hover {color: violet;}
-.pairs:hover {color: violet;}
-.settings:hover {color: violet;}
+.main-menu {color: blue;}
+.students-menu {color: blue;}
+.pairs-menu {color: blue;}
+.settings-menu {color: blue;}
+.main-menu:hover {color: violet;}
+.students-menu:hover {color: violet;}
+.pairs-menu:hover {color: violet;}
+.settings-menu:hover {color: violet;}
 
 .curve-box {
     /* overflow-wrap: break-word;
@@ -52,6 +52,12 @@
 .user-purpose.box {
     height:300px;
     overflow-y: scroll;
+}
+
+.student-list-container.box {
+    height:500px;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .your-score-label {

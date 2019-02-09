@@ -1,7 +1,7 @@
 extends layout/layout.pug
 
 block script
-    script(src='/js/app/dashboard.js')
+    script(src='/js/app/classroom.js')
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
     link(rel='stylesheet' href='/css/main.css')
@@ -30,20 +30,20 @@ block script
         $('.newProject').click(function () {
           $('#newProject-modal').modal('show');
         });
-        $('.main').click(function () {
-          $('#main').show();
-          $('#students').hide();
-          $('#pairs').hide();
+        $('.main-menu').click(function () {
+          $('#main-container').show();
+          $('#students-container').hide();
+          $('#pairing-date-time-container').hide();
         });
-        $('.students').click(function () {
-          $('#main').hide();
-          $('#students').show();
-          $('#pairs').hide();
+        $('.students-menu').click(function () {
+          $('#main-container').hide();
+          $('#students-container').show();
+          $('#pairing-date-time-container').hide();
         });
-        $('.pairs').click(function () {
-          $('#main').hide();
-          $('#students').hide();
-          $('#pairs').show();
+        $('.pairs-menu').click(function () {
+          $('#main-container').hide();
+          $('#students-container').hide();
+          $('#pairing-date-time-container').show();
         });
         $('.settings').click(function () {
           var day = '!{section.day}'
@@ -109,8 +109,8 @@ block script
             $('#newClassroom-modal').modal('hide');
           },
         })
-        $('#students').hide();
-        $('#pairs').hide();
+        $('#students-container').hide();
+        $('#pairing-date-time-container').hide();
         $('.newPairingDateTime').click(function () {
           var date_time = new Date()
           var str_date_time = date_time.toString()
@@ -125,7 +125,11 @@ block script
           const section_id = $('#section_id').attr('value')
           const status = $(this).attr('value')
           console.log('status : ' + status)
-          if(status == 0){
+          if(status <= 0){
+            var pairingTime;
+            if(status < 0) {
+              pairingTime = 1
+            } else pairingTime = !{pairingDateTimes.length} + 1
             $.ajax({
               url: '/api/createPairingDateTime',
               type: 'post',
@@ -135,18 +139,19 @@ block script
               },
               success: function (res) {
                 if (typeof res.pairing_date_time_id == 'number') {
-                  var item = $('<div id=\'pairing' + res.pairing_date_time_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px;\'></div>')
+                  var item = $('<div id=\'pairing' + res.pairing_date_time_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
                   var content = $('<div class=\'content\'></div>')
                   var grid = $('<div class=\'ui grid\'></div>')
                   var extra = $('<div class=\'extra\'><div class=\'ui label\' style=\'background-color:#16AB39; color:white;\'>ACTIVE</div></div>')
-                  var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em\'><header>Pairing Date Time</header></b><div class=\'description\'><font>' + res.date_time + '</font></div></div>')
-                  var fiveColumn = $('<div class=\'five wide column\'><div class=\'ui right floated alignedvertical animated pairStudents button\' style=\'background-color:#1678C2;\' value=\'' + res.pairing_date_time_id + '\'><div class=\'hidden content\'>Pair now</div><div class=\'visible content\'><i class=\'sitemap icon\'></i></div></div></div>')
+                  var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em\'><header>Pairing Time : ' + pairingTime + '</header></b><div class=\'description\'><font>' + res.date_time + '</font></div></div>')
+                  var fiveColumn = $('<div class=\'five wide column\'><div class=\'ui right floated alignedvertical animated pairStudent button blue\' value=\'' + res.pairing_date_time_id + '\'><div class=\'hidden content\'>Pair now</div><div class=\'visible content\'><i class=\'sitemap icon\'></i></div></div></div>')
                   grid.append(elevenColumn)
                   grid.append(fiveColumn)
                   content.append(grid)
                   content.append(extra)
                   item.append(content)
                   $('#pairingDateTime').prepend(item)
+                  $('#createPairingDateTime').attr('value', 1)
                 }
               }
             })
@@ -185,6 +190,9 @@ block script
       }
 
 block content
+    input#section_id(type='hidden', value=`${section.section_id}`)
+    input#students-object(type='hidden', value=`${JSON.stringify(students)}`)
+    +pairStudent(user, students)
     .ui.small.modal#newProject-modal
       i.close.icon
       .header Create New Project
@@ -245,11 +253,10 @@ block content
 
     .ui.small.modal#pairingDateTime-modal
       i.close.icon
-      .header Pairing Date Time
+      .header Pairing Date Times
       .content
         .ui.fluid.action.input
           input#date_time(type='text', name='date_time')
-          input#section_id(type='hidden', value=`${section.section_id}`)
           .ui.button.blue#createPairingDateTime(value='' + pairingDateTimes[0].status)
             b(style='font-size:1.2em;') Create
 
@@ -377,7 +384,7 @@ block content
     .ui.raised.very.padded.container
       .ui.centered.grid(style='padding-top:20px;')
         +detailSection(sections, occupation)
-        .ten.wide.column#main
+        .ten.wide.column#main-container
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
@@ -394,7 +401,7 @@ block content
                     default
                       button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
 
-        .ten.wide.column#pairs
+        .ten.wide.column#pairing-date-time-container
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
@@ -403,7 +410,7 @@ block content
                 a.right
                   button#new.ui.button.approve.green.newPairingDateTime(style='float: right;') Create Pairing Date Time
             .ui.divided.items#pairingDateTime
-              if pairingDateTimes.length > 0
+              if pairingDateTimes.length > 0 && pairingDateTimes[0].status >= 0
                 each pairingDateTime, index in pairingDateTimes
                   .item(id=`${pairingDateTime.pairing_date_time_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
                     .content
@@ -424,12 +431,12 @@ block content
                         .five.wide.column
                           case pairingDateTime.status
                             when 0
-                              .ui.right.floated.alignedvertical.animated.pairStudents.button(value=`${pairingDateTime.pairing_date_time_id}`)
+                              .ui.right.floated.alignedvertical.animated.viewStudentPairing.button(value=`${pairingDateTime.pairing_date_time_id}`)
                                 .hidden.content(style='color:#5D5D5D;') View
                                 .visible.content
                                   i.eye.icon
                             when 1
-                              .ui.right.floated.alignedvertical.animated.pairStudents.button.blue(value=`${pairingDateTime.pairing_date_time_id}`)
+                              .ui.right.floated.alignedvertical.animated.pairStudent.button.blue(value=`${pairingDateTime.pairing_date_time_id}`)
                                 .hidden.content(style='color:white;') Pairs
                                 .visible.content
                                   i.sitemap.icon
@@ -440,27 +447,22 @@ block content
                           when 1
                             .ui.label(style='background-color:#16AB39; color:white;') ACTIVE
 
-        .ten.wide.column#students
+        .ten.wide.column#students-container
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 h1.ui.header#headerContainer Students
-
-            .ui.divided.items.studentList
+            .ui.middle.aligned.divided.list.studentList
               if students.length > 0
                 each student in students
-                  .item(id=`${student.student_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
-                    .ui.simple.dropdown
-                      img.ui.avatar.image(src='images/user_img_0.jpg')
-                    .content(style='padding-left:10px;')
-                      .ui.grid
-                        .eleven.wide.column
-                          .description
-                            p !{student.first_name} !{student.last_name}
-                        .five.wide.column
-                          case occupation
-                            when 0
-                              a.ui.right.floated.alignedvertical.animated.removeStudent.button.red(id=`${student.enrollment_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`, value=`${student.student_id}`)
-                                .hidden.content(style='color:white;') Remove
-                                .visible.content
-                                  i.sign.out.icon
+                  .item(id=`${student.student_id}`, style='padding-left:15px; padding-right:15px;')
+                    .right.floated.content
+                      case occupation
+                        when 0
+                          a.ui.right.floated.alignedvertical.animated.removeStudent.button.red(id=`${student.enrollment_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`, value=`${student.student_id}`)
+                            .hidden.content(style='color:white;') Remove
+                            .visible.content
+                              i.sign.out.icon
+                    img.ui.avatar.image(src='images/user_img_0.jpg')
+                    .content
+                      p !{student.first_name} !{student.last_name}

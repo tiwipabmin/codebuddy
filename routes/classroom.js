@@ -10,10 +10,10 @@ const { catchErrors } = require('../handlers/errorHandlers')
 const router = express.Router()
 
 /**
- * `Project` route used as `/project`
- * Return the classroom page used in pair-programming collaboration
+ * `Classroom` route used as `/classroom`
+ * Return the section page used in pair-programming collaboration
  * @method {GET} return rendered `classroom.pug`
- * @method {POST} handle create new project form on `classroom` page
+ * @method {POST} handle create new section form on `lobby.pug` page
  */
 router
   .use(auth.isSignedIn)
