@@ -19,6 +19,7 @@ mixin pairStudent(user, students)
     .content
       input#host_id-add-partner(type='hidden')
       input#avg_score-add-partner(type='hidden')
+      input#h_status-add-partner(type='hidden')
       .ui.top.attached.tabular.menu
         a.item.active(data-tab="purpose") Select by purpose
         a.item(data-tab="search") Search partner
@@ -45,7 +46,7 @@ mixin pairStudent(user, students)
             .ui.circular.labels.your-score-label
                 a.ui.red.label.student-score Student score -
             .ui.segment.container.user-purpose.box
-              .ui.middle.aligned.animated.list.user-purpose-list
+              .ui.middle.aligned.animated.divided.list.user-purpose-list
                   li.ui.item Please select your purpose.
       .ui.bottom.attached.tab.segment.purpose-tab(data-tab="search")
         .ui.grid

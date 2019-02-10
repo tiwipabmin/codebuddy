@@ -31,8 +31,12 @@ $(document).ready(function() {
             $(".user-purpose-list").empty();
             if (data.length > 0) {
                 data.forEach(function(student) {
-                  if(student.enrollment_id != $('#host_id-add-partner').val() && student.partner_id == null) {
-                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton(\"" +student.enrollment_id+"\")'>Add</div></div><img class='ui avatar image' src='"+ student.image +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a></div></div></div></div>");
+                  if(student.enrollment_id != $('#host_id-add-partner').val()) {
+                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+student.enrollment_id+", "+student.partner_id+")'>Add</div></div><img class='ui avatar image' src='"+ student.image +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a id='"+student.enrollment_id+"-pairing-status' class='ui green label'> Available </a></div></div></div></div>");
+                  }
+                  if(student.partner_id != null){
+                    $('#'+student.enrollment_id+'-pairing-status').text('Paired')
+                    $('#'+student.enrollment_id+'-pairing-status').attr('class', 'ui red label')
                   }
                 }, this);
             } else {
@@ -43,18 +47,26 @@ $(document).ready(function() {
     })
 })
 
-function onClickPairingButton(enrollment_id, avg_score) {
+function onClickPairingButton(enrollment_id, avg_score, h_status) {
   console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score)
   $('.student-score').text('Student score ' + parseFloat(avg_score).toFixed(2))
   $('#host_id-add-partner').attr('value', enrollment_id)
   $('#avg_score-add-partner').attr('value', avg_score)
+  if(h_status == null){
+    console.log('h_status : ' + h_status)
+    h_status = 'null'
+  }
+  $('#h_status-add-partner').attr('value', h_status)
   $(".user-purpose-list").empty();
   $(".user-purpose-list").append("<li class='ui item'>Please select your purpose.</li>");
   $('#select-partner-modal').modal('show')
 }
 
-function onClickAddPartnerButton(enrollment_id) {
-  var parameters = {host_id: $('#host_id-add-partner').val(), partner_id: enrollment_id}
+function onClickAddPartnerButton(enrollment_id, p_status) {
+  if(p_status == null){
+    p_status = 'null'
+  }
+  var parameters = {host_id: $('#host_id-add-partner').val(), h_status: $('#h_status-add-partner').val(), partner_id: enrollment_id, p_status: p_status}
   $.post('classroom/addPartnerToStudent', parameters, function(data){
     if(data.hostStatus == 'Add failed.') {
       alert('Add failed')
@@ -76,10 +88,10 @@ function showStudentList(){
       for(index in hosts) {
         if(partners[index].partner_id == null) {
           $('.student-list').append("<div class='item'><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'>"+hosts[index].first_name+" "+hosts[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(hosts[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
-          $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + " )'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'> - </div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score 0.00</a></div></div></div></div>");
+          $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + "," + hosts[index].partner_id + " )'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'> - </div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score 0.00</a></div></div></div></div>");
         } else {
           $('.student-list').append("<div class='item'><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'>"+hosts[index].first_name+" "+hosts[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(hosts[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
-          $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + " )'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'>"+partners[index].first_name+" "+partners[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(partners[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
+          $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + "," + hosts[index].partner_id + " )'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'>"+partners[index].first_name+" "+partners[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(partners[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
         }
       }
     } else {
