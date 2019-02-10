@@ -33,29 +33,21 @@ module.exports = (server) => {
     let review = []
     var comments = []
     var index = null
-    var runpty;
-    var focusBlock = "Block:0";
-    var cp = require('child_process');
-    var bufferOutput = {output: '', error: ''}
-    var isSpawnText = false;
-    var executionCount = 0;
-
-     spawnPython()
-     detectOutput()
+    let runpty;
 
     winston.info('Client connected')
 
     //set review to mongoDB
     client.on('submit review', (payload) => {
-      var found = false
-
+      var found = false     
+      
       //if there's no comment in array => add to DB and array
       if (comments.length==0) {
         saveComment(payload)
       } else {
         //edit comment in exist line => update in DB
         for (var i in comments) {
-          if (comments[i].line==payload.line  && comments[i].file == payload.file){
+          if (comments[i].line==payload.line  && comments[i].file == payload.file){ 
             found = true
             index = i
           }
@@ -76,7 +68,7 @@ module.exports = (server) => {
             }, {
               $set: {
                 description: payload.description
-              }
+              } 
             }, (err) => {
               if (err) throw err
             })
@@ -84,7 +76,7 @@ module.exports = (server) => {
           }
         } else {
           saveComment(payload)
-        }
+        } 
       }
       io.in(projectId).emit('new review', comments)
     })
@@ -120,9 +112,9 @@ module.exports = (server) => {
       comments = payload.comments
 
       //check when enter new line
-      if(isEnter){
-        for(var i in comments){
-          if((comments[i].line > enterline) && (comments[i].file == fileName)){
+      if(isEnter){       
+        for(var i in comments){    
+          if((comments[i].line > enterline) && (comments[i].file == fileName)){            
             Comment.update({
               file: fileName,
               pid: projectId,
@@ -130,18 +122,18 @@ module.exports = (server) => {
             }, {
               $set: {
                 line: comments[i].line
-              }
+              } 
             }, (err) => {
               if (err) throw err
             })
           }
-        }
+        }        
       }
 
       //check when delete line
       if(isDelete){
         for(var i in comments){
-          if((comments[i].line > parseInt(enterline)-1) && (comments[i].file == fileName)){
+          if((comments[i].line > parseInt(enterline)-1) && (comments[i].file == fileName)){  
             Comment.update({
               file: fileName,
               pid: projectId,
@@ -149,7 +141,7 @@ module.exports = (server) => {
             }, {
               $set: {
                 line: comments[i].line
-              }
+              } 
             }, (err) => {
               if (err) throw err
             })
@@ -172,15 +164,15 @@ module.exports = (server) => {
 
         var allcomment = await Comment
           .find({pid: payload.pid}, {file:1, line:1, description:1, _id:0})
-          .sort({ line: 1 })
+          .sort({ line: 1 })        
 
         for(var i in allcomment){
           comments.push({
             file: allcomment[i].file,
-            line: allcomment[i].line,
-            description: allcomment[i].description})
+            line: allcomment[i].line, 
+            description: allcomment[i].description})            
         }
-
+      
         Project.update({
           pid: projectId
         }, {
@@ -212,7 +204,7 @@ module.exports = (server) => {
             client.emit('role updated', { projectRoles: projects[projectId], project: res})
           })
         }
-
+        
         client.emit('init state', {
           editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
         })
@@ -222,11 +214,11 @@ module.exports = (server) => {
         client.emit('init reviews', comments)
 
         //combine 2 files
-
+        
         // file = 'pytest.py'
         // appendFile = 'main.py'
         // readAppend(file, appendFile)
-
+        
         // appendFile = 'file2.py'
         // readAppend(file, appendFile)
 
@@ -263,42 +255,6 @@ module.exports = (server) => {
     })
 
     /**
-     * `add block` event fired when user add new block
-     * @param {Object} payload blockId
-     */
-
-    client.on('add block', (payload) => {
-      // add new blockId to selected index
-      var allBlockId = payload.allBlockId.splice(payload.index, 0, payload.blockId)
-
-      //save file name to mongoDB
-      Project.update({
-        pid: projectId
-      }, {
-        $set: {
-          files: payload.allBlockId
-        }
-      }, (err) => {
-        if (err) throw err
-      })
-
-      // Update JSON file
-      fs.readFile('./public/project_files/'+projectId+'/json.json', 'utf8', function (err, data) {
-        if (err) throw err;
-
-        // add block Obj to selected index
-        var blocks = JSON.parse(data);
-        blocks.splice(payload.index, 0, { id: payload.blockId, type: "code", source: "" });
-
-        fs.writeFile('./public/project_files/'+projectId+'/json.json', JSON.stringify(blocks), function (err) {
-          if (err) throw err;
-        });
-      });
-
-      io.in(projectId).emit('update block', {blockId: payload.blockId, index: payload.index, action: 'add'})
-    })
-
-    /**
      * `delete file` event fired when user click delete file
      * @param {Ibject} payload fileName
      */
@@ -329,44 +285,6 @@ module.exports = (server) => {
       });
 
       io.in(projectId).emit('update tab', {fileName: payload, action: 'delete'})
-    })
-
-    /**
-     * `delete block` event fired when user click delete block
-     * @param {Object} payload fileName
-     */
-    client.on('delete block', async (payload) => {
-      //delete block id in mongoDB
-      Project.update({
-        pid: projectId
-      }, {
-        $pull: {
-          files: payload.blockId
-        }
-      }, (err) => {
-        if (err) throw err
-      })
-
-      //delete code in redis
-      var code = JSON.parse(await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret))
-      if(code != null){
-        delete code[payload.blockId]
-        redis.hset(`project:${projectId}`, 'editor', JSON.stringify(code))
-      }
-
-      // // Update JSON file
-      // fs.readFile('./public/project_files/'+projectId+'/json.json', 'utf8', function (err, data) {
-      //   if (err) throw err;
-
-      //   // add block Obj to selected index
-      //   var blocks = JSON.parse(data);
-
-      //   fs.writeFile('./public/project_files/'+projectId+'/json.json', JSON.stringify(blocks), function (err) {
-      //     if (err) throw err;
-      //   });
-      // });
-
-      io.in(projectId).emit('update block', {blockId: payload.blockId, action: 'delete'})
     })
 
     /**
@@ -440,20 +358,20 @@ module.exports = (server) => {
         if(action=='+input'){
           console.log('>>>>>>save input')
           if(enterText.length==1){
-            //input ch
+            //input ch            
             if(removeText[0].length!=0){
               //select some text and add input
-              if(removeText.length==1){
+              if(removeText.length==1){        
                 //select text in 1 line
-                console.log('>>>>>>delete in 1 line more than 1 text')
+                console.log('>>>>>>delete in 1 line more than 1 text') 
                 deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
                 updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh+1, toCh)
-
-              }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){
+                
+              }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
                 //select more than 1 line || delete line
                 deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
               }
-
+              
             }else{
               //move right ch of cursor
               History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
@@ -472,14 +390,14 @@ module.exports = (server) => {
                     $set: {
                       line: fromLine,
                       ch: fromCh+i+1
-                    }
+                    } 
                   }, (err) => {
                     if (err) throw err
                   })
                 }
               })
             }
-
+            
             //save ch to mongoDB
             const historyModel = {
               pid: projectId,
@@ -492,15 +410,15 @@ module.exports = (server) => {
             }
             new History(historyModel, (err) => {
                 if (err) throw err
-            }).save()
-
-          }
+            }).save()   
+                  
+          } 
           else if(enterText.length==2){
             //enter new line
             //first line -> move right ch of cursor to new line
             if(removeText[0].length!=0){
               //enter delete text
-              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
+              deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)  
             }
 
             History.find({ pid: projectId , file: fileName, line: fromLine, ch: {$gte :fromCh}}, {line:1, ch:1, text:1, _id:0}, function (err, res) {
@@ -518,12 +436,12 @@ module.exports = (server) => {
                   $set: {
                     line: fromLine+1,
                     ch: i
-                  }
+                  } 
                 }, (err) => {
                   if (err) throw err
                 })
               }
-
+      
             })
 
             //not first line -> line+1
@@ -531,7 +449,7 @@ module.exports = (server) => {
               if (err) return handleError(err);
               var textInLine = res
               console.log(res)
-
+              
               for(var i=0; i<textInLine.length; i++){
                 History.update({
                   pid: projectId,
@@ -542,24 +460,24 @@ module.exports = (server) => {
                 }, {
                   $set: {
                     line: textInLine[i].line+1
-                  }
+                  } 
                 }, (err) => {
                   if (err) throw err
                 })
               }
             })
           }
-
-
+            
+        
         } else if(action=='+delete'){
-          //delete text from mongoDB
-          if(removeText.length==1){
+          //delete text from mongoDB        
+          if(removeText.length==1){        
               //delete select text
-              console.log('>>>>>>delete in 1 line more than 1 text')
+              console.log('>>>>>>delete in 1 line more than 1 text') 
               deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh)
               updateTextAfter(projectId, fileName, fromLine, fromLine, fromCh, toCh)
 
-          }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){
+          }else if(((removeText.length>1) && moreLine) || ((removeText[0].length==0) && (removeText[1].length==0)) ){            
             //delete more than 1 line || delete line
             deleteMoreLine(projectId, fileName, toLine, fromLine, fromCh, toCh, action)
           }
@@ -577,110 +495,29 @@ module.exports = (server) => {
       client.to(projectId).emit('update status', payload)
     })
 
-    client.on('codemirror on focus', (payload) => {
-      io.in(projectId).emit('update block highlight', { prevFocus: payload.prevFocus, newFocus: payload.newFocus })
-    })
-
     /**
      * `run code` event fired when user click on run button from front-end
      * @param {Object} payload code from editor
      */
     client.on('run code', (payload) => {
-      var codeFocusBlock = payload.codeFocusBlock
-      focusBlock = payload.focusBlock
-      isSpawnText = false
-
-      io.in(projectId).emit('focus block', focusBlock)
-
+      var code = payload.code;
       const fs = require('fs')
-      fs.writeFile('./public/project_files/'+projectId+'/main.py', codeFocusBlock, (err) => {
-        if (err) throw err
+      const path = require('path')
+      Object.keys(code).forEach(function(key) {
+        fs.writeFile('./public/project_files/'+projectId+'/'+key+'.py', code[key], (err) => {
+          if (err) throw err
+        })
+      });
+
+      const nodepty = require('node-pty')
+      if(process.platform === 'win32') runpty = nodepty.spawn('python.exe', ['./public/project_files/'+projectId+'/'+'main.py'], {})
+      else runpty = nodepty.spawn('python', ['./public/project_files/'+projectId+'/'+'main.py'], {})
+      runpty.on('data', (data) => {
+        io.in(projectId).emit('term update', data)
       })
 
-      setTimeout(execCode, 100)
-
-      function execCode() {
-        // built-in functions of python version 2.7
-        // runpty.stdin.write('execfile(\"./public/project_files/'+projectId+'/main.py\")\n');
-
-        // built-in functions of python version 3
-        runpty.stdin.write('exec(open(\'./public/project_files/'+projectId+'/main.py\').read())\n');
-      }
-
-      // setTimeout(runpty.kill.bind(runpty), 3000);
-
-      // display In[*]
-      io.in(projectId).emit('update execution count', '*')
+      setTimeout(runpty.kill.bind(runpty), 3000);
     })
-
-    /**
-      * restart a kernel when user click on reKernel from front-end
-      */
-    client.on('restart a kernel', (payload) => {
-      executionCount = 0
-      spawnPython()
-      detectOutput()
-      io.in(projectId).emit('restart a kernel')
-
-    })
-
-    function spawnPython(){
-      if(process.platform === 'win32')
-        runpty = cp.spawn('python', ['-i'], {})
-      else
-        runpty = cp.spawn('python', ['-i'], {})
-      isSpawnText = true
-    }
-
-    function detectOutput(){
-      // detection output is a execution code
-      runpty.stdout.on('data', (data) => {
-        if(bufferOutput.error == '' && data.toString() != '') {
-          bufferOutput.output = data.toString()
-        }
-      })
-      // detection code execute error
-      runpty.stderr.on('data', (data) => {
-        output = data.toString()
-        console.log("error : " + output)
-        
-        var arrowLocation = output.indexOf('>>>')
-        var drawArrow = ''
-
-        if(arrowLocation == 0) {
-          drawArrow = output.slice(0, 3)
-        } else {
-          drawArrow = output.slice(arrowLocation, arrowLocation+3)
-          output = output.slice(0, arrowLocation - 1)
-        }
-
-        if (output.indexOf('Error') != -1) {
-          bufferOutput.error += output
-        } else if(drawArrow != '>>>' && !isSpawnText){
-          bufferOutput.error = bufferOutput.error + output + '\n'
-        }
-
-        // execute code process finised
-        if (drawArrow == '>>>' && !isSpawnText) {
-
-          if(bufferOutput.error == '' && bufferOutput.output != ''){
-            output = bufferOutput.output
-          } else {
-            output = bufferOutput.error
-          }
-
-          if(output != '') {
-            io.in(projectId).emit('show output', output)
-          }
-
-          bufferOutput.output = ''
-          bufferOutput.error = ''
-
-          // increment execution count
-          io.in(projectId).emit('update execution count', ++executionCount)
-        }
-      })
-    }
 
     /**
      * `pause running code` event fired when user click on pause button from front-end
@@ -742,7 +579,7 @@ module.exports = (server) => {
     })
 
     /**
-     * `submit code` event fired reviewer active time every 1 sec
+     * `submit code` event fired reviewer active time every 1 sec 
      * @param {Object} payload time from face detection on main.js
      */
     client.on('reviewer active time', (payload) => {
@@ -750,7 +587,7 @@ module.exports = (server) => {
     })
 
     /**
-     * `submit code` event fired reviewer active time every 1 sec
+     * `submit code` event fired reviewer active time every 1 sec 
      * @param {Object} payload time from face detection on main.js
      */
     client.on('save active time', (payload) => {
@@ -763,8 +600,8 @@ module.exports = (server) => {
           Score.update({
             pid: projectId,
             uid: payload.uid
-          }, {
-            $set: {
+          }, { 
+            $set: { 
               time: parseInt(score.time) + parseInt(payload.time)
             }
           }, (err) => {
@@ -778,8 +615,8 @@ module.exports = (server) => {
         if(user){
           User.update({
             _id: payload.uid
-          }, {
-            $set: {
+          }, { 
+            $set: { 
               totalTime: parseInt(user.totalTime) + parseInt(payload.time)
             }
           }, (err) => {
@@ -800,7 +637,7 @@ module.exports = (server) => {
     //   const mode = payload.mode
     //   const uid = payload.uid
     //   const code = payload.code
-    //
+
     //   const fs = require('fs')
     //   const path = require('path')
     //   var args = ['-j', '4']
@@ -814,7 +651,7 @@ module.exports = (server) => {
     //   let pty;
     //   if(process.platform === 'win32') pty = nodepty.spawn('pylint', args, {})
     //   pty = nodepty.spawn('pylint', args, {});
-    //
+
     //   pty.on('data', (data) => {
     //     //get score from pylint
     //       console.log('data', data)
@@ -854,7 +691,7 @@ module.exports = (server) => {
     //                   new Score(scoreModel, (err) => {
     //                     if (err) throw err
     //                   }).save()
-    //
+                      
     //                   //recalculate score
     //                   sumScore = Score.aggregate([
     //                     { $match:{
@@ -876,17 +713,17 @@ module.exports = (server) => {
     //                           //start update
     //                           User.update({
     //                             _id: element
-    //                           }, {
-    //                             $set: {
+    //                           }, { 
+    //                             $set: { 
     //                               avgScore: result.avg
     //                             }
-    //                           },
+    //                           }, 
     //                           function(err, userReturn){
     //                             if (err) ;
     //                             if (userReturn) {
     //                               console.log(userReturn)
     //                             }
-    //
+
     //                           });
     //                           //end update
     //                           const shownScore = {
@@ -904,17 +741,17 @@ module.exports = (server) => {
     //                       }
     //                   });
     //                   //end recalculate score
-    //
+
     //                 }
     //                 if (oldScore) {
     //                   Score.update({
-    //                     pid: projectId,
+    //                     pid: projectId, 
     //                     uid: element
-    //                   }, {
-    //                     $set: {
-    //                       score: score
+    //                   }, { 
+    //                     $set: { 
+    //                       score: score 
     //                     }
-    //                   },
+    //                   }, 
     //                   function(err, scoreReturn){
     //                     if(err) throw err;
     //                     if(scoreReturn) {
@@ -939,17 +776,17 @@ module.exports = (server) => {
     //                               //start update
     //                               User.update({
     //                                 _id: element
-    //                               }, {
-    //                                 $set: {
+    //                               }, { 
+    //                                 $set: { 
     //                                   avgScore: result.avg
     //                                 }
-    //                               },
+    //                               }, 
     //                               function(err, userReturn){
     //                                 if (err) ;
     //                                 if (userReturn) {
     //                                   console.log(userReturn)
     //                                 }
-    //
+
     //                               });
     //                               //end update
     //                               const shownScore = {
@@ -967,10 +804,10 @@ module.exports = (server) => {
     //                           }
     //                       });
     //                       //end recalculate score
-    //
+                          
     //                     }
     //                   });
-    //                 }
+    //                 }  
     //               });
     //             }, this);
     //           }
@@ -1009,7 +846,7 @@ module.exports = (server) => {
           if (err) throw er
         })
       }
-
+ 
 
       var output = fs.createWriteStream('./public/project_files/'+projectId+'/'+projectId+'.zip');
       var archive = archiver('zip', {
@@ -1022,11 +859,11 @@ module.exports = (server) => {
       // pipe archive data to the output file
       archive.pipe(output);
       // append files
-      fileNameList.forEach(function(fileName) {
+      fileNameList.forEach(function(fileName) {  
         archive.file('./public/project_files/'+projectId+'/'+fileName+'.py', {name: fileName+'.py'});
       })
       archive.finalize();
-      client.emit('download file', projectId )
+      client.emit('download file', projectId )  
      })
 
     function countdownTimer() {
@@ -1103,8 +940,8 @@ module.exports = (server) => {
       }).save()
       comments.push({
         file: payload.file,
-        line: parseInt(payload.line),
-        description: payload.description})
+        line: parseInt(payload.line), 
+        description: payload.description})      
     }
 
     function updateDesc(file, line, description){
@@ -1119,7 +956,7 @@ module.exports = (server) => {
     function readAppend(file, appendFile){
       fs.readFile(appendFile, function(err, data){
         if (err) throw err;
-        fs.appendFile(file, '\n', function(err){
+        fs.appendFile(file, '\n', function(err){        
         })
         fs.appendFile(file, data, function(err){
           console.log('combine!! ')
@@ -1149,7 +986,7 @@ module.exports = (server) => {
               file: fileName,
               line: i,
               ch: {$gte : fromCh}
-            }).remove().exec()
+            }).remove().exec()            
         }
         //not last line
         else if(i!=fromLine+lineRange){
@@ -1175,7 +1012,7 @@ module.exports = (server) => {
             }else{
               updateTextAfter(projectId, fileName, i, fromLine, fromCh, toCh)
             }
-
+           
         }
       }
     }
@@ -1197,7 +1034,7 @@ module.exports = (server) => {
             $set: {
               line: fromLine,
               ch: fromCh+i
-            }
+            } 
           }, (err) => {
             if (err) throw err
           })

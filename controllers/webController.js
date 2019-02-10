@@ -148,10 +148,10 @@ exports.createProject = async (req, res) => {
     if (!fs.existsSync(dir2)){
       fs.mkdirSync(dir2);
     }
-    fs.writeFile('./public/project_files/'+project.pid+'/json.json', JSON.stringify([{ id:'0', type:'code', source:''}]), function (err) {
+    fs.open('./public/project_files/'+project.pid+'/main.py', 'w', function (err, file) {
       if (err) throw err;
-      console.log('file '+project.pid+'.json is created');
-    });
+      console.log('file '+project.pid+'.py is created');
+    })
 
   } else {
     req.flash('error', "Can't find @" + req.body.collaborator)
