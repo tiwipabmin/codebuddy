@@ -21,8 +21,11 @@ router
   .get(webController.getSection)
   .post(catchErrors(webController.createSection))
 
+router.get('/searchUserByPurpose', auth.isSignedIn, catchErrors(webController.searchStudentByPurpose))
+router.get('/getStudentsFromSection', auth.isSignedIn, catchErrors(webController.getStudentsFromSection))
 router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
+router.post('/addPartnerToStudent', auth.isSignedIn, catchErrors(webController.addPartnerToStudent))
 
 /**
  * Expose `router`

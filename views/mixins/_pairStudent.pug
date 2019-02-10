@@ -1,7 +1,7 @@
 mixin pairStudent(user, students)
   .ui.small.modal#student-list-modal
     i.close.icon
-    .header Student List
+    .header Student list
     .content
       .ui.fluid.container.student-list-container.box
         .ui.segment
@@ -13,3 +13,54 @@ mixin pairStudent(user, students)
               .ui.middle.aligned.animated.divided.list.partner-list
                 li.ui.item No student.
           .ui.vertical.divider
+
+  .ui.small.modal#select-partner-modal
+    .header Select partner
+    .content
+      input#host_id-add-partner(type='hidden')
+      input#avg_score-add-partner(type='hidden')
+      .ui.top.attached.tabular.menu
+        a.item.active(data-tab="purpose") Select by purpose
+        a.item(data-tab="search") Search partner
+      .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
+        a.ui.red.ribbon.label Recommended
+        .ui.grid
+          .six.wide.column
+              #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+                .row
+                  i.large.circular.inverted.teal.line.chart.icon
+                .row
+                  | Quality oriented
+              #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+                .row
+                  i.large.circular.inverted.teal.line.idea.icon
+                .row
+                  | Mutual improvement
+              #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+                .row
+                  i.large.circular.inverted.teal.line.student.icon.center.aligned
+                .row
+                  | Teaching &amp; Learning
+          .ten.wide.column
+            .ui.circular.labels.your-score-label
+                a.ui.red.label.student-score Student score -
+            .ui.segment.container.user-purpose.box
+              .ui.middle.aligned.animated.list.user-purpose-list
+                  li.ui.item Please select your purpose.
+      .ui.bottom.attached.tab.segment.purpose-tab(data-tab="search")
+        .ui.grid
+          .six.wide.column
+            .ui.category.search
+              .ui.icon.input
+                input.prompt(type="text" placeholder="Search by username..." id="search-user-input")
+                i.search.icon
+          .ten.wide.column
+              .ui.segment.container.user-purpose.box
+                .ui.middle.aligned.animated.list.user-list
+                  li.ui.item Search result
+      .item
+        .content
+          .description
+            button.ui.labeled.icon.button.back
+              i.reply.icon
+              font Back

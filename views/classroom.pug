@@ -191,7 +191,6 @@ block script
 
 block content
     input#section_id(type='hidden', value=`${section.section_id}`)
-    input#students-object(type='hidden', value=`${JSON.stringify(students)}`)
     +pairStudent(user, students)
     .ui.small.modal#newProject-modal
       i.close.icon

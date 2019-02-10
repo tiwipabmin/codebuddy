@@ -135,11 +135,11 @@ exports.getPairingDateTime = (query) => {
   })
 }
 
-exports.get = (query, values) => {
+exports.addPartnerToStudent = (query) => {
   return new Promise(function(resolve, reject){
-    con.query(query, [values], function(err, res){
-      if(err) reject('Create pairing date time fail!');
-      else resolve(res.insertId);
+    con.query(query, function(err, res){
+      if(err) reject('Add failed');
+      resolve('Add completed.')
     })
   })
 }

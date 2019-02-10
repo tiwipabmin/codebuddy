@@ -30,7 +30,7 @@ block script
       width: 100%;
       }
       }
-  
+
 block content
     .ui.small.modal#newProject-modal
       i.close.icon
@@ -39,11 +39,11 @@ block content
         form.ui.form(action='/project', method='POST')
           .field
             label Project Name :
-            |  
+            |
             input(type='text', name='title', placeholder='Your Project Name')
           .field
             label Description :
-            |  
+            |
             input(type='text', name='description', placeholder='Something about your project')
           .content
             .ui.grid
@@ -60,7 +60,7 @@ block content
                   input(type='hidden' name='creator' value=user.username)
                   input#collaborator-hidden(type='hidden' name='collaborator')
                   input#collaborator(type='text',name='collaborator', placeholder='Search users...', disabled)
-              .four.wide.column    
+              .four.wide.column
                   button.ui.positive.labeled.icon.button(id='add-collaborator' type='button')
                     i.user.icon
                     |  Add
@@ -71,7 +71,7 @@ block content
                option(value='10') 10 minutes
                option(value='5') 5 minutes
                option(value='1') 1 minute
-            input(type='hidden' name='status' value="pending")   
+            input(type='hidden' name='status' value="pending")
           .ui.form
             .inline.fields
               //- .fields
@@ -79,13 +79,13 @@ block content
               //-   .field
               //-     .radio.checkbox
               //-       input.hidden(type='radio', name='theme', checked='', tabindex='0')
-              //-       |  
+              //-       |
               //-       label White (default)
               //-       img.logo.small(src='images/whiteEditorTheme.PNG' ,width='80%', height='15%')
               //-   .field
               //-     .radio.checkbox
               //-       input.hidden(type='radio', name='theme', tabindex='0')
-              //-       |  
+              //-       |
               //-       label Blackboard
               //-       img.logo.small(src='images/darkEditorTheme.PNG' ,width='80%',height='15%')
 
@@ -105,22 +105,22 @@ block content
           a.ui.red.ribbon.label Recommended
           .ui.grid
             .six.wide.column
-                #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+                #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab&attributes({'data-purpose':'quality'})
                   .row
                     i.large.circular.inverted.teal.line.chart.icon
                   .row
                     | Quality oriented
-                #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+                #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab&attributes({'data-purpose':'experience'})
                   .row
                     i.large.circular.inverted.teal.line.idea.icon
-                  .row  
+                  .row
                     | Mutual improvement
-                #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+                #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab&attributes({'data-purpose':'train'})
                   .row
                     i.large.circular.inverted.teal.line.student.icon.center.aligned
-                  .row  
+                  .row
                     | Teaching &amp; Learning
-            .ten.wide.column 
+            .ten.wide.column
               .ui.circular.labels.your-score-label
                   a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
               .ui.segment.container.user-purpose.box
@@ -133,7 +133,7 @@ block content
                 .ui.icon.input
                   input.prompt(type="text" placeholder="Search by username..." id="search-user-input")
                   i.search.icon
-            .ten.wide.column 
+            .ten.wide.column
                 .ui.segment.container.user-purpose.box
                   .ui.middle.aligned.animated.list.user-list
                     li.ui.item Search result
@@ -153,7 +153,7 @@ block content
       //-       .header Header
       //-       .meta Meta
       //-       .description Des
-      //-     .extra.content 
+      //-     .extra.content
       //-       .ui.two.buttons
       //-         .ui.basic.green.button Approve
       //-         .ui.basic.red.button Decline
@@ -218,12 +218,12 @@ block content
                         form.ui.form(action='/dashboard/editProject', method='POST')
                           .field
                             label Project Name :
-                            | 
-                            input(type='hidden', name='pid', value=project.pid) 
+                            |
+                            input(type='hidden', name='pid', value=project.pid)
                             input(type='text', name='title', value=project.title)
                           .field
                             label Description :
-                            |  
+                            |
                             input(type='text', name='description', value=project.description)
                           .field
                                   label Language :
@@ -252,14 +252,14 @@ block content
                                         .hidden.content Delete
                                         .visible.content
                                           i.trash.icon
-                      
+
             else if project.collaborator === user.username
               .item(style='padding-top:10px')
                 a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator')
                     img(src='/images/yellow-folder.png')(style='position: absolute;')
                     img.img-owner.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px; top:20px;')
                     img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg')(style='width:30px; height:30px; top:-10px;')
-                                                   
+
                 .content
                   b(style='font-size:1.2em;')
                     a(href='/project?pid='+project.pid+'&user_role=collaborator')= project.title
