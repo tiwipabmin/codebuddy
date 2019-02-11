@@ -419,13 +419,13 @@ block content
                             case pairingDateTime.status
                               when 0
                                 header(style='color:#5D5D5D;') Pairing Time : !{pairingTimes - index}
-                              when 1
+                              when 2
                                 header Pairing Time : !{pairingTimes - index}
                           .description
                             case pairingDateTime.status
                               when 0
                                 font(color='#5D5D5D') !{pairingDateTime.date_time}
-                              when 1
+                              when 2
                                 font !{pairingDateTime.date_time}
                         .five.wide.column
                           case pairingDateTime.status
@@ -434,7 +434,7 @@ block content
                                 .hidden.content(style='color:#5D5D5D;') View
                                 .visible.content
                                   i.eye.icon
-                            when 1
+                            when 2
                               .ui.right.floated.alignedvertical.animated.pairStudent.button.blue(value=`${pairingDateTime.pairing_date_time_id}`)
                                 .hidden.content(style='color:white;') Pairs
                                 .visible.content
@@ -444,6 +444,8 @@ block content
                           when 0
                             .ui.label INACTIVE
                           when 1
+                            .ui.label(style='background-color:yellow; color:white;') PENDING
+                          when 2
                             .ui.label(style='background-color:#16AB39; color:white;') ACTIVE
 
         .ten.wide.column#students-container
