@@ -367,6 +367,21 @@ exports.searchUser = async (req, res) => {
   res.send(users)
 }
 
+exports.updatePairingDateTimeStatus = async (req, res) => {
+  console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id)
+  const updateStatus = 'UPDATE pairing_date_time SET status = ' + req.body.status + ' WHERE pairing_date_time_id = ' + req.body.pairing_date_time_id
+  const res_status = await con.updatePairingDateTime(updateStatus)
+  console.log('res_status : ' + res_status)
+  res.send({status: res_status, pairing_date_time_id: req.body.pairing_date_time_id})
+}
+
+exports.getPairingDateTime = async (req, res) => {
+  const queryPairingDateTime = 'SELECT * FROM pairing_date_time WHERE section_id = ' + req.query.section_id
+  const pairingDateTime = await con.getPairingDateTime(queryPairingDateTime)
+  const pairingTime = pairingDateTime.length
+  res.send({pairingTime: pairingTime})
+}
+
 exports.searchUserByPurpose = async (req, res) => {
   const purpose = req.query.purpose
   const uid = req.query.uid

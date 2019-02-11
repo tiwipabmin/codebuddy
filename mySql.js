@@ -135,6 +135,15 @@ exports.getPairingDateTime = (query) => {
   })
 }
 
+exports.updatePairingDateTime = (query) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject('Update failed.');
+      resolve('Update completed.');
+    })
+  })
+}
+
 exports.addPartnerToStudent = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
