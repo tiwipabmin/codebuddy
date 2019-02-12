@@ -368,8 +368,19 @@ exports.searchUser = async (req, res) => {
 }
 
 exports.updatePairingDateTimeStatus = async (req, res) => {
-  console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id)
+  console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', section_id : ' + req.body.section_id)
   const updateStatus = 'UPDATE pairing_date_time SET status = ' + req.body.status + ' WHERE pairing_date_time_id = ' + req.body.pairing_date_time_id
+  const queryEnrollment = 'SELECT * FROM enrollment WHERE section_id = ' + req.body.section_id
+  const enrollments = await con.getEnrollment(queryEnrollment)
+
+  for(index in enrollments) {
+    if(enrollments[index].partner_id == null){
+      console.log('partner_id = ' + enrollments[index].enrollment_id + ' : ' + enrollments[index].partner_id)
+      res.send({status: 'Please, pair all student!'})
+      return;
+    }
+  }
+
   const res_status = await con.updatePairingDateTime(updateStatus)
   console.log('res_status : ' + res_status)
   res.send({status: res_status, pairing_date_time_id: req.body.pairing_date_time_id})
@@ -380,6 +391,12 @@ exports.getPairingDateTime = async (req, res) => {
   const pairingDateTime = await con.getPairingDateTime(queryPairingDateTime)
   const pairingTime = pairingDateTime.length
   res.send({pairingTime: pairingTime})
+}
+
+exports.resetPair = async (req, res) => {
+  const updateEnrollment = 'UPDATE enrollment SET partner_id = ' + req.body.partner_id + ' WHERE section_id = ' + req.body.section_id
+  const res_status = await con.updateEnrollment(updateEnrollment)
+  res.send({status: res_status})
 }
 
 exports.searchUserByPurpose = async (req, res) => {

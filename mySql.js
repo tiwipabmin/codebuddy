@@ -117,6 +117,15 @@ exports.postEnrollment = (query, values) => {
   })
 }
 
+exports.updateEnrollment = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function(err, res){
+      if(err) reject('Update failed.');
+      resolve('Update completed.');
+    })
+  })
+}
+
 exports.createPairingDateTime = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){

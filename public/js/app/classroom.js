@@ -109,9 +109,9 @@ function showStudentList(){
 function onPairingStatusOptionClick(){
   var parameters;
   if($('.pairing-status').attr('value') == 'Active') {
-    parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 2}
+    parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 2, section_id: $('#section_id').attr('value')}
   } else if($('.pairing-status').attr('value') == 'Inactive') {
-    parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 0}
+    parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 0, section_id: $('#section_id').attr('value')}
   }
   console.log('id : ' + $('.pairing-status').attr('id') + ', status: ' + parameters.status)
   $.ajax({
@@ -120,59 +120,41 @@ function onPairingStatusOptionClick(){
     data: parameters,
     success: function(data){
       const status = data.status
-      if(status != 'Update failed.' && $('.pairing-status').attr('value') == 'Active') {
+      if(status == 'Please, pair all student!') {
+        alert(status)
+      } else if(status == 'Update completed.' && $('.pairing-status').attr('value') == 'Active') {
         $('#status').attr('style', 'background-color:#16AB39; color:white;')
         $('#status').text('ACTIVE')
         $('.pairing-status').attr('id', data.pairing_date_time_id)
         $('.pairing-status').attr('value', 'Inactive')
         $('.pairing-status').text('Inactive')
-      } else if(status != 'Update failed.' && $('.pairing-status').attr('value') == 'Inactive'){
-        $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
-        $('#status').text('INACTIVE')
-        $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
-        $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
-        $('#pairing-button-column').empty()
-        $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewStudentPairing button' value='"+data.pairing_date_time_id+"'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
-        $('#createPairingDateTime').attr('value', 0);
+      } else if(status == 'Update completed.' && $('.pairing-status').attr('value') == 'Inactive'){
+        parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
+        $.ajax({
+          url: 'classroom/resetPair',
+          type: 'put',
+          data: parameters,
+          success: function (data) {
+            const status = data.status
+            if(status == 'Update completed.') {
+              alert(status)
+              $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
+              $('#status').text('INACTIVE')
+              $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
+              $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
+              $('#pairing-button-column').empty()
+              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewStudentPairing button' value='"+data.pairing_date_time_id+"'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
+              $('#createPairingDateTime').attr('value', 0);
+            } else if(status == 'Update failed.') {
+              alert(status)
+            }
+          }
+        })
       } else {
-        alert('Failed!')
+        alert(status)
       }
     }
   })
-  // $('#pairing-status').click(function(){
-  //   console.log('id : ' + $('#pairing-status').attr('value'))
-  //   var parameters;
-  //   if($('#pairing-status').attr('name') == 'Active') {
-  //     parameters = {pairing_date_time_id: $('#pairing-status').attr('value'), status: 2}
-  //   } else if($('#pairing-status').attr('name') == 'Inactive') {
-  //     parameters = {pairing_date_time_id: $('#pairing-status').attr('value'), status: 0}
-  //   }
-  //   console.log('pair.text : ' + $('#pairing-status').attr('name'))
-  //   $.ajax({
-  //     url: '/classroom/updatePairingDateTimeStatus',
-  //     type: 'put',
-  //     data: parameters,
-  //     success: function(data){
-  //       const status = data.status
-  //       if(status != 'Update failed.' && $('#pairing-status').attr('name') == 'Active') {
-  //         $('#status').attr('style', 'background-color:#16AB39; color:white;')
-  //         $('#status').text('ACTIVE')
-  //         $('#pairing-status').attr('value', data.pairing_date_time_id)
-  //         $('#pairing-status').attr('name', 'Inactive')
-  //         $('#pairing-status').text('Inactive')
-  //       } else if(status != 'Update failed.' && $('#pairing-status').attr('name') == 'Inactive'){
-  //         $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
-  //         $('#status').text('INACTIVE')
-  //         $('#header-pending-and-active').attr('style', 'color:#5D5D5D;')
-  //         $('#pairing-button-column').empty()
-  //         $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewStudentPairing button' value='"+data.pairing_date_time_id+"'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
-  //         $('#createPairingDateTime').attr('value', 0);
-  //       } else {
-  //         alert('Failed!')
-  //       }
-  //     }
-  //   })
-  // })
 }
 
 
