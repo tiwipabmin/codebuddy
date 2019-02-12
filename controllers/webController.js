@@ -275,11 +275,14 @@ exports.declineInvite = async (req, res) => {
 exports.getProgress = async (req, res) => {
   const uid = req.query.uid
   let data = {};
-  let scoreGraph = [];
-  let timeGraph = [];
-  let progressGraph = [];
+  let projectTitles = [];
+  let projectTimes = [];
+  let projectScores = [];
+  let linesOfCodes = [];
+  let productivitys = [];
+  let errors = [];
 
-  const user = await User.findOne( { 
+  const user = await User.findOne({ 
     _id: uid
   })
 
@@ -287,36 +290,39 @@ exports.getProgress = async (req, res) => {
     uid: uid
   })
 
-  for(var i=0; i<scores.length; i++){
-    let dotScore = {};
-    let dotTime = {};
-    let dotProgress = {};
+  for(var i = 0; i < scores.length; i++) {
+    // project title (label)
     project = await Project.findOne({
       pid: scores[i].pid
     })
+    projectTitles.push(project.title)
 
-    //calculate progress
-    let acc = 0;
-    for(var j=0; j<i+1; j++){
-      acc = acc + scores[j].score;
-    }
-    dotProgress['x'] = i+1;
-    dotProgress['y'] = parseFloat(acc/(i+1));
-    progressGraph.push(dotProgress);
+    // project time data
+    projectTimes.push((scores[i].time/60).toFixed(2))
 
-    dotScore['label'] = project.title;
-    dotScore['y'] = scores[i].score;
-    scoreGraph.push(dotScore);
+    // project score data
+    projectScores.push(scores[i].score)
 
-    dotTime['label'] = project.title;
-    dotTime['y'] = parseFloat(scores[i].time/60);
-    timeGraph.push(dotTime)
+    // lines of code data
+    linesOfCodes.push(scores[i].lines_of_code)
+    
+    // productivity
+    productivitys.push((scores[i].lines_of_code/(scores[i].time/60)).toFixed(2))
+    
+    // error data
+    errors.push(scores[i].error_count)
   }
+
+  data['fullname'] = user.info.firstname + ' ' + user.info.lastname;
+  data['username'] = user.username;
   data['user-score'] = user.avgScore;
   data['user-time'] = parseFloat(user.totalTime/60);
-  data['progressGraph'] = progressGraph;
-  data['scoreGraph'] = scoreGraph;
-  data['timeGraph'] = timeGraph;
+  data['projectTitles'] = projectTitles;
+  data['projectTimes'] = projectTimes;
+  data['projectScores'] = projectScores;
+  data['linesOfCodes'] = linesOfCodes;
+  data['productivitys'] = productivitys;
+  data['errors'] = errors;
   console.log(data)
   res.send(data)
 }
