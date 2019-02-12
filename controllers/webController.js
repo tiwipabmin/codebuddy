@@ -435,16 +435,39 @@ exports.searchStudentByPurpose = async (req, res) => {
   const purpose = req.query.purpose
   const section_id = req.query.section_id
   const avg_score = parseFloat(req.query.avg_score)
+  const username = req.query.username
   let students = []
+  let users = []
   if("quality"==purpose){
-    const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON (st.student_id = e.student_id) AND (e.section_id = ' + section_id + ') AND (st.avg_score <= ' + (avg_score+10) + '  AND st.avg_score >= ' + (avg_score-10) + ') ORDER BY st.first_name ASC'
-    students = await con.getStudent(queryStudent)
+    users = await User.find({
+      avgScore: { $lt: avg_score+10, $gt : avg_score-10},
+      username: {$ne: username}
+    })
   } else if ("experience"==purpose){
-    const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON (st.student_id = e.student_id) AND (e.section_id = ' + section_id + ') AND ((st.avg_score <= ' + (avg_score+20) + '  AND st.avg_score > ' + (avg_score+10) + ') OR (st.avg_score < ' + (avg_score-10) + '  AND st.avg_score >= ' + (avg_score-20) + ')) ORDER BY st.first_name ASC'
-    students = await con.getStudent(queryStudent)
+    users = await User.find({
+      $or:[
+        {avgScore: {$gt : avg_score+10, $lt : avg_score+20}},
+        {avgScore: {$lt : avg_score-10, $gt : avg_score-20}}
+      ],
+      username: {$ne: username}
+    })
   } else {
-    const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON (st.student_id = e.student_id) AND (e.section_id = ' + section_id + ') AND ((st.avg_score <= ' + (avg_score+30) + '  AND st.avg_score > ' + (avg_score+20) + ') OR (st.avg_score < ' + (avg_score-20) + '  AND st.avg_score >= ' + (avg_score-30) + ')) ORDER BY st.first_name ASC'
-    students = await con.getStudent(queryStudent)
+    users = await User.find({
+      $or:[
+        {avgScore: {$gt : avg_score+20, $lt : avg_score+30}},
+        {avgScore: {$lt : avg_score-20, $gt : avg_score-30}}
+      ],
+      username: {$ne: username}
+    })
+  }
+  console.log('username3 : ' + req.query.username)
+  for(i in users){
+    let queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND username = \'' + users[i].username + '\' AND e.section_id = ' + section_id
+    let student = await con.getStudent(queryStudent)
+    students[i] = student[i]
+    students[i].avg_score = users[i].avgScore
+    students[i].img = users[i].img
+    console.log('student : ' + student[i])
   }
   res.send(students)
 }
@@ -452,6 +475,13 @@ exports.searchStudentByPurpose = async (req, res) => {
 exports.getStudentsFromSection = async (req, res) => {
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   const students = await con.getStudent(queryStudent)
+  for(i in students){
+    let user = await User.findOne({
+      username: students[i].username
+    })
+    students[i].avg_score = user.avgScore
+    students[i].img = user.img
+  }
   let student_objects = {}
   let _hosts = []
   let _partners = []

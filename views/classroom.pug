@@ -149,7 +149,7 @@ block script
                     content.append(extra)
                     item.append(content)
                     $('#pairingDateTime').prepend(item)
-                    $('.ui.dropdown').dropdown();
+                    $('.ui.pointing.dropdown').dropdown();
                     $('.pairing-status').click(function(){
                       onPairingStatusOptionClick()
                     })
@@ -160,10 +160,12 @@ block script
                         alert('View')
                       }
                     })
+                    showStudentList()
                     $('#createPairingDateTime').attr('value', 1)
                   }
                 }
               })
+
             } else $('#alert-modal').modal('show')
           })
         })
@@ -258,7 +260,7 @@ block content
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green.yesIamSure Yes
-            .ui.button.approve.red.noIamNotSure No
+            .ui.button.cancel.red.noIamNotSure No
 
     .ui.small.modal#pairingDateTime-modal
       i.close.icon
@@ -266,7 +268,7 @@ block content
       .content
         .ui.fluid.action.input
           input#date_time(type='text', name='date_time')
-          .ui.button.blue#createPairingDateTime(value='' + pairingDateTimes[0].status)
+          .ui.button.approve.blue#createPairingDateTime(value='' + pairingDateTimes[0].status)
             b(style='font-size:1.2em;') Create
 
     .ui.small.modal#alert-modal
@@ -459,7 +461,7 @@ block content
                                     when 2
                                       .item.pairing-status(id=`${pairingDateTime.pairing_date_time_id}`, value='Inactive') Inactive
                               script(type='text/javascript').
-                                $('.ui.dropdown').dropdown();
+                                $('.ui.pointing.dropdown').dropdown();
                                 $('.pairing-status').click(function(){
                                   onPairingStatusOptionClick()
                                 })

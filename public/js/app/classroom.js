@@ -30,13 +30,15 @@ $(document).ready(function() {
         const purpose = $(this).data("purpose")
         const section_id = $('#section_id').attr('value')
         const avg_score = $('#avg_score-add-partner').attr('value')
-        var parameters = { purpose: purpose, section_id: section_id, avg_score: avg_score};
+        const username = $('#username-add-partner').attr('value')
+        console.log('username : ' + $('#username-add-partner').attr('value'))
+        var parameters = { purpose: purpose, section_id: section_id, avg_score: avg_score, username: username};
         $.get( 'classroom/searchUserByPurpose',parameters, function(data) {
             $(".user-purpose-list").empty();
             if (data.length > 0) {
                 data.forEach(function(student) {
                   if(student.enrollment_id != $('#host_id-add-partner').val()) {
-                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+student.enrollment_id+", "+student.partner_id+")'>Add</div></div><img class='ui avatar image' src='"+ student.image +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a id='"+student.enrollment_id+"-pairing-status' class='ui green label'> Available </a></div></div></div></div>");
+                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+student.enrollment_id+", "+student.partner_id+")'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a id='"+student.enrollment_id+"-pairing-status' class='ui green label'> Available </a></div></div></div></div>");
                   }
                   if(student.partner_id != null){
                     $('#'+student.enrollment_id+'-pairing-status').text('Paired')
@@ -51,11 +53,12 @@ $(document).ready(function() {
     })
 })
 
-function onClickPairingButton(enrollment_id, avg_score, h_status) {
-  console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score)
+function onClickPairingButton(enrollment_id, avg_score, h_status, username) {
+  console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score + ', username : ' + username)
   $('.student-score').text('Student score ' + parseFloat(avg_score).toFixed(2))
   $('#host_id-add-partner').attr('value', enrollment_id)
   $('#avg_score-add-partner').attr('value', avg_score)
+  $('#username-add-partner').attr('value', username)
   if(h_status == null){
     console.log('h_status : ' + h_status)
     h_status = 'null'
@@ -91,11 +94,11 @@ function showStudentList(){
       let partners = data.partners
       for(index in hosts) {
         if(partners[index].partner_id == null) {
-          $('.student-list').append("<div class='item'><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'>"+hosts[index].first_name+" "+hosts[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(hosts[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
-          $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + "," + hosts[index].partner_id + " )'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'> - </div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score 0.00</a></div></div></div></div>");
+          $('.student-list').append("<div class='item'><img class='ui avatar image' src='"+hosts[index].img+"'></img><div class='content'><div class='header'>"+hosts[index].first_name+" "+hosts[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(hosts[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
+          $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + "," + hosts[index].partner_id + ",\"" + hosts[index].username.toString() + "\")'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'> - </div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score 0.00</a></div></div></div></div>");
         } else {
-          $('.student-list').append("<div class='item'><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'>"+hosts[index].first_name+" "+hosts[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(hosts[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
-          $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + "," + hosts[index].partner_id + " )'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'>"+partners[index].first_name+" "+partners[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(partners[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
+          $('.student-list').append("<div class='item'><img class='ui avatar image' src='"+hosts[index].img+"'></img><div class='content'><div class='header'>"+hosts[index].first_name+" "+hosts[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(hosts[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
+          $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + "," + hosts[index].partner_id + ",\"" + hosts[index].username.toString() + "\")'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'>"+partners[index].first_name+" "+partners[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(partners[index].avg_score).toFixed(2)+"</a></div></div></div></div>");
         }
       }
     } else {
@@ -113,7 +116,6 @@ function onPairingStatusOptionClick(){
   } else if($('.pairing-status').attr('value') == 'Inactive') {
     parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 0, section_id: $('#section_id').attr('value')}
   }
-  console.log('id : ' + $('.pairing-status').attr('id') + ', status: ' + parameters.status)
   $.ajax({
     url: '/classroom/updatePairingDateTimeStatus',
     type: 'put',
