@@ -373,6 +373,11 @@ exports.updatePairingDateTimeStatus = async (req, res) => {
   const queryEnrollment = 'SELECT * FROM enrollment WHERE section_id = ' + req.body.section_id
   const enrollments = await con.getEnrollment(queryEnrollment)
 
+  if(!enrollments.length){
+    res.send({status: 'There aren\'t student in classroom!'})
+    return;
+  }
+
   for(index in enrollments) {
     if(enrollments[index].partner_id == null){
       console.log('partner_id = ' + enrollments[index].enrollment_id + ' : ' + enrollments[index].partner_id)
@@ -443,6 +448,7 @@ exports.searchStudentByPurpose = async (req, res) => {
       avgScore: { $lt: avg_score+10, $gt : avg_score-10},
       username: {$ne: username}
     })
+    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users : ' + users.length)
   } else if ("experience"==purpose){
     users = await User.find({
       $or:[
@@ -451,6 +457,7 @@ exports.searchStudentByPurpose = async (req, res) => {
       ],
       username: {$ne: username}
     })
+    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users : ' + users.length)
   } else {
     users = await User.find({
       $or:[
@@ -459,17 +466,25 @@ exports.searchStudentByPurpose = async (req, res) => {
       ],
       username: {$ne: username}
     })
+    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users : ' + users.length)
   }
-  console.log('username3 : ' + req.query.username)
-  for(i in users){
-    let queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND username = \'' + users[i].username + '\' AND e.section_id = ' + section_id
+  let count = 0;
+  for(_index in users){
+    let queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND username = \'' + users[_index].username + '\' AND e.section_id = ' + section_id
     let student = await con.getStudent(queryStudent)
-    students[i] = student[i]
-    students[i].avg_score = users[i].avgScore
-    students[i].img = users[i].img
-    console.log('student : ' + student[i])
+    if(student.length) {
+      students[count] = student[0]
+      students[count].avg_score = users[_index].avgScore
+      students[count].img = users[_index].img
+      students[count].total_time = users[_index].totalTime
+      count++;
+    }
   }
   res.send(students)
+}
+
+exports.createPairingHistory = async (req, res) => {
+
 }
 
 exports.getStudentsFromSection = async (req, res) => {
@@ -481,6 +496,7 @@ exports.getStudentsFromSection = async (req, res) => {
     })
     students[i].avg_score = user.avgScore
     students[i].img = user.img
+    students[i].total_time = user.totalTime
   }
   let student_objects = {}
   let _hosts = []

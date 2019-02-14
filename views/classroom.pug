@@ -31,19 +31,13 @@ block script
           $('#newProject-modal').modal('show');
         });
         $('.main-menu').click(function () {
-          $('#main-container').show();
-          $('#students-container').hide();
-          $('#pairing-date-time-container').hide();
+          showMainContainer()
         });
         $('.students-menu').click(function () {
-          $('#main-container').hide();
-          $('#students-container').show();
-          $('#pairing-date-time-container').hide();
+          showStudentContainer()
         });
         $('.pairs-menu').click(function () {
-          $('#main-container').hide();
-          $('#students-container').hide();
-          $('#pairing-date-time-container').show();
+          showPairingDateTimeContainer()
         });
         $('.settings-menu').click(function () {
           var day = '!{section.day}'
@@ -193,6 +187,21 @@ block script
           })
         })
       });
+      function showMainContainer() {
+        $('#main-container').show();
+        $('#students-container').hide();
+        $('#pairing-date-time-container').hide();
+      }
+      function showStudentContainer(){
+        $('#main-container').hide();
+        $('#students-container').show();
+        $('#pairing-date-time-container').hide();
+      }
+      function showPairingDateTimeContainer(){
+        $('#main-container').hide();
+        $('#students-container').hide();
+        $('#pairing-date-time-container').show();
+      }
     style.
       @media (min-height: 200px) {
       .ui.footer.form-page { /* Increased specificity for SO snippet priority */
@@ -275,10 +284,19 @@ block content
       i.close.icon
       .header Alert!
       .content
-        p Something content
+        p#alert-message Something content
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.cancel.green(data-value='cancel') OK
+
+    //.ui.small.modal#confirm-modal
+    //  .header Alert!
+    //  .content
+    //    p#confirm-message Something message
+    //    .ui.basic.center.aligned.segment
+    //      .actions
+    //        button.ui.button.approve.green#confirm-button Confirm
+    //        .ui.button.cancel.green#cancel-button Cancel
 
 
     .ui.small.modal#settings-modal
@@ -388,7 +406,7 @@ block content
           input(type='hidden', name='section_id', value=`${section.section_id}`)
           .ui.basic.center.aligned.segment
             .actions
-              button.ui.button.approve.green(type='submit') Confirm
+              button.ui.button.approve.green(type='submit') Update
               .ui.button.cancel.red(data-value='cancel') Cancel
           .ui.error.message
 

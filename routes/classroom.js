@@ -29,6 +29,7 @@ router.put('/resetPair', auth.isSignedIn, catchErrors(webController.resetPair))
 router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
 router.post('/addPartnerToStudent', auth.isSignedIn, catchErrors(webController.addPartnerToStudent))
+router.post('/createPairingHistory', auth.isSignedIn, catchErrors(webController.createPairingHistory))
 
 /**
  * Expose `router`
