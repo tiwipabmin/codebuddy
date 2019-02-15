@@ -3,6 +3,8 @@ mixin pairStudent(user, students)
     .header Student list
     .content
       input#isTherePairingYet(type='hidden', value='There isn\'t pair!')
+      input#partner-keys(type='hidden', value='{}')
+      input#pairing-objective(type='hidden', value='{}')
       .ui.fluid.container.student-list-container.box
         .ui.segment
           .ui.two.column.very.relaxed.grid
@@ -13,19 +15,17 @@ mixin pairStudent(user, students)
               .ui.middle.aligned.animated.divided.list.partner-list
                 li.ui.item No student.
           .ui.vertical.divider
-        .ui.basic.center.aligned.segment
-          .actions
-            button.ui.button.approve.green#confirm-pairing(type='submit') Confirm
-            .ui.button.approve.red#cancel-pairing(data-value='cancel') Cancel
+      .ui.basic.center.aligned.segment
+        .actions
+          button.ui.button.approve.green#confirm-pairing(type='submit') Confirm
+          .ui.button.approve.red#cancel-pairing(data-value='cancel') Cancel
 
   .ui.small.modal#select-partner-modal
     .header Select partner
     .content
-      input#host_id-add-partner(type='hidden')
+      input#student_id-add-partner(type='hidden')
       input#avg_score-add-partner(type='hidden')
-      input#h_status-add-partner(type='hidden')
       input#username-add-partner(type='hidden')
-      input#pairing-objective(type='hidden')
       .ui.top.attached.tabular.menu
         a.item.active(data-tab="purpose") Select by purpose
         a.item(data-tab="search") Search partner

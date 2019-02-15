@@ -445,7 +445,7 @@ exports.searchStudentByPurpose = async (req, res) => {
   let users = []
   if("quality"==purpose){
     users = await User.find({
-      avgScore: { $lt: avg_score+10, $gt : avg_score-10},
+      avgScore: { $lte: avg_score+10, $gte : avg_score-10},
       username: {$ne: username}
     })
     console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users : ' + users.length)
@@ -480,7 +480,7 @@ exports.searchStudentByPurpose = async (req, res) => {
       count++;
     }
   }
-  res.send(students)
+  res.send({students: students, purpose: purpose})
 }
 
 exports.createPairingHistory = async (req, res) => {
@@ -488,6 +488,9 @@ exports.createPairingHistory = async (req, res) => {
 }
 
 exports.getStudentsFromSection = async (req, res) => {
+  var partner_keys = JSON.parse(req.query.partner_keys)
+  var pairing_objective = JSON.parse(req.query.pairing_objective)
+  console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   const students = await con.getStudent(queryStudent)
   for(i in students){
@@ -498,62 +501,54 @@ exports.getStudentsFromSection = async (req, res) => {
     students[i].img = user.img
     students[i].total_time = user.totalTime
   }
-  let student_objects = {}
-  let _hosts = []
-  let _partners = []
+  var count = 0
+  for(_index in partner_keys){
+    count++;
+    console.log('count : ' + count)
+    break
+  }
+  if(!count){
+    for(_index in students) {
+      partner_keys[students[_index].enrollment_id] = -1
+      pairing_objective[students[_index].enrollment_id] = -1
+      console.log('partner_keys: ' + partner_keys[students[_index].enrollment_id])
+    }
+  }
+  var student_objects = {}
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
+    console.log('student_objects: ' + student_objects[students[_index].enrollment_id])
   }
-  let index = 0
-  for(id in student_objects) {
-    if(student_objects[id].partner_id == null) {
-      _hosts[index] = student_objects[id]
-      _partners[index] = {partner_id: null}
-    } else {
-      if(student_objects[id].role == 'host') {
-        let partner_id = student_objects[id].partner_id
-        _hosts[index] = student_objects[id]
-        _partners[index] = student_objects[partner_id]
-        delete student_objects[partner_id]
-      } else {
-        let host_id = student_objects[id].partner_id
-        _hosts[index] = student_objects[host_id]
-        _partners[index] = student_objects[id]
-        delete student_objects[host_id]
-      }
-    }
-    index++;
-  }
-  res.send({hosts: _hosts, partners:_partners})
+  res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective})
 }
 
 exports.addPartnerToStudent = async (req, res) => {
-  console.log('host_id : ' + req.body.host_id + ', partner_id : ' + req.body.partner_id + ', p_status : ' + req.body.p_status)
-  const h_status = req.body.h_status
-  const p_status = req.body.p_status
-  var setNullToPartner_id;
-  var setNullStatus;
-  if(h_status != 'null'){
-    setNullToPartner_id = 'UPDATE enrollment SET partner_id = NULL , role = \'host\' WHERE enrollment_id = ' + h_status
-    setNullStatus = await con.addPartnerToStudent(setNullToPartner_id)
-  }
-  if(p_status != 'null'){
-    setNullToPartner_id = 'UPDATE enrollment SET partner_id = NULL , role = \'host\' WHERE enrollment_id = ' + p_status
-    setNullStatus = await con.addPartnerToStudent(setNullToPartner_id)
-  }
-  const addPartner = 'UPDATE enrollment SET partner_id = ' + req.body.partner_id + ', role = \'host\' WHERE enrollment_id = ' + req.body.host_id
-  var hostStatus = await con.addPartnerToStudent(addPartner)
-  var partnerStatus = 'Add failed.';
-  if(hostStatus == 'Add completed.') {
-    const addHost = 'UPDATE enrollment SET partner_id = ' + req.body.host_id + ', role = \'partner\' WHERE enrollment_id = ' + req.body.partner_id
-    partnerStatus = await con.addPartnerToStudent(addHost)
-    if(partnerStatus == 'Add failed.') {
-      hostStatus = 'Add failed.'
-    } else {
-      hostStatus = 'Add completed.'
-    }
-  }
-  res.send({hostStatus: hostStatus})
+  //console.log('host_id : ' + req.body.host_id + ', partner_id : ' + req.body.partner_id + ', p_status : ' + req.body.p_status)
+  // const h_status = req.body.h_status
+  // const p_status = req.body.p_status
+  // var setNullToPartner_id;
+  // var setNullStatus;
+  // if(h_status != 'null'){
+  //   setNullToPartner_id = 'UPDATE enrollment SET partner_id = NULL , role = \'host\' WHERE enrollment_id = ' + h_status
+  //   setNullStatus = await con.addPartnerToStudent(setNullToPartner_id)
+  // }
+  // if(p_status != 'null'){
+  //   setNullToPartner_id = 'UPDATE enrollment SET partner_id = NULL , role = \'host\' WHERE enrollment_id = ' + p_status
+  //   setNullStatus = await con.addPartnerToStudent(setNullToPartner_id)
+  // }
+  // const addPartner = 'UPDATE enrollment SET partner_id = ' + req.body.partner_id + ', role = \'host\' WHERE enrollment_id = ' + req.body.host_id
+  // var hostStatus = await con.addPartnerToStudent(addPartner)
+  // var partnerStatus = 'Add failed.';
+  // if(hostStatus == 'Add completed.') {
+  //   const addHost = 'UPDATE enrollment SET partner_id = ' + req.body.host_id + ', role = \'partner\' WHERE enrollment_id = ' + req.body.partner_id
+  //   partnerStatus = await con.addPartnerToStudent(addHost)
+  //   if(partnerStatus == 'Add failed.') {
+  //     hostStatus = 'Add failed.'
+  //   } else {
+  //     hostStatus = 'Add completed.'
+  //   }
+  // }
+  // res.send({hostStatus: hostStatus})
 }
 
 exports.acceptInvite = async (req, res) => {

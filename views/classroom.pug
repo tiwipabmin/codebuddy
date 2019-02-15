@@ -149,12 +149,12 @@ block script
                     })
                     $('.pair-or-view').click(function () {
                       if($(this).attr('value') == 'Pair'){
-                        showStudentList()
+                        //showStudentList()
                       } else {
                         alert('View')
                       }
                     })
-                    showStudentList()
+                    //showStudentList()
                     $('#createPairingDateTime').attr('value', 1)
                   }
                 }
@@ -432,9 +432,11 @@ block content
 
         .ten.wide.column#pairing-date-time-container
           .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+            .ui.three.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 h1.ui.header#headerContainer Pairing Date Time
+              .column
+                .ui.button.approve.teal#resetPair-button Reset Pair
               .right.column
                 a.right
                   button#new.ui.button.approve.green.newPairingDateTime(style='float: right;') Create Pairing Date Time
