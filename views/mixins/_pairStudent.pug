@@ -1,10 +1,12 @@
 mixin pairStudent(user, students)
   .ui.small.modal#student-list-modal
+    i.close.icon#close-student-list
     .header Student list
     .content
       input#isTherePairingYet(type='hidden', value='There isn\'t pair!')
       input#partner-keys(type='hidden', value='{}')
       input#pairing-objective(type='hidden', value='{}')
+      input#student-objects(type='hidden', value='{}')
       .ui.fluid.container.student-list-container.box
         .ui.segment
           .ui.two.column.very.relaxed.grid

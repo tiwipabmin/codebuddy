@@ -368,27 +368,23 @@ exports.searchUser = async (req, res) => {
 }
 
 exports.updatePairingDateTimeStatus = async (req, res) => {
-  console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', section_id : ' + req.body.section_id)
-  const updateStatus = 'UPDATE pairing_date_time SET status = ' + req.body.status + ' WHERE pairing_date_time_id = ' + req.body.pairing_date_time_id
-  const queryEnrollment = 'SELECT * FROM enrollment WHERE section_id = ' + req.body.section_id
-  const enrollments = await con.getEnrollment(queryEnrollment)
-
-  if(!enrollments.length){
-    res.send({status: 'There aren\'t student in classroom!'})
-    return;
-  }
-
-  for(index in enrollments) {
-    if(enrollments[index].partner_id == null){
-      console.log('partner_id = ' + enrollments[index].enrollment_id + ' : ' + enrollments[index].partner_id)
-      res.send({status: 'Please, pair all student!'})
-      return;
-    }
-  }
-
-  const res_status = await con.updatePairingDateTime(updateStatus)
-  console.log('res_status : ' + res_status)
-  res.send({status: res_status, pairing_date_time_id: req.body.pairing_date_time_id})
+  const partner_keys = JSON.parse(req.body.partner_keys)
+  console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', partner_keys : ', partner_keys)
+  res.send({status: 'Please, pair all student!'})
+  // const updateStatus = 'UPDATE pairing_date_time SET status = ' + req.body.status + ' WHERE pairing_date_time_id = ' + req.body.pairing_date_time_id
+  //
+  // var count = 0;
+  // for(index in partner_keys) {
+  //   if(enrollments[index].partner_id == null){
+  //     console.log('partner_id = ' + enrollments[index].enrollment_id + ' : ' + enrollments[index].partner_id)
+  //     res.send({status: 'Please, pair all student!'})
+  //     return;
+  //   }
+  // }
+  //
+  // const res_status = await con.updatePairingDateTime(updateStatus)
+  // console.log('res_status : ' + res_status)
+  // res.send({status: res_status, pairing_date_time_id: req.body.pairing_date_time_id})
 }
 
 exports.getPairingDateTime = async (req, res) => {
@@ -448,7 +444,7 @@ exports.searchStudentByPurpose = async (req, res) => {
       avgScore: { $lte: avg_score+10, $gte : avg_score-10},
       username: {$ne: username}
     })
-    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users : ' + users.length)
+    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users.length : ', users)
   } else if ("experience"==purpose){
     users = await User.find({
       $or:[
@@ -457,7 +453,7 @@ exports.searchStudentByPurpose = async (req, res) => {
       ],
       username: {$ne: username}
     })
-    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users : ' + users.length)
+    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users.length : ' + users.length)
   } else {
     users = await User.find({
       $or:[
@@ -466,7 +462,7 @@ exports.searchStudentByPurpose = async (req, res) => {
       ],
       username: {$ne: username}
     })
-    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users : ' + users.length)
+    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users.length : ' + users.length)
   }
   let count = 0;
   for(_index in users){
@@ -484,7 +480,78 @@ exports.searchStudentByPurpose = async (req, res) => {
 }
 
 exports.createPairingHistory = async (req, res) => {
+  console.log('1')
+  const partner_keys = JSON.parse(req.body.partner_keys)
 
+  const pairing_objective = JSON.parse(req.body.pairing_objective)
+  const student_objects = JSON.parse(req.body.student_objects)
+  const pairing_date_time_id = req.body.pairing_date_time_id
+  var status = 'Confirm completed.'
+  var count = 0;
+
+  var pairing_history_values = []
+  var addPartnerToStudent;
+  var selectEnrollment;
+  var enrollment_value;
+  var pairing_history_value;
+
+  for(key in partner_keys){
+    if(partner_keys[key] < 0) {
+      status = 'Please, pair all student!'
+      res.send({status: status})
+      return
+    }
+    count++;
+  }
+
+  if(!count){
+    status = 'There aren\'t student in classroom!'
+    res.send({status: status})
+    return
+  }
+
+  count = 0;
+  for(key in partner_keys){
+    addPartnerToStudent = 'UPDATE enrollment SET partner_id = ' + partner_keys[key] + ' WHERE enrollment_id = ' + key
+    status = await con.updateEnrollment(addPartnerToStudent);
+
+    if(status == 'Update failed.') {
+      res.send({status: status})
+      return
+    } else {
+      selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + key
+      enrollment_value = await con.getEnrollment(selectEnrollment)
+      pairing_history_value = [parseInt(key), partner_keys[key], parseInt(pairing_date_time_id), pairing_objective[key], 0, 0]
+      pairing_history_values[count] = pairing_history_value
+      count++;
+
+      addPartnerToStudent = 'UPDATE enrollment SET partner_id = ' + key + ' WHERE enrollment_id = ' + partner_keys[key]
+      status = await con.updateEnrollment(addPartnerToStudent);
+
+      if(status == 'Update failed.') {
+        res.send({status: status})
+      } else {
+
+        selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + partner_keys[key]
+        enrollment_value = await con.getEnrollment(selectEnrollment)
+        pairing_history_value = [partner_keys[key], parseInt(key), parseInt(pairing_date_time_id), pairing_objective[partner_keys[key]], 0, 0]
+        pairing_history_values[count] = pairing_history_value
+        count++;
+      }
+    }
+  }
+
+  console.log('pairing_history_values: ', pairing_history_values)
+  const createPairingHistory = 'INSERT INTO pairing_history (enrollment_id, partner_id, pairing_date_time_id, pairing_objective, active_time, score) VALUES ?'
+  status = await con.createPairingHistory(createPairingHistory, pairing_history_values)
+
+  if(status == 'Create completed.'){
+    console.log('2')
+    const updateStatus = 'UPDATE pairing_date_time SET status = 2 WHERE pairing_date_time_id = ' + pairing_date_time_id
+    status = await con.updatePairingDateTime(updateStatus)
+  }
+
+  res.send({status: status, pairing_date_time_id: pairing_date_time_id})
 }
 
 exports.getStudentsFromSection = async (req, res) => {
@@ -493,7 +560,11 @@ exports.getStudentsFromSection = async (req, res) => {
   console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   const students = await con.getStudent(queryStudent)
+  var arePairingsActive = false;
   for(i in students){
+    if(students[i].partner_id != null) {
+      arePairingsActive = true;
+    }
     let user = await User.findOne({
       username: students[i].username
     })
@@ -507,17 +578,24 @@ exports.getStudentsFromSection = async (req, res) => {
     console.log('count : ' + count)
     break
   }
-  if(!count){
+  if(!count && !arePairingsActive){
     for(_index in students) {
       partner_keys[students[_index].enrollment_id] = -1
       pairing_objective[students[_index].enrollment_id] = -1
-      console.log('partner_keys: ' + partner_keys[students[_index].enrollment_id])
+    }
+  } else {
+    var key;
+    for(_index in students) {
+      //find key from value
+      key = Object.keys(partner_keys).find(key => partner_keys[key] === students[_index].enrollment_id)
+      if(partner_keys[students[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
+        partner_keys[students[_index].enrollment_id] = students[_index].partner_id
+      }
     }
   }
   var student_objects = {}
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
-    console.log('student_objects: ' + student_objects[students[_index].enrollment_id])
   }
   res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective})
 }

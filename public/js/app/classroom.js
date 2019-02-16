@@ -1,4 +1,5 @@
 $(document).ready(function() {
+    pairingOrViewingisHided()
     $('#resetPair-button').click(function(){
       parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
       $.ajax({
@@ -25,7 +26,28 @@ $(document).ready(function() {
       transition: 'fade up',
     });
     $('#confirm-pairing').click(function(){
-
+      console.log('#confirm-pairing')
+      parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), student_objects: $('#student-objects').attr('value')}
+      $.post('/classroom/createPairingHistory', parameters, function(data){
+        const status = data.status
+        if(status == 'There aren\'t student in classroom!'){
+          alert(status)
+        } else if(status == 'Please, pair all student!'){
+          alert(status)
+        } else if(status == 'Update completed.'){
+          alert(status)
+          $('#status').attr('style', 'background-color:#16AB39; color:white;')
+          $('#status').text('ACTIVE')
+          $('.pairing-status').attr('id', data.pairing_date_time_id)
+          $('.pairing-status').attr('value', 'Inactive')
+          $('.pairing-status').text('Inactive')
+          $('.pair-or-view').attr('value', 'View')
+          $('.pair-or-view').text('View')
+          pairingOrViewingisHided()
+        } else {
+          alert(status)
+        }
+      })
     })
     $('#cancel-pairing').click(function(){
       $('#partner-keys').attr('value', '{}')
@@ -59,17 +81,12 @@ $(document).ready(function() {
       if($(this).attr('value') == 'Pair'){
         showStudentList()
       } else {
-        alert('View')
+        showStudentList()
       }
     })
     $('#back-to-student-list-modal').click(function () {
       $('#student-list-modal').modal('show');
     })
-    // $('#confirm-pairing').click(function() {
-    //   $.post('/classroom/createPairingHistory', parameters, function(data){
-    //
-    //   })
-    // })
     $('.menu .item').tab();
     $('#search-user-input').keyup(function () {
         var parameters = { search: $(this).val() };
@@ -172,6 +189,8 @@ function showStudentList(){
     var count = 0
     const student_objects = data.student_objects
     const partner_keys = data.partner_keys
+    var addPartnerButton = "";
+    $('#student-objects').attr('value', JSON.stringify(student_objects))
     $('.student-list').empty();
     $('.partner-list').empty();
     for (key in partner_keys) {
@@ -180,7 +199,12 @@ function showStudentList(){
         $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\")'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'> - </div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(0).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(0/3600))+":"+pad(parseInt((0-(parseInt(0/3600)*3600))/60))+":"+pad(parseInt(0%60))+"</div></div></div></div>");
       } else {
         $('.student-list').append("<div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div>");
-        $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\")'>Add</div></div><img class='ui avatar image' src='"+student_objects[partner_keys[key]].img+"'></img><div class='content'><div class='header'>"+student_objects[partner_keys[key]].first_name+" "+student_objects[partner_keys[key]].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(student_objects[partner_keys[key]].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[partner_keys[key]].total_time/3600))+":"+pad(parseInt((student_objects[partner_keys[key]].total_time-(parseInt(student_objects[partner_keys[key]].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[partner_keys[key]].total_time%60))+"</div></div></div></div>");
+
+        if($('.pair-or-view').attr('value') == 'Pair') {
+          addPartnerButton = "<div class='ui button add-user-button' onclick='onClickPairingButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\")'>Add</div>"
+        }
+
+        $('.partner-list').append("<div class='item'><div class='right floated content'>"+addPartnerButton+"</div><img class='ui avatar image' src='"+student_objects[partner_keys[key]].img+"'></img><div class='content'><div class='header'>"+student_objects[partner_keys[key]].first_name+" "+student_objects[partner_keys[key]].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(student_objects[partner_keys[key]].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[partner_keys[key]].total_time/3600))+":"+pad(parseInt((student_objects[partner_keys[key]].total_time-(parseInt(student_objects[partner_keys[key]].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[partner_keys[key]].total_time%60))+"</div></div></div></div>");
       }
       count++;
     }
@@ -195,36 +219,14 @@ function showStudentList(){
     }
     $('#student-list-modal').modal('show');
   })
-  // var parameter = { section_id: $('#section_id').val() };
-  // $.get('classroom/getStudentsFromSection',parameter, function(data) {
-  //   $('.student-list').empty();
-  //   $('.partner-list').empty();
-  //   if (data.hosts.length > 0) {
-  //     let hosts = data.hosts
-  //     let partners = data.partners
-  //     for(index in hosts) {
-  //       if(partners[index].partner_id == null) {
-  //         $('.student-list').append("<div class='item'><img class='ui avatar image' src='"+hosts[index].img+"'></img><div class='content'><div class='header'>"+hosts[index].first_name+" "+hosts[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(hosts[index].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(hosts[index].total_time/3600))+":"+pad(parseInt((hosts[index].total_time-(parseInt(hosts[index].total_time/3600)*3600))/60))+":"+pad(parseInt(hosts[index].total_time%60))+"</div></div></div></div>");
-  //         $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + "," + hosts[index].partner_id + ",\"" + hosts[index].username.toString() + "\")'>Add</div></div><img class='ui avatar image' src='images/user_img_0.jpg'></img><div class='content'><div class='header'> - </div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(partners[index].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(0/3600))+":"+pad(parseInt((0-(parseInt(0/3600)*3600))/60))+":"+pad(parseInt(0%60))+"</div></div></div></div>");
-  //       } else {
-  //         $('.student-list').append("<div class='item'><img class='ui avatar image' src='"+hosts[index].img+"'></img><div class='content'><div class='header'>"+hosts[index].first_name+" "+hosts[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(hosts[index].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(hosts[index].total_time/3600))+":"+pad(parseInt((hosts[index].total_time-(parseInt(hosts[index].total_time/3600)*3600))/60))+":"+pad(parseInt(hosts[index].total_time%60))+"</div></div></div></div>");
-  //         $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ hosts[index].enrollment_id + "," + hosts[index].avg_score + "," + hosts[index].partner_id + ",\"" + hosts[index].username.toString() + "\")'>Add</div></div><img class='ui avatar image' src='"+partners[index].img+"'></img><div class='content'><div class='header'>"+partners[index].first_name+" "+partners[index].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(partners[index].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(partners[index].total_time/3600))+":"+pad(parseInt((partners[index].total_time-(parseInt(partners[index].total_time/3600)*3600))/60))+":"+pad(parseInt(partners[index].total_time%60))+"</div></div></div></div>");
-  //       }
-  //     }
-  //   } else {
-  //       $(".student-list").append("<li class='ui item'>No student.</li>")
-  //       $(".partner-list").append("<li class='ui item'>No student.</li>")
-  //   }
-  //   $('#student-list-modal').modal('show');
-  // });
 }
 
 function onPairingStatusOptionClick(){
   var parameters;
   if($('.pairing-status').attr('value') == 'Active') {
-    parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 2, section_id: $('#section_id').attr('value')}
+    parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 2, partner_keys: $('#partner-keys').attr('value')}
   } else if($('.pairing-status').attr('value') == 'Inactive') {
-    parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 0, section_id: $('#section_id').attr('value')}
+    parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), status: 0, partner_keys: $('#partner-keys').attr('value')}
   }
   $.ajax({
     url: '/classroom/updatePairingDateTimeStatus',
@@ -257,7 +259,7 @@ function onPairingStatusOptionClick(){
               $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
               $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
               $('#pairing-button-column').empty()
-              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewStudentPairing button' value='"+data.pairing_date_time_id+"'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
+              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairing button' value='"+data.pairing_date_time_id+"'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
               $('#createPairingDateTime').attr('value', 0);
             } else if(status == 'Update failed.') {
               alert(status)
@@ -277,6 +279,18 @@ function setStudent(studentName, studentAvgScore, studentTotalTime, studentImg){
 
 function setPartner(enrollmentId, avgScore, partnerId, studentUsername, partnerName, partnerAvgScore, partnerTotalTime, partnerImg){
   $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ enrollmentId + "," + avgScore + "," + partnerId + ",\"" + studentUsername + "\")'>Add</div></div><img class='ui avatar image' src='"+partnerImg+"'></img><div class='content'><div class='header'> "+partnerName+" </div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+partnerAvgScore+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(partnerTotalTime/3600))+":"+pad(parseInt((partnerTotalTime-(partnerTotalTime*3600))/60))+":"+pad(parseInt(partnerTotalTime%60))+"</div></div></div></div>");
+}
+
+function pairingOrViewingisHided(){
+  if($('.pair-or-view').attr('value') == 'Pair') {
+    $('#confirm-pairing').show()
+    $('#cancel-pairing').show()
+    $('#close-student-list').hide()
+  } else if ($('.pair-or-view').attr('value') == 'View') {
+    $('#confirm-pairing').hide()
+    $('#cancel-pairing').hide()
+    $('#close-student-list').show()
+  }
 }
 
 

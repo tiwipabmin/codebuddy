@@ -126,6 +126,15 @@ exports.updateEnrollment = (query, values) => {
   })
 }
 
+exports.createPairingHistory = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function(err, res){
+      if(err) reject('Create failed.');
+      else resolve('Create completed.');
+    })
+  })
+}
+
 exports.createPairingDateTime = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){
