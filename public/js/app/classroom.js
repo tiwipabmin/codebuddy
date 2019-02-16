@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    pairingOrViewingisHided()
+    pairingOrViewingisHided('pair')
     $('#resetPair-button').click(function(){
       parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
       $.ajax({
@@ -27,7 +27,7 @@ $(document).ready(function() {
     });
     $('#confirm-pairing').click(function(){
       console.log('#confirm-pairing')
-      parameters = {pairing_date_time_id: $('.pairing-status').attr('id'), partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), student_objects: $('#student-objects').attr('value')}
+      parameters = {pairing_date_time_id: $('.item.pairing-date-time').attr('id'), partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), student_objects: $('#student-objects').attr('value')}
       $.post('/classroom/createPairingHistory', parameters, function(data){
         const status = data.status
         if(status == 'There aren\'t student in classroom!'){
@@ -38,12 +38,16 @@ $(document).ready(function() {
           alert(status)
           $('#status').attr('style', 'background-color:#16AB39; color:white;')
           $('#status').text('ACTIVE')
-          $('.pairing-status').attr('id', data.pairing_date_time_id)
-          $('.pairing-status').attr('value', 'Inactive')
-          $('.pairing-status').text('Inactive')
-          $('.pair-or-view').attr('value', 'View')
-          $('.pair-or-view').text('View')
-          pairingOrViewingisHided()
+          $('#pairStudent').remove();
+          $('#pairing-button-column').append('<div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' id=\'viewLatestPairing\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_date_time_id+')\'>Inactive</div></div>')
+          $('.ui.pointing.dropdown').dropdown();
+          onClickViewLatestPairing()
+          // $('.pairing-status').attr('id', data.pairing_date_time_id)
+          // $('.pairing-status').attr('value', 'Inactive')
+          // $('.pairing-status').text('Inactive')
+          // $('.pair-or-view').attr('value', 'View')
+          // $('.pair-or-view').text('View')
+          // pairingOrViewingisHided()
         } else {
           alert(status)
         }
@@ -77,13 +81,17 @@ $(document).ready(function() {
     //     $('#student-list-modal').modal('show');
     //   }
     // })
-    $('.pair-or-view').click(function () {
-      if($(this).attr('value') == 'Pair'){
-        showStudentList()
-      } else {
-        showStudentList()
-      }
-    })
+
+    // Old
+    // $('.pair-or-view').click(function () {
+    //   if($(this).attr('value') == 'Pair'){
+    //     showStudentList()
+    //   } else {
+    //     showStudentList()
+    //   }
+    // })
+    onClickPairStudent()
+    onClickViewLatestPairing()
     $('#back-to-student-list-modal').click(function () {
       $('#student-list-modal').modal('show');
     })
@@ -180,10 +188,10 @@ function onClickAddPartnerButton(student_id, partner_id, purpose) {
   $('#partner-keys').attr('value', JSON.stringify(partner_keys))
   $('#pairing-objective').attr('value', JSON.stringify(pairing_objective))
   console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
-  showStudentList()
+  showStudentList('pair')
 }
 
-function showStudentList(){
+function showStudentList(command){
   var parameter = { partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), section_id: $('#section_id').val() };
   $.get('classroom/getStudentsFromSection',parameter, function(data) {
     var count = 0
@@ -200,7 +208,7 @@ function showStudentList(){
       } else {
         $('.student-list').append("<div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div>");
 
-        if($('.pair-or-view').attr('value') == 'Pair') {
+        if(command == 'pair') {
           addPartnerButton = "<div class='ui button add-user-button' onclick='onClickPairingButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\")'>Add</div>"
         }
 
@@ -218,6 +226,20 @@ function showStudentList(){
       console.log('partner_keys : ', data.partner_keys)
     }
     $('#student-list-modal').modal('show');
+  })
+}
+
+function onClickInactivePairingMenu(pairing_date_time_id){
+  console.log('pairing_date_time_id: ' + pairing_date_time_id)
+  var parameters = {pairing_date_time_id: pairing_date_time_id}
+  $.ajax({
+    url: '/classroom/updatePairingDateTimeStatus',
+    type: 'put',
+    data: parameters,
+    success: function(data){
+      alert(data.status)
+      // $('#createPairingDateTime').attr('value', 0)
+    }
   })
 }
 
@@ -259,7 +281,7 @@ function onPairingStatusOptionClick(){
               $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
               $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
               $('#pairing-button-column').empty()
-              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairing button' value='"+data.pairing_date_time_id+"'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
+              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' value='"+data.pairing_date_time_id+"'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
               $('#createPairingDateTime').attr('value', 0);
             } else if(status == 'Update failed.') {
               alert(status)
@@ -281,16 +303,29 @@ function setPartner(enrollmentId, avgScore, partnerId, studentUsername, partnerN
   $('.partner-list').append("<div class='item'><div class='right floated content'><div class='ui button add-user-button' onclick='onClickPairingButton("+ enrollmentId + "," + avgScore + "," + partnerId + ",\"" + studentUsername + "\")'>Add</div></div><img class='ui avatar image' src='"+partnerImg+"'></img><div class='content'><div class='header'> "+partnerName+" </div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+partnerAvgScore+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(partnerTotalTime/3600))+":"+pad(parseInt((partnerTotalTime-(partnerTotalTime*3600))/60))+":"+pad(parseInt(partnerTotalTime%60))+"</div></div></div></div>");
 }
 
-function pairingOrViewingisHided(){
-  if($('.pair-or-view').attr('value') == 'Pair') {
+function pairingOrViewingisHided(command){
+  if(command == 'pair') {
     $('#confirm-pairing').show()
     $('#cancel-pairing').show()
     $('#close-student-list').hide()
-  } else if ($('.pair-or-view').attr('value') == 'View') {
+  } else if (command == 'view') {
     $('#confirm-pairing').hide()
     $('#cancel-pairing').hide()
     $('#close-student-list').show()
   }
+}
+
+function onClickViewLatestPairing(){
+  $('#viewLatestPairing').click(function (){
+    pairingOrViewingisHided('view')
+    showStudentList('view')
+  })
+}
+
+function onClickPairStudent(){
+  $('#pairStudent').click(function (){
+    showStudentList('pair')
+  })
 }
 
 

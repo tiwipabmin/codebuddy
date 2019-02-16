@@ -136,25 +136,15 @@ block script
                     var grid = $('<div class=\'ui grid\'></div>')
                     var extra = $('<div class=\'extra\'><div id=\'status\' class=\'ui label\' style=\'background-color:#f1c232; color:white;\'>PENDING</div></div>')
                     var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em\'><header class=\'header-pending-and-active\'>Pairing Time : ' + pairingTime + '</header></b><div class=\'description\'><font class=\'font-pending-and-active\'>' + res.date_time + '</font></div></div>')
-                    var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item pair-or-view\' value=\'Pair\'> Pair </div><div class=\'item pairing-status\' id=\''+res.pairing_date_time_id+'\' value=\'Active\'>Active</div></div></div></div>')
+                    var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui right floated button blue\' id=\'pairStudent\' style=\'text-color:white;\'> Pair </div></div>')
                     grid.append(elevenColumn)
                     grid.append(fiveColumn)
                     content.append(grid)
                     content.append(extra)
                     item.append(content)
-                    $('#pairingDateTime').prepend(item)
+                    $('#pairingDateTimes').prepend(item)
                     $('.ui.pointing.dropdown').dropdown();
-                    $('.pairing-status').click(function(){
-                      onPairingStatusOptionClick()
-                    })
-                    $('.pair-or-view').click(function () {
-                      if($(this).attr('value') == 'Pair'){
-                        //showStudentList()
-                      } else {
-                        alert('View')
-                      }
-                    })
-                    //showStudentList()
+                    onClickPairStudent()
                     $('#createPairingDateTime').attr('value', 1)
                   }
                 }
@@ -440,10 +430,10 @@ block content
               .right.column
                 a.right
                   button#new.ui.button.approve.green.newPairingDateTime(style='float: right;') Create Pairing Date Time
-            .ui.divided.items#pairingDateTime
+            .ui.divided.items#pairingDateTimes
               if pairingDateTimes.length > 0 && pairingDateTimes[0].status >= 0
                 each pairingDateTime, index in pairingDateTimes
-                  .item(id=`${pairingDateTime.pairing_date_time_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
+                  .item.pairing-date-time(id=`${pairingDateTime.pairing_date_time_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
                     .content
                       .ui.grid
                         .eleven.wide.column
@@ -462,24 +452,28 @@ block content
                         .five.wide.column#pairing-button-column
                           case pairingDateTime.status
                             when 0
-                              .ui.right.floated.alignedvertical.animated.viewPairing.button(id=`${pairingDateTime.pairing_date_time_id}`)
+                              .ui.right.floated.alignedvertical.animated.viewPairingHistory.button
                                 .hidden.content(style='color:#5D5D5D;') View
                                 .visible.content
                                   i.eye.icon
+                            when 1
+                              .ui.right.floated.button.blue#pairStudent(style='text-color:white;') Pair
                             default
                               .ui.top.right.floated.pointing.dropdown.button.blue
                                 font(color='white') Select
                                 .menu
-                                  case pairingDateTime.status
-                                    when 1
-                                      .item.pair-or-view(value='Pair') Pair
-                                    default
-                                      .item.pair-or-view(value='View') View
-                                  case pairingDateTime.status
-                                    when 1
-                                      .item.pairing-status(id=`${pairingDateTime.pairing_date_time_id}`, value='Active') Active
-                                    when 2
-                                      .item.pairing-status(id=`${pairingDateTime.pairing_date_time_id}`, value='Inactive') Inactive
+                                  .item#viewLatestPairing View
+                                  .item#inactivePairingMenu(onclick='onClickInactivePairingMenu('+pairingDateTime.pairing_date_time_id+')') Inactive
+                                  //case pairingDateTime.status
+                                  //  when 1
+                                  //    .item.pair-or-view(value='Pair') Pair
+                                  //  default
+                                  //    .item.pair-or-view(value='View') View
+                                  //case pairingDateTime.status
+                                  //  when 1
+                                  //    .item.pairing-status(id=`${pairingDateTime.pairing_date_time_id}`, value='Active') Active
+                                  //  when 2
+                                  //    .item.pairing-status(id=`${pairingDateTime.pairing_date_time_id}`, value='Inactive') Inactive
                               script(type='text/javascript').
                                 $('.ui.pointing.dropdown').dropdown();
                                 $('.pairing-status').click(function(){

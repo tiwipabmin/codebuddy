@@ -368,8 +368,9 @@ exports.searchUser = async (req, res) => {
 }
 
 exports.updatePairingDateTimeStatus = async (req, res) => {
-  const partner_keys = JSON.parse(req.body.partner_keys)
-  console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', partner_keys : ', partner_keys)
+  // const partner_keys = JSON.parse(req.body.partner_keys)
+  //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', partner_keys : ', partner_keys)
+  console.log('pairing_id : ' + req.body.pairing_date_time_id)
   res.send({status: 'Please, pair all student!'})
   // const updateStatus = 'UPDATE pairing_date_time SET status = ' + req.body.status + ' WHERE pairing_date_time_id = ' + req.body.pairing_date_time_id
   //
