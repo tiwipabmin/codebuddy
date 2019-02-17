@@ -177,6 +177,9 @@ block script
             }
           })
         })
+        $('.newAssignment').click(function (){
+          $('#assignment-modal').modal('show')
+        })
       });
       function showMainContainer() {
         $('#main-container').show();
@@ -401,6 +404,36 @@ block content
               button.ui.button.approve.green(type='submit') Update
               .ui.button.cancel.red(data-value='cancel') Cancel
           .ui.error.message
+
+    .ui.small.modal#assignment-modal
+      i.close.icon
+      .header Assignment
+      .content
+        form.ui.form.createAssignment.segment(action='/assignment/createAssignment', method='POST')
+          .field
+            label Title :
+            |
+            input(type='text', name='course_name', placeholder='Your title')
+          .field
+            label Description :
+            |
+            textarea(type='text', name='description', placeholder='Some content...')
+          .ui.grid
+            .two.column.row
+              .column
+                .field
+                  label Input specification :
+                  |
+                  textarea(row='2', type='text', name='input_specification', placeholder='Input specification...')
+              .column
+                .field
+                  label Output specification :
+                  |
+                  textarea(row='2', type='text', name='output_specification', placeholder='Output specification...')
+          .ui.basic.center.aligned.segment
+            .actions
+              button.ui.button.approve.green(type='submit') Create
+              .ui.button.cancel.red(data-value='cancel') Cancel
 
     .ui.raised.very.padded.container
       .ui.centered.grid(style='padding-top:20px;')

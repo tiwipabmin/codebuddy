@@ -633,35 +633,6 @@ exports.getStudentsFromSection = async (req, res) => {
   res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective})
 }
 
-exports.addPartnerToStudent = async (req, res) => {
-  //console.log('host_id : ' + req.body.host_id + ', partner_id : ' + req.body.partner_id + ', p_status : ' + req.body.p_status)
-  // const h_status = req.body.h_status
-  // const p_status = req.body.p_status
-  // var setNullToPartner_id;
-  // var setNullStatus;
-  // if(h_status != 'null'){
-  //   setNullToPartner_id = 'UPDATE enrollment SET partner_id = NULL , role = \'host\' WHERE enrollment_id = ' + h_status
-  //   setNullStatus = await con.addPartnerToStudent(setNullToPartner_id)
-  // }
-  // if(p_status != 'null'){
-  //   setNullToPartner_id = 'UPDATE enrollment SET partner_id = NULL , role = \'host\' WHERE enrollment_id = ' + p_status
-  //   setNullStatus = await con.addPartnerToStudent(setNullToPartner_id)
-  // }
-  // const addPartner = 'UPDATE enrollment SET partner_id = ' + req.body.partner_id + ', role = \'host\' WHERE enrollment_id = ' + req.body.host_id
-  // var hostStatus = await con.addPartnerToStudent(addPartner)
-  // var partnerStatus = 'Add failed.';
-  // if(hostStatus == 'Add completed.') {
-  //   const addHost = 'UPDATE enrollment SET partner_id = ' + req.body.host_id + ', role = \'partner\' WHERE enrollment_id = ' + req.body.partner_id
-  //   partnerStatus = await con.addPartnerToStudent(addHost)
-  //   if(partnerStatus == 'Add failed.') {
-  //     hostStatus = 'Add failed.'
-  //   } else {
-  //     hostStatus = 'Add completed.'
-  //   }
-  // }
-  // res.send({hostStatus: hostStatus})
-}
-
 exports.acceptInvite = async (req, res) => {
   const id = req.body.id
   Project.update({
