@@ -461,16 +461,13 @@ block content
                             when 1
                               .ui.right.floated.button.blue#pairStudent(style='text-color:white;') Pair
                             default
-                              .ui.top.right.floated.pointing.dropdown.button.blue
+                              .ui.top.right.floated.pointing.dropdown.button.blue#viewAndInactivePairing
                                 font(color='white') Select
                                 .menu
-                                  .item#viewLatestPairing(onclick='onClickViewPairingHistory('+pairingDateTime.pairing_date_time_id+')') View
+                                  .item(onclick='onClickViewPairingHistory('+pairingDateTime.pairing_date_time_id+')') View
                                   .item#inactivePairingMenu(onclick='onClickInactivePairingMenu('+pairingDateTime.pairing_date_time_id+')') Inactive
                               script(type='text/javascript').
                                 $('.ui.pointing.dropdown').dropdown();
-                                $('.pairing-status').click(function(){
-                                  onPairingStatusOptionClick()
-                                })
                       .extra
                         case pairingDateTime.status
                           when 0

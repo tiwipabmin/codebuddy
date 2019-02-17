@@ -370,8 +370,20 @@ exports.searchUser = async (req, res) => {
 exports.updatePairingDateTimeStatus = async (req, res) => {
   // const partner_keys = JSON.parse(req.body.partner_keys)
   //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', partner_keys : ', partner_keys)
-  console.log('pairing_id : ' + req.body.pairing_date_time_id)
-  res.send({status: 'Please, pair all student!'})
+  const status = req.body.status
+  const pairing_date_time_id = req.body.pairing_date_time_id
+  const updatePairingDateTimeStatus = 'UPDATE pairing_date_time SET status = ' + status + ' WHERE pairing_date_time_id = ' + pairing_date_time_id;
+  var res_status = await con.updatePairingDateTime(updatePairingDateTimeStatus)
+  if(res_status == 'Update completed.') {
+    console.log(req.body.section_id)
+    const resetPartner = 'UPDATE enrollment SET partner_id = NULL WHERE section_id = ' + req.body.section_id
+    res_status = await con.updateEnrollment(resetPartner)
+    console.log(2)
+  } else {
+    res_status = 'Update a pairing date time status failed.'
+  }
+  console.log('res_status : ' + res_status)
+  res.send({status: res_status})
   // const updateStatus = 'UPDATE pairing_date_time SET status = ' + req.body.status + ' WHERE pairing_date_time_id = ' + req.body.pairing_date_time_id
   //
   // var count = 0;
@@ -522,7 +534,7 @@ exports.createPairingHistory = async (req, res) => {
     } else {
       selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + key
       enrollment_value = await con.getEnrollment(selectEnrollment)
-      pairing_history_value = [parseInt(key), partner_keys[key], parseInt(pairing_date_time_id), pairing_objective[key], "host"]
+      pairing_history_value = [parseInt(key), parseInt(pairing_date_time_id), partner_keys[key], pairing_objective[key], "host"]
       pairing_history_values[count] = pairing_history_value
       count++;
 
@@ -535,7 +547,7 @@ exports.createPairingHistory = async (req, res) => {
 
         selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + partner_keys[key]
         enrollment_value = await con.getEnrollment(selectEnrollment)
-        pairing_history_value = [partner_keys[key], parseInt(key), parseInt(pairing_date_time_id), pairing_objective[partner_keys[key]], "partner"]
+        pairing_history_value = [partner_keys[key], parseInt(pairing_date_time_id), parseInt(key), pairing_objective[partner_keys[key]], "partner"]
         pairing_history_values[count] = pairing_history_value
         count++;
       }
@@ -543,7 +555,7 @@ exports.createPairingHistory = async (req, res) => {
   }
 
   console.log('pairing_history_values: ', pairing_history_values)
-  const createPairingHistory = 'INSERT INTO pairing_history (enrollment_id, partner_id, pairing_date_time_id, pairing_objective, role) VALUES ?'
+  const createPairingHistory = 'INSERT INTO pairing_history (enrollment_id, pairing_date_time_id, partner_id, pairing_objective, role) VALUES ?'
   status = await con.createPairingHistory(createPairingHistory, pairing_history_values)
 
   if(status == 'Create completed.'){
@@ -559,6 +571,8 @@ exports.getStudentsFromSection = async (req, res) => {
   var partner_keys = JSON.parse(req.query.partner_keys)
   var pairing_objective = JSON.parse(req.query.pairing_objective)
   const pairing_date_time_id = req.query.pairing_date_time_id
+  const command = req.query.command
+  console.log('command : ' + command)
   console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   const students = await con.getStudent(queryStudent)
@@ -580,12 +594,12 @@ exports.getStudentsFromSection = async (req, res) => {
     console.log('count : ' + count)
     break
   }
-  if(!count && !arePairingsActive){
+  if(!count && !arePairingsActive && command == 'pair'){
     for(_index in students) {
       partner_keys[students[_index].enrollment_id] = -1
       pairing_objective[students[_index].enrollment_id] = -1
     }
-  } else if (arePairingsActive) {
+  } else if (command == 'view') {
     const selectPairingHistory = 'SELECT * FROM pairing_history WHERE pairing_date_time_id = ' + pairing_date_time_id
     const pairing_history_values = await con.getPairingHistory(selectPairingHistory);
     var pairing_history_objects = {}
@@ -593,19 +607,23 @@ exports.getStudentsFromSection = async (req, res) => {
       pairing_history_objects[pairing_history_values[_index].enrollment_id] = pairing_history_values[_index]
       //console.log('objects' + pairing_history_values[_index].enrollment_id + ' : ', pairing_history_objects[pairing_history_values.enrollment_id])
     }
+    console.log('viewwwww1')
     var key;
-    for(_index in students) {
+    for(_index in pairing_history_values) {
+      console.log('viewwwww2', pairing_history_objects, '======= ', partner_keys)
       //find key from value
-      key = Object.keys(partner_keys).find(key => partner_keys[key] === students[_index].enrollment_id)
-      if(partner_keys[students[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
-        if(pairing_history_objects[students[_index].enrollment_id].role == 'host') {
-          partner_keys[students[_index].enrollment_id] = students[_index].partner_id
-        } else if(pairing_history_objects[students[_index].enrollment_id].role == 'partner') {
-          partner_keys[students[_index].partner_id] = students[_index].enrollment_id
+      key = Object.keys(partner_keys).find(key => partner_keys[key] === pairing_history_values[_index].enrollment_id)
+      if(partner_keys[pairing_history_values[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
+        if(pairing_history_objects[pairing_history_values[_index].enrollment_id].role == 'host') {
+          partner_keys[pairing_history_values[_index].enrollment_id] = pairing_history_values[_index].partner_id
+        } else if(pairing_history_objects[pairing_history_values[_index].enrollment_id].role == 'partner') {
+          partner_keys[pairing_history_values[_index].partner_id] = pairing_history_values[_index].enrollment_id
         }
-        pairing_objective[students[_index].enrollment_id] = pairing_history_objects[students[_index].enrollment_id].pairing_objective
-        pairing_objective[students[_index].partner_id] = pairing_history_objects[students[_index].partner_id].pairing_objective
+        pairing_objective[pairing_history_values[_index].enrollment_id] = pairing_history_objects[pairing_history_values[_index].enrollment_id].pairing_objective
+        pairing_objective[pairing_history_values[_index].partner_id] = pairing_history_objects[pairing_history_values[_index].partner_id].pairing_objective
+        console.log('viewwwww3')
       }
+
     }
   }
   var student_objects = {}

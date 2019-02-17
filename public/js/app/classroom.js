@@ -41,7 +41,6 @@ $(document).ready(function() {
           $('#pairStudent').remove();
           $('#pairing-button-column').append('<div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingHistory('+$('#pairing_date_time_id').attr('value')+')\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_date_time_id+')\'>Inactive</div></div>')
           $('.ui.pointing.dropdown').dropdown();
-          // onClickViewLatestPairing()
         } else {
           alert(status)
         }
@@ -76,7 +75,6 @@ $(document).ready(function() {
     //   }
     // })
     onClickPairStudent()
-    // onClickViewLatestPairing()
     $('#back-to-student-list-modal').click(function () {
       $('#student-list-modal').modal('show');
     })
@@ -139,12 +137,16 @@ function onClickAddPartnerButton(student_id, partner_id, purpose) {
   var partner_keys = JSON.parse($('#partner-keys').attr('value'))
   var pairing_objective = JSON.parse($('#pairing-objective').attr('value'))
   var key;
+  var addSamePartner = false
 
   // partner_id is value in partner_keys
   // ex. partner_keys = {0: 1, 2: 3} expected {0: -1, 2: 1, 3: -1}
   // pair student_id = 2 with partner_id = 1 will make undefined
   if (partner_keys[partner_id] === undefined) {
     key = Object.keys(partner_keys).find(key => partner_keys[key] === partner_id)
+    if(key == student_id) {
+      addSamePartner = true
+    }
   } else {
     key = partner_keys[partner_id]
   }
@@ -152,7 +154,7 @@ function onClickAddPartnerButton(student_id, partner_id, purpose) {
   if(partner_keys[student_id] < 0 && pairing_objective[partner_id] != -1) {
     partner_keys[key] = -1
     pairing_objective[key] = -1
-  } else if(partner_keys[student_id] > 0) {
+  } else if(partner_keys[student_id] > 0 && !addSamePartner) {
       if(pairing_objective[partner_id] == -1){
         partner_keys[partner_keys[student_id]] = -1
         pairing_objective[partner_keys[student_id]] = -1
@@ -173,11 +175,11 @@ function onClickAddPartnerButton(student_id, partner_id, purpose) {
   $('#partner-keys').attr('value', JSON.stringify(partner_keys))
   $('#pairing-objective').attr('value', JSON.stringify(pairing_objective))
   console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
-  showStudentList('pair')
+  showStudentList('pair', $('#pairing_date_time_id').attr('value'))
 }
 
-function showStudentList(command){
-  var parameter = { partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), section_id: $('#section_id').val(), pairing_date_time_id: $('#pairing_date_time_id').attr('value') };
+function showStudentList(command, pairing_date_time_id){
+  var parameter = { partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), section_id: $('#section_id').val(), pairing_date_time_id: pairing_date_time_id, command: command};
   $.get('classroom/getStudentsFromSection',parameter, function(data) {
     var count = 0
     const student_objects = data.student_objects
@@ -216,13 +218,25 @@ function showStudentList(command){
 
 function onClickInactivePairingMenu(pairing_date_time_id){
   console.log('pairing_date_time_id: ' + pairing_date_time_id)
-  var parameters = {pairing_date_time_id: pairing_date_time_id}
+  var parameters = {pairing_date_time_id: pairing_date_time_id, section_id: $('#section_id').attr('value'), status: 0}
   $.ajax({
     url: '/classroom/updatePairingDateTimeStatus',
     type: 'put',
     data: parameters,
     success: function(data){
-      alert(data.status)
+      var status = data.status
+      if(status == 'Update completed.') {
+        alert(status)
+        $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
+        $('#status').text('INACTIVE')
+        $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
+        $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
+        $('#pairing-button-column').empty()
+        $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' onclick='onClickViewPairingHistory("+$('#pairing_date_time_id').attr('value')+")'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
+        $('#createPairingDateTime').attr('value', 0);
+      } else {
+        alert(status)
+      }
       // $('#createPairingDateTime').attr('value', 0)
     }
   })
@@ -300,16 +314,12 @@ function pairingOrViewingisHided(command){
   }
 }
 
-function onClickViewLatestPairing(){
-  $('#viewLatestPairing').click(function (){
-    pairingOrViewingisHided('view')
-    showStudentList('view')
-  })
-}
-
 function onClickPairStudent(){
   $('#pairStudent').click(function (){
-    showStudentList('pair')
+    $('#partner-keys').attr('value', '{}')
+    $('#pairing-objective').attr('value', '{}')
+    pairingOrViewingisHided('pair')
+    showStudentList('pair', $('#pairing_date_time_id').attr('value'))
   })
 }
 
@@ -317,9 +327,8 @@ function onClickViewPairingHistory(pairing_date_time_id) {
   $('#partner-keys').attr('value', '{}')
   $('#pairing-objective').attr('value', '{}')
   console.log('pairing_date_time_id : ' + pairing_date_time_id)
-  $('#pairing_date_time_id').attr('value', pairing_date_time_id)
   pairingOrViewingisHided('view')
-  showStudentList('view')
+  showStudentList('view', pairing_date_time_id)
 }
 
 
