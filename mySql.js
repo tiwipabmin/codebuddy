@@ -135,6 +135,15 @@ exports.createPairingHistory = (query, values) => {
   })
 }
 
+exports.getPairingHistory = (query) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      else resolve(res);
+    })
+  })
+}
+
 exports.createPairingDateTime = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){

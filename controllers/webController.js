@@ -522,7 +522,7 @@ exports.createPairingHistory = async (req, res) => {
     } else {
       selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + key
       enrollment_value = await con.getEnrollment(selectEnrollment)
-      pairing_history_value = [parseInt(key), partner_keys[key], parseInt(pairing_date_time_id), pairing_objective[key], 0, 0]
+      pairing_history_value = [parseInt(key), partner_keys[key], parseInt(pairing_date_time_id), pairing_objective[key], "host"]
       pairing_history_values[count] = pairing_history_value
       count++;
 
@@ -535,7 +535,7 @@ exports.createPairingHistory = async (req, res) => {
 
         selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + partner_keys[key]
         enrollment_value = await con.getEnrollment(selectEnrollment)
-        pairing_history_value = [partner_keys[key], parseInt(key), parseInt(pairing_date_time_id), pairing_objective[partner_keys[key]], 0, 0]
+        pairing_history_value = [partner_keys[key], parseInt(key), parseInt(pairing_date_time_id), pairing_objective[partner_keys[key]], "partner"]
         pairing_history_values[count] = pairing_history_value
         count++;
       }
@@ -543,7 +543,7 @@ exports.createPairingHistory = async (req, res) => {
   }
 
   console.log('pairing_history_values: ', pairing_history_values)
-  const createPairingHistory = 'INSERT INTO pairing_history (enrollment_id, partner_id, pairing_date_time_id, pairing_objective, active_time, score) VALUES ?'
+  const createPairingHistory = 'INSERT INTO pairing_history (enrollment_id, partner_id, pairing_date_time_id, pairing_objective, role) VALUES ?'
   status = await con.createPairingHistory(createPairingHistory, pairing_history_values)
 
   if(status == 'Create completed.'){
@@ -558,6 +558,7 @@ exports.createPairingHistory = async (req, res) => {
 exports.getStudentsFromSection = async (req, res) => {
   var partner_keys = JSON.parse(req.query.partner_keys)
   var pairing_objective = JSON.parse(req.query.pairing_objective)
+  const pairing_date_time_id = req.query.pairing_date_time_id
   console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   const students = await con.getStudent(queryStudent)
@@ -584,13 +585,26 @@ exports.getStudentsFromSection = async (req, res) => {
       partner_keys[students[_index].enrollment_id] = -1
       pairing_objective[students[_index].enrollment_id] = -1
     }
-  } else {
+  } else if (arePairingsActive) {
+    const selectPairingHistory = 'SELECT * FROM pairing_history WHERE pairing_date_time_id = ' + pairing_date_time_id
+    const pairing_history_values = await con.getPairingHistory(selectPairingHistory);
+    var pairing_history_objects = {}
+    for(_index in pairing_history_values) {
+      pairing_history_objects[pairing_history_values[_index].enrollment_id] = pairing_history_values[_index]
+      //console.log('objects' + pairing_history_values[_index].enrollment_id + ' : ', pairing_history_objects[pairing_history_values.enrollment_id])
+    }
     var key;
     for(_index in students) {
       //find key from value
       key = Object.keys(partner_keys).find(key => partner_keys[key] === students[_index].enrollment_id)
       if(partner_keys[students[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
-        partner_keys[students[_index].enrollment_id] = students[_index].partner_id
+        if(pairing_history_objects[students[_index].enrollment_id].role == 'host') {
+          partner_keys[students[_index].enrollment_id] = students[_index].partner_id
+        } else if(pairing_history_objects[students[_index].enrollment_id].role == 'partner') {
+          partner_keys[students[_index].partner_id] = students[_index].enrollment_id
+        }
+        pairing_objective[students[_index].enrollment_id] = pairing_history_objects[students[_index].enrollment_id].pairing_objective
+        pairing_objective[students[_index].partner_id] = pairing_history_objects[students[_index].partner_id].pairing_objective
       }
     }
   }

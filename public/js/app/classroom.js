@@ -26,8 +26,8 @@ $(document).ready(function() {
       transition: 'fade up',
     });
     $('#confirm-pairing').click(function(){
-      console.log('#confirm-pairing')
-      parameters = {pairing_date_time_id: $('.item.pairing-date-time').attr('id'), partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), student_objects: $('#student-objects').attr('value')}
+      console.log('#confirm-pairing : ' + $('#pairing_date_time_id').attr('value'))
+      parameters = {pairing_date_time_id: $('#pairing_date_time_id').attr('value'), partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), student_objects: $('#student-objects').attr('value')}
       $.post('/classroom/createPairingHistory', parameters, function(data){
         const status = data.status
         if(status == 'There aren\'t student in classroom!'){
@@ -39,15 +39,9 @@ $(document).ready(function() {
           $('#status').attr('style', 'background-color:#16AB39; color:white;')
           $('#status').text('ACTIVE')
           $('#pairStudent').remove();
-          $('#pairing-button-column').append('<div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' id=\'viewLatestPairing\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_date_time_id+')\'>Inactive</div></div>')
+          $('#pairing-button-column').append('<div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingHistory('+$('#pairing_date_time_id').attr('value')+')\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_date_time_id+')\'>Inactive</div></div>')
           $('.ui.pointing.dropdown').dropdown();
-          onClickViewLatestPairing()
-          // $('.pairing-status').attr('id', data.pairing_date_time_id)
-          // $('.pairing-status').attr('value', 'Inactive')
-          // $('.pairing-status').text('Inactive')
-          // $('.pair-or-view').attr('value', 'View')
-          // $('.pair-or-view').text('View')
-          // pairingOrViewingisHided()
+          // onClickViewLatestPairing()
         } else {
           alert(status)
         }
@@ -81,17 +75,8 @@ $(document).ready(function() {
     //     $('#student-list-modal').modal('show');
     //   }
     // })
-
-    // Old
-    // $('.pair-or-view').click(function () {
-    //   if($(this).attr('value') == 'Pair'){
-    //     showStudentList()
-    //   } else {
-    //     showStudentList()
-    //   }
-    // })
     onClickPairStudent()
-    onClickViewLatestPairing()
+    // onClickViewLatestPairing()
     $('#back-to-student-list-modal').click(function () {
       $('#student-list-modal').modal('show');
     })
@@ -192,7 +177,7 @@ function onClickAddPartnerButton(student_id, partner_id, purpose) {
 }
 
 function showStudentList(command){
-  var parameter = { partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), section_id: $('#section_id').val() };
+  var parameter = { partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), section_id: $('#section_id').val(), pairing_date_time_id: $('#pairing_date_time_id').attr('value') };
   $.get('classroom/getStudentsFromSection',parameter, function(data) {
     var count = 0
     const student_objects = data.student_objects
@@ -326,6 +311,15 @@ function onClickPairStudent(){
   $('#pairStudent').click(function (){
     showStudentList('pair')
   })
+}
+
+function onClickViewPairingHistory(pairing_date_time_id) {
+  $('#partner-keys').attr('value', '{}')
+  $('#pairing-objective').attr('value', '{}')
+  console.log('pairing_date_time_id : ' + pairing_date_time_id)
+  $('#pairing_date_time_id').attr('value', pairing_date_time_id)
+  pairingOrViewingisHided('view')
+  showStudentList('view')
 }
 
 
