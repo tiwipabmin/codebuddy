@@ -23,6 +23,14 @@ block script
             return false;
           },
         })
+        $('#assignment-modal').modal({
+          closable: false,
+          transition: 'fade up',
+          onApprove : function() {
+            //$('.ui.form').submit();
+            return false;
+          },
+        })
         $('#alert-modal').modal({
           closable: false,
           transition: 'fade up',
@@ -160,7 +168,7 @@ block script
           $('.student_id').attr('value', $(this).attr('value'))
           $('#confirmRemoveStudent').modal('show');
         });
-        $('.yesIamSure').click(function (e) {
+        $('.yesIamSure').click(function () {
           var enrollment_id = $('.enrollment_id').attr('value')
           $.ajax({
             url: '/api/removeStudent',
@@ -179,6 +187,71 @@ block script
         })
         $('.newAssignment').click(function (){
           $('#assignment-modal').modal('show')
+        })
+        $('.ui.form.createAssignment').form({
+          fields: {
+            title: {
+              identifier: 'title',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your title'
+                },
+                {
+                  type : 'regExp[[a-zA-Z0-9]]',
+                  prompt : 'This title is not valid!'
+                }
+              ]
+            },
+            description: {
+              identifier: 'description',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your description'
+                }
+              ]
+            },
+            input_specification: {
+              identifier: 'input_specification',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your input specification'
+                }
+              ]
+            },
+            output_specification: {
+              identifier: 'output_specification',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your output specification'
+                }
+              ]
+            },
+            sample_input: {
+              identifier: 'sample_input',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your sample input'
+                }
+              ]
+            },
+            sample_output: {
+              identifier: 'sample_output',
+              rules: [
+                {
+                  type   : 'empty',
+                  prompt : 'Please enter your sample output'
+                }
+              ]
+            }
+          },
+          onSuccess : function() {
+            $('#assignment-modal').modal('hide');
+          },
         })
       });
       function showMainContainer() {
@@ -409,31 +482,46 @@ block content
       i.close.icon
       .header Assignment
       .content
-        form.ui.form.createAssignment.segment(action='/assignment/createAssignment', method='POST')
+        form.ui.form.createAssignment.segment(action='/assignment', method='POST')
           .field
             label Title :
             |
-            input(type='text', name='course_name', placeholder='Your title')
+            input(type='text', name='title', placeholder='Your title')
           .field
             label Description :
             |
-            textarea(type='text', name='description', placeholder='Some content...')
+            textarea(type='text', name='description', placeholder='Some content...', style='resize:none;')
           .ui.grid
             .two.column.row
               .column
                 .field
                   label Input specification :
                   |
-                  textarea(row='2', type='text', name='input_specification', placeholder='Input specification...')
+                  textarea(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;')
               .column
                 .field
                   label Output specification :
                   |
-                  textarea(row='2', type='text', name='output_specification', placeholder='Output specification...')
+                  textarea(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;')
+          .ui.grid
+            .two.column.row
+              .column
+                .field
+                  label Sample Input :
+                  |
+                  input(type='text', name='sample_input', placeholder='Sample Input...')
+              .column
+                .field
+                  label Sample Output :
+                  |
+                  input(type='text', name='sample_output', placeholder='Sample Output...')
+          input(type='hidden', name='section_id', value=`${section.section_id}`)
           .ui.basic.center.aligned.segment
             .actions
               button.ui.button.approve.green(type='submit') Create
               .ui.button.cancel.red(data-value='cancel') Cancel
+          .ui.error.message
+
 
     .ui.raised.very.padded.container
       .ui.centered.grid(style='padding-top:20px;')

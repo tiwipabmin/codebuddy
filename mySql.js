@@ -117,6 +117,15 @@ exports.postEnrollment = (query, values) => {
   })
 }
 
+exports.createAssignment = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function(err, res){
+      if(err) reject(err);
+      resolve('Insert into assignment complete!');
+    })
+  })
+}
+
 exports.updateEnrollment = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){

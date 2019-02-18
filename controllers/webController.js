@@ -572,8 +572,7 @@ exports.getStudentsFromSection = async (req, res) => {
   var pairing_objective = JSON.parse(req.query.pairing_objective)
   const pairing_date_time_id = req.query.pairing_date_time_id
   const command = req.query.command
-  console.log('command : ' + command)
-  console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
+  //console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   const students = await con.getStudent(queryStudent)
   var arePairingsActive = false;
@@ -591,7 +590,6 @@ exports.getStudentsFromSection = async (req, res) => {
   var count = 0
   for(_index in partner_keys){
     count++;
-    console.log('count : ' + count)
     break
   }
   if(!count && !arePairingsActive && command == 'pair'){
@@ -607,10 +605,8 @@ exports.getStudentsFromSection = async (req, res) => {
       pairing_history_objects[pairing_history_values[_index].enrollment_id] = pairing_history_values[_index]
       //console.log('objects' + pairing_history_values[_index].enrollment_id + ' : ', pairing_history_objects[pairing_history_values.enrollment_id])
     }
-    console.log('viewwwww1')
     var key;
     for(_index in pairing_history_values) {
-      console.log('viewwwww2', pairing_history_objects, '======= ', partner_keys)
       //find key from value
       key = Object.keys(partner_keys).find(key => partner_keys[key] === pairing_history_values[_index].enrollment_id)
       if(partner_keys[pairing_history_values[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
@@ -621,7 +617,6 @@ exports.getStudentsFromSection = async (req, res) => {
         }
         pairing_objective[pairing_history_values[_index].enrollment_id] = pairing_history_objects[pairing_history_values[_index].enrollment_id].pairing_objective
         pairing_objective[pairing_history_values[_index].partner_id] = pairing_history_objects[pairing_history_values[_index].partner_id].pairing_objective
-        console.log('viewwwww3')
       }
 
     }
@@ -631,6 +626,25 @@ exports.getStudentsFromSection = async (req, res) => {
     student_objects[students[_index].enrollment_id] = students[_index]
   }
   res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective})
+}
+
+exports.createAssignment = async (req, res) => {
+  console.log('section_id: ' + parseInt(req.body.section_id) + ', title: ' + req.body.title + ', description: ' + req.body.description + ', input_specification: ' + req.body.input_specification + ', output_specification: ' + req.body.output_specification + ', sample_input: ' + req.body.sample_input + ', sample_output: ' + req.body.sample_output)
+  const section_id = parseInt(req.body.section_id)
+  const title = req.body.title
+  const description = req.body.description
+  const input_specification = req.body.input_specification
+  const output_specification = req.body.output_specification
+  const sample_input = req.body.sample_input
+  const sample_output = req.body.sample_output
+  const createAssignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output) VALUES ?'
+  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output]]
+  const res_status = await con.createAssignment(createAssignment, values)
+  res.render('assignment', {status: res_status})
+}
+
+exports.getAssignment = async (req, res) => {
+
 }
 
 exports.acceptInvite = async (req, res) => {
