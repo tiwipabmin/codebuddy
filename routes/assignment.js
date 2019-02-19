@@ -21,6 +21,8 @@ router
   .get(webController.getAssignment)
   .post(catchErrors(webController.createAssignment))
 
+router.post('/updateAssignment', auth.isSignedIn, catchErrors(webController.updateAssignment))
+
 /**
  * Expose `router`
  */

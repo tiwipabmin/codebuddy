@@ -265,7 +265,9 @@ exports.getSection = async (req, res) => {
   var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
   var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   var queryPairingDateTime = 'SELECT * FROM pairing_date_time AS pdt WHERE pdt.section_id = ' + req.query.section_id + ' ORDER BY pdt.pairing_date_time_id DESC';
+  var queryAssignment = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
   var section = [];
+  var assignments = [];
   var students = [];
   var pairingDateTimes = [];
   if(occupation == 'teacher') {
@@ -274,10 +276,13 @@ exports.getSection = async (req, res) => {
     occupation = 1
   }
   section = await con.getSection(querySection)
+  assignments = await con.getAssignment(queryAssignment)
   students = await con.getStudent(queryStudent)
   pairingDateTimes = await con.getPairingDateTime(queryPairingDateTime)
   if(!section.length) section = []
   else section = section[0]
+
+  if(!assignments.length) assignments = []
 
   if(!students.length) students = []
   const pairingTimes = pairingDateTimes.length
@@ -285,7 +290,7 @@ exports.getSection = async (req, res) => {
     pairingDateTimes = [{status: -1}]
   }
 
-  res.render('classroom', { occupation, section, students, pairingDateTimes, pairingTimes, title: section.course_name })
+  res.render('classroom', { occupation, section, assignments, students, pairingDateTimes, pairingTimes, title: section.course_name })
 }
 
 exports.removeStudent = async (req, res) => {
@@ -640,12 +645,52 @@ exports.createAssignment = async (req, res) => {
   const sample_output = req.body.sample_output
   const createAssignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output) VALUES ?'
   const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output]]
-  const res_status = await con.createAssignment(createAssignment, values)
-  res.render('assignment', {status: res_status})
+  const assignment_id = await con.createAssignment(createAssignment, values)
+  var assignment = {}
+  if(typeof assignment_id == 'number') {
+    assignment.title = title
+    assignment.description = description
+    assignment.input_specification = input_specification
+    assignment.output_specification = output_specification
+    assignment.sample_input = sample_input
+    assignment.sample_output = sample_output
+  } else {
+    assignment.title = 'title'
+    assignment.description = 'description'
+    assignment.input_specification = 'input_specification'
+    assignment.output_specification = 'output_specification'
+    assignment.sample_input = 'sample_input'
+    assignment.sample_output = 'sample_output'
+  }
+  res.render('assignment', {assignment, section_id, title: title})
+}
+
+exports.updateAssignment = async (req, res) => {
+  const assignment_id = req.body.assignment_id
+  const section_id = req.body.section_id
+  const title = req.body.title
+  const description = req.body.description
+  const input_specification = req.body.input_specification
+  const output_specification = req.body.output_specification
+  const sample_input = req.body.sample_input
+  const sample_output = req.body.sample_output
+  console.log('assignment_id: ' + assignment_id + ', section_id: ' + section_id)
+  console.log('title: ' + req.body.title + ', description: ' + req.body.description + ', input_specification: ' + req.body.input_specification + ', output_specification: ' + req.body.output_specification + ', sample_input: ' + req.body.sample_input + ', sample_output: ' + req.body.sample_output)
+  const updateAssignment = 'UPDATE assignment SET title = \'' + req.body.title + '\', description = \'' + req.body.description + '\', input_specification = \'' + req.body.input_specification + '\', output_specification = \'' + req.body.output_specification + '\', sample_input = \'' + req.body.sample_input + '\', sample_output = \'' + req.body.sample_output + '\' WHERE assignment_id = ' + assignment_id
+  const res_status = await con.updateAssignment(updateAssignment)
+  res.redirect('/assignment?section_id='+section_id+'&assignment_id='+assignment_id)
 }
 
 exports.getAssignment = async (req, res) => {
-
+  var section_id = req.query.section_id
+  const queryAssignment = 'SELECT * FROM assignment WHERE assignment_id = ' + req.query.assignment_id
+  var assignment = await con.getAssignment(queryAssignment)
+  var title = 'Assignment'
+  if(assignment.length) {
+    assignment = assignment[0]
+    title = assignment.title
+  }
+  res.render('assignment', {assignment, section_id, title: title})
 }
 
 exports.acceptInvite = async (req, res) => {

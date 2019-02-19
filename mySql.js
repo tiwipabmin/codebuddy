@@ -121,7 +121,25 @@ exports.createAssignment = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){
       if(err) reject(err);
-      resolve('Insert into assignment complete!');
+      resolve(res.insertId);
+    })
+  })
+}
+
+exports.updateAssignment = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject('Update failed.');
+      resolve('Update completed.');
+    })
+  })
+}
+
+exports.getAssignment = (query) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
     })
   })
 }

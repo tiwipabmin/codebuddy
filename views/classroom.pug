@@ -548,6 +548,20 @@ block content
                       button#new.ui.button.approve.green.newAssignment(style='float: right;') Create New Assignment
                     default
                       button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
+            .ui.divided.items
+              case occupation
+                when 0
+                  if assignments.length > 0
+                    each assignment in assignments
+                      .item
+                        .content
+                          .ui.two.column.grid
+                            .column
+                              a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id)
+                                b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
+                            .column
+                              .ui.right.floated.button.green#assign(style='margin-right:19px') Assign
+                
 
         .ten.wide.column#pairing-date-time-container
           .ui.segment
