@@ -19,11 +19,11 @@ $(document).ready(function() {
     })
     $('#student-list-modal').modal({
       closable: false,
-      transition: 'fade up',
+      // transition: 'fade up',
     });
     $('#select-partner-modal').modal({
       closable: false,
-      transition: 'fade up',
+      // transition: 'fade up',
     });
     $('#confirm-pairing').click(function(){
       console.log('#confirm-pairing : ' + $('#pairing_date_time_id').attr('value'))
@@ -34,6 +34,7 @@ $(document).ready(function() {
           alert(status)
         } else if(status == 'Please, pair all student!'){
           alert(status)
+          $('#student-list-modal').modal('show');
         } else if(status == 'Update completed.'){
           alert(status)
           $('#status').attr('style', 'background-color:#16AB39; color:white;')
@@ -47,33 +48,20 @@ $(document).ready(function() {
       })
     })
     $('#cancel-pairing').click(function(){
-      $('#partner-keys').attr('value', '{}')
-      $('#pairing-objective').attr('value', '{}')
+      if($('#confirm-message').attr('value') == 'Are you sure you want to cancel pairing?'){
+        $('#confirm-modal').modal('show');
+      }
     })
-    // $('#confirm-button').click(function(){
-    //   if($('#confirm-message').attr('value') == 'Are you sure you want to reset pairing?'){
-    //     parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
-    //     $.ajax({
-    //       url: 'classroom/resetPair',
-    //       type: 'put',
-    //       data: parameters,
-    //       success: function (data) {
-    //         const status = data.status
-    //         if(status == 'Update completed.') {
-    //           alert('Reset pairing completed!')
-    //           $('#isTherePairingYet').attr('value', 'There isn\'t pairing!')
-    //         } else if(status == 'Update failed.') {
-    //           alert(status)
-    //         }
-    //       }
-    //     })
-    //   }
-    // })
-    // $('#cancel-button').click(function(){
-    //   if($('#confirm-message').attr('value') == 'Are you sure you want to reset pairing?'){
-    //     $('#student-list-modal').modal('show');
-    //   }
-    // })
+    $('#confirm-button').click(function(){
+      if($('#confirm-message').attr('value') == 'Are you sure you want to cancel pairing?'){
+        $('#partner-keys').attr('value', '{}')
+        $('#pairing-objective').attr('value', '{}')
+        $('#confirm-message').attr('value', '')
+      }
+    })
+    $('#cancel-button').click(function(){
+      $('#student-list-modal').modal('show');
+    })
     onClickPairStudent()
     $('#back-to-student-list-modal').click(function () {
       $('#student-list-modal').modal('show');
@@ -174,6 +162,8 @@ function onClickAddPartnerButton(student_id, partner_id, purpose) {
   pairing_objective[partner_id] = purpose
   $('#partner-keys').attr('value', JSON.stringify(partner_keys))
   $('#pairing-objective').attr('value', JSON.stringify(pairing_objective))
+  $('#confirm-message').text('Are you sure you want to cancel pairing?')
+  $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
   console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
   showStudentList('pair', $('#pairing_date_time_id').attr('value'))
 }

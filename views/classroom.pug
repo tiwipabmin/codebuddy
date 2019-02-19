@@ -357,14 +357,14 @@ block content
           .actions
             button.ui.button.cancel.green(data-value='cancel') OK
 
-    //.ui.small.modal#confirm-modal
-    //  .header Alert!
-    //  .content
-    //    p#confirm-message Something message
-    //    .ui.basic.center.aligned.segment
-    //      .actions
-    //        button.ui.button.approve.green#confirm-button Confirm
-    //        .ui.button.cancel.green#cancel-button Cancel
+    .ui.small.modal#confirm-modal
+      .header Alert!
+      .content
+        p#confirm-message Something message
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green#confirm-button(type='submit') Confirm
+            .ui.button.approve.red#cancel-button(data-value='cancel') Cancel
 
 
     .ui.small.modal#settings-modal

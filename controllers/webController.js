@@ -594,6 +594,7 @@ exports.getStudentsFromSection = async (req, res) => {
   }
   if(!count && !arePairingsActive && command == 'pair'){
     for(_index in students) {
+      console.log(students[_index])
       partner_keys[students[_index].enrollment_id] = -1
       pairing_objective[students[_index].enrollment_id] = -1
     }

@@ -11,7 +11,7 @@ const router = express.Router()
 
 /**
  * `Classroom` route used as `/classroom`
- * Return the section page used in pair-programming collaboration
+ * Return the classroom page
  * @method {GET} return rendered `classroom.pug`
  * @method {POST} handle create new section form on `lobby.pug` page
  */
