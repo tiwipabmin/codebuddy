@@ -159,7 +159,11 @@ block script
                 }
               })
 
-            } else $('#alert-modal').modal('show')
+            } else {
+              $('#alert-header').text('Pairing date time')
+              $('#alert-message').text('You can\'t create pairing date time!')
+              $('#alert-modal').modal('show')
+            }
           })
         })
         $('.removeStudent').click(function () {
@@ -345,12 +349,13 @@ block content
       .content
         .ui.fluid.action.input
           input#date_time(type='text', name='date_time')
-          .ui.button.approve.blue#createPairingDateTime(value='' + pairingDateTimes[0].status)
-            b(style='font-size:1.2em;') Create
+          .actions
+            button.ui.button.approve.green#createPairingDateTime(type='submit', value='' + pairingDateTimes[0].status)
+              b(style='font-size:1.2em;') Create
 
     .ui.small.modal#alert-modal
       i.close.icon
-      .header Alert!
+      .header#alert-header Alert!
       .content
         p#alert-message Something content
         .ui.basic.center.aligned.segment
@@ -358,8 +363,9 @@ block content
             button.ui.button.cancel.green(data-value='cancel') OK
 
     .ui.small.modal#confirm-modal
-      .header Alert!
+      .header#confirm-header Alert!
       .content
+        input#input_confirm_modal(type='hidden')
         p#confirm-message Something message
         .ui.basic.center.aligned.segment
           .actions
@@ -545,11 +551,11 @@ block content
 
         .ten.wide.column#pairing-date-time-container
           .ui.segment
-            .ui.three.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 h1.ui.header#headerContainer Pairing Date Time
-              .column
-                .ui.button.approve.teal#resetPair-button Reset Pair
+              //.column
+              //  .ui.button.approve.teal#resetPair-button Reset Pair
               .right.column
                 a.right
                   button#new.ui.button.approve.green.newPairingDateTime(style='float: right;') Create Pairing Date Time

@@ -1,22 +1,22 @@
 $(document).ready(function() {
     pairingOrViewingisHided('pair')
-    $('#resetPair-button').click(function(){
-      parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
-      $.ajax({
-        url: 'classroom/resetPair',
-        type: 'put',
-        data: parameters,
-        success: function (data) {
-          const status = data.status
-          if(status == 'Update completed.') {
-            alert('Reset pairing completed!')
-            $('#isTherePairingYet').attr('value', 'There isn\'t pairing!')
-          } else if(status == 'Update failed.') {
-            alert(status)
-          }
-        }
-      })
-    })
+    // $('#resetPair-button').click(function(){
+    //   parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
+    //   $.ajax({
+    //     url: 'classroom/resetPair',
+    //     type: 'put',
+    //     data: parameters,
+    //     success: function (data) {
+    //       const status = data.status
+    //       if(status == 'Update completed.') {
+    //         alert('Reset pairing completed!')
+    //         $('#isTherePairingYet').attr('value', 'There isn\'t pairing!')
+    //       } else if(status == 'Update failed.') {
+    //         alert(status)
+    //       }
+    //     }
+    //   })
+    // })
     $('#student-list-modal').modal({
       closable: false,
       // transition: 'fade up',
@@ -56,11 +56,36 @@ $(document).ready(function() {
       if($('#confirm-message').attr('value') == 'Are you sure you want to cancel pairing?'){
         $('#partner-keys').attr('value', '{}')
         $('#pairing-objective').attr('value', '{}')
-        $('#confirm-message').attr('value', '')
+        $('#confirm-message').attr('value', 'Something message')
+      } else if($('#confirm-message').attr('value') == 'Are you sure you want to inactive pairing?'){
+        var parameters = {pairing_date_time_id: $('#input_confirm_modal').attr('value'), section_id: $('#section_id').attr('value'), status: 0}
+        $.ajax({
+          url: '/classroom/updatePairingDateTimeStatus',
+          type: 'put',
+          data: parameters,
+          success: function(data){
+            var status = data.status
+            if(status == 'Update completed.') {
+              alert(status)
+              $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
+              $('#status').text('INACTIVE')
+              $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
+              $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
+              $('#pairing-button-column').empty()
+              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' onclick='onClickViewPairingHistory("+$('#pairing_date_time_id').attr('value')+")'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
+              $('#createPairingDateTime').attr('value', 0);
+            } else {
+              alert(status)
+            }
+            // $('#createPairingDateTime').attr('value', 0)
+          }
+        })
       }
     })
     $('#cancel-button').click(function(){
-      $('#student-list-modal').modal('show');
+      if($('#confirm-message').attr('value') == 'Are you sure you want to cancel pairing?'){
+        $('#student-list-modal').modal('show');
+      }
     })
     onClickPairStudent()
     $('#back-to-student-list-modal').click(function () {
@@ -162,6 +187,7 @@ function onClickAddPartnerButton(student_id, partner_id, purpose) {
   pairing_objective[partner_id] = purpose
   $('#partner-keys').attr('value', JSON.stringify(partner_keys))
   $('#pairing-objective').attr('value', JSON.stringify(pairing_objective))
+  $('#confirm-header').text('Student pairing')
   $('#confirm-message').text('Are you sure you want to cancel pairing?')
   $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
   console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
@@ -208,28 +234,11 @@ function showStudentList(command, pairing_date_time_id){
 
 function onClickInactivePairingMenu(pairing_date_time_id){
   console.log('pairing_date_time_id: ' + pairing_date_time_id)
-  var parameters = {pairing_date_time_id: pairing_date_time_id, section_id: $('#section_id').attr('value'), status: 0}
-  $.ajax({
-    url: '/classroom/updatePairingDateTimeStatus',
-    type: 'put',
-    data: parameters,
-    success: function(data){
-      var status = data.status
-      if(status == 'Update completed.') {
-        alert(status)
-        $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
-        $('#status').text('INACTIVE')
-        $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
-        $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
-        $('#pairing-button-column').empty()
-        $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' onclick='onClickViewPairingHistory("+$('#pairing_date_time_id').attr('value')+")'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
-        $('#createPairingDateTime').attr('value', 0);
-      } else {
-        alert(status)
-      }
-      // $('#createPairingDateTime').attr('value', 0)
-    }
-  })
+  $('#input_confirm_modal').attr('value', pairing_date_time_id)
+  $('#confirm-header').text('Inactive pairing')
+  $('#confirm-message').text('Are you sure you want to inactive pairing?')
+  $('#confirm-message').attr('value', 'Are you sure you want to inactive pairing?')
+  $('#confirm-modal').modal('show')
 }
 
 function onPairingStatusOptionClick(){
