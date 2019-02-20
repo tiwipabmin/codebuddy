@@ -693,6 +693,75 @@ exports.getAssignment = async (req, res) => {
   res.render('assignment', {assignment, section_id, title: title})
 }
 
+exports.assignAssignment = async (req, res) => {
+  const pairing_date_time_id = req.body.pairing_date_time_id;
+  const title = req.body.title
+  const description = req.body.description;
+  const swaptime = 1;
+  const language = 0;
+  const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_history AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_date_time_id = ' + pairing_date_time_id
+  const students = await con.getStudent(selectStudent);
+  var partner_keys = {}
+  var creator = 'username';
+  var collaborator = 'username';
+  var student_objects = {}
+  var project = {}
+  for(_index in students) {
+    student_objects[students[_index].enrollment_id] = students[_index]
+  }
+  for(_index in students) {
+    //find key from value
+    key = Object.keys(partner_keys).find(key => partner_keys[key] === students[_index].enrollment_id)
+    if(partner_keys[students[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
+      if(students[_index].role == 'host') {
+        partner_keys[students[_index].enrollment_id] = students[_index].partner_id
+        creator = student_objects[students[_index].enrollment_id].username
+        collaborator = student_objects[students[_index].partner_id].username
+        console.log('host : ', student_objects[students[_index].enrollment_id].username,', partner : ', student_objects[students[_index].partner_id].username)
+      } else if(students[_index].role == 'partner') {
+        partner_keys[students[_index].partner_id] = students[_index].enrollment_id
+        creator = student_objects[students[_index].partner_id].username
+        collaborator = student_objects[students[_index].enrollment_id].username
+        console.log('host : ', student_objects[students[_index].partner_id].username,', partner : ', student_objects[students[_index].enrollment_id].username)
+      }
+    }
+  }
+  // pairing_records.forEach(pairing_record) {
+  //   const collaborator = await User
+  //   .findOne({ username: req.body.collaborator})
+  //   if (collaborator != null) {
+  //     const project = await (new Project(req.body)).save()
+  //     Project.update({
+  //       _id: project._id
+  //     }, {
+  //       $set: {
+  //         collaborator_id: collaborator._id
+  //       }
+  //     }, (err) => {
+  //       if (err) throw err
+  //     })
+  //     req.flash('success', `Successfully Created ${project.title} Project.`)
+  //     //create directory
+  //     var dir1 = './public/project_files';
+  //     var dir2 = './public/project_files/'+project.pid;
+  //     if (!fs.existsSync(dir1)){
+  //       fs.mkdirSync(dir1);
+  //     }
+  //     if (!fs.existsSync(dir2)){
+  //       fs.mkdirSync(dir2);
+  //     }
+  //     fs.writeFile('./public/project_files/'+project.pid+'/json.json', JSON.stringify([{ id:'0', type:'code', source:''}]), function (err) {
+  //       if (err) throw err;
+  //       console.log('file '+project.pid+'.json is created');
+  //     });
+  //
+  //   } else {
+  //     req.flash('error', "Can't find @" + req.body.collaborator)
+  //   }
+  // }
+
+}
+
 exports.acceptInvite = async (req, res) => {
   const id = req.body.id
   Project.update({

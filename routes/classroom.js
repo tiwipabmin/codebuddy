@@ -28,6 +28,7 @@ router.put('/updatePairingDateTimeStatus', auth.isSignedIn, catchErrors(webContr
 router.put('/resetPair', auth.isSignedIn, catchErrors(webController.resetPair))
 router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
+router.post('/assignAssignment', auth.isSignedIn, catchErrors(webController.assignAssignment))
 router.post('/createPairingHistory', auth.isSignedIn, catchErrors(webController.createPairingHistory))
 
 /**

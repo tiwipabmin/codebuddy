@@ -111,8 +111,6 @@ block script
             $('#newClassroom-modal').modal('hide');
           },
         })
-        $('#students-container').hide();
-        $('#pairing-date-time-container').hide();
         $('.newPairingDateTime').click(function () {
           var date_time = new Date()
           var str_date_time = date_time.toString()
@@ -560,10 +558,10 @@ block content
                               a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id)
                                 b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
                             .column
-                              .ui.right.floated.button.green#assign(style='margin-right:19px') Assign
-                
+                              .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`$('#pairing_date_time_id').attr('value')`+',\''+assignment.title+'\',\''+assignment.description+'\')') Assign
 
-        .ten.wide.column#pairing-date-time-container
+
+        .ten.wide.column#pairing-date-time-container(style='display:none;')
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
@@ -618,7 +616,7 @@ block content
                           when 2
                             .ui.label#status(style='background-color:#16AB39; color:white;') ACTIVE
 
-        .ten.wide.column#students-container
+        .ten.wide.column#students-container(style='display:none;')
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column

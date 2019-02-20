@@ -19,11 +19,9 @@ $(document).ready(function() {
     // })
     $('#student-list-modal').modal({
       closable: false,
-      // transition: 'fade up',
     });
     $('#select-partner-modal').modal({
       closable: false,
-      // transition: 'fade up',
     });
     $('#confirm-pairing').click(function(){
       console.log('#confirm-pairing : ' + $('#pairing_date_time_id').attr('value'))
@@ -328,6 +326,14 @@ function onClickViewPairingHistory(pairing_date_time_id) {
   console.log('pairing_date_time_id : ' + pairing_date_time_id)
   pairingOrViewingisHided('view')
   showStudentList('view', pairing_date_time_id)
+}
+
+function onClickAssign(pairing_date_time_id, title, description) {
+  parameters = {pairing_date_time_id: pairing_date_time_id, title: title, description: description}
+  console.log('pairing_date_time_id : ' + pairing_date_time_id + ', title : ' + title + ', description : ' + description)
+  $.post('/classroom/assignAssignment', parameters, function (data){
+
+  })
 }
 
 
