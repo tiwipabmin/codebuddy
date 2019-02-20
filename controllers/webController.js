@@ -262,35 +262,65 @@ exports.updateSection = async (req, res) => {
 
 exports.getSection = async (req, res) => {
   var occupation = req.user.info.occupation;
-  var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
   var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
-  var queryPairingDateTime = 'SELECT * FROM pairing_date_time AS pdt WHERE pdt.section_id = ' + req.query.section_id + ' ORDER BY pdt.pairing_date_time_id DESC';
-  var queryAssignment = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
+  var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
   var section = [];
-  var assignments = [];
   var students = [];
-  var pairingDateTimes = [];
-  if(occupation == 'teacher') {
-    occupation = 0
-  } else {
-    occupation = 1
-  }
   section = await con.getSection(querySection)
-  assignments = await con.getAssignment(queryAssignment)
   students = await con.getStudent(queryStudent)
-  pairingDateTimes = await con.getPairingDateTime(queryPairingDateTime)
+
   if(!section.length) section = []
   else section = section[0]
-
-  if(!assignments.length) assignments = []
-
+  
   if(!students.length) students = []
-  const pairingTimes = pairingDateTimes.length
-  if(!pairingTimes) {
-    pairingDateTimes = [{status: -1}]
-  }
 
-  res.render('classroom', { occupation, section, assignments, students, pairingDateTimes, pairingTimes, title: section.course_name })
+  if(occupation == 'teacher') {
+    occupation = 0
+    var queryPairingDateTime = 'SELECT * FROM pairing_date_time AS pdt WHERE pdt.section_id = ' + req.query.section_id + ' ORDER BY pdt.pairing_date_time_id DESC';
+    var queryAssignment = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
+    var assignments = [];
+    var pairingDateTimes = [];
+
+    assignments = await con.getAssignment(queryAssignment)
+    pairingDateTimes = await con.getPairingDateTime(queryPairingDateTime)
+
+    if(!assignments.length) assignments = []
+
+    const pairingTimes = pairingDateTimes.length
+    if(!pairingTimes) {
+      pairingDateTimes = [{status: -1}]
+    }
+
+    res.render('classroom', { occupation, section, assignments, students, pairingDateTimes, pairingTimes, title: section.course_name })
+  } else {
+    occupation = 1
+    var projects_in_section = []
+    var count = 0
+    const projects = await Project
+      .find({ $and : [
+          {status: {$ne : "pending"} },
+          {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]}
+        ]
+      })
+      .sort({ createdAt: -1 })
+    const selectAssignment = 'SELECT assignment_id FROM assignment WHERE section_id = ' + req.query.section_id
+    const assignments = await con.getAssignment(selectAssignment)
+    console.log('projects: ', projects, '\nassignment: ', assignments)
+    for (i in assignments) {
+      projects.forEach(function(project){
+        if(project.assignment_id == assignments[i].assignment_id) {
+          projects_in_section[count] = project
+          count++;
+          console.log(projects_in_section, '-----------TRUE');
+        } else {
+          // console.log(project.assignment_id, '-----------FALSE');
+        }
+      });
+    }
+    pairingDateTimes = [{status: -1}]
+
+    res.render('classroom', { occupation, section, students, projects_in_section, pairingDateTimes, title: section.course_name })
+  }
 }
 
 exports.removeStudent = async (req, res) => {
@@ -373,7 +403,6 @@ exports.searchUser = async (req, res) => {
 }
 
 exports.updatePairingDateTimeStatus = async (req, res) => {
-  // const partner_keys = JSON.parse(req.body.partner_keys)
   //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', partner_keys : ', partner_keys)
   const status = req.body.status
   const pairing_date_time_id = req.body.pairing_date_time_id
@@ -389,20 +418,6 @@ exports.updatePairingDateTimeStatus = async (req, res) => {
   }
   console.log('res_status : ' + res_status)
   res.send({status: res_status})
-  // const updateStatus = 'UPDATE pairing_date_time SET status = ' + req.body.status + ' WHERE pairing_date_time_id = ' + req.body.pairing_date_time_id
-  //
-  // var count = 0;
-  // for(index in partner_keys) {
-  //   if(enrollments[index].partner_id == null){
-  //     console.log('partner_id = ' + enrollments[index].enrollment_id + ' : ' + enrollments[index].partner_id)
-  //     res.send({status: 'Please, pair all student!'})
-  //     return;
-  //   }
-  // }
-  //
-  // const res_status = await con.updatePairingDateTime(updateStatus)
-  // console.log('res_status : ' + res_status)
-  // res.send({status: res_status, pairing_date_time_id: req.body.pairing_date_time_id})
 }
 
 exports.getPairingDateTime = async (req, res) => {
@@ -695,7 +710,8 @@ exports.getAssignment = async (req, res) => {
 
 exports.assignAssignment = async (req, res) => {
   const pairing_date_time_id = req.body.pairing_date_time_id;
-  const title = req.body.title
+  const assignment_id = parseInt(req.body.assignment_id)
+  const title = req.body.title;
   const description = req.body.description;
   const swaptime = '1';
   const language = '0';
@@ -744,7 +760,8 @@ exports.assignAssignment = async (req, res) => {
         }, {
           $set: {
             creator_id: creator._id,
-            collaborator_id: collaborator._id
+            collaborator_id: collaborator._id,
+            assignment_id: assignment_id
           }
         }, (err) => {
           if (err) throw err

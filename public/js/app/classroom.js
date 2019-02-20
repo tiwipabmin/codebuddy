@@ -328,8 +328,8 @@ function onClickViewPairingHistory(pairing_date_time_id) {
   showStudentList('view', pairing_date_time_id)
 }
 
-function onClickAssign(pairing_date_time_id, title, description) {
-  parameters = {pairing_date_time_id: pairing_date_time_id, title: title, description: description}
+function onClickAssign(pairing_date_time_id, assignment_id, title, description) {
+  parameters = {pairing_date_time_id: pairing_date_time_id, assignment_id: assignment_id, title: title, description: description}
   console.log('pairing_date_time_id : ' + pairing_date_time_id + ', title : ' + title + ', description : ' + description)
   $.post('/classroom/assignAssignment', parameters, function (data){
 

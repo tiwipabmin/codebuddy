@@ -544,8 +544,8 @@ block content
                   case occupation
                     when 0
                       button#new.ui.button.approve.green.newAssignment(style='float: right;') Create New Assignment
-                    default
-                      button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
+                    //default
+                    //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
             .ui.divided.items
               case occupation
                 when 0
@@ -558,7 +558,43 @@ block content
                               a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id)
                                 b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
                             .column
-                              .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`$('#pairing_date_time_id').attr('value')`+',\''+assignment.title+'\',\''+assignment.description+'\')') Assign
+                              .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`$('#pairing_date_time_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\')') Assign
+                default
+                  if projects_in_section.length > 0
+                    each project in projects_in_section
+                      if project.creator === user.username
+                          .item(style='padding-top:10px; padding-bottom:10px;')
+                            a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator')
+                              img(src='/images/blue-folder.png')(style='position: absolute;')
+                              img.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;left:25px;top: 20px;')
+
+                            .content
+                              .ui.grid
+                                .eleven.wide.column
+                                  b(style='font-size:1.2em;')
+                                    a.header(href='/project?pid='+project.pid+'&user_role=creator')= project.title
+                                  .description= project.description
+                                  | Last updated #{moment(project.createdAt).fromNow()}
+                                  | (
+                                  a(href='/profile/'+project.collaborator ) @#{project.collaborator}
+                                  |)
+
+                      else if project.collaborator === user.username
+                        .item(style='padding-top:10px')
+                          a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator')
+                              img(src='/images/yellow-folder.png')(style='position: absolute;')
+                              img.img-owner.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px; top:20px;')
+                              img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg')(style='width:30px; height:30px; top:-10px;')
+
+                          .content
+                            b(style='font-size:1.2em;')
+                              a(href='/project?pid='+project.pid+'&user_role=collaborator')= project.title
+                            .description(style='margin-top:0px;')= project.description
+                            | Last updated #{moment(project.createdAt).fromNow()} (
+                            a(href='/profile/'+project.creator)
+                              | @
+                              = project.creator
+                            |)
 
 
         .ten.wide.column#pairing-date-time-container(style='display:none;')
