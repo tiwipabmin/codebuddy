@@ -21,7 +21,7 @@ router.put('/acceptInvite', auth.isSignedIn, catchErrors(webController.acceptInv
 router.delete('/declineInvite', auth.isSignedIn, catchErrors(webController.declineInvite))
 router.post('/editProject', auth.isSignedIn, catchErrors(webController.editProject))
 router.delete('/deleteProject', auth.isSignedIn, catchErrors(webController.deleteProject))
-router.get('/getProgress', auth.isSignedIn, catchErrors(webController.getProgress))
+
 // router
 // .use(auth.isSignedIn)
 // .route('/searchUser')

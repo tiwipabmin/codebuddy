@@ -697,19 +697,25 @@ exports.assignAssignment = async (req, res) => {
   const pairing_date_time_id = req.body.pairing_date_time_id;
   const title = req.body.title
   const description = req.body.description;
-  const swaptime = 1;
-  const language = 0;
+  const swaptime = '1';
+  const language = '0';
   const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_history AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_date_time_id = ' + pairing_date_time_id
   const students = await con.getStudent(selectStudent);
   var partner_keys = {}
   var creator = 'username';
   var collaborator = 'username';
   var student_objects = {}
-  var project = {}
+  var project = new Project();
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
   }
   for(_index in students) {
+    project = new Project()
+    project.title = title;
+    project.description = description;
+    project.language = language;
+    project.swaptime = swaptime;
+    project.status = '';
     //find key from value
     key = Object.keys(partner_keys).find(key => partner_keys[key] === students[_index].enrollment_id)
     if(partner_keys[students[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
@@ -724,42 +730,45 @@ exports.assignAssignment = async (req, res) => {
         collaborator = student_objects[students[_index].enrollment_id].username
         console.log('host : ', student_objects[students[_index].partner_id].username,', partner : ', student_objects[students[_index].enrollment_id].username)
       }
+
+      project.creator = creator;
+      project.collaborator = collaborator;
+      creator = await User
+      .findOne({ username: creator})
+      collaborator = await User
+      .findOne({ username: collaborator})
+      if (collaborator != null) {
+        project = await (project).save()
+        Project.update({
+          _id: project._id
+        }, {
+          $set: {
+            creator_id: creator._id,
+            collaborator_id: collaborator._id
+          }
+        }, (err) => {
+          if (err) throw err
+        })
+        //create directory
+        var dir1 = './public/project_files';
+        var dir2 = './public/project_files/'+project.pid;
+        if (!fs.existsSync(dir1)){
+          fs.mkdirSync(dir1);
+        }
+        if (!fs.existsSync(dir2)){
+          fs.mkdirSync(dir2);
+        }
+        fs.open('./public/project_files/'+project.pid+'/main.py', 'w', function (err, file) {
+          if (err) throw err;
+          console.log('file '+project.pid+'.py is created');
+        })
+
+      } else {
+        console.log('error', "Can't find @" + collaborator)
+      }
     }
   }
-  // pairing_records.forEach(pairing_record) {
-  //   const collaborator = await User
-  //   .findOne({ username: req.body.collaborator})
-  //   if (collaborator != null) {
-  //     const project = await (new Project(req.body)).save()
-  //     Project.update({
-  //       _id: project._id
-  //     }, {
-  //       $set: {
-  //         collaborator_id: collaborator._id
-  //       }
-  //     }, (err) => {
-  //       if (err) throw err
-  //     })
-  //     req.flash('success', `Successfully Created ${project.title} Project.`)
-  //     //create directory
-  //     var dir1 = './public/project_files';
-  //     var dir2 = './public/project_files/'+project.pid;
-  //     if (!fs.existsSync(dir1)){
-  //       fs.mkdirSync(dir1);
-  //     }
-  //     if (!fs.existsSync(dir2)){
-  //       fs.mkdirSync(dir2);
-  //     }
-  //     fs.writeFile('./public/project_files/'+project.pid+'/json.json', JSON.stringify([{ id:'0', type:'code', source:''}]), function (err) {
-  //       if (err) throw err;
-  //       console.log('file '+project.pid+'.json is created');
-  //     });
-  //
-  //   } else {
-  //     req.flash('error', "Can't find @" + req.body.collaborator)
-  //   }
-  // }
-
+  console.log('SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
 }
 
 exports.acceptInvite = async (req, res) => {
@@ -793,6 +802,7 @@ exports.declineInvite = async (req, res) => {
 }
 
 exports.getProgress = async (req, res) => {
+  console.log('asdfffffffffffffffffffaaaaaaa')
   const uid = req.query.uid
   let data = {};
   let projectTitles = [];
@@ -801,6 +811,7 @@ exports.getProgress = async (req, res) => {
   let linesOfCodes = [];
   let productivitys = [];
   let errors = [];
+
 
   const user = await User.findOne({
     _id: uid

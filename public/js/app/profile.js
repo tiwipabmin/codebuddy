@@ -2,9 +2,9 @@ window.onload = function() {
     var userId = $('#userId').val();
     var parameters = {uid: userId};
 
-    $.get('/dashboard/getProgress',parameters, function(data) {
+    $.get('/lobby/getProgress',parameters, function(data) {
 
-        document.getElementById("userInfo").innerHTML = data.fullname+'<br>(@'+data.username+')' 
+        document.getElementById("userInfo").innerHTML = data.fullname+'<br>(@'+data.username+')'
         document.getElementById("projectsNum").innerHTML = data.projectTitles.length
         document.getElementById("totalActiveTimeNum").innerHTML = parseInt(data['user-time'])+' mins'
         document.getElementById("avgScoreNum").innerHTML = data['user-score'].toFixed(2)
@@ -29,7 +29,7 @@ window.onload = function() {
                 }
             }
         });
-        
+
         new Chart(document.getElementById("projectScoreChart"), {
             type: 'line',
             data: {
@@ -77,7 +77,7 @@ window.onload = function() {
                 }
             }
         });
-    
+
         new Chart(document.getElementById("locChart"), {
             type: 'bar',
             data: {
@@ -123,7 +123,7 @@ window.onload = function() {
                 }
             }
         });
-    
+
         new Chart(document.getElementById("productivityChart"), {
             type: 'line',
             data: {
@@ -170,7 +170,7 @@ window.onload = function() {
                 }
             }
         });
-    
+
         new Chart(document.getElementById("errorChart"), {
             type: 'line',
             data: {
