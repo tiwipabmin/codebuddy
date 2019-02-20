@@ -23,6 +23,14 @@ const scoreSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Please fill in time']
   },
+  lines_of_code: {
+    type: Number,
+    required: [true, 'Please fill in lines of code']
+  },
+  error_count: {
+    type: Number,
+    required: [true, 'Please fill in error count']
+  },
   createdAt: { type: Date, default: Date.now }
 })
 

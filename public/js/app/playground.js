@@ -267,22 +267,22 @@ socket.on('show reviewer active time', (payload) => {
  * `beforeunload` event will fired and sending client disconnection to the server
  */
 $(window).on('beforeunload', () => {
+  storeActiveTime()
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
     code: getAllFileEditor()
   })
-  storeActiveTime()
   socket.disconnect()
 })
 
 $(window).bind('hashchange', function() {
+  storeActiveTime()
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
     code: getAllFileEditor()
   })
-  storeActiveTime()
  });
 
 /**
@@ -403,7 +403,11 @@ function pauseRunCode() {
  */
 function runCode() {
   socket.emit('run code', {
+    uid: uid,
     code: getAllFileEditor()
+  })
+  socket.emit('save lines of code', {
+    uid: uid
   })
   term.writeln('Running pytest.py...')
 }

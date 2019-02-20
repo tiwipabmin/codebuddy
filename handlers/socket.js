@@ -513,6 +513,26 @@ module.exports = (server) => {
       if(process.platform === 'win32') runpty = nodepty.spawn('python.exe', ['./public/project_files/'+projectId+'/'+'main.py'], {})
       else runpty = nodepty.spawn('python', ['./public/project_files/'+projectId+'/'+'main.py'], {})
       runpty.on('data', (data) => {
+        // check is code error
+        if (data.indexOf('Error') != -1 || data.indexOf('Traceback (most recent call last):') != -1) {
+          console.log(curUser, 'makes error!')
+          // increase error_count of user
+          const score = Score.where({ pid: projectId, uid: payload.uid}).findOne(function(err, score){
+            if(err);
+            if(score){
+              Score.update({
+                pid: projectId,
+                uid: payload.uid
+              }, { 
+                $set: { 
+                  error_count: parseInt(score.error_count) + 1
+                }
+              }, (err) => {
+                    if (err) throw err
+              })
+            }
+          })
+        }
         io.in(projectId).emit('term update', data)
       })
 
@@ -590,42 +610,61 @@ module.exports = (server) => {
      * `submit code` event fired reviewer active time every 1 sec 
      * @param {Object} payload time from face detection on main.js
      */
-    client.on('save active time', (payload) => {
+    client.on('save active time', async (payload) => {
       console.log(payload)
       console.log(projectId)
 
-      const score = Score.where({ pid: projectId, uid: payload.uid}).findOne(function(err, score){
-        if(err);
-        if(score){
-          Score.update({
-            pid: projectId,
-            uid: payload.uid
-          }, { 
-            $set: { 
-              time: parseInt(score.time) + parseInt(payload.time)
-            }
-          }, (err) => {
-                if (err) throw err
-          })
+      const score = await Score.findOne({
+        pid: projectId,
+        uid: payload.uid
+      })
+
+      await Score.update({
+        pid: projectId,
+        uid: payload.uid
+      }, { 
+        $set: { 
+          time: parseInt(score.time) + parseInt(payload.time)
         }
       })
 
-      const user = User.where({ _id: payload.uid}).findOne(function(err, user){
-        if(err);
-        if(user){
-          User.update({
-            _id: payload.uid
-          }, { 
-            $set: { 
-              totalTime: parseInt(user.totalTime) + parseInt(payload.time)
-            }
-          }, (err) => {
-                if (err) throw err
-          })
+      const user = await User.findOne({
+        _id: payload.uid
+      })
+
+      await User.update({
+        _id: payload.uid
+      }, { 
+        $set: { 
+          totalTime: parseInt(user.totalTime) + parseInt(payload.time)
         }
       })
 
       console.log('time', payload.time);
+    })
+
+    client.on('save lines of code', (payload) => {
+      History.aggregate([
+        { $match: { user: curUser, pid: projectId } },
+        { $group: { _id: { file: '$file', line: '$line' } } }
+      ]).then(function (res) {
+        console.log('save lines of code: ', res.length, res)
+        const score = Score.where({ pid: projectId, uid: payload.uid}).findOne(function(err, score){
+          if(err);
+          if(score){
+            Score.update({
+              pid: projectId,
+              uid: payload.uid
+            }, { 
+              $set: { 
+                lines_of_code: parseInt(res.length)
+              }
+            }, (err) => {
+                if (err) throw err
+            })
+          }
+        })
+      });
     })
 
      /**
@@ -647,174 +686,176 @@ module.exports = (server) => {
           if (err) throw err
         })
       });
-      const nodepty = require('node-pty');
+      const nodepty = require('child_process');
       let pty;
-      if(process.platform === 'win32') pty = nodepty.spawn('pylint', args, {})
-      pty = nodepty.spawn('pylint', args, {});
-
-      pty.on('data', (data) => {
+      if(process.platform === 'win32') pty = nodepty.spawn('pylint.exe', args, {})
+      else pty = nodepty.spawn('pylint', args, {});
+      
+      pty.stdout.setEncoding('utf8')
+      pty.stdout.on('data', (data) => {
         //get score from pylint
-          console.log('data', data)
-          const before_score = data.indexOf("Your code has been rated at");
-          let score = 0;
-          if(before_score != -1) {
-            const after_score = data.indexOf("/10");
-            score = data.slice(before_score + 28, after_score)
-          } else if (data.indexOf('E:') < 0){
-            score = 0
-          }
-          console.log('pty data', data)
-          data = data.replace(/\/10/g, "/100.00")
-          const uid = payload.uid
-          const project = Project.where({pid: projectId}).findOne(function (err, project) {
-            if (err);
-            if (project) {
-              if (project.creator_id != null && project.collaborator_id != null){
-                const users = [project.creator_id, project.collaborator_id]
-                console.log(users);
-                users.forEach(function(element) {
-                  console.log('element ', element)
-                  const scoreModel = {
-                    pid: projectId,
-                    uid: element,
-                    score: score,
-                    time: 0,
-                    createdAt: Date.now()
+        console.log('1- data\n', data)
+        const before_score = data.indexOf("Your code has been rated at");
+        let score = 0;
+        if(before_score != -1) {
+          const after_score = data.indexOf("/10");
+          score = data.slice(before_score + 28, after_score)
+        } else if (data.indexOf('E:') < 0){
+          score = 0
+        }
+        data = data.replace(/\/10/g, "/100.00")
+        const uid = payload.uid
+        const project = Project.where({pid: projectId}).findOne(function (err, project) {
+          if (err);
+          if (project) {
+            if (project.creator_id != null && project.collaborator_id != null){
+              const users = [project.creator_id, project.collaborator_id]
+              console.log('2-\n', users);
+              users.forEach(function(element) {
+                console.log('3- element\n', element)
+                const scoreModel = {
+                  pid: projectId,
+                  uid: element,
+                  score: score,
+                  time: 0,
+                  lines_of_code: 0,
+                  error_count: 0,
+                  createdAt: Date.now()
+                }
+                const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
+                  if (err) {
+                    throw err
                   }
-                  const scoreDB = Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
-                    if (err) {
-                      throw err
-                    }
-                    console.log("oldScore", oldScore);
-                    console.log(!oldScore)
-                    if (!oldScore) {
-                      new Score(scoreModel, (err) => {
-                        if (err) throw err
-                      }).save()
-                      
-                      //recalculate score
-                      sumScore = Score.aggregate([
-                        { $match:{
-                            uid: element
-                        }},
-                        { $group: {
-                            _id: '$uid',
-                            avg: {$avg: '$score'}
-                        }}
-                      ], function (err, results) {
-                          if (err) {
-                              console.log(err);
-                              return;
-                          }
-                          if (results) {
-                            // sum = 0;
-                            results.forEach(function(result) {
-                              console.log("avg: "+result._id+" "+result.score+" "+result.avg);
-                              //start update
-                              User.update({
-                                _id: element
-                              }, { 
-                                $set: { 
-                                  avgScore: result.avg
-                                }
-                              }, 
-                              function(err, userReturn){
-                                if (err) ;
-                                if (userReturn) {
-                                  console.log(userReturn)
-                                }
-
-                              });
-                              //end update
-                              const shownScore = {
-                                score: score,
-                                uid: element,
+                  console.log("4- oldScore\n", oldScore);
+                  console.log('5-\n', !oldScore)
+                  if (!oldScore) {
+                    new Score(scoreModel, (err) => {
+                      if (err) throw err
+                    }).save()
+                    
+                    //recalculate score
+                    sumScore = Score.aggregate([
+                      { $match:{
+                          uid: element
+                      }},
+                      { $group: {
+                          _id: '$uid',
+                          avg: {$avg: '$score'}
+                      }}
+                    ], function (err, results) {
+                        if (err) {
+                            console.log(err);
+                            return;
+                        }
+                        if (results) {
+                          // sum = 0;
+                          results.forEach(function(result) {
+                            console.log("avg: "+result._id+" "+result.score+" "+result.avg);
+                            //start update
+                            User.update({
+                              _id: element
+                            }, { 
+                              $set: { 
                                 avgScore: result.avg
                               }
-                              if(mode == "auto"){
-                                io.in(projectId).emit('show auto update score', shownScore)
-                              } else {
-                                io.in(projectId).emit('show score', shownScore)
-                                io.in(projectId).emit('show auto update score', shownScore)
+                            }, 
+                            function(err, userReturn){
+                              if (err) ;
+                              if (userReturn) {
+                                console.log(userReturn)
                               }
-                            })
-                          }
-                      });
-                      //end recalculate score
 
-                    }
-                    if (oldScore) {
-                      Score.update({
-                        pid: projectId, 
-                        uid: element
-                      }, { 
-                        $set: { 
-                          score: score 
+                            });
+                            //end update
+                            const shownScore = {
+                              score: score,
+                              uid: element,
+                              avgScore: result.avg
+                            }
+                            if(mode == "auto"){
+                              io.in(projectId).emit('show auto update score', shownScore)
+                            } else {
+                              io.in(projectId).emit('show score', shownScore)
+                              io.in(projectId).emit('show auto update score', shownScore)
+                            }
+                          })
                         }
-                      }, 
-                      function(err, scoreReturn){
-                        if(err) throw err;
-                        if(scoreReturn) {
-                          //recalculate score
-                          sumScore = Score.aggregate([
-                            { $match:{
-                                uid: element
-                            }},
-                            { $group: {
-                                _id: '$uid',
-                                avg: {$avg: '$score'}
-                            }}
-                          ], function (err, results) {
-                              if (err) {
-                                  console.log(err);
-                                  return;
-                              }
-                              if (results) {
-                                // sum = 0;
-                                results.forEach(function(result) {
-                                  console.log("avg: "+result._id+" "+result.avg);
-                                  //start update
-                                  User.update({
-                                    _id: element
-                                  }, { 
-                                    $set: { 
-                                      avgScore: result.avg
-                                    }
-                                  }, 
-                                  function(err, userReturn){
-                                    if (err) ;
-                                    if (userReturn) {
-                                      console.log(userReturn)
-                                    }
+                    });
+                    //end recalculate score
 
-                                  });
-                                  //end update
-                                  const shownScore = {
-                                    score: score,
-                                    uid: element,
+                  }
+                  if (oldScore) {
+                    Score.update({
+                      pid: projectId, 
+                      uid: element
+                    }, { 
+                      $set: { 
+                        score: score 
+                      }
+                    }, 
+                    function(err, scoreReturn){
+                      if(err) throw err;
+                      if(scoreReturn) {
+                        //recalculate score
+                        sumScore = Score.aggregate([
+                          { $match:{
+                              uid: element
+                          }},
+                          { $group: {
+                              _id: '$uid',
+                              avg: {$avg: '$score'}
+                          }}
+                        ], function (err, results) {
+                            if (err) {
+                                console.log('6-\n', err);
+                                return;
+                            }
+                            if (results) {
+                              // sum = 0;
+                              results.forEach(function(result) {
+                                console.log("7- \navg: "+result._id+" "+result.avg);
+                                //start update
+                                User.update({
+                                  _id: element
+                                }, { 
+                                  $set: { 
                                     avgScore: result.avg
                                   }
-                                  if(mode == "auto"){
-                                    io.in(projectId).emit('show auto update score', shownScore)
-                                  } else {
-                                    io.in(projectId).emit('show score', shownScore)
-                                    io.in(projectId).emit('show auto update score', shownScore)
+                                }, 
+                                function(err, userReturn){
+                                  if (err) ;
+                                  if (userReturn) {
+                                    console.log('8-\n', userReturn)
                                   }
-                                })
-                              }
-                          });
-                          //end recalculate score
-                          
-                        }
-                      });
-                    }  
-                  });
-                }, this);
-              }
+
+                                });
+                                //end update
+                                const shownScore = {
+                                  score: score,
+                                  uid: element,
+                                  avgScore: result.avg
+                                }
+                                if(mode == "auto"){
+                                  io.in(projectId).emit('show auto update score', shownScore)
+                                } else {
+                                  io.in(projectId).emit('show score', shownScore)
+                                  io.in(projectId).emit('show auto update score', shownScore)
+                                }
+                              })
+                            }
+                        });
+                        //end recalculate score
+                        
+                      }
+                    });
+                  }  
+                });
+              }, this);
             }
-          });
-          console.log("score"+score)
-          io.in(projectId).emit('term update', data)
+          }
+        });
+        console.log("9- score"+score)
+        io.in(projectId).emit('term update', data)
       })
     })
 
