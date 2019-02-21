@@ -100,61 +100,63 @@ block content
   .ui.segment.container
     .ui.two.column.grid
       .middle.aligned.column
-        h1.ui.header !{assignment.title}
+        h1.ui.header !{assignment.title} - occupation = !{occupation}
       .right.aligned.column
-        .ui.button.approve.grey(onclick='showAssignmentModal()') Edit
-          .ui.small.modal#assignment-modal
-            i.close.icon
-            .header Assignment
-            .content
-              form.ui.form.createAssignment.segment(action='/assignment/updateAssignment', method='POST')
-                .field
-                  label Title :
-                  |
-                  input(type='text', name='title', placeholder='Your title', value=`${assignment.title}`)
-                .field
-                  label Description :
-                  |
-                  textarea(type='text', name='description', placeholder='Some content...', style='resize:none;') !{assignment.description}
-                .ui.grid
-                  .two.column.row
-                    .column
-                      .field
-                        label Input specification :
-                        |
-                        textarea(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;') !{assignment.input_specification}
-                    .column
-                      .field
-                        label Output specification :
-                        |
-                        textarea(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;') !{assignment.output_specification}
-                .ui.grid
-                  .two.column.row
-                    .column
-                      .field
-                        label Sample Input :
-                        |
-                        input(type='text', name='sample_input', placeholder='Sample Input...', value=`${assignment.sample_input}`)
-                    .column
-                      .field
-                        label Sample Output :
-                        |
-                        input(type='text', name='sample_output', placeholder='Sample Output...', value=`${assignment.sample_output}`)
-                input(type='hidden', name='assignment_id', value=`${assignment.assignment_id}`)
-                input(type='hidden', name='section_id', value=`${section_id}`)
-                .ui.basic.center.aligned.segment
-                  .actions
-                    button.ui.button.approve.green(type='submit') Create
-                    .ui.button.cancel.red(data-value='cancel') Cancel
-                .ui.error.message
-        .ui.button.approve.red(onClick=`showDeleteModal()`) Delete
-          .ui.small.modal(id='delete-modal')
-            .header Delete Assignment
-            .content
-              p Do you want to delete this assignment?
-            .actions
-              .ui.button.approve.green(onClick=`deleteAssignment()`) Delete
-              .ui.button.approve.red(data-value='cancel') Cancel
+        case occupation
+          when 0
+            .ui.button.approve.grey(onclick='showAssignmentModal()') Edit
+              .ui.small.modal#assignment-modal
+                i.close.icon
+                .header Assignment
+                .content
+                  form.ui.form.createAssignment.segment(action='/assignment/updateAssignment', method='POST')
+                    .field
+                      label Title :
+                      |
+                      input(type='text', name='title', placeholder='Your title', value=`${assignment.title}`)
+                    .field
+                      label Description :
+                      |
+                      textarea(type='text', name='description', placeholder='Some content...', style='resize:none;') !{assignment.description}
+                    .ui.grid
+                      .two.column.row
+                        .column
+                          .field
+                            label Input specification :
+                            |
+                            textarea(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;') !{assignment.input_specification}
+                        .column
+                          .field
+                            label Output specification :
+                            |
+                            textarea(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;') !{assignment.output_specification}
+                    .ui.grid
+                      .two.column.row
+                        .column
+                          .field
+                            label Sample Input :
+                            |
+                            input(type='text', name='sample_input', placeholder='Sample Input...', value=`${assignment.sample_input}`)
+                        .column
+                          .field
+                            label Sample Output :
+                            |
+                            input(type='text', name='sample_output', placeholder='Sample Output...', value=`${assignment.sample_output}`)
+                    input(type='hidden', name='assignment_id', value=`${assignment.assignment_id}`)
+                    input(type='hidden', name='section_id', value=`${section_id}`)
+                    .ui.basic.center.aligned.segment
+                      .actions
+                        button.ui.button.approve.green(type='submit') Create
+                        .ui.button.cancel.red(data-value='cancel') Cancel
+                    .ui.error.message
+            .ui.button.approve.red(onClick=`showDeleteModal()`) Delete
+              .ui.small.modal(id='delete-modal')
+                .header Delete Assignment
+                .content
+                  p Do you want to delete this assignment?
+                .actions
+                  .ui.button.approve.green(onClick=`deleteAssignment()`) Delete
+                  .ui.button.approve.red(data-value='cancel') Cancel
     .ui.two.column.grid
       .column(style="display: flex;")
         .ui.segment(style="flex: 1;")

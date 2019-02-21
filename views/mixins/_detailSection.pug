@@ -29,14 +29,18 @@ mixin detailSection(sections, occupation)
                 p
                   i.student.icon
                   button.btn.students-menu Students
-          case occupation
-            when 0
-              .item
-                .content
-                  .description
+          .item
+            .content
+              .description
+                case occupation
+                  when 0
                     p
                       i.sitemap.icon
                       button.btn.pairs-menu Pairs
+                  default
+                    p
+                      i.book.icon
+                      button.btn.pairs-menu Assignments
           case occupation
             when 0
               .item

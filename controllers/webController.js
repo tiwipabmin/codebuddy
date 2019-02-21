@@ -264,27 +264,26 @@ exports.getSection = async (req, res) => {
   var occupation = req.user.info.occupation;
   var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
+  var queryAssignment = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
   var section = [];
   var students = [];
+  var assignments = [];
   section = await con.getSection(querySection)
   students = await con.getStudent(queryStudent)
+  assignments = await con.getAssignment(queryAssignment)
 
   if(!section.length) section = []
   else section = section[0]
-  
+
   if(!students.length) students = []
+  if(!assignments.length) assignments = []
 
   if(occupation == 'teacher') {
     occupation = 0
     var queryPairingDateTime = 'SELECT * FROM pairing_date_time AS pdt WHERE pdt.section_id = ' + req.query.section_id + ' ORDER BY pdt.pairing_date_time_id DESC';
-    var queryAssignment = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
-    var assignments = [];
     var pairingDateTimes = [];
 
-    assignments = await con.getAssignment(queryAssignment)
     pairingDateTimes = await con.getPairingDateTime(queryPairingDateTime)
-
-    if(!assignments.length) assignments = []
 
     const pairingTimes = pairingDateTimes.length
     if(!pairingTimes) {
@@ -303,9 +302,6 @@ exports.getSection = async (req, res) => {
         ]
       })
       .sort({ createdAt: -1 })
-    const selectAssignment = 'SELECT assignment_id FROM assignment WHERE section_id = ' + req.query.section_id
-    const assignments = await con.getAssignment(selectAssignment)
-    console.log('projects: ', projects, '\nassignment: ', assignments)
     for (i in assignments) {
       projects.forEach(function(project){
         if(project.assignment_id == assignments[i].assignment_id) {
@@ -319,7 +315,7 @@ exports.getSection = async (req, res) => {
     }
     pairingDateTimes = [{status: -1}]
 
-    res.render('classroom', { occupation, section, students, projects_in_section, pairingDateTimes, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, students, projects_in_section, pairingDateTimes, title: section.course_name })
   }
 }
 
@@ -697,7 +693,9 @@ exports.updateAssignment = async (req, res) => {
 }
 
 exports.getAssignment = async (req, res) => {
-  var section_id = req.query.section_id
+  const section_id = req.query.section_id
+  const occupation = req.query.occupation
+  console.log('occupation : ' + occupation)
   const queryAssignment = 'SELECT * FROM assignment WHERE assignment_id = ' + req.query.assignment_id
   var assignment = await con.getAssignment(queryAssignment)
   var title = 'Assignment'
@@ -705,7 +703,7 @@ exports.getAssignment = async (req, res) => {
     assignment = assignment[0]
     title = assignment.title
   }
-  res.render('assignment', {assignment, section_id, title: title})
+  res.render('assignment', {assignment, section_id, occupation, title: title})
 }
 
 exports.assignAssignment = async (req, res) => {
