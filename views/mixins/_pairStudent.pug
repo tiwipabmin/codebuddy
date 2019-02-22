@@ -36,17 +36,17 @@ mixin pairStudent(user, students)
         a.ui.red.ribbon.label Recommended
         .ui.grid
           .six.wide.column
-              #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+              #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab(data-tooltip='User\'s score ...' data-position='left center')&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
                 .row
                   i.large.circular.inverted.teal.line.chart.icon
                 .row
                   | Quality oriented
-              #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+              #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab(data-tooltip='User\'s score ...' data-position='left center')&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
                 .row
                   i.large.circular.inverted.teal.line.idea.icon
                 .row
                   | Mutual improvement
-              #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+              #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab(data-tooltip='User\'s score ...' data-position='left center')&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
                 .row
                   i.large.circular.inverted.teal.line.student.icon.center.aligned
                 .row

@@ -100,10 +100,10 @@ block content
   .ui.segment.container
     .ui.two.column.grid
       .middle.aligned.column
-        h1.ui.header !{assignment.title} - occupation = !{occupation}
-      .right.aligned.column
-        case occupation
-          when 0
+        h1.ui.header !{assignment.title}
+      case occupation
+        when 0
+          .right.aligned.column
             .ui.button.approve.grey(onclick='showAssignmentModal()') Edit
               .ui.small.modal#assignment-modal
                 i.close.icon

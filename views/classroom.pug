@@ -111,16 +111,17 @@ block script
             $('#newClassroom-modal').modal('hide');
           },
         })
-        $('.newPairingDateTime').click(function () {
-          var date_time = new Date()
+        $('.newPairingSession').click(function () {
+          
+          /* var date_time = new Date()
           var str_date_time = date_time.toString()
           var split_date_time = str_date_time.split(' ')
           var slice_date_time = split_date_time.slice(0, 5)
           date_time = slice_date_time.join(' ')
           $('#date_time').attr('value', date_time)
-          $('#pairingDateTime-modal').modal('show');
+          $('#pairingDateTime-modal').modal('show'); */
         });
-        $('#createPairingDateTime').click(function () {
+        /* $('#createPairingDateTime').click(function () {
           const date_time = $('#date_time').attr('value')
           const section_id = $('#section_id').attr('value')
           const status = $(this).attr('value')
@@ -137,33 +138,33 @@ block script
                 data: parameters,
                 success: function (res) {
                   if (typeof res.pairing_date_time_id == 'number') {
-                    var item = $('<div id=\'pairing' + res.pairing_date_time_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
+                    var item = $('<div id=\'pairing' + res.pairing_session_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
                     var content = $('<div class=\'content\'></div>')
                     var grid = $('<div class=\'ui grid\'></div>')
                     var extra = $('<div class=\'extra\'><div id=\'status\' class=\'ui label\' style=\'background-color:#f1c232; color:white;\'>PENDING</div></div>')
-                    var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em\'><header class=\'header-pending-and-active\'>Pairing Time : ' + pairingTime + '</header></b><div class=\'description\'><font class=\'font-pending-and-active\'>' + res.date_time + '</font></div></div>')
+                    var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em\'><header class=\'header-pending-and-active\'>Session : ' + pairingTime + '</header></b><div class=\'description\'><font class=\'font-pending-and-active\'>' + res.date_time + '</font></div></div>')
                     var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui right floated button blue\' id=\'pairStudent\' style=\'text-color:white;\'> Pair </div></div>')
                     grid.append(elevenColumn)
                     grid.append(fiveColumn)
                     content.append(grid)
                     content.append(extra)
                     item.append(content)
-                    $('#pairingDateTimes').prepend(item)
+                    $('#pairingSession').prepend(item)
                     $('.ui.pointing.dropdown').dropdown();
                     onClickPairStudent()
-                    $('#pairing_date_time_id').attr('value', res.pairing_date_time_id)
+                    $('#pairing_session_id').attr('value', res.pairing_session_id)
                     $('#createPairingDateTime').attr('value', 1)
                   }
                 }
               })
 
             } else {
-              $('#alert-header').text('Pairing date time')
-              $('#alert-message').text('You can\'t create pairing date time!')
+              $('#alert-header').text('Pairing session')
+              $('#alert-message').text('You can\'t create session!')
               $('#alert-modal').modal('show')
             }
           })
-        })
+        }) */
         $('.removeStudent').click(function () {
           $('#messageConfirm').text('Are you sure to remove \"' + $(this).attr('name') + '\" from the classroom?')
           $('.enrollment_id').attr('value', $(this).attr('id'))
@@ -258,18 +259,18 @@ block script
       });
       function showMainContainer() {
         $('#main-container').show();
-        $('#students-container').hide();
-        $('#pairing-date-time-container').hide();
+        $('#first-sub-container').hide();
+        $('#second-sub-container').hide();
       }
       function showStudentContainer(){
         $('#main-container').hide();
-        $('#students-container').show();
-        $('#pairing-date-time-container').hide();
+        $('#first-sub-container').show();
+        $('#second-sub-container').hide();
       }
       function showPairingDateTimeContainer(){
         $('#main-container').hide();
-        $('#students-container').hide();
-        $('#pairing-date-time-container').show();
+        $('#first-sub-container').hide();
+        $('#second-sub-container').show();
       }
     style.
       @media (min-height: 200px) {
@@ -280,7 +281,7 @@ block script
       }
 
 block content
-    input#pairing_date_time_id(type='hidden', value=pairingDateTimes[0].pairing_date_time_id)
+    input#pairing_date_time_id(type='hidden', value=pairingDateTimes[0].pairing_session_id)
     input#section_id(type='hidden', value=`${section.section_id}`)
     +pairStudent(user, students)
     .ui.small.modal#newProject-modal
@@ -343,7 +344,7 @@ block content
 
     .ui.small.modal#pairingDateTime-modal
       i.close.icon
-      .header Pairing Date Times
+      .header Pairing Session
       .content
         .ui.fluid.action.input
           input#date_time(type='text', name='date_time')
@@ -595,80 +596,7 @@ block content
                               = project.creator
                             |)
 
-
-        .ten.wide.column#pairing-date-time-container(style='display:none;')
-          .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
-              .column
-                case occupation
-                  when 0
-                    h1.ui.header#headerContainer Pairing Date Time
-                  default
-                    h1.ui.header#headerContainer Assignments
-              //.column
-              //  .ui.button.approve.teal#resetPair-button Reset Pair
-              .right.column
-                case occupation
-                  when 0
-                    a.right
-                      button#new.ui.button.approve.green.newPairingDateTime(style='float: right;') Create Pairing Date Time
-            .ui.divided.items#pairingDateTimes
-              case occupation
-                when 0
-                  if pairingDateTimes.length > 0 && pairingDateTimes[0].status >= 0
-                    each pairingDateTime, index in pairingDateTimes
-                      .item.pairing-date-time(id=`${pairingDateTime.pairing_date_time_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
-                        .content
-                          .ui.grid
-                            .eleven.wide.column
-                              b(style='font-size:1.2em;')
-                                case pairingDateTime.status
-                                  when 0
-                                    header(style='color:#5D5D5D;') Pairing Time : !{pairingTimes - index}
-                                  default
-                                    header.header-pending-and-active Pairing Time : !{pairingTimes - index}
-                              .description
-                                case pairingDateTime.status
-                                  when 0
-                                    font(color='#5D5D5D') !{pairingDateTime.date_time}
-                                  default
-                                    font.font-pending-and-active !{pairingDateTime.date_time}
-                            .five.wide.column#pairing-button-column
-                              case pairingDateTime.status
-                                when 0
-                                  .ui.right.floated.alignedvertical.animated.button(onclick='onClickViewPairingHistory('+pairingDateTime.pairing_date_time_id+')')
-                                    .hidden.content(style='color:#5D5D5D;') View
-                                    .visible.content
-                                      i.eye.icon
-                                when 1
-                                  .ui.right.floated.button.blue#pairStudent(style='text-color:white;') Pair
-                                default
-                                  .ui.top.right.floated.pointing.dropdown.button.blue#viewAndInactivePairing
-                                    font(color='white') Select
-                                    .menu
-                                      .item(onclick='onClickViewPairingHistory('+pairingDateTime.pairing_date_time_id+')') View
-                                      .item#inactivePairingMenu(onclick='onClickInactivePairingMenu('+pairingDateTime.pairing_date_time_id+')') Inactive
-                                  script(type='text/javascript').
-                                    $('.ui.pointing.dropdown').dropdown();
-                          .extra
-                            case pairingDateTime.status
-                              when 0
-                                .ui.label#status(style='background-color:#E8E8E8; color:#665D5D;') INACTIVE
-                              when 1
-                                .ui.label#status(style='background-color:#f1c232; color:white;') PENDING
-                              when 2
-                                .ui.label#status(style='background-color:#16AB39; color:white;') ACTIVE
-                default
-                  if assignments.length > 0
-                    each assignment in assignments
-                      .item
-                        .content
-                          .ui.two.column.grid
-                            .column
-                              a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id+'&occupation='+occupation)
-                                b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
-
-        .ten.wide.column#students-container(style='display:none;')
+        .ten.wide.column#first-sub-container(style='display:none;')
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
@@ -687,3 +615,79 @@ block content
                     img.ui.avatar.image(src='images/user_img_0.jpg')
                     .content
                       p !{student.first_name} !{student.last_name}
+
+        .ten.wide.column#second-sub-container(style='display:none;')
+          .ui.segment
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+              .column
+                case occupation
+                  when 0
+                    h1.ui.header#headerContainer Pairing Session
+                  default
+                    h1.ui.header#headerContainer Assignments
+              //- .column
+              //-   .ui.button.approve.teal#resetPair-button Reset Pair
+              .right.column
+                case occupation
+                  when 0
+                    a.right
+                      button#new.ui.button.approve.green.newPairingSession(style='float: right;', onclick='onClickPairStudent('+`$('#pairing_date_time_id').attr('value')`+','+pairingDateTimes[0].status+')', value=`${pairingDateTimes[0].status}`) Create Session
+            .ui.divided.items#pairingSession
+              case occupation
+                when 0
+                  if pairingDateTimes.length > 0 && pairingDateTimes[0].status >= 0
+                    each pairingDateTime, index in pairingDateTimes
+                      .item.pairing-date-time(id=`${pairingDateTime.pairing_session_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
+                        .content
+                          .ui.grid
+                            .eleven.wide.column
+                              b(style='font-size:1.5em;')
+                                case pairingDateTime.status
+                                  when 0
+                                    header(style='color:#5D5D5D;') Session : !{pairingTimes - index}
+                                  default
+                                    header.header-pending-and-active Session : !{pairingTimes - index}
+                              .description
+                                case pairingDateTime.status
+                                  when 0
+                                    p
+                                      b(style='color:#5D5D5D;') Started :
+                                      font(color='#5D5D5D')  !{pairingDateTime.date_time}
+                                  default
+                                    p
+                                      b Started :
+                                      font.font-pending-and-active  !{pairingDateTime.date_time}
+                            .five.wide.column#pairing-button-column
+                              case pairingDateTime.status
+                                when 0
+                                  .ui.right.floated.alignedvertical.animated.button(onclick='onClickViewPairingHistory('+pairingDateTime.pairing_session_id+')')
+                                    .hidden.content(style='color:#5D5D5D;') View
+                                    .visible.content
+                                      i.eye.icon
+                                when 1
+                                  .ui.right.floated.button.blue#pairStudent(style='text-color:white;') Pair
+                                default
+                                  .ui.top.right.floated.pointing.dropdown.button.blue#viewAndInactivePairing
+                                    font(color='white') Select
+                                    .menu
+                                      .item(onclick='onClickViewPairingHistory('+pairingDateTime.pairing_session_id+')') View
+                                      .item#inactivePairingMenu(onclick='onClickInactivePairingMenu('+pairingDateTime.pairing_session_id+')') Inactive
+                                  script(type='text/javascript').
+                                    $('.ui.pointing.dropdown').dropdown();
+                          .extra
+                            case pairingDateTime.status
+                              when 0
+                                .ui.label#status(style='background-color:#E8E8E8; color:#665D5D;') COMPLETED
+                              when 1
+                                .ui.label#status(style='background-color:#f1c232; color:white;') PENDING
+                              when 2
+                                .ui.label#status(style='background-color:#16AB39; color:white;') ACTIVE
+                default
+                  if assignments.length > 0
+                    each assignment in assignments
+                      .item
+                        .content
+                          .ui.two.column.grid
+                            .column
+                              a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id+'&occupation='+occupation)
+                                b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}

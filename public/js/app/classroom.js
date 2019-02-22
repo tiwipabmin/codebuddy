@@ -24,26 +24,51 @@ $(document).ready(function() {
       closable: false,
     });
     $('#confirm-pairing').click(function(){
-      console.log('#confirm-pairing : ' + $('#pairing_date_time_id').attr('value'))
-      parameters = {pairing_date_time_id: $('#pairing_date_time_id').attr('value'), partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), student_objects: $('#student-objects').attr('value')}
-      $.post('/classroom/createPairingHistory', parameters, function(data){
-        const status = data.status
-        if(status == 'There aren\'t student in classroom!'){
-          alert(status)
-        } else if(status == 'Please, pair all student!'){
-          alert(status)
-          $('#student-list-modal').modal('show');
-        } else if(status == 'Update completed.'){
-          alert(status)
-          $('#status').attr('style', 'background-color:#16AB39; color:white;')
-          $('#status').text('ACTIVE')
-          $('#pairStudent').remove();
-          $('#pairing-button-column').append('<div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingHistory('+$('#pairing_date_time_id').attr('value')+')\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_date_time_id+')\'>Inactive</div></div>')
-          $('.ui.pointing.dropdown').dropdown();
-        } else {
-          alert(status)
-        }
-      })
+      const session_status = $('.newPairingSession').attr('value')
+      if(session_status <= 0){
+        console.log('#confirm-pairing : ' + $('#pairing_date_time_id').attr('value') + ', session_status : ' + $('.newPairingSession').attr('value'))
+        parameters = {pairing_date_time_id: $('#pairing_date_time_id').attr('value'), section_id: $('#section_id').attr('value'), partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), student_objects: $('#student-objects').attr('value')}
+        $.post('/classroom/createPairingHistory', parameters, function(data){
+          const res_status = data.res_status
+          var pairingTime = data.pairingTime
+          if(session_status < 0) {
+            pairingTime = 1
+          } else pairingTime++
+          if(res_status == 'There aren\'t student in classroom!'){
+            alert(res_status)
+          } else if(res_status == 'Please, pair all student!'){
+            alert(res_status)
+            $('#student-list-modal').modal('show');
+          } else if(res_status == 'Update completed.'){
+            alert(res_status)
+            var item = $('<div id=\'pairing' + data.pairing_date_time_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
+            var content = $('<div class=\'content\'></div>')
+            var grid = $('<div class=\'ui grid\'></div>')
+            var extra = $('<div class=\'extra\'><div id=\'status\' class=\'ui label\' style=\'background-color:#16AB39; color:white;\'>ACTIVE</div></div>')
+            var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em\'><header class=\'header-pending-and-active\'>Session : ' + pairingTime + '</header></b><div class=\'description\'><font class=\'font-pending-and-active\'>Started : ' + data.date_time + '</font></div></div>')
+            var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingHistory('+data.pairing_date_time_id+')\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_date_time_id+')\'>Inactive</div></div></div>')
+            grid.append(elevenColumn)
+            grid.append(fiveColumn)
+            content.append(grid)
+            content.append(extra)
+            item.append(content)
+            $('#pairingSession').prepend(item)
+            $('.ui.pointing.dropdown').dropdown();
+
+            // $('#status').attr('style', 'background-color:#16AB39; color:white;')
+            // $('#status').text('ACTIVE')
+            // $('#pairStudent').remove();
+            //$('#pairing-button-column').append('<div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingHistory('+$('#pairing_date_time_id').attr('value')+')\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_date_time_id+')\'>Inactive</div></div>')
+            //$('.ui.pointing.dropdown').dropdown();
+          } else {
+            alert(status)
+          }
+        })
+      } else {
+        $('#alert-header').text('Pairing session')
+        $('#alert-message').text('You can\'t create session!')
+        $('#alert-modal').modal('show')
+      }
     })
     $('#cancel-pairing').click(function(){
       if($('#confirm-message').attr('value') == 'Are you sure you want to cancel pairing?'){
@@ -66,12 +91,12 @@ $(document).ready(function() {
             if(status == 'Update completed.') {
               alert(status)
               $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
-              $('#status').text('INACTIVE')
+              $('#status').text('COMPLETED')
               $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
               $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
               $('#pairing-button-column').empty()
-              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' onclick='onClickViewPairingHistory("+$('#pairing_date_time_id').attr('value')+")'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
-              $('#createPairingDateTime').attr('value', 0);
+              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' onclick='onClickViewPairingHistory("+$('#input_confirm_modal').attr('value')+")'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
+              $('.newPairingSession').attr('value', 0);
             } else {
               alert(status)
             }
@@ -85,7 +110,7 @@ $(document).ready(function() {
         $('#student-list-modal').modal('show');
       }
     })
-    onClickPairStudent()
+    //onClickPairStudent()
     $('#back-to-student-list-modal').click(function () {
       $('#student-list-modal').modal('show');
     })
@@ -311,13 +336,14 @@ function pairingOrViewingisHided(command){
   }
 }
 
-function onClickPairStudent(){
-  $('#pairStudent').click(function (){
-    $('#partner-keys').attr('value', '{}')
-    $('#pairing-objective').attr('value', '{}')
-    pairingOrViewingisHided('pair')
-    showStudentList('pair', $('#pairing_date_time_id').attr('value'))
-  })
+function onClickPairStudent(pairing_date_time_id, session_status){
+  console.log('pairing_date : ' + pairing_date_time_id + ', session_status : ' + session_status)
+  //$('#pairStudent').click(function (){
+  $('#partner-keys').attr('value', '{}')
+  $('#pairing-objective').attr('value', '{}')
+  pairingOrViewingisHided('pair')
+  showStudentList('pair', $('#pairing_date_time_id').attr('value'))
+  //})
 }
 
 function onClickViewPairingHistory(pairing_date_time_id) {
@@ -329,7 +355,8 @@ function onClickViewPairingHistory(pairing_date_time_id) {
 }
 
 function onClickAssign(pairing_date_time_id, assignment_id, title, description) {
-  parameters = {pairing_date_time_id: pairing_date_time_id, assignment_id: assignment_id, title: title, description: description}
+  var parameters = {pairing_date_time_id: pairing_date_time_id, assignment_id: assignment_id, title: title, description: description}
+  $('#input_confirm_modal').attr('value', JSON.stringify(parameters))
   console.log('pairing_date_time_id : ' + pairing_date_time_id + ', title : ' + title + ', description : ' + description)
   $.post('/classroom/assignAssignment', parameters, function (data){
 
