@@ -509,6 +509,35 @@ exports.searchStudentByPurpose = async (req, res) => {
 }
 
 exports.createPairingHistory = async (req, res) => {
+  const partner_keys = JSON.parse(req.body.partner_keys)
+  const pairing_objective = JSON.parse(req.body.pairing_objective)
+  const student_objects = JSON.parse(req.body.student_objects)
+  var res_status = 'Confirm completed.'
+  var count = 0;
+
+  var pairing_history_values = []
+  var addPartnerToStudent;
+  var selectEnrollment;
+  var enrollment_value;
+  var pairing_history_value;
+
+  //if there aren't student pairing, server will send message which 'Please, pair all student!'
+  for(key in partner_keys){
+    if(partner_keys[key] < 0) {
+      res_status = 'Please pair all students!'
+      res.send({res_status: res_status})
+      return
+    }
+    count++;
+  }
+
+  //if there aren't student in classroom, server will send message which 'There aren't student in classroom!'
+  if(!count){
+    res_status = 'There is no student in the classroom!'
+    res.send({res_status: res_status})
+    return
+  }
+
   //define sesstion time
   const queryPairingDateTime = 'SELECT * FROM pairing_session WHERE section_id = ' + req.body.section_id
   const pairingDateTime = await con.getPairingDateTime(queryPairingDateTime)
@@ -539,33 +568,6 @@ exports.createPairingHistory = async (req, res) => {
     // pairing_session_latest['date_time'] = date_time
     // pairing_session_latest['status'] = 2
     console.log('1')
-    const partner_keys = JSON.parse(req.body.partner_keys)
-
-    const pairing_objective = JSON.parse(req.body.pairing_objective)
-    const student_objects = JSON.parse(req.body.student_objects)
-    var res_status = 'Confirm completed.'
-    var count = 0;
-
-    var pairing_history_values = []
-    var addPartnerToStudent;
-    var selectEnrollment;
-    var enrollment_value;
-    var pairing_history_value;
-
-    for(key in partner_keys){
-      if(partner_keys[key] < 0) {
-        res_status = 'Please, pair all student!'
-        res.send({res_status: res_status})
-        return
-      }
-      count++;
-    }
-
-    if(!count){
-      res_status = 'There aren\'t student in classroom!'
-      res.send({res_status: res_status})
-      return
-    }
 
     count = 0;
     for(key in partner_keys){
@@ -738,6 +740,22 @@ exports.getAssignment = async (req, res) => {
 }
 
 exports.assignAssignment = async (req, res) => {
+  console.log('section_id : ' + req.body.section_id)
+  const selectEnrollmentBySectionId = 'SELECT * FROM enrollment WHERE section_id = ' + req.body.section_id
+  const enrollments = await con.getEnrollment(selectEnrollmentBySectionId);
+  var count = 0;
+  //check student pairing
+  for (_index in enrollments) {
+    if(enrollments[_index].partner_id != null) {
+      count++;
+      break
+    }
+  }
+  if(!count){
+    res.send({res_status: 'Please pair all students before assign the assignment!'})
+    return
+    console.log('Please pair all students before assign the assignment!')
+  }
   const pairing_date_time_id = req.body.pairing_date_time_id;
   const assignment_id = parseInt(req.body.assignment_id)
   const title = req.body.title;
@@ -745,16 +763,53 @@ exports.assignAssignment = async (req, res) => {
   const swaptime = '1';
   const language = '0';
   const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_history AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairing_date_time_id
-  const students = await con.getStudent(selectStudent);
+  var students = await con.getStudent(selectStudent);
+  console.log('students : ' + students)
   var partner_keys = {}
+  var already_received = {}
   var creator = 'username';
   var collaborator = 'username';
   var student_objects = {}
   var project = new Project();
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
+    count++;
   }
-  for(_index in students) {
+
+  var select_project = {};
+  for(key in student_objects) {
+    if(student_objects[key].role == 'host') {
+      select_project = await Project.findOne({
+        assignment_id: assignment_id,
+        creator: student_objects[key].username
+      })
+      console.log('creator : ', student_objects[key].username)
+    } else if(student_objects[key].role == 'partner') {
+      select_project = await Project.findOne({
+        assignment_id: assignment_id,
+        collaborator: student_objects[key].username
+      })
+      console.log('collaborator : ', student_objects[key].username)
+    }
+    console.log('select_project : ', select_project)
+    if(select_project != null && (select_project.creator == student_objects[key].username || select_project.collaborator == student_objects[key].username)) {
+      console.log('Whattt')
+      if(student_objects[key].role == 'host') {
+        already_received[key] = student_objects[key].partner_id
+      } else if(student_objects[key].role == 'partner') {
+        already_received[student_objects[key].partner_id] = key
+      }
+      console.log('delete!')
+      delete student_objects[student_objects[key].partner_id]
+      delete student_objects[key]
+    }
+  }
+
+  console.log('student_objects : ', student_objects)
+  count = 0;
+  console.log('already_received : ', already_received)
+  for(_key in student_objects) {
+    count++;
     project = new Project()
     project.title = title;
     project.description = description;
@@ -762,19 +817,23 @@ exports.assignAssignment = async (req, res) => {
     project.swaptime = swaptime;
     project.status = '';
     //find key from value
-    key = Object.keys(partner_keys).find(key => partner_keys[key] === students[_index].enrollment_id)
-    if(partner_keys[students[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
-      if(students[_index].role == 'host') {
-        partner_keys[students[_index].enrollment_id] = students[_index].partner_id
-        creator = student_objects[students[_index].enrollment_id].username
-        collaborator = student_objects[students[_index].partner_id].username
-        console.log('host : ', student_objects[students[_index].enrollment_id].username,', partner : ', student_objects[students[_index].partner_id].username)
-      } else if(students[_index].role == 'partner') {
-        partner_keys[students[_index].partner_id] = students[_index].enrollment_id
-        creator = student_objects[students[_index].partner_id].username
-        collaborator = student_objects[students[_index].enrollment_id].username
-        console.log('host : ', student_objects[students[_index].partner_id].username,', partner : ', student_objects[students[_index].enrollment_id].username)
+    key = Object.keys(already_received).find(key => already_received[key] === _key)
+    console.log('key : ' + key)
+    if(already_received[_key] === undefined && already_received[key] === undefined) {
+      if(student_objects[_key].role == 'host') {
+        console.log('host')
+        already_received[_key] = student_objects[_key].partner_id
+        creator = student_objects[_key].username
+        collaborator = student_objects[student_objects[_key].partner_id].username
+        console.log('host : ', student_objects[_key].username,', partner : ', student_objects[student_objects[_key].partner_id].username)
+      } else if(student_objects[_key].role == 'partner') {
+        console.log('partner')
+        already_received[student_objects[_key].partner_id] = _key
+        creator = student_objects[student_objects[_key].partner_id].username
+        collaborator = student_objects[_key].username
+        console.log('host : ', student_objects[student_objects[_key].partner_id].username,', partner : ', student_objects[_key].username)
       }
+      delete student_objects[student_objects[_key].partner_id]
 
       project.creator = creator;
       project.collaborator = collaborator;
@@ -814,7 +873,12 @@ exports.assignAssignment = async (req, res) => {
       }
     }
   }
-  console.log('SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
+  if(!count) {
+    res.send({res_status: 'You already assigned this assignment!'})
+  } else {
+    res.send({res_status: 'Successfully assigned this assignment!'})
+  }
+  console.log('Count : ' + count)
 }
 
 exports.acceptInvite = async (req, res) => {
@@ -862,30 +926,31 @@ exports.getProgress = async (req, res) => {
   const user = await User.findOne({
     _id: uid
   })
-
+  console.log(1)
   const scores = await Score.find({
     uid: uid
   })
-
+  console.log(2)
   for(var i = 0; i < scores.length; i++) {
     // project title (label)
     project = await Project.findOne({
       pid: scores[i].pid
     })
+    console.log(3, ' title : ' + project)
     projectTitles.push(project.title)
-
+    console.log(4)
     // project time data
     projectTimes.push((scores[i].time/60).toFixed(2))
-
+    console.log(5)
     // project score data
     projectScores.push(scores[i].score)
-
+    console.log(6)
     // lines of code data
     linesOfCodes.push(scores[i].lines_of_code)
-
+    console.log(7)
     // productivity
     productivitys.push((scores[i].lines_of_code/(scores[i].time/60)).toFixed(2))
-
+    console.log(8)
     // error data
     errors.push(scores[i].error_count)
   }

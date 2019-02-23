@@ -15,11 +15,12 @@ const router = express.Router()
  * @method {GET} return rendered `classroom.pug`
  * @method {POST} handle create new section form on `lobby.pug` page
  */
-router
-  .use(auth.isSignedIn)
-  .route('/')
-  .get(webController.getSection)
-  .post(catchErrors(webController.createSection))
+router.get('/', auth.isSignedIn, auth.validateSection, catchErrors(webController.getSection))
+router.post('/', auth.isSignedIn, catchErrors(webController.createSection))
+  // .use(auth.isSignedIn)
+  // .route('/')
+  // .get(webController.getSection)
+  // .post(catchErrors(webController.createSection))
 
 router.get('/getPairingDateTime', auth.isSignedIn, catchErrors(webController.getPairingDateTime))
 router.get('/searchUserByPurpose', auth.isSignedIn, catchErrors(webController.searchStudentByPurpose))

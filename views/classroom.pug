@@ -77,10 +77,6 @@ block script
                 {
                   type   : 'empty',
                   prompt : 'Please enter your course name'
-                },
-                {
-                  type : 'regExp[[a-zA-Z0-9]]',
-                  prompt : 'This course name is not valid!'
                 }
               ]
             },
@@ -166,7 +162,7 @@ block script
           })
         }) */
         $('.removeStudent').click(function () {
-          $('#messageConfirm').text('Are you sure to remove \"' + $(this).attr('name') + '\" from the classroom?')
+          $('#messageConfirm').text('Are you sure you want to remove \"' + $(this).attr('name') + '\" from this classroom?')
           $('.enrollment_id').attr('value', $(this).attr('id'))
           $('.student_id').attr('value', $(this).attr('value'))
           $('#confirmRemoveStudent').modal('show');
@@ -334,7 +330,7 @@ block content
       i.close.icon
       .header Remove Student
       .content
-        p#messageConfirm Are you sure to remove the student from the classroom?
+        p#messageConfirm Are you sure you want to remove the student from this classroom?
         input.enrollment_id(type='hidden', name='enrollment_id')
         input.student_id(type='hidden', name='student_id')
         .ui.basic.center.aligned.segment
@@ -365,7 +361,7 @@ block content
       .header#confirm-header Alert!
       .content
         input#input_confirm_modal(type='hidden')
-        p#confirm-message Something message
+        p#confirm-message Something message.
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green#confirm-button(type='submit') Confirm
@@ -387,7 +383,7 @@ block content
                 .field
                   label Section :
                   |
-                  input(type='text', name='section', placeholder='Your section', maxlength='2', value=`${section.section}`)
+                  input(type='text', name='section', placeholder='Your section', maxlength='3', value=`${section.section}`)
               .column
                 .field
                   label Room :
@@ -537,9 +533,9 @@ block content
               .column
                 case occupation
                   when 0
-                    h1.ui.header#headerContainer Assignments
+                    h1.ui.header#headerContainer Assignment
                   default
-                    h1.ui.header#headerContainer My Projects
+                    h1.ui.header#headerContainer My Project
               .right.column
                 a.right
                   case occupation
@@ -559,7 +555,9 @@ block content
                               a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id+'&occupation='+occupation)
                                 b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
                             .column
-                              .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`$('#pairing_date_time_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\')') Assign
+                              .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`${section.section_id}`+','+`$('#pairing_date_time_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\')') Assign
+                  else
+                    p.text-center No assignment.
                 default
                   if projects_in_section.length > 0
                     each project in projects_in_section
@@ -595,12 +593,14 @@ block content
                               | @
                               = project.creator
                             |)
-
+                  else
+                    p.text-center No project.          
+                    
         .ten.wide.column#first-sub-container(style='display:none;')
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
-                h1.ui.header#headerContainer Students
+                h1.ui.header#headerContainer Student
             .ui.middle.aligned.divided.list.studentList
               if students.length > 0
                 each student in students
@@ -615,18 +615,20 @@ block content
                     img.ui.avatar.image(src='images/user_img_0.jpg')
                     .content
                       p !{student.first_name} !{student.last_name}
-
+              else
+                p.text-center No student.  
+                      
         .ten.wide.column#second-sub-container(style='display:none;')
           .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+            .ui.three.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 case occupation
                   when 0
                     h1.ui.header#headerContainer Pairing Session
                   default
-                    h1.ui.header#headerContainer Assignments
-              //- .column
-              //-   .ui.button.approve.teal#resetPair-button Reset Pair
+                    h1.ui.header#headerContainer Assignment
+              .column
+                .ui.button.approve.teal#resetPair-button Reset Pair
               .right.column
                 case occupation
                   when 0
@@ -651,11 +653,11 @@ block content
                                 case pairingDateTime.status
                                   when 0
                                     p
-                                      b(style='color:#5D5D5D;') Started :
+                                      b(style='color:#5D5D5D;') Start at :
                                       font(color='#5D5D5D')  !{pairingDateTime.date_time}
                                   default
                                     p
-                                      b Started :
+                                      b#startAt Start at :
                                       font.font-pending-and-active  !{pairingDateTime.date_time}
                             .five.wide.column#pairing-button-column
                               case pairingDateTime.status
@@ -682,6 +684,8 @@ block content
                                 .ui.label#status(style='background-color:#f1c232; color:white;') PENDING
                               when 2
                                 .ui.label#status(style='background-color:#16AB39; color:white;') ACTIVE
+                  else
+                    p.text-center No session.  
                 default
                   if assignments.length > 0
                     each assignment in assignments
@@ -691,3 +695,5 @@ block content
                             .column
                               a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id+'&occupation='+occupation)
                                 b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
+                  else
+                    p.text-center No assignment.
