@@ -727,8 +727,6 @@ exports.updateAssignment = async (req, res) => {
 
 exports.getAssignment = async (req, res) => {
   const section_id = req.query.section_id
-  const occupation = parseInt(req.query.occupation)
-  console.log('occupation : ' + occupation)
   const queryAssignment = 'SELECT * FROM assignment WHERE assignment_id = ' + req.query.assignment_id
   var assignment = await con.getAssignment(queryAssignment)
   var title = 'Assignment'
@@ -736,7 +734,7 @@ exports.getAssignment = async (req, res) => {
     assignment = assignment[0]
     title = assignment.title
   }
-  res.render('assignment', {assignment, section_id, occupation, title: title})
+  res.render('assignment', {assignment, section_id, title: title})
 }
 
 exports.assignAssignment = async (req, res) => {
