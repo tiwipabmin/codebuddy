@@ -195,10 +195,6 @@ block script
                 {
                   type   : 'empty',
                   prompt : 'Please enter your title'
-                },
-                {
-                  type : 'regExp[[a-zA-Z0-9]]',
-                  prompt : 'This title is not valid!'
                 }
               ]
             },
@@ -510,12 +506,12 @@ block content
                 .field
                   label Sample Input :
                   |
-                  input(type='text', name='sample_input', placeholder='Sample Input...')
+                  textarea(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;')
               .column
                 .field
                   label Sample Output :
                   |
-                  input(type='text', name='sample_output', placeholder='Sample Output...')
+                  textarea(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;')
           input(type='hidden', name='section_id', value=`${section.section_id}`)
           .ui.basic.center.aligned.segment
             .actions
@@ -655,10 +651,16 @@ block content
                                     p
                                       b(style='color:#5D5D5D;') Start at :
                                       font(color='#5D5D5D')  !{pairingDateTime.date_time}
+                                      br
+                                      b(style='color:#5D5D5D;') End at :
+                                      font(color='#5D5D5D')  !{pairingDateTime.time_end}
                                   default
                                     p
-                                      b#startAt Start at :
+                                      b.date-time Start at :
                                       font.font-pending-and-active  !{pairingDateTime.date_time}
+                                      br
+                                      b.date-time End at :
+                                      font.font-pending-and-active#endAt  !{pairingDateTime.time_end}
                             .five.wide.column#pairing-button-column
                               case pairingDateTime.status
                                 when 0

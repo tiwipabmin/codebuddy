@@ -23,10 +23,6 @@ block script
                 {
                   type   : 'empty',
                   prompt : 'Please enter your title'
-                },
-                {
-                  type : 'regExp[[a-zA-Z0-9]]',
-                  prompt : 'This title is not valid!'
                 }
               ]
             },
@@ -135,12 +131,12 @@ block content
                         .field
                           label Sample Input :
                           |
-                          input(type='text', name='sample_input', placeholder='Sample Input...', value=`${assignment.sample_input}`)
+                          textarea(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;') !{assignment.sample_input}
                       .column
                         .field
                           label Sample Output :
                           |
-                          input(type='text', name='sample_output', placeholder='Sample Output...', value=`${assignment.sample_output}`)
+                          textarea(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;') !{assignment.sample_output}
                   input(type='hidden', name='assignment_id', value=`${assignment.assignment_id}`)
                   input(type='hidden', name='section_id', value=`${section_id}`)
                   .ui.basic.center.aligned.segment

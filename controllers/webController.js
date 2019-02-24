@@ -400,9 +400,17 @@ exports.searchUser = async (req, res) => {
 
 exports.updatePairingDateTimeStatus = async (req, res) => {
   //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', partner_keys : ', partner_keys)
+
+  //create date time at this moment
+  var time_end = new Date()
+  var str_time_end = time_end.toString()
+  var split_time_end = str_time_end.split(' ')
+  var slice_time_end = split_time_end.slice(0, 5)
+  time_end = slice_time_end.join(' ')
+
   const status = req.body.status
   const pairing_date_time_id = req.body.pairing_date_time_id
-  const updatePairingDateTimeStatus = 'UPDATE pairing_session SET status = ' + status + ' WHERE pairing_session_id = ' + pairing_date_time_id;
+  const updatePairingDateTimeStatus = 'UPDATE pairing_session SET status = ' + status + ', time_end = \'' + time_end + '\' WHERE pairing_session_id = ' + pairing_date_time_id;
   var res_status = await con.updatePairingDateTime(updatePairingDateTimeStatus)
   if(res_status == 'Update completed.') {
     console.log(req.body.section_id)
@@ -413,7 +421,7 @@ exports.updatePairingDateTimeStatus = async (req, res) => {
     res_status = 'Update a pairing date time status failed.'
   }
   console.log('res_status : ' + res_status)
-  res.send({status: res_status})
+  res.send({status: res_status, time_end: time_end})
 }
 
 exports.getPairingDateTime = async (req, res) => {
@@ -610,7 +618,7 @@ exports.createPairingHistory = async (req, res) => {
       res_status = await con.updatePairingDateTime(updateStatus)
     }
     console.log('date_time: ' + date_time)
-    res.send({res_status: res_status, pairing_date_time_id: pairing_date_time_id, pairingTime: pairingTime, date_time: date_time})
+    res.send({res_status: res_status, pairing_date_time_id: pairing_date_time_id, pairingTime: pairingTime, date_time: date_time, time_end: '-'})
   } else {
     res.send({res_status: 'Update failed.'})
   }

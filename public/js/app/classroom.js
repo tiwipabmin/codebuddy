@@ -44,7 +44,7 @@ $(document).ready(function() {
             var content = $('<div class=\'content\'></div>')
             var grid = $('<div class=\'ui grid\'></div>')
             var extra = $('<div class=\'extra\'><div id=\'status\' class=\'ui label\' style=\'background-color:#16AB39; color:white;\'>ACTIVE</div></div>')
-            var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.5em\'><header class=\'header-pending-and-active\'>Session : ' + pairingTime + '</header></b><div class=\'description\'><b id=\'startAt\'>Start at : </b><font class=\'font-pending-and-active\'>' + data.date_time + '</font></div></div>')
+            var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.5em\'><header class=\'header-pending-and-active\'>Session : ' + pairingTime + '</header></b><div class=\'description\'><p><b class=\'date-time\'>Start at : </b><font class=\'font-pending-and-active\'>' + data.date_time + '</font><br><b class=\'date-time\'>End at : </b><font id=\'endAt\' class=\'font-pending-and-active\'>' + data.time_end + '</font></p></div></div>')
             var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingHistory('+data.pairing_date_time_id+')\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_date_time_id+')\'>Inactive</div></div></div>')
             grid.append(elevenColumn)
             grid.append(fiveColumn)
@@ -89,7 +89,8 @@ $(document).ready(function() {
             if(status == 'Update completed.') {
               $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
               $('#status').text('COMPLETED')
-              $('#startAt').attr('style', 'color:#5D5D5D;')
+              $('.date-time').attr('style', 'color:#5D5D5D;')
+              $('#endAt').text(' ' + data.time_end)
               $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
               $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
               $('#pairing-button-column').empty()
