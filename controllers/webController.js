@@ -469,6 +469,25 @@ exports.searchUserByPurpose = async (req, res) => {
   res.send(users)
 }
 
+exports.searchStudent = async (req, res) => {
+  const search = req.query.search
+  const section_id = req.query.section_id
+  const selectStudent = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\' OR s.last_name LIKE \'%' + search + '%\')'
+  const students = await con.searchStudent(selectStudent)
+  var user;
+  for (_index in students) {
+    user = await User.findOne({
+      username: students[_index].username
+    })
+    if(user != null) {
+      students[_index].avg_score = user.avgScore
+      students[_index].img = user.img
+      students[_index].total_time = user.totalTime
+    }
+  }
+  res.send({students: students, purpose: 'none'})
+}
+
 exports.searchStudentByPurpose = async (req, res) => {
   const purpose = req.query.purpose
   const section_id = req.query.section_id

@@ -62,12 +62,11 @@ mixin pairStudent(user, students)
           .six.wide.column
             .ui.category.search
               .ui.icon.input
-                input.prompt(type="text" placeholder="Search by username..." id="search-user-input")
+                input.prompt(type="text", placeholder="Search by username...", id="search-user-input", onkeyup="searchStudent(this, "+`$('#section_id').attr('value')`+")")
                 i.search.icon
           .ten.wide.column
               .ui.segment.container.user-purpose.box
                 .ui.middle.aligned.animated.list.user-list
-                  li.ui.item Search result
       .item
         .content
           .description

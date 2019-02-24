@@ -128,19 +128,19 @@ $(document).ready(function() {
       $('#student-list-modal').modal('show');
     })
     $('.menu .item').tab();
-    $('#search-user-input').keyup(function () {
-        var parameters = { search: $(this).val() };
-        $.get( 'dashboard/searchUser',parameters, function(data) {
-            $(".user-list").empty();
-            if (data.length > 0) {
-                data.forEach(function(user) {
-                    $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-pairing-button' onclick='onClickAddUserButton(\"" +user.username+"\")'>Add</div></div><img class='ui avatar image' src='"+ user.img +"'><div class='content'><div class='header'>"+user.username+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(user.avgScore).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(user.totalTime/3600))+":"+pad(parseInt((user.totalTime-(parseInt(user.totalTime/3600)*3600))/60))+":"+pad(parseInt(user.totalTime%60))+"</div></div></div></div>");
-                }, this);
-            } else {
-                $(".user-list").append("<li class='ui item'>No results</li>")
-            }
-        })
-    })
+    // $('#search-user-input').keyup(function () {
+    //     var parameters = { search: $(this).val() };
+    //     $.get( 'dashboard/searchUser',parameters, function(data) {
+    //         $(".user-list").empty();
+    //         if (data.length > 0) {
+    //             data.forEach(function(user) {
+    //                 $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-pairing-button' onclick='onClickAddUserButton(\"" +user.username+"\")'>Add</div></div><img class='ui avatar image' src='"+ user.img +"'><div class='content'><div class='header'>"+user.username+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(user.avgScore).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(user.totalTime/3600))+":"+pad(parseInt((user.totalTime-(parseInt(user.totalTime/3600)*3600))/60))+":"+pad(parseInt(user.totalTime%60))+"</div></div></div></div>");
+    //             }, this);
+    //         } else {
+    //             $(".user-list").append("<li class='ui item'>No results</li>")
+    //         }
+    //     })
+    // })
     $('.ui-purpose').click(function() {
         const index = $('.ui-purpose').index(this)
         $('.ui-purpose').removeClass('teal inverted')
@@ -150,7 +150,7 @@ $(document).ready(function() {
         const avg_score = $('#avg_score-add-partner').attr('value')
         const username = $('#username-add-partner').attr('value')
         var parameters = { purpose: purpose, section_id: section_id, avg_score: avg_score, username: username};
-        $.get( 'classroom/searchUserByPurpose',parameters, function(data) {
+        $.get( 'classroom/searchStudentByPurpose',parameters, function(data) {
             $(".user-purpose-list").empty();
             var students = data.students
             var purpose = data.purpose
@@ -171,7 +171,34 @@ $(document).ready(function() {
     })
 })
 
+function searchStudent(e, section_id){
+  console.log('section_id: ' + section_id)
+  var parameters = { search: e.value, section_id: section_id };
+  $.get( 'classroom/searchStudent',parameters, function(data) {
+    const students = data.students
+    const purpose = data.purpose
+    const pairing_objective = JSON.parse($('#pairing-objective').attr('value'))
+    const username = $('#username-add-partner').attr('value')
+    $(".user-list").empty();
+    if (students.length > 0) {
+      students.forEach(function(student) {
+        if(pairing_objective[student.enrollment_id] == -1 && student.username != username) {
+          $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id-add-partner').attr('value')+","+student.enrollment_id+",\""+purpose+"\")'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
+        } else if(student.username != username) {
+          $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id-add-partner').attr('value')+","+student.enrollment_id+",\""+purpose+"\")'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
+        }
+      }, this);
+    } else {
+      $(".user-list").append("<li class='ui item'>No results</li>")
+    }
+  })
+}
+
 function onClickPairingButton(enrollment_id, avg_score, username) {
+  //make user list is empty on search user panel
+  $(".user-list").empty();
+  $(".user-list").append("<div class='li ui item'>Search result</div>")
+
   console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score + ', username : ' + username)
   $('.student-score').text('Student score ' + parseFloat(avg_score).toFixed(2))
   $('#student_id-add-partner').attr('value', enrollment_id)
@@ -180,7 +207,6 @@ function onClickPairingButton(enrollment_id, avg_score, username) {
   $(".user-purpose-list").empty();
   $(".user-purpose-list").append("<li class='ui item'>Please select your purpose.</li>");
   $('#select-partner-modal').modal('show')
-
 }
 
 function onClickAddPartnerButton(student_id, partner_id, purpose) {
