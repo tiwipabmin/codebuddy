@@ -616,15 +616,15 @@ block content
                       
         .ten.wide.column#second-sub-container(style='display:none;')
           .ui.segment
-            .ui.three.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 case occupation
                   when 0
                     h1.ui.header#headerContainer Pairing Session
                   default
                     h1.ui.header#headerContainer Assignment
-              .column
-                .ui.button.approve.teal#resetPair-button Reset Pair
+              //- .column
+              //-   .ui.button.approve.teal#resetPair-button Reset Pair
               .right.column
                 case occupation
                   when 0

@@ -1,22 +1,22 @@
 $(document).ready(function() {
     pairingOrViewingisHided('pair')
-    $('#resetPair-button').click(function(){
-      parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
-      $.ajax({
-        url: 'classroom/resetPair',
-        type: 'put',
-        data: parameters,
-        success: function (data) {
-          const status = data.status
-          if(status == 'Update completed.') {
-            alert('Reset pairing completed!')
-            $('#isTherePairingYet').attr('value', 'There isn\'t pairing!')
-          } else if(status == 'Update failed.') {
-            alert(status)
-          }
-        }
-      })
-    })
+    // $('#resetPair-button').click(function(){
+    //   parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
+    //   $.ajax({
+    //     url: 'classroom/resetPair',
+    //     type: 'put',
+    //     data: parameters,
+    //     success: function (data) {
+    //       const status = data.status
+    //       if(status == 'Update completed.') {
+    //         alert('Reset pairing completed!')
+    //         $('#isTherePairingYet').attr('value', 'There isn\'t pairing!')
+    //       } else if(status == 'Update failed.') {
+    //         alert(status)
+    //       }
+    //     }
+    //   })
+    // })
     $('#student-list-modal').modal({
       closable: false,
     });

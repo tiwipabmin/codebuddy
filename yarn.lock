@@ -45,6 +45,13 @@ accepts@1.3.3, accepts@~1.3.3:
     mime-types "~2.1.11"
     negotiator "0.6.1"
 
+accepts@~1.3.5:
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/accepts/-/accepts-1.3.5.tgz#eb777df6011723a3b14e8a72c0805c8e86746bd2"
+  dependencies:
+    mime-types "~2.1.18"
+    negotiator "0.6.1"
+
 acorn-globals@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/acorn-globals/-/acorn-globals-3.1.0.tgz#fd8270f71fbb4996b004fa880ee5d46573a731bf"
@@ -1066,6 +1073,10 @@ bytes@2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-2.4.0.tgz#7d97196f9d5baf7f6935e25985549edd2a6c2339"
 
+bytes@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.0.0.tgz#d32815404d689699f85a4ea4fa8755dd13a96048"
+
 caller-path@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/caller-path/-/caller-path-0.1.0.tgz#94085ef63581ecd3daa92444a8fe94e82577751f"
@@ -1214,6 +1225,24 @@ compress-commons@^1.2.0:
     crc32-stream "^2.0.0"
     normalize-path "^2.0.0"
     readable-stream "^2.0.0"
+
+compressible@~2.0.14:
+  version "2.0.16"
+  resolved "https://registry.yarnpkg.com/compressible/-/compressible-2.0.16.tgz#a49bf9858f3821b64ce1be0296afc7380466a77f"
+  dependencies:
+    mime-db ">= 1.38.0 < 2"
+
+compression@^1.7.3:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/compression/-/compression-1.7.3.tgz#27e0e176aaf260f7f2c2813c3e440adb9f1993db"
+  dependencies:
+    accepts "~1.3.5"
+    bytes "3.0.0"
+    compressible "~2.0.14"
+    debug "2.6.9"
+    on-headers "~1.0.1"
+    safe-buffer "5.1.2"
+    vary "~1.1.2"
 
 concat-map@0.0.1:
   version "0.0.1"
@@ -2648,6 +2677,10 @@ micromatch@^2.1.5:
     parse-glob "^3.0.4"
     regex-cache "^0.4.2"
 
+"mime-db@>= 1.38.0 < 2", mime-db@~1.38.0:
+  version "1.38.0"
+  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.38.0.tgz#1a2aab16da9eb167b49c6e4df2d9c68d63d8e2ad"
+
 mime-db@~1.27.0:
   version "1.27.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.27.0.tgz#820f572296bbd20ec25ed55e5b5de869e5436eb1"
@@ -2661,6 +2694,12 @@ mime-types@^2.1.12, mime-types@~2.1.11, mime-types@~2.1.15, mime-types@~2.1.7:
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.15.tgz#a4ebf5064094569237b8cf70046776d09fc92aed"
   dependencies:
     mime-db "~1.27.0"
+
+mime-types@~2.1.18:
+  version "2.1.22"
+  resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.22.tgz#fe6b355a190926ab7698c9a0556a11199b2199bd"
+  dependencies:
+    mime-db "~1.38.0"
 
 mime-types@~2.1.19:
   version "2.1.21"
@@ -2727,9 +2766,9 @@ mongoose-mongodb-errors@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/mongoose-mongodb-errors/-/mongoose-mongodb-errors-0.0.2.tgz#7feacb8c901b5f899c616652337b2f499717291c"
 
-mongoose@^5.4.11:
-  version "5.4.11"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-5.4.11.tgz#db1cbbabbd6287cbdecdf52c2ea8d43194bc517a"
+mongoose@^5.4.15:
+  version "5.4.15"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-5.4.15.tgz#5b6581ffb048b4c6ec6f5b9d792d759f3ba8eb02"
   dependencies:
     async "2.6.1"
     bson "~1.1.0"
@@ -2739,7 +2778,7 @@ mongoose@^5.4.11:
     mongoose-legacy-pluralize "1.0.2"
     mpath "0.5.1"
     mquery "3.2.0"
-    ms "2.0.0"
+    ms "2.1.1"
     regexp-clone "0.0.1"
     safe-buffer "5.1.2"
     sliced "1.0.1"
@@ -2780,7 +2819,7 @@ ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
 
-ms@^2.1.1:
+ms@2.1.1, ms@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
 
@@ -4072,6 +4111,10 @@ validator@~6.2.0:
 vary@~1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.1.tgz#67535ebb694c1d52257457984665323f587e8d37"
+
+vary@~1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
 
 verror@1.3.6:
   version "1.3.6"

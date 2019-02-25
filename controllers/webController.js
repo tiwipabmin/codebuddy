@@ -718,22 +718,19 @@ exports.createAssignment = async (req, res) => {
   const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output]]
   const assignment_id = await con.createAssignment(createAssignment, values)
   var assignment = {}
+  console.log('assign_id : ' + assignment_id)
   if(typeof assignment_id == 'number') {
+    assignment.assignment_id = assignment_id
     assignment.title = title
     assignment.description = description
     assignment.input_specification = input_specification
     assignment.output_specification = output_specification
     assignment.sample_input = sample_input
     assignment.sample_output = sample_output
+    res.render('assignment', {assignment, section_id, title: title})
   } else {
-    assignment.title = 'title'
-    assignment.description = 'description'
-    assignment.input_specification = 'input_specification'
-    assignment.output_specification = 'output_specification'
-    assignment.sample_input = 'sample_input'
-    assignment.sample_output = 'sample_output'
+    res.redirect('/classroom?section_id=' + section_id)
   }
-  res.render('assignment', {assignment, section_id, title: title})
 }
 
 exports.updateAssignment = async (req, res) => {
