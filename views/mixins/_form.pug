@@ -25,8 +25,11 @@ mixin registerForm(user)
           input(type='text' name='lastname' placeholder='Last Name' required)
         .field
           label Occupation
-          |  
-          input(type='text' name='occupation' placeholder='occupation')
+          |
+          select.ui.dropdown.day(name='occupation')
+            option(value='student') Student
+            option(value='teacher') Teacher
+          //- input(type='text' name='occupation' placeholder='occupation')
         .required.field
           label Gender
           .field
