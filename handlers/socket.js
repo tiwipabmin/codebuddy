@@ -686,13 +686,13 @@ module.exports = (server) => {
           if (err) throw err
         })
       });
-      const nodepty = require('child_process');
+      const nodepty = require('node-pty');
       let pty;
       if(process.platform === 'win32') pty = nodepty.spawn('pylint.exe', args, {})
       else pty = nodepty.spawn('pylint', args, {});
 
-      pty.stdout.setEncoding('utf8')
-      pty.stdout.on('data', (data) => {
+      // pty.stdout.setEncoding('utf8')
+      pty.on('data', (data) => {
         //get score from pylint
         console.log('1- data\n', data)
         const before_score = data.indexOf("Your code has been rated at");
