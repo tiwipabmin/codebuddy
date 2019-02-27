@@ -23,12 +23,14 @@
                   | Signed in as 
                   = user.username
                 .ui.inverted.divider
-                a.item(href='/profile/'+user.username)
-                  i.unhide.icon
-                  |  Your Profile
-                a.item(href='/settings/profile')
-                  i.setting.icon
-                  |  Setting Profile
+                case occupation
+                  when 1
+                    a.item(href='/profile/'+user.username)
+                      i.unhide.icon
+                      |  Your Profile
+                //- a.item(href='/settings/profile')
+                //-   i.setting.icon
+                //-   |  Setting Profile
                 a.item(href='/signout')
                   i.sign.out.icon
                   |  Sign Out

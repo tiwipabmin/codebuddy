@@ -604,13 +604,18 @@ block content
                     .right.floated.content
                       case occupation
                         when 0
-                          a.ui.right.floated.alignedvertical.animated.removeStudent.button.red(id=`${student.enrollment_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`, value=`${student.student_id}`)
+                          a.ui.right.floated.alignedvertical.animated.removeStudent.button.red(id=`${student.enrollment_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`, value=`${student.student_id}`, style='display:none;')
                             .hidden.content(style='color:white;') Remove
                             .visible.content
                               i.sign.out.icon
                     img.ui.avatar.image(src='images/user_img_0.jpg')
                     .content
-                      p !{student.first_name} !{student.last_name}
+                      case occupation
+                        when 0
+                          a(href='/profile?section_id='+section.section_id+'&username='+student.username)
+                            p !{student.first_name} !{student.last_name}
+                        default
+                            p !{student.first_name} !{student.last_name}
               else
                 p.text-center No student.  
                       

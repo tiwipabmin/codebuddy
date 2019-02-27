@@ -1,5 +1,5 @@
 mixin pairStudent(user, students)
-  .ui.small.modal#student-list-modal
+  .ui.large.modal#student-list-modal
     i.close.icon#close-student-list
     .header Student list
     .content
@@ -8,25 +8,25 @@ mixin pairStudent(user, students)
       input#pairing-objective(type='hidden', value='{}')
       input#student-objects(type='hidden', value='{}')
       input#pair-or-view(type='hidden', value='pair')
-      .ui.fluid.container.student-list-container.box
-        .ui.segment
-          .ui.two.column.very.relaxed.grid
-            .column
-              .ui.middle.aligned.divided.list.student-list
-                li.ui.item No student.
-            .column
-              .ui.middle.aligned.divided.list.partner-list
-                li.ui.item No student.
-          .ui.vertical.divider
+      .ui.fluid.container.segment.student-list-container.box
         //- .ui.segment
-        //-   .ui.middle.aligned.divided.list.student-container
-        //-     .ui.two.column.very.relaxed.grid
-        //-       .column
-        //-         font No student.
-        //-       .column
-        //-         font No student.
-        //-     .ui.vertical.divider
-        //-       i.line.chart.icon
+          //- .ui.two.column.very.relaxed.grid
+          //-   .column
+          //-     .ui.middle.aligned.divided.list.student-list
+          //-       li.ui.item No student.
+          //-   .column
+          //-     .ui.middle.aligned.divided.list.partner-list
+          //-       li.ui.item No student.
+          //- .ui.vertical.divider
+        .ui.middle.aligned.list.student-container
+          .ui.segment
+            .ui.two.column.very.relaxed.grid
+              .column
+                font No student.
+              .column
+                font No student.
+            .ui.vertical.divider
+              i.line.chart.icon
       .ui.basic.center.aligned.segment
         .actions
           button.ui.button.approve.green#confirm-pairing(type='submit') Confirm
