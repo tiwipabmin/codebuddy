@@ -307,7 +307,7 @@ exports.getProgress = async (req, res) => {
     linesOfCodes.push(scores[i].lines_of_code)
     
     // productivity
-    productivitys.push((scores[i].lines_of_code/(scores[i].time/60)).toFixed(2))
+    productivitys.push((scores[i].lines_of_code/(scores[i].time/3600)).toFixed(2))
     
     // error data
     errors.push(scores[i].error_count)
