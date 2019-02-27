@@ -12,12 +12,21 @@ mixin pairStudent(user, students)
         .ui.segment
           .ui.two.column.very.relaxed.grid
             .column
-              .ui.middle.aligned.animated.divided.list.student-list
+              .ui.middle.aligned.divided.list.student-list
                 li.ui.item No student.
             .column
-              .ui.middle.aligned.animated.divided.list.partner-list
+              .ui.middle.aligned.divided.list.partner-list
                 li.ui.item No student.
           .ui.vertical.divider
+        //- .ui.segment
+        //-   .ui.middle.aligned.divided.list.student-container
+        //-     .ui.two.column.very.relaxed.grid
+        //-       .column
+        //-         font No student.
+        //-       .column
+        //-         font No student.
+        //-     .ui.vertical.divider
+        //-       i.line.chart.icon
       .ui.basic.center.aligned.segment
         .actions
           button.ui.button.approve.green#confirm-pairing(type='submit') Confirm
@@ -36,17 +45,17 @@ mixin pairStudent(user, students)
         a.ui.red.ribbon.label Recommended
         .ui.grid
           .six.wide.column
-              #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab(data-tooltip='User\'s score ...' data-position='left center')&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+              #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab(data-tooltip='The difference of the score is less than 10 points.' data-position='left center')&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
                 .row
                   i.large.circular.inverted.teal.line.chart.icon
                 .row
                   | Quality oriented
-              #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab(data-tooltip='User\'s score ...' data-position='left center')&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+              #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 10 to 20 points.' data-position='left center')&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
                 .row
                   i.large.circular.inverted.teal.line.idea.icon
                 .row
                   | Mutual improvement
-              #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab(data-tooltip='User\'s score ...' data-position='left center')&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+              #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 20 to 30 points.' data-position='left center')&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
                 .row
                   i.large.circular.inverted.teal.line.student.icon.center.aligned
                 .row
@@ -55,7 +64,7 @@ mixin pairStudent(user, students)
             .ui.circular.labels.your-score-label
                 a.ui.red.label.student-score Student score -
             .ui.segment.container.user-purpose.box
-              .ui.middle.aligned.animated.divided.list.user-purpose-list
+              .ui.middle.aligned.divided.list.user-purpose-list
                   li.ui.item Please select your purpose.
       .ui.bottom.attached.tab.segment.purpose-tab(data-tab="search")
         .ui.grid
@@ -66,7 +75,7 @@ mixin pairStudent(user, students)
                 i.search.icon
           .ten.wide.column
               .ui.segment.container.user-purpose.box
-                .ui.middle.aligned.animated.list.user-list
+                .ui.middle.aligned.list.user-list
       .item
         .content
           .description
