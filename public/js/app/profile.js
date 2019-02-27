@@ -1,8 +1,9 @@
 window.onload = function() {
-    var userId = $('#userId').val();
-    var parameters = {uid: userId};
+    var username = $('#username').val();
+    var pid = $('#pid').val();
+    var parameters = {username: username, pid: pid};
 
-    $.get('/lobby/getProgress',parameters, function(data) {
+    $.get('/lobby/getProgress', parameters, function(data) {
 
         document.getElementById("userInfo").innerHTML = data.fullname+'<br>(@'+data.username+')'
         document.getElementById("projectsNum").innerHTML = data.projectTitles.length

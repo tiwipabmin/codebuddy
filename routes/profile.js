@@ -18,7 +18,12 @@ const router = express.Router()
 router
   .use(auth.isSignedIn)
   .route('/:username')
-  .get(webController.getProfile)
+  .get(catchErrors(webController.getProfile))
+
+router
+  .use(auth.isSignedIn)
+  .route('/')
+  .get(catchErrors(webController.getProfileByTeacher))
 
 router
   .use(auth.isSignedIn)

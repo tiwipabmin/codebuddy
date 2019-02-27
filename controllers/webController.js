@@ -159,10 +159,42 @@ exports.getFeature = (req, res) => {
 }
 
 exports.getProfile = async (req, res) => {
+  const username = req.user.username;
+  var pid = [];
+
   const projects = await Project
     .find({ $or: [{ creator: req.user.username }, { collaborator: req.user.username }] })
     .sort({ createdAt: -1 })
-  res.render('profile', { projects })
+  for(_index in projects) {
+    pid.push(projects[_index].pid)
+  }
+
+  res.render('profile', { username, pid })
+}
+
+exports.getProfileByTeacher = async (req, res) => {
+  console.log('section_id : ' + req.query.section_id + ', username : ' + req.query.username)
+  const username = req.query.username
+  var assignment_id = []
+  var pid = []
+
+  var queryAssignment = 'SELECT assignment_id FROM assignment WHERE section_id = ' + req.query.section_id
+  var assignments = await con.getAssignment(queryAssignment);
+  for(_index in assignments) {
+    assignment_id.push(assignments[_index].assignment_id)
+  }
+
+  const projects = await Project
+    .find({
+      $or: [{ creator: req.query.username }, { collaborator: req.query.username }],
+      assignment_id: { $in: assignment_id }
+    })
+    .sort({ createdAt: -1 })
+  for(_index in projects) {
+    pid.push(projects[_index].pid)
+  }
+
+  res.render('profile', { username, pid })
 }
 
 exports.getNotifications = async (req, res) => {
@@ -934,8 +966,8 @@ exports.declineInvite = async (req, res) => {
 }
 
 exports.getProgress = async (req, res) => {
-  console.log('asdfffffffffffffffffffaaaaaaa')
-  const uid = req.query.uid
+  const username = req.query.username;
+  const pid = JSON.parse(req.query.pid);
   let data = {};
   let projectTitles = [];
   let projectTimes = [];
@@ -944,35 +976,34 @@ exports.getProgress = async (req, res) => {
   let productivitys = [];
   let errors = [];
 
-
   const user = await User.findOne({
-    _id: uid
+    username: username
   })
-  console.log(1)
   const scores = await Score.find({
-    uid: uid
+    uid: user._id,
+    pid: { $in: pid }
   })
-  console.log(2)
+  console.log('scores: ', scores)
   for(var i = 0; i < scores.length; i++) {
     // project title (label)
     project = await Project.findOne({
       pid: scores[i].pid
     })
-    console.log(3, ' title : ' + project)
+
     projectTitles.push(project.title)
-    console.log(4)
+
     // project time data
     projectTimes.push((scores[i].time/60).toFixed(2))
-    console.log(5)
+
     // project score data
     projectScores.push(scores[i].score)
-    console.log(6)
+
     // lines of code data
     linesOfCodes.push(scores[i].lines_of_code)
-    console.log(7)
+
     // productivity
     productivitys.push((scores[i].lines_of_code/(scores[i].time/3600)).toFixed(2))
-    console.log(8)
+
     // error data
     errors.push(scores[i].error_count)
   }
@@ -987,6 +1018,5 @@ exports.getProgress = async (req, res) => {
   data['linesOfCodes'] = linesOfCodes;
   data['productivitys'] = productivitys;
   data['errors'] = errors;
-  console.log(data)
   res.send(data)
 }

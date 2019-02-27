@@ -8,7 +8,8 @@ block script
     script(src='/js/app/profile.js')
     link(rel='stylesheet' href='/css/main.css')
 block content
-    input(type='hidden' id='userId' value=user._id)
+    input(type='hidden' id='username' value=username)
+    input(type='hidden' id='pid' value=pid)
     .ui.raised.very.padded.container.segment
       .ui.relaxed.grid.container
         .six.wide.column
@@ -36,4 +37,3 @@ block content
           canvas(id="productivityChart" style="height: 300px; width: 100%;")
         .column
           canvas(id="errorChart" style="height: 300px; width: 100%;")
-          
