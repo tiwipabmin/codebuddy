@@ -770,11 +770,18 @@ exports.updateAssignment = async (req, res) => {
   const assignment_id = req.body.assignment_id
   const section_id = req.body.section_id
   const title = req.body.title
-  const description = req.body.description
-  const input_specification = req.body.input_specification
-  const output_specification = req.body.output_specification
-  const sample_input = req.body.sample_input
-  const sample_output = req.body.sample_output
+  // const description = req.body.description
+  // const input_specification = req.body.input_specification
+  // const output_specification = req.body.output_specification
+  // const sample_input = req.body.sample_input
+  // const sample_output = req.body.sample_output
+
+  const description = (req.body.description).replace(/\s/g, "\\n");
+  console.log('des---- :',description);
+  const input_specification = (req.body.input_specification).replace(/\s/g, "\\n")
+  const output_specification = (req.body.output_specification).replace(/\s/g, "\\n")
+  const sample_input = (req.body.sample_input).replace(/\s/g, "\\n")
+  const sample_output = (req.body.sample_output).replace(/\s/g, "\\n")
   console.log('assignment_id: ' + assignment_id + ', section_id: ' + section_id)
   console.log('title: ' + req.body.title + ', description: ' + req.body.description + ', input_specification: ' + req.body.input_specification + ', output_specification: ' + req.body.output_specification + ', sample_input: ' + req.body.sample_input + ', sample_output: ' + req.body.sample_output)
   const updateAssignment = 'UPDATE assignment SET title = \'' + req.body.title + '\', description = \'' + req.body.description + '\', input_specification = \'' + req.body.input_specification + '\', output_specification = \'' + req.body.output_specification + '\', sample_input = \'' + req.body.sample_input + '\', sample_output = \'' + req.body.sample_output + '\' WHERE assignment_id = ' + assignment_id

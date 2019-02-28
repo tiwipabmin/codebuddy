@@ -99,7 +99,7 @@ block content
         h1.ui.header !{assignment.title}
       if user.info.occupation == 'teacher'
         .right.aligned.column
-          .ui.button.approve.grey(onclick='showAssignmentModal()') Edit
+          .ui.button.approve.grey#edit-assignment(onclick='showAssignmentModal()') Edit
             .ui.small.modal#assignment-modal
               i.close.icon
               .header Assignment
@@ -112,31 +112,31 @@ block content
                   .field
                     label Description :
                     |
-                    textarea(type='text', name='description', placeholder='Some content...', style='resize:none;') !{assignment.description}
+                    textarea#description(type='text', name='description', placeholder='Some content...', style='resize:none;') !{assignment.description}
                   .ui.grid
                     .two.column.row
                       .column
                         .field
                           label Input specification :
                           |
-                          textarea(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;') !{assignment.input_specification}
+                          textarea#input_specification(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;') !{assignment.input_specification}
                       .column
                         .field
                           label Output specification :
                           |
-                          textarea(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;') !{assignment.output_specification}
+                          textarea#output_specification(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;') !{assignment.output_specification}
                   .ui.grid
                     .two.column.row
                       .column
                         .field
                           label Sample Input :
                           |
-                          textarea(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;') !{assignment.sample_input}
+                          textarea#sample_input(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;') !{assignment.sample_input}
                       .column
                         .field
                           label Sample Output :
                           |
-                          textarea(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;') !{assignment.sample_output}
+                          textarea#sample_output(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;') !{assignment.sample_output}
                   input(type='hidden', name='assignment_id', value=`${assignment.assignment_id}`)
                   input(type='hidden', name='section_id', value=`${section_id}`)
                   .ui.basic.center.aligned.segment
@@ -144,6 +144,23 @@ block content
                       button.ui.button.approve.green(type='submit') Create
                       .ui.button.cancel.red(data-value='cancel') Cancel
                   .ui.error.message
+                  script.
+                    $(document).ready(function () {
+                      $('#edit-assignment').click(function(){
+                        var assignment = !{JSON.stringify(assignment)}
+                        console.log("assignment : ",  assignment)
+                        assignment.description = assignment.description.replace(/<br>/g, "\n")
+                        assignment.input_specification = assignment.input_specification.replace(/<br>/g, "\n")
+                        assignment.output_specification = assignment.output_specification.replace(/<br>/g, "\n")
+                        assignment.sample_input = assignment.sample_input.replace(/<br>/g, "\n")
+                        assignment.sample_output = assignment.sample_output.replace(/<br>/g, "\n")
+                        $('#description').text(assignment.description)
+                        $('#input_specification').text(assignment.input_specification)
+                        $('#output_specification').text(assignment.output_specification)
+                        $('#sample_input').text(assignment.sample_input)
+                        $('#sample_output').text(assignment.sample_output)
+                      })
+                    })
           //- .ui.button.approve.red(onClick=`showDeleteModal()`) Delete
           //-   .ui.small.modal(id='delete-modal')
           //-     .header Delete Assignment
