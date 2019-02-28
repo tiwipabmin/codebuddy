@@ -169,7 +169,7 @@ exports.getProfile = async (req, res) => {
     pid.push(projects[_index].pid)
   }
 
-  res.render('profile', { username, pid })
+  res.render('profile', { username, pid , title: username + " Progress"})
 }
 
 exports.getProfileByTeacher = async (req, res) => {
@@ -194,7 +194,7 @@ exports.getProfileByTeacher = async (req, res) => {
     pid.push(projects[_index].pid)
   }
 
-  res.render('profile', { username, pid })
+  res.render('profile', { username, pid , title: username + " Progress"})
 }
 
 exports.getNotifications = async (req, res) => {
