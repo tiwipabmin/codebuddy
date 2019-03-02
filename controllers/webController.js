@@ -308,7 +308,13 @@ exports.getSection = async (req, res) => {
   else section = section[0]
 
   if(!students.length) students = []
-  if(!assignments.length) assignments = []
+  if(!assignments.length) {
+    assignments = []
+  } else if (assignments.length) {
+    for (_index in assignments) {
+      assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+    }
+  }
 
   if(occupation == 'teacher') {
     occupation = 0
@@ -740,7 +746,7 @@ exports.getStudentsFromSection = async (req, res) => {
 exports.createAssignment = async (req, res) => {
   //console.log('section_id: ' + parseInt(req.body.section_id) + ', title: ' + req.body.title + ', description: ' + req.body.description + ', input_specification: ' + req.body.input_specification + ', output_specification: ' + req.body.output_specification + ', sample_input: ' + req.body.sample_input + ', sample_output: ' + req.body.sample_output)
   const section_id = parseInt(req.body.section_id)
-  const title = req.body.title
+  const title = (req.body.title).replace(/\s/g, "\\n")
   const description = (req.body.description).replace(/\s/g, "\\n");
   console.log('des---- :',description);
   const input_specification = (req.body.input_specification).replace(/\s/g, "\\n")
@@ -754,7 +760,7 @@ exports.createAssignment = async (req, res) => {
   console.log('assign_id : ' + assignment_id)
   if(typeof assignment_id == 'number') {
     assignment.assignment_id = assignment_id
-    assignment.title = title
+    assignment.title = title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.description = description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.input_specification = input_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.output_specification = output_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
@@ -769,7 +775,7 @@ exports.createAssignment = async (req, res) => {
 exports.updateAssignment = async (req, res) => {
   const assignment_id = req.body.assignment_id
   const section_id = req.body.section_id
-  const title = req.body.title
+  const title = (req.body.title).replace(/\s/g, "\\n");
   // const description = req.body.description
   // const input_specification = req.body.input_specification
   // const output_specification = req.body.output_specification
@@ -796,7 +802,8 @@ exports.getAssignment = async (req, res) => {
   var title = 'Assignment'
   if(assignment.length) {
     assignment = assignment[0]
-    title = assignment.title
+    title = assignment.title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+    assignment.title = assignment.title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.description = assignment.description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.input_specification = assignment.input_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.output_specification = assignment.output_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
