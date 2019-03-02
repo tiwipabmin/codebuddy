@@ -99,7 +99,7 @@ block content
         h1.ui.header !{assignment.title}
       if user.info.occupation == 'teacher'
         .right.aligned.column
-          .ui.button.approve.grey#edit-assignment(onclick='showAssignmentModal()') Edit
+          .ui.button.approve.grey#edit-assignment(onclick='showAssignmentModal()', style="display:none;") Edit
             .ui.small.modal#assignment-modal
               i.close.icon
               .header Assignment
