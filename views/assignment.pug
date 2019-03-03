@@ -99,7 +99,7 @@ block content
         h1.ui.header !{assignment.title}
       if user.info.occupation == 'teacher'
         .right.aligned.column
-          .ui.button.approve.grey#edit-assignment(onclick='showAssignmentModal()', style="display:none;") Edit
+          .ui.button.approve.grey#edit-assignment(onclick='showAssignmentModal()') Edit
             .ui.small.modal#assignment-modal
               i.close.icon
               .header Assignment
@@ -141,14 +141,15 @@ block content
                   input(type='hidden', name='section_id', value=`${section_id}`)
                   .ui.basic.center.aligned.segment
                     .actions
-                      button.ui.button.approve.green(type='submit') Create
+                      button.ui.button.approve.green(type='submit') Update
                       .ui.button.cancel.red(data-value='cancel') Cancel
                   .ui.error.message
                   script.
                     $(document).ready(function () {
                       $('#edit-assignment').click(function(){
                         var assignment = !{JSON.stringify(assignment)}
-                        console.log("assignment : ",  assignment)
+                        console.log("assignment : ",  assignment.description)
+                        assignment.title = assignment.title.replace(/<br>/g, "\n")
                         assignment.description = assignment.description.replace(/<br>/g, "\n")
                         assignment.input_specification = assignment.input_specification.replace(/<br>/g, "\n")
                         assignment.output_specification = assignment.output_specification.replace(/<br>/g, "\n")
