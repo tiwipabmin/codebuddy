@@ -319,16 +319,16 @@ exports.getSection = async (req, res) => {
   if(occupation == 'teacher') {
     occupation = 0
     var queryPairingDateTime = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
-    var pairingDateTimes = [];
+    var pairing_sessions = [];
 
-    pairingDateTimes = await con.getPairingDateTime(queryPairingDateTime)
+    pairing_sessions = await con.getPairingDateTime(queryPairingDateTime)
 
-    const pairingTimes = pairingDateTimes.length
+    const pairingTimes = pairing_sessions.length
     if(!pairingTimes) {
-      pairingDateTimes = [{status: -1}]
+      pairing_sessions = [{status: -1}]
     }
 
-    res.render('classroom', { occupation, section, assignments, students, pairingDateTimes, pairingTimes, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, students, pairing_sessions, pairingTimes, title: section.course_name })
   } else {
     occupation = 1
     var projects_in_section = []
@@ -351,9 +351,9 @@ exports.getSection = async (req, res) => {
         }
       });
     }
-    pairingDateTimes = [{status: -1}]
+    pairing_sessions = [{status: -1}]
 
-    res.render('classroom', { occupation, section, assignments, students, projects_in_section, pairingDateTimes, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, students, projects_in_section, pairing_sessions, title: section.course_name })
   }
 }
 
@@ -437,7 +437,7 @@ exports.searchUser = async (req, res) => {
 }
 
 exports.updatePairingDateTimeStatus = async (req, res) => {
-  //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_date_time_id + ', partner_keys : ', partner_keys)
+  //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_session_id + ', partner_keys : ', partner_keys)
 
   //create date time at this moment
   var time_end = new Date()
@@ -447,8 +447,8 @@ exports.updatePairingDateTimeStatus = async (req, res) => {
   time_end = slice_time_end.join(' ')
 
   const status = req.body.status
-  const pairing_date_time_id = req.body.pairing_date_time_id
-  const updatePairingDateTimeStatus = 'UPDATE pairing_session SET status = ' + status + ', time_end = \'' + time_end + '\' WHERE pairing_session_id = ' + pairing_date_time_id;
+  const pairing_session_id = req.body.pairing_session_id
+  const updatePairingDateTimeStatus = 'UPDATE pairing_session SET status = ' + status + ', time_end = \'' + time_end + '\' WHERE pairing_session_id = ' + pairing_session_id;
   var res_status = await con.updatePairingDateTime(updatePairingDateTimeStatus)
   if(res_status == 'Update completed.') {
     console.log(req.body.section_id)
@@ -623,12 +623,12 @@ exports.createPairingHistory = async (req, res) => {
 
   console.log('date_time : ' + date_time)
   const values = [[section[0].section_id, date_time, 2]]
-  const pairing_date_time_id = await con.createPairingDateTime(createPairingDateTime, values)
+  const pairing_session_id = await con.createPairingDateTime(createPairingDateTime, values)
 
-  console.log('pairing_date_time_id : ', typeof pairing_date_time_id)
-  if(typeof pairing_date_time_id == 'number') {
+  console.log('pairing_session_id : ', typeof pairing_session_id)
+  if(typeof pairing_session_id == 'number') {
     // let pairing_session_latest = {}
-    // pairing_session_latest['pairing_date_time_id'] = pairing_date_time_id
+    // pairing_session_latest['pairing_session_id'] = pairing_session_id
     // pairing_session_latest['section_id'] = section[0].section_id
     // pairing_session_latest['date_time'] = date_time
     // pairing_session_latest['status'] = 2
@@ -645,7 +645,7 @@ exports.createPairingHistory = async (req, res) => {
       } else {
         selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + key
         enrollment_value = await con.getEnrollment(selectEnrollment)
-        pairing_history_value = [parseInt(key), parseInt(pairing_date_time_id), partner_keys[key], pairing_objective[key], "host"]
+        pairing_history_value = [parseInt(key), parseInt(pairing_session_id), partner_keys[key], pairing_objective[key], "host"]
         pairing_history_values[count] = pairing_history_value
         count++;
 
@@ -658,7 +658,7 @@ exports.createPairingHistory = async (req, res) => {
 
           selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + partner_keys[key]
           enrollment_value = await con.getEnrollment(selectEnrollment)
-          pairing_history_value = [partner_keys[key], parseInt(pairing_date_time_id), parseInt(key), pairing_objective[partner_keys[key]], "partner"]
+          pairing_history_value = [partner_keys[key], parseInt(pairing_session_id), parseInt(key), pairing_objective[partner_keys[key]], "partner"]
           pairing_history_values[count] = pairing_history_value
           count++;
         }
@@ -671,11 +671,11 @@ exports.createPairingHistory = async (req, res) => {
 
     if(res_status == 'Create completed.'){
       console.log('2')
-      const updateStatus = 'UPDATE pairing_session SET status = 2 WHERE pairing_session_id = ' + pairing_date_time_id
+      const updateStatus = 'UPDATE pairing_session SET status = 2 WHERE pairing_session_id = ' + pairing_session_id
       res_status = await con.updatePairingDateTime(updateStatus)
     }
     console.log('date_time: ' + date_time)
-    res.send({res_status: res_status, pairing_date_time_id: pairing_date_time_id, pairingTime: pairingTime, date_time: date_time, time_end: '-'})
+    res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairingTime: pairingTime, date_time: date_time, time_end: '-'})
   } else {
     res.send({res_status: 'Update failed.'})
   }
@@ -684,7 +684,7 @@ exports.createPairingHistory = async (req, res) => {
 exports.getStudentsFromSection = async (req, res) => {
   var partner_keys = JSON.parse(req.query.partner_keys)
   var pairing_objective = JSON.parse(req.query.pairing_objective)
-  const pairing_date_time_id = req.query.pairing_date_time_id
+  const pairing_session_id = req.query.pairing_session_id
   const command = req.query.command
   //console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
@@ -713,7 +713,7 @@ exports.getStudentsFromSection = async (req, res) => {
       pairing_objective[students[_index].enrollment_id] = -1
     }
   } else if (command == 'view') {
-    const selectPairingHistory = 'SELECT * FROM pairing_history WHERE pairing_session_id = ' + pairing_date_time_id
+    const selectPairingHistory = 'SELECT * FROM pairing_history WHERE pairing_session_id = ' + pairing_session_id
     const pairing_history_values = await con.getPairingHistory(selectPairingHistory);
     var pairing_history_objects = {}
     for(_index in pairing_history_values) {
@@ -800,6 +800,14 @@ exports.getAssignment = async (req, res) => {
   const queryAssignment = 'SELECT * FROM assignment WHERE assignment_id = ' + req.query.assignment_id
   var assignment = await con.getAssignment(queryAssignment)
   var title = 'Assignment'
+
+  var occupation = 1;
+  if(req.user.info.occupation == 'teacher') {
+    occupation = 0;
+  } else if (req.user.info.occupation == 'student') {
+    occupation = 1;
+  }
+
   if(assignment.length) {
     assignment = assignment[0]
     title = assignment.title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
@@ -810,7 +818,7 @@ exports.getAssignment = async (req, res) => {
     assignment.sample_input = assignment.sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = assignment.sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
   }
-  res.render('assignment', {assignment, section_id, title: title})
+  res.render('assignment', {assignment, section_id, occupation, title: title})
 }
 
 exports.assignAssignment = async (req, res) => {
@@ -830,13 +838,13 @@ exports.assignAssignment = async (req, res) => {
     return
     console.log('Please pair all students before assign the assignment!')
   }
-  const pairing_date_time_id = req.body.pairing_date_time_id;
+  const pairing_session_id = req.body.pairing_session_id;
   const assignment_id = parseInt(req.body.assignment_id)
   const title = req.body.title;
   const description = req.body.description;
   const swaptime = '1';
   const language = '0';
-  const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_history AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairing_date_time_id
+  const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_history AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairing_session_id
   var students = await con.getStudent(selectStudent);
   console.log('students : ' + students)
   var partner_keys = {}
