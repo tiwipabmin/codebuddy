@@ -7,7 +7,7 @@ const LocalStrategy = require('passport-local').Strategy
 const User = mongoose.model('User')
 const bcrypt = require('bcrypt')
 const Redis = require('ioredis')
-const con = require('../mySql')
+const con = require('../my_sql')
 
 function config(passport) {
   /**

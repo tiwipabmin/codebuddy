@@ -23,20 +23,20 @@ function makeClassCode(){
   return text;
 }
 
-exports.isDuplicateClassCode = () => {
+exports.is_duplicate_class_code = () => {
   return new Promise(function (resolve, reject) {
     const classCode = makeClassCode()
     const queryClassCode = 'SELECT class_code FROM section WHERE class_code = \"' + classCode + '\"'
     con.query(queryClassCode, function(err, res) {
       if(err) reject(err);
       else if(res.length) {
-        isDuplicateClassCode()
+        is_duplicate_class_code()
       } else resolve(classCode)
     })
   })
 }
 
-exports.createSection = (query, values) => {
+exports.insert_section = (query, values) => {
   return new Promise(function(resolve, reject) {
     con.query(query, [values], function(err, res){
       if(err) reject(err);
@@ -45,7 +45,7 @@ exports.createSection = (query, values) => {
   })
 }
 
-exports.deleteSection = (query) => {
+exports.delete_section = (query) => {
   return new Promise(function(resolve, reject) {
     con.query(query, function(err, res){
       if(err) reject('Delete the section fail.');
@@ -54,7 +54,7 @@ exports.deleteSection = (query) => {
   })
 }
 
-exports.createCourse = (query, values) => {
+exports.insert_course = (query, values) => {
   return new Promise(function(resolve, reject) {
     con.query(query, [values], function(err, res){
       if(err) reject(err);
@@ -63,7 +63,7 @@ exports.createCourse = (query, values) => {
   })
 }
 
-exports.getCourse = (query) => {
+exports.select_course = (query) => {
   return new Promise(function(resolve, reject) {
     con.query(query, function(err, res){
       if(err) reject(err);
@@ -72,7 +72,7 @@ exports.getCourse = (query) => {
   })
 }
 
-exports.updateCourse = (query) => {
+exports.update_course = (query) => {
   return new Promise(function(resolve, reject) {
     con.query(query, function(err, res){
       if(err) reject(err);
@@ -90,7 +90,7 @@ exports.getSection = (query) => {
   })
 }
 
-exports.updateSection = (query) => {
+exports.update_section = (query) => {
   return new Promise(function(resolve, reject) {
     con.query(query, function(err, res){
       if(err) reject(err);
@@ -99,7 +99,7 @@ exports.updateSection = (query) => {
   })
 }
 
-exports.getEnrollment = (query, values) => {
+exports.select_enrollment = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){
       if(err) reject(err);
@@ -108,7 +108,7 @@ exports.getEnrollment = (query, values) => {
   })
 }
 
-exports.postEnrollment = (query, values) => {
+exports.insert_enrollment = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){
       if(err) reject(err);
@@ -117,7 +117,16 @@ exports.postEnrollment = (query, values) => {
   })
 }
 
-exports.createAssignment = (query, values) => {
+exports.update_enrollment = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function(err, res){
+      if(err) reject('Update failed.');
+      resolve('Update completed.');
+    })
+  })
+}
+
+exports.insert_assignment = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){
       if(err) reject(err);
@@ -126,7 +135,7 @@ exports.createAssignment = (query, values) => {
   })
 }
 
-exports.updateAssignment = (query, values) => {
+exports.update_assignment = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject('Update failed.');
@@ -135,7 +144,7 @@ exports.updateAssignment = (query, values) => {
   })
 }
 
-exports.getAssignment = (query) => {
+exports.select_assignment = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject(err);
@@ -144,16 +153,7 @@ exports.getAssignment = (query) => {
   })
 }
 
-exports.updateEnrollment = (query, values) => {
-  return new Promise(function(resolve, reject){
-    con.query(query, [values], function(err, res){
-      if(err) reject('Update failed.');
-      resolve('Update completed.');
-    })
-  })
-}
-
-exports.createPairingHistory = (query, values) => {
+exports.insert_pairing_record = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){
       if(err) reject('Create failed.');
@@ -162,7 +162,7 @@ exports.createPairingHistory = (query, values) => {
   })
 }
 
-exports.getPairingHistory = (query) => {
+exports.select_pairing_record = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject(err);
@@ -171,7 +171,7 @@ exports.getPairingHistory = (query) => {
   })
 }
 
-exports.createPairingDateTime = (query, values) => {
+exports.insert_pairing_session = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, [values], function(err, res){
       if(err) reject('Create pairing date time fail!');
@@ -180,7 +180,7 @@ exports.createPairingDateTime = (query, values) => {
   })
 }
 
-exports.getPairingDateTime = (query) => {
+exports.select_pairing_session = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject(err);
@@ -189,7 +189,7 @@ exports.getPairingDateTime = (query) => {
   })
 }
 
-exports.updatePairingDateTime = (query) => {
+exports.update_pairing_session = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject('Update failed.');
@@ -198,17 +198,7 @@ exports.updatePairingDateTime = (query) => {
   })
 }
 
-exports.addPartnerToStudent = (query) => {
-  return new Promise(function(resolve, reject){
-    con.query(query, function(err, res){
-      if(err) reject('Add failed');
-      resolve('Add completed.')
-    })
-  })
-}
-
-
-exports.getStudent = (query) => {
+exports.select_student = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject(err);
@@ -217,7 +207,7 @@ exports.getStudent = (query) => {
   })
 }
 
-exports.removeStudent = (query) => {
+exports.remove_student = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject('Remove the student from the classroom fail.');
@@ -226,16 +216,7 @@ exports.removeStudent = (query) => {
   })
 }
 
-exports.searchStudent = (query) => {
-  return new Promise(function(resolve, reject){
-    con.query(query, function(err, res){
-      if(err) reject(err);
-      resolve(res);
-    })
-  })
-}
-
-exports.getTeacher = (query) => {
+exports.select_teacher = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
       if(err) reject(err);

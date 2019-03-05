@@ -26,12 +26,12 @@ router.get('/getPairingDateTime', auth.isSignedIn, catchErrors(webController.get
 router.get('/searchStudentByPurpose', auth.isSignedIn, catchErrors(webController.searchStudentByPurpose))
 router.get('/getStudentsFromSection', auth.isSignedIn, catchErrors(webController.getStudentsFromSection))
 router.get('/searchStudent', auth.isSignedIn, catchErrors(webController.searchStudent))
-router.put('/updatePairingDateTimeStatus', auth.isSignedIn, catchErrors(webController.updatePairingDateTimeStatus))
+router.put('/updatePairingSession', auth.isSignedIn, catchErrors(webController.updatePairingSession))
 router.put('/resetPair', auth.isSignedIn, catchErrors(webController.resetPair))
 router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
 router.post('/assignAssignment', auth.isSignedIn, catchErrors(webController.assignAssignment))
-router.post('/createPairingHistory', auth.isSignedIn, catchErrors(webController.createPairingHistory))
+router.post('/createPairingRecord', auth.isSignedIn, catchErrors(webController.createPairingRecord))
 
 /**
  * Expose `router`

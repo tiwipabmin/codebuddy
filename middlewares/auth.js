@@ -4,7 +4,7 @@
  * @param {Object} res
  * @param {Function} next
  */
- const con = require('../mySql')
+ const con = require('../my_sql')
 
 exports.isSignedIn = (req, res, next) => {
   return req.isAuthenticated() ? next() : res.redirect('/signin')

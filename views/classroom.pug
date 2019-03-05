@@ -506,8 +506,8 @@ block content
                       if project.creator === user.username
                           .item(style='padding-top:10px; padding-bottom:10px;')
                             a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator')
-                              img(src='/images/blue-folder.png')(style='position: absolute;')
-                              img.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px;left:25px;top: 20px;')
+                              img(src='/images/blue-folder.png', style='position: absolute;')
+                              img.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px;left:25px;top: 20px;')
 
                             .content
                               .ui.grid
@@ -522,9 +522,9 @@ block content
                       else if project.collaborator === user.username
                         .item(style='padding-top:10px')
                           a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator')
-                              img(src='/images/yellow-folder.png')(style='position: absolute;')
-                              img.img-owner.ui.avatar.image(src=`${user.img}`)(style='width: 30px;height: 30px; top:20px;')
-                              img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg')(style='width:30px; height:30px; top:-10px;')
+                              img(src='/images/yellow-folder.png', style='position: absolute;')
+                              img.img-owner.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px; top:20px;')
+                              img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg', style='width:30px; height:30px; top:-10px;')
 
                           .content
                             b(style='font-size:1.2em;')

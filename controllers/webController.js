@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const con = require('../mySql')
+const con = require('../my_sql')
 const Redis = require('ioredis')
 var fs = require('fs')
 
@@ -178,8 +178,8 @@ exports.getProfileByTeacher = async (req, res) => {
   var assignment_id = []
   var pid = []
 
-  var queryAssignment = 'SELECT assignment_id FROM assignment WHERE section_id = ' + req.query.section_id
-  var assignments = await con.getAssignment(queryAssignment);
+  var select_assignment_by_section_id = 'SELECT assignment_id FROM assignment WHERE section_id = ' + req.query.section_id
+  var assignments = await con.select_assignment(select_assignment_by_section_id);
   for(_index in assignments) {
     assignment_id.push(assignments[_index].assignment_id)
   }
@@ -241,22 +241,22 @@ exports.createProject = async (req, res) => {
 
 exports.createSection = async (req, res) => {
   const queryCourse = 'INSERT INTO course (teacher_id, course_name) VALUES ?';
-  const queryTeacher = 'SELECT teacher_id FROM teacher WHERE username = \'' + req.user.username + '\''
+  const select_teacher_by_username = 'SELECT teacher_id FROM teacher WHERE username = \'' + req.user.username + '\''
   const querySection = 'INSERT INTO section (course_id, section, room, class_code, day, time_start, time_end) VALUES ?';
-  const teacher = await con.getTeacher(queryTeacher)
+  const teacher = await con.select_teacher(select_teacher_by_username)
   const teacher_id = teacher[0].teacher_id
   const courseValues = [[teacher_id, req.body.course_name]]
-  const course_id = await con.createCourse(queryCourse, courseValues)
-  const classCode = await con.isDuplicateClassCode()
+  const course_id = await con.insert_course(queryCourse, courseValues)
+  const classCode = await con.is_duplicate_class_code()
   const time_start = req.body.time_start_hh + ':' + req.body.time_start_mm + '' + req.body.time_start_ap
   const time_end = req.body.time_end_hh + ':' + req.body.time_end_mm + '' + req.body.time_end_ap
   const sectionValues = [[course_id, req.body.section, req.body.room, classCode, req.body.day, time_start, time_end]]
-  const sections = await con.createSection(querySection, sectionValues)
+  const sections = await con.insert_section(querySection, sectionValues)
   res.redirect('lobby')
 }
 
-exports.createPairingDateTime = async (req, res) => {
-  const queryPairingDateTime = 'INSERT INTO pairing_session (section_id, date_time, status) VALUES ?'
+exports.create_pairing_session = async (req, res) => {
+  const insert_pairing_session = 'INSERT INTO pairing_session (section_id, date_time, status) VALUES ?'
   const querySection = 'SELECT * FROM section AS s WHERE s.section_id = ' + req.body.section_id + '';
   const section = await con.getSection(querySection);
   console.log('section_id : ' + section[0].section_id)
@@ -264,9 +264,9 @@ exports.createPairingDateTime = async (req, res) => {
   const section_id =
   console.log('date_time : ' + date_time)
   const values = [[section[0].section_id, date_time, 1]]
-  const pairing_date_time_id = await con.createPairingDateTime(queryPairingDateTime, values)
+  const pairing_session_id = await con.insert_pairing_session(insert_pairing_session, values)
   let temp = {}
-  temp['pairing_date_time_id'] = pairing_date_time_id
+  temp['pairing_session_id'] = pairing_session_id
   temp['section_id'] = section[0].section_id
   temp['date_time'] = date_time
   temp['status'] = 1
@@ -274,10 +274,10 @@ exports.createPairingDateTime = async (req, res) => {
 }
 
 exports.deleteSection = async (req, res) => {
-  const deleteSection = 'DELETE FROM section WHERE section_id = ' + req.body.section_id;
-  const status = await con.deleteSection(deleteSection)
+  const delete_section = 'DELETE FROM section WHERE section_id = ' + req.body.section_id;
+  const res_status = await con.delete_section(delete_section)
   let temp = {}
-  temp['status'] = status
+  temp['status'] = res_status
   console.log('temp : ' + temp.status + ', ' + req.body.section_id)
   res.json(temp).status(200)
 }
@@ -285,10 +285,10 @@ exports.deleteSection = async (req, res) => {
 exports.updateSection = async (req, res) => {
   const time_start = req.body.time_start_hh + ':' + req.body.time_start_mm + '' + req.body.time_start_ap
   const time_end = req.body.time_end_hh + ':' + req.body.time_end_mm + '' + req.body.time_end_ap
-  const queryCourse = 'UPDATE course SET course_name = \'' + req.body.course_name + '\' WHERE course_id = ' + req.body.course_id;
-  const querySection = 'UPDATE section SET section = ' + req.body.section + ', room = \'' + req.body.room + '\', day = \'' + req.body.day + '\', time_start = \'' + time_start + '\', time_end = \'' + time_end + '\' WHERE section_id = ' + req.body.section_id;
-  var courseStatus = await con.updateCourse(queryCourse);
-  var sectionStatus = await con.updateSection(querySection);
+  const update_course = 'UPDATE course SET course_name = \'' + req.body.course_name + '\' WHERE course_id = ' + req.body.course_id;
+  const update_section = 'UPDATE section SET section = ' + req.body.section + ', room = \'' + req.body.room + '\', day = \'' + req.body.day + '\', time_start = \'' + time_start + '\', time_end = \'' + time_end + '\' WHERE section_id = ' + req.body.section_id;
+  var courseStatus = await con.update_course(update_course);
+  var sectionStatus = await con.update_section(update_section);
   res.redirect('/classroom?section_id=' + req.body.section_id)
 }
 
@@ -296,13 +296,13 @@ exports.getSection = async (req, res) => {
   var occupation = req.user.info.occupation;
   var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
-  var queryAssignment = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
+  var select_assignment_by_section_id = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
   var section = [];
   var students = [];
   var assignments = [];
   section = await con.getSection(querySection)
-  students = await con.getStudent(queryStudent)
-  assignments = await con.getAssignment(queryAssignment)
+  students = await con.select_student(queryStudent)
+  assignments = await con.select_assignment(select_assignment_by_section_id)
 
   if(!section.length) section = []
   else section = section[0]
@@ -318,10 +318,10 @@ exports.getSection = async (req, res) => {
 
   if(occupation == 'teacher') {
     occupation = 0
-    var queryPairingDateTime = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
+    var select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
     var pairing_sessions = [];
 
-    pairing_sessions = await con.getPairingDateTime(queryPairingDateTime)
+    pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
 
     const pairingTimes = pairing_sessions.length
     if(!pairingTimes) {
@@ -358,9 +358,9 @@ exports.getSection = async (req, res) => {
 }
 
 exports.removeStudent = async (req, res) => {
-  console.log('student_id : ' + req.body.enrollment_id)
-  var removeStudent = 'DELETE FROM enrollment WHERE enrollment_id = ' + req.body.enrollment_id;
-  var status = await con.removeStudent(removeStudent);
+  //console.log('student_id : ' + req.body.enrollment_id)
+  var remove_student_by_enrollment_id = 'DELETE FROM enrollment WHERE enrollment_id = ' + req.body.enrollment_id;
+  var status = await con.remove_student(remove_student_by_enrollment_id);
   let temp = {}
   temp['status'] = status
   console.log('temp : ' + temp + ', ' + status)
@@ -374,14 +374,14 @@ exports.joinClass = async (req, res) => {
     console.log('section : ' + res[0])
     return res
   })
-  var student = await con.getStudent(queryStudent).then(function(res) {
+  var student = await con.select_student(queryStudent).then(function(res) {
     console.log('student : ' + res[0])
     return res
   })
   if(section.length) {
     var queryEnrollment = 'INSERT INTO enrollment (student_id, section_id, grade) VALUES ?'
     var values = [[student[0].student_id, section[0].section_id, '4']]
-    var status = await con.postEnrollment(queryEnrollment, values)
+    var status = await con.insert_enrollment(queryEnrollment, values)
   }
   res.redirect('/lobby')
 }
@@ -436,7 +436,7 @@ exports.searchUser = async (req, res) => {
   res.send(users)
 }
 
-exports.updatePairingDateTimeStatus = async (req, res) => {
+exports.updatePairingSession = async (req, res) => {
   //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_session_id + ', partner_keys : ', partner_keys)
 
   //create date time at this moment
@@ -448,30 +448,30 @@ exports.updatePairingDateTimeStatus = async (req, res) => {
 
   const status = req.body.status
   const pairing_session_id = req.body.pairing_session_id
-  const updatePairingDateTimeStatus = 'UPDATE pairing_session SET status = ' + status + ', time_end = \'' + time_end + '\' WHERE pairing_session_id = ' + pairing_session_id;
-  var res_status = await con.updatePairingDateTime(updatePairingDateTimeStatus)
+  const update_pairing_session_by_pairing_session_id = 'UPDATE pairing_session SET status = ' + status + ', time_end = \'' + time_end + '\' WHERE pairing_session_id = ' + pairing_session_id;
+  var res_status = await con.update_pairing_session(update_pairing_session_by_pairing_session_id)
   if(res_status == 'Update completed.') {
-    console.log(req.body.section_id)
+    //console.log(req.body.section_id)
     const resetPartner = 'UPDATE enrollment SET partner_id = NULL WHERE section_id = ' + req.body.section_id
-    res_status = await con.updateEnrollment(resetPartner)
-    console.log(2)
+    res_status = await con.update_enrollment(resetPartner)
+    //console.log(2)
   } else {
     res_status = 'Update a pairing date time status failed.'
   }
-  console.log('res_status : ' + res_status)
+  //console.log('res_status : ' + res_status)
   res.send({status: res_status, time_end: time_end})
 }
 
 exports.getPairingDateTime = async (req, res) => {
-  const queryPairingDateTime = 'SELECT * FROM pairing_session WHERE section_id = ' + req.query.section_id
-  const pairingDateTime = await con.getPairingDateTime(queryPairingDateTime)
+  const select_pairing_session_by_section_id = 'SELECT * FROM pairing_session WHERE section_id = ' + req.query.section_id
+  const pairingDateTime = await con.select_pairing_session(select_pairing_session_by_section_id)
   const pairingTime = pairingDateTime.length
   res.send({pairingTime: pairingTime})
 }
 
 exports.resetPair = async (req, res) => {
-  const updateEnrollment = 'UPDATE enrollment SET partner_id = ' + req.body.partner_id + ' WHERE section_id = ' + req.body.section_id
-  const res_status = await con.updateEnrollment(updateEnrollment)
+  const update_enrollment = 'UPDATE enrollment SET partner_id = ' + req.body.partner_id + ' WHERE section_id = ' + req.body.section_id
+  const res_status = await con.update_enrollment(update_enrollment)
   res.send({status: res_status})
 }
 
@@ -510,8 +510,8 @@ exports.searchUserByPurpose = async (req, res) => {
 exports.searchStudent = async (req, res) => {
   const search = req.query.search
   const section_id = req.query.section_id
-  const selectStudent = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\' OR s.last_name LIKE \'%' + search + '%\')'
-  const students = await con.searchStudent(selectStudent)
+  const select_student_by_section_id_and_literal = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\' OR s.last_name LIKE \'%' + search + '%\')'
+  const students = await con.select_student(select_student_by_section_id_and_literal)
   var user;
   for (_index in students) {
     user = await User.findOne({
@@ -561,7 +561,7 @@ exports.searchStudentByPurpose = async (req, res) => {
   let count = 0;
   for(_index in users){
     let queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND username = \'' + users[_index].username + '\' AND e.section_id = ' + section_id
-    let student = await con.getStudent(queryStudent)
+    let student = await con.select_student(queryStudent)
     if(student.length) {
       students[count] = student[0]
       students[count].avg_score = users[_index].avgScore
@@ -573,18 +573,18 @@ exports.searchStudentByPurpose = async (req, res) => {
   res.send({students: students, purpose: purpose})
 }
 
-exports.createPairingHistory = async (req, res) => {
+exports.createPairingRecord = async (req, res) => {
   const partner_keys = JSON.parse(req.body.partner_keys)
   const pairing_objective = JSON.parse(req.body.pairing_objective)
   const student_objects = JSON.parse(req.body.student_objects)
   var res_status = 'Confirm completed.'
   var count = 0;
 
-  var pairing_history_values = []
-  var addPartnerToStudent;
-  var selectEnrollment;
+  var pairing_record_values = []
+  var add_partner_to_student;
+  var select_enrollment_by_enrollment_id;
   var enrollment_value;
-  var pairing_history_value;
+  var pairing_record_value;
 
   //if there aren't student pairing, server will send message which 'Please, pair all student!'
   for(key in partner_keys){
@@ -604,12 +604,12 @@ exports.createPairingHistory = async (req, res) => {
   }
 
   //define sesstion time
-  const queryPairingDateTime = 'SELECT * FROM pairing_session WHERE section_id = ' + req.body.section_id
-  const pairingDateTime = await con.getPairingDateTime(queryPairingDateTime)
+  const select_pairing_session_by_section_id = 'SELECT * FROM pairing_session WHERE section_id = ' + req.body.section_id
+  const pairingDateTime = await con.select_pairing_session(select_pairing_session_by_section_id)
   const pairingTime = pairingDateTime.length
 
   //create new pairing session
-  const createPairingDateTime = 'INSERT INTO pairing_session (section_id, date_time, status) VALUES ?'
+  const insert_pairing_session = 'INSERT INTO pairing_session (section_id, date_time, status) VALUES ?'
   const querySection = 'SELECT * FROM section AS s WHERE s.section_id = ' + req.body.section_id + '';
   const section = await con.getSection(querySection);
   console.log('section_id : ' + section[0].section_id)
@@ -623,7 +623,7 @@ exports.createPairingHistory = async (req, res) => {
 
   console.log('date_time : ' + date_time)
   const values = [[section[0].section_id, date_time, 2]]
-  const pairing_session_id = await con.createPairingDateTime(createPairingDateTime, values)
+  const pairing_session_id = await con.insert_pairing_session(insert_pairing_session, values)
 
   console.log('pairing_session_id : ', typeof pairing_session_id)
   if(typeof pairing_session_id == 'number') {
@@ -636,43 +636,43 @@ exports.createPairingHistory = async (req, res) => {
 
     count = 0;
     for(key in partner_keys){
-      addPartnerToStudent = 'UPDATE enrollment SET partner_id = ' + partner_keys[key] + ' WHERE enrollment_id = ' + key
-      res_status = await con.updateEnrollment(addPartnerToStudent);
+      add_partner_to_student = 'UPDATE enrollment SET partner_id = ' + partner_keys[key] + ' WHERE enrollment_id = ' + key
+      res_status = await con.update_enrollment(add_partner_to_student);
 
       if(res_status == 'Update failed.') {
         res.send({res_status: res_status})
         return
       } else {
-        selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + key
-        enrollment_value = await con.getEnrollment(selectEnrollment)
-        pairing_history_value = [parseInt(key), parseInt(pairing_session_id), partner_keys[key], pairing_objective[key], "host"]
-        pairing_history_values[count] = pairing_history_value
+        select_enrollment_by_enrollment_id = 'SELECT * FROM enrollment WHERE enrollment_id = ' + key
+        enrollment_value = await con.select_enrollment(select_enrollment_by_enrollment_id)
+        pairing_record_value = [parseInt(key), parseInt(pairing_session_id), partner_keys[key], pairing_objective[key], "host"]
+        pairing_record_values[count] = pairing_record_value
         count++;
 
-        addPartnerToStudent = 'UPDATE enrollment SET partner_id = ' + key + ' WHERE enrollment_id = ' + partner_keys[key]
-        res_status = await con.updateEnrollment(addPartnerToStudent);
+        add_partner_to_student = 'UPDATE enrollment SET partner_id = ' + key + ' WHERE enrollment_id = ' + partner_keys[key]
+        res_status = await con.update_enrollment(add_partner_to_student);
 
         if(res_status == 'Update failed.') {
           res.send({res_status: res_status})
         } else {
 
-          selectEnrollment = 'SELECT * FROM enrollment WHERE enrollment_id = ' + partner_keys[key]
-          enrollment_value = await con.getEnrollment(selectEnrollment)
-          pairing_history_value = [partner_keys[key], parseInt(pairing_session_id), parseInt(key), pairing_objective[partner_keys[key]], "partner"]
-          pairing_history_values[count] = pairing_history_value
+          select_enrollment_by_enrollment_id = 'SELECT * FROM enrollment WHERE enrollment_id = ' + partner_keys[key]
+          enrollment_value = await con.select_enrollment(select_enrollment_by_enrollment_id)
+          pairing_record_value = [partner_keys[key], parseInt(pairing_session_id), parseInt(key), pairing_objective[partner_keys[key]], "partner"]
+          pairing_record_values[count] = pairing_record_value
           count++;
         }
       }
     }
 
-    console.log('pairing_history_values: ', pairing_history_values)
-    const createPairingHistory = 'INSERT INTO pairing_history (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
-    res_status = await con.createPairingHistory(createPairingHistory, pairing_history_values)
+    //console.log('pairing_record_values: ', pairing_record_values)
+    const insert_pairing_record = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
+    res_status = await con.insert_pairing_record(insert_pairing_record, pairing_record_values)
 
     if(res_status == 'Create completed.'){
       console.log('2')
-      const updateStatus = 'UPDATE pairing_session SET status = 2 WHERE pairing_session_id = ' + pairing_session_id
-      res_status = await con.updatePairingDateTime(updateStatus)
+      const update_pairing_session_by_pairing_session_id = 'UPDATE pairing_session SET status = 2 WHERE pairing_session_id = ' + pairing_session_id
+      res_status = await con.update_pairing_session(update_pairing_session_by_pairing_session_id)
     }
     console.log('date_time: ' + date_time)
     res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairingTime: pairingTime, date_time: date_time, time_end: '-'})
@@ -688,7 +688,7 @@ exports.getStudentsFromSection = async (req, res) => {
   const command = req.query.command
   //console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
-  const students = await con.getStudent(queryStudent)
+  const students = await con.select_student(queryStudent)
   var arePairingsActive = false;
   for(i in students){
     if(students[i].partner_id != null) {
@@ -713,25 +713,25 @@ exports.getStudentsFromSection = async (req, res) => {
       pairing_objective[students[_index].enrollment_id] = -1
     }
   } else if (command == 'view') {
-    const selectPairingHistory = 'SELECT * FROM pairing_history WHERE pairing_session_id = ' + pairing_session_id
-    const pairing_history_values = await con.getPairingHistory(selectPairingHistory);
-    var pairing_history_objects = {}
-    for(_index in pairing_history_values) {
-      pairing_history_objects[pairing_history_values[_index].enrollment_id] = pairing_history_values[_index]
-      //console.log('objects' + pairing_history_values[_index].enrollment_id + ' : ', pairing_history_objects[pairing_history_values.enrollment_id])
+    const select_pairing_record_by_pairing_session_id = 'SELECT * FROM pairing_record WHERE pairing_session_id = ' + pairing_session_id
+    const pairing_record_values = await con.select_pairing_record(select_pairing_record_by_pairing_session_id);
+    var pairing_record_objects = {}
+    for(_index in pairing_record_values) {
+      pairing_record_objects[pairing_record_values[_index].enrollment_id] = pairing_record_values[_index]
+      //console.log('objects' + pairing_record_values[_index].enrollment_id + ' : ', pairing_record_objects[pairing_record_values.enrollment_id])
     }
     var key;
-    for(_index in pairing_history_values) {
+    for(_index in pairing_record_values) {
       //find key from value
-      key = Object.keys(partner_keys).find(key => partner_keys[key] === pairing_history_values[_index].enrollment_id)
-      if(partner_keys[pairing_history_values[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
-        if(pairing_history_objects[pairing_history_values[_index].enrollment_id].role == 'host') {
-          partner_keys[pairing_history_values[_index].enrollment_id] = pairing_history_values[_index].partner_id
-        } else if(pairing_history_objects[pairing_history_values[_index].enrollment_id].role == 'partner') {
-          partner_keys[pairing_history_values[_index].partner_id] = pairing_history_values[_index].enrollment_id
+      key = Object.keys(partner_keys).find(key => partner_keys[key] === pairing_record_values[_index].enrollment_id)
+      if(partner_keys[pairing_record_values[_index].enrollment_id] === undefined && partner_keys[key] === undefined) {
+        if(pairing_record_objects[pairing_record_values[_index].enrollment_id].role == 'host') {
+          partner_keys[pairing_record_values[_index].enrollment_id] = pairing_record_values[_index].partner_id
+        } else if(pairing_record_objects[pairing_record_values[_index].enrollment_id].role == 'partner') {
+          partner_keys[pairing_record_values[_index].partner_id] = pairing_record_values[_index].enrollment_id
         }
-        pairing_objective[pairing_history_values[_index].enrollment_id] = pairing_history_objects[pairing_history_values[_index].enrollment_id].pairing_objective
-        pairing_objective[pairing_history_values[_index].partner_id] = pairing_history_objects[pairing_history_values[_index].partner_id].pairing_objective
+        pairing_objective[pairing_record_values[_index].enrollment_id] = pairing_record_objects[pairing_record_values[_index].enrollment_id].pairing_objective
+        pairing_objective[pairing_record_values[_index].partner_id] = pairing_record_objects[pairing_record_values[_index].partner_id].pairing_objective
       }
 
     }
@@ -753,9 +753,9 @@ exports.createAssignment = async (req, res) => {
   const output_specification = (req.body.output_specification).replace(/\s/g, "\\n")
   const sample_input = (req.body.sample_input).replace(/\s/g, "\\n")
   const sample_output = (req.body.sample_output).replace(/\s/g, "\\n")
-  const createAssignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output) VALUES ?'
+  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output) VALUES ?'
   const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output]]
-  const assignment_id = await con.createAssignment(createAssignment, values)
+  const assignment_id = await con.insert_assignment(insert_assignment, values)
   var assignment = {}
   console.log('assign_id : ' + assignment_id)
   if(typeof assignment_id == 'number') {
@@ -776,29 +776,24 @@ exports.updateAssignment = async (req, res) => {
   const assignment_id = req.body.assignment_id
   const section_id = req.body.section_id
   const title = (req.body.title).replace(/\s/g, "\\\\n");
-  // const description = req.body.description
-  // const input_specification = req.body.input_specification
-  // const output_specification = req.body.output_specification
-  // const sample_input = req.body.sample_input
-  // const sample_output = req.body.sample_output
   const description = (req.body.description).replace(/\s/g, "\\\\n");
-  console.log('des---- :', description);
+  //console.log('des---- :', description);
   const input_specification = (req.body.input_specification).replace(/\s/g, "\\\\n");
   const output_specification = (req.body.output_specification).replace(/\s/g, "\\\\n");
   const sample_input = (req.body.sample_input).replace(/\s/g, "\\\\n");
   const sample_output = (req.body.sample_output).replace(/\s/g, "\\\\n");
   // console.log('assignment_id: ' + assignment_id + ', section_id: ' + section_id)
-  console.log('title: ' + title + ', description: ' + description + ', input_specification: ' + input_specification + ', output_specification: ' + output_specification + ', sample_input: ' + sample_input + ', sample_output: ' + sample_output)
-  const updateAssignment = 'UPDATE assignment SET title = \'' + title + '\', description = \'' + description + '\', input_specification = \'' + input_specification + '\', output_specification = \'' + output_specification + '\', sample_input = \'' + sample_input + '\', sample_output = \'' + sample_output + '\' WHERE assignment_id = ' + assignment_id
-  console.log('updateAssignment : ', updateAssignment)
-  const res_status = await con.updateAssignment(updateAssignment)
+  //console.log('title: ' + title + ', description: ' + description + ', input_specification: ' + input_specification + ', output_specification: ' + output_specification + ', sample_input: ' + sample_input + ', sample_output: ' + sample_output)
+  const update_assignment = 'UPDATE assignment SET title = \'' + title + '\', description = \'' + description + '\', input_specification = \'' + input_specification + '\', output_specification = \'' + output_specification + '\', sample_input = \'' + sample_input + '\', sample_output = \'' + sample_output + '\' WHERE assignment_id = ' + assignment_id
+  //console.log('update_assignment : ', update_assignment)
+  const res_status = await con.update_assignment(update_assignment)
   res.redirect('/assignment?section_id='+section_id+'&assignment_id='+assignment_id)
 }
 
 exports.getAssignment = async (req, res) => {
   const section_id = req.query.section_id
-  const queryAssignment = 'SELECT * FROM assignment WHERE assignment_id = ' + req.query.assignment_id
-  var assignment = await con.getAssignment(queryAssignment)
+  const select_assignment_by_assignment_id = 'SELECT * FROM assignment WHERE assignment_id = ' + req.query.assignment_id
+  var assignment = await con.select_assignment(select_assignment_by_assignment_id)
   var title = 'Assignment'
 
   var occupation = 1;
@@ -822,9 +817,9 @@ exports.getAssignment = async (req, res) => {
 }
 
 exports.assignAssignment = async (req, res) => {
-  console.log('section_id : ' + req.body.section_id)
-  const selectEnrollmentBySectionId = 'SELECT * FROM enrollment WHERE section_id = ' + req.body.section_id
-  const enrollments = await con.getEnrollment(selectEnrollmentBySectionId);
+  //console.log('section_id : ' + req.body.section_id)
+  const select_enrollment_by_section_id = 'SELECT * FROM enrollment WHERE section_id = ' + req.body.section_id
+  const enrollments = await con.select_enrollment(select_enrollment_by_section_id);
   var count = 0;
   //check student pairing
   for (_index in enrollments) {
@@ -844,8 +839,8 @@ exports.assignAssignment = async (req, res) => {
   const description = req.body.description;
   const swaptime = '1';
   const language = '0';
-  const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_history AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairing_session_id
-  var students = await con.getStudent(selectStudent);
+  const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairing_session_id
+  var students = await con.select_student(selectStudent);
   console.log('students : ' + students)
   var partner_keys = {}
   var already_received = {}

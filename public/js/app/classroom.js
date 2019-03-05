@@ -28,7 +28,7 @@ $(document).ready(function() {
       if(session_status <= 0){
         //console.log('#confirm-pairing : ' + $('#pairing_session_id').attr('value') + ', session_status : ' + $('.newPairingSession').attr('value'))
         parameters = {pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value'), partner_keys: $('#partner-keys').attr('value'), pairing_objective: $('#pairing-objective').attr('value'), student_objects: $('#student-objects').attr('value')}
-        $.post('/classroom/createPairingHistory', parameters, function(data){
+        $.post('/classroom/createPairingRecord', parameters, function(data){
           const res_status = data.res_status
           var pairingTime = data.pairingTime
           if(session_status < 0) {
@@ -77,7 +77,7 @@ $(document).ready(function() {
       } else if($('#confirm-message').attr('value') == 'Are you sure you want to inactive pairing?'){
         var parameters = {pairing_session_id: $('#input_confirm_modal').attr('value'), section_id: $('#section_id').attr('value'), status: 0}
         $.ajax({
-          url: '/classroom/updatePairingDateTimeStatus',
+          url: '/classroom/updatePairingSession',
           type: 'put',
           data: parameters,
           success: function(data){
@@ -124,19 +124,6 @@ $(document).ready(function() {
       $('#student-list-modal').modal('show');
     })
     $('.menu .item').tab();
-    // $('#search-user-input').keyup(function () {
-    //     var parameters = { search: $(this).val() };
-    //     $.get( 'dashboard/searchUser',parameters, function(data) {
-    //         $(".user-list").empty();
-    //         if (data.length > 0) {
-    //             data.forEach(function(user) {
-    //                 $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-pairing-button' onclick='onClickAddUserButton(\"" +user.username+"\")'>Add</div></div><img class='ui avatar image' src='"+ user.img +"'><div class='content'><div class='header'>"+user.username+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(user.avgScore).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(user.totalTime/3600))+":"+pad(parseInt((user.totalTime-(parseInt(user.totalTime/3600)*3600))/60))+":"+pad(parseInt(user.totalTime%60))+"</div></div></div></div>");
-    //             }, this);
-    //         } else {
-    //             $(".user-list").append("<li class='ui item'>No results</li>")
-    //         }
-    //     })
-    // })
     $('.ui-purpose').click(function() {
         const index = $('.ui-purpose').index(this)
         $('.ui-purpose').removeClass('teal inverted')
@@ -195,7 +182,7 @@ function onClickPairingButton(enrollment_id, avg_score, username) {
   $(".user-list").empty();
   $(".user-list").append("<div class='li ui item'>Search result</div>")
 
-  console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score + ', username : ' + username)
+  //console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score + ', username : ' + username)
   $('.student-score').text('Student score ' + parseFloat(avg_score).toFixed(2))
   $('#student_id-add-partner').attr('value', enrollment_id)
   $('#avg_score-add-partner').attr('value', avg_score)
@@ -334,12 +321,10 @@ function onClickPairStudent(pairing_date_time_id, session_status){
   console.log('pairing_date : ' + pairing_date_time_id + ', session_status : ' + session_status)
   console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
   if($('.newPairingSession').attr('value') <= 0) {
-    //$('#pairStudent').click(function (){
     $('#partner-keys').attr('value', '{}')
     $('#pairing-objective').attr('value', '{}')
     pairingOrViewingisHided('pair')
     showStudentList('pair', $('#pairing_session_id').attr('value'))
-    //})
   } else {
     $('#alert-header').text('Pairing session')
     $('#alert-message').text('Cannot create a new session! Please set current session to completed before create a new session.')
@@ -350,7 +335,7 @@ function onClickPairStudent(pairing_date_time_id, session_status){
 function onClickViewPairingHistory(pairing_session_id) {
   $('#partner-keys').attr('value', '{}')
   $('#pairing-objective').attr('value', '{}')
-  console.log('pairing_session_id : ' + pairing_session_id)
+  //console.log('pairing_session_id : ' + pairing_session_id)
   pairingOrViewingisHided('view')
   showStudentList('view', pairing_session_id)
 }
@@ -362,9 +347,6 @@ function onClickAssign(section_id, pairing_date_time_id, assignment_id, title, d
   $('#confirm-message').attr('value', 'Are you sure you want to assign this assignment to all student pairs?')
   $('#confirm-message').text('Are you sure you want to assign this assignment to all student pairs?')
   $('#confirm-modal').modal('show');
-  // $.post('/classroom/assignAssignment', parameters, function (data){
-  //
-  // })
 }
 
 
