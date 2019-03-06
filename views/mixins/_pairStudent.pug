@@ -1,13 +1,11 @@
 mixin pairStudent(user, students)
-  .ui.small.modal#student-list-modal
-    i.close.icon#close-student-list
+  .ui.small.modal#student_list_modal
+    i.close.icon#close_student_list
     .header Student list
     .content
-      input#isTherePairingYet(type='hidden', value='There isn\'t pair!')
-      input#partner-keys(type='hidden', value='{}')
-      input#pairing-objective(type='hidden', value='{}')
-      input#student-objects(type='hidden', value='{}')
-      input#pair-or-view(type='hidden', value='pair')
+      input#partner_keys(type='hidden', value='{}')
+      input#pairing_objective(type='hidden', value='{}')
+      input#student_objects(type='hidden', value='{}')
       .ui.fluid.container.segment.student-list-container.box
         //- .ui.segment
           //- .ui.two.column.very.relaxed.grid
@@ -32,12 +30,12 @@ mixin pairStudent(user, students)
           button.ui.button.approve.green#confirm-pairing(type='submit') Confirm
           .ui.button.approve.red#cancel-pairing(data-value='cancel') Cancel
 
-  .ui.small.modal#select-partner-modal
+  .ui.small.modal#partner_selection_modal
     .header Select partner
     .content
-      input#student_id-add-partner(type='hidden')
-      input#avg_score-add-partner(type='hidden')
-      input#username-add-partner(type='hidden')
+      input#student_id_inp_psm(type='hidden')
+      input#avg_score_inp_psm(type='hidden')
+      input#username_inp_psm(type='hidden')
       .ui.top.attached.tabular.menu
         a.item.active(data-tab="purpose") Select by purpose
         a.item(data-tab="search") Search partner

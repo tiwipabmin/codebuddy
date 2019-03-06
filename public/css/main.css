@@ -12,13 +12,13 @@
   display: inline-block;
 }
 
-.main-menu {color: blue;}
-.students-menu {color: blue;}
-.pairs-menu {color: blue;}
+.first_container_menu {color: blue;}
+.second_container_menu {color: blue;}
+.third_container_menu {color: blue;}
 .settings-menu {color: blue;}
-.main-menu:hover {color: violet;}
-.students-menu:hover {color: violet;}
-.pairs-menu:hover {color: violet;}
+.first_container_menu:hover {color: violet;}
+.second_container_menu:hover {color: violet;}
+.third_container_menu:hover {color: violet;}
 .settings-menu:hover {color: violet;}
 
 .curve-box {

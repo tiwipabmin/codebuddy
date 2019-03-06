@@ -11,7 +11,7 @@ block script
         url: '/api/usernames',
         success: function (result) {
           options.data = result
-          console.log('options : ' + options)
+          //console.log('options : ' + options)
         }
       })
       $(document).ready(function () {
@@ -38,14 +38,14 @@ block script
         $('.newProject').click(function () {
           $('#newProject-modal').modal('show');
         });
-        $('.main-menu').click(function () {
-          showMainContainer()
+        $('.first_container_menu').click(function () {
+          showFirstContainer()
         });
-        $('.students-menu').click(function () {
-          showStudentContainer()
+        $('.second_container_menu').click(function () {
+          showSecondContainer()
         });
-        $('.pairs-menu').click(function () {
-          showPairingDateTimeContainer()
+        $('.third_container_menu').click(function () {
+          showThirdContainer()
         });
         $('.settings-menu').click(function () {
           var day = '!{section.day}'
@@ -106,29 +106,6 @@ block script
           onSuccess : function() {
             $('#newClassroom-modal').modal('hide');
           },
-        })
-        $('.removeStudent').click(function () {
-          $('#messageConfirm').text('Are you sure you want to remove \"' + $(this).attr('name') + '\" from this classroom?')
-          $('.enrollment_id').attr('value', $(this).attr('id'))
-          $('.student_id').attr('value', $(this).attr('value'))
-          $('#confirmRemoveStudent').modal('show');
-        });
-        $('.yesIamSure').click(function () {
-          var enrollment_id = $('.enrollment_id').attr('value')
-          $.ajax({
-            url: '/api/removeStudent',
-            type: 'delete',
-            data: {
-              enrollment_id
-            },
-            success: function (res) {
-              if(res.status == 'Remove the student from the classroom complete.') {
-                $('#' + $('.student_id').attr('value')).remove()
-              } else {
-                alert(res.status)
-              }
-            }
-          })
         })
         $('.newAssignment').click(function (){
           $('#assignment-modal').modal('show')
@@ -195,20 +172,20 @@ block script
           },
         })
       });
-      function showMainContainer() {
-        $('#main-container').show();
-        $('#first-sub-container').hide();
-        $('#second-sub-container').hide();
+      function showFirstContainer() {
+        $('#first_container').show();
+        $('#second_container').hide();
+        $('#third_container').hide();
       }
-      function showStudentContainer(){
-        $('#main-container').hide();
-        $('#first-sub-container').show();
-        $('#second-sub-container').hide();
+      function showSecondContainer(){
+        $('#first_container').hide();
+        $('#second_container').show();
+        $('#third_container').hide();
       }
-      function showPairingDateTimeContainer(){
-        $('#main-container').hide();
-        $('#first-sub-container').hide();
-        $('#second-sub-container').show();
+      function showThirdContainer(){
+        $('#first_container').hide();
+        $('#second_container').hide();
+        $('#third_container').show();
       }
     style.
       @media (min-height: 200px) {
@@ -268,28 +245,6 @@ block content
               button.ui.button.approve.green(type='submit') Create
               .ui.button.approve.red(data-value='cancel') Cancel
 
-    .ui.small.modal#confirmRemoveStudent
-      i.close.icon
-      .header Remove Student
-      .content
-        p#messageConfirm Are you sure you want to remove the student from this classroom?
-        input.enrollment_id(type='hidden', name='enrollment_id')
-        input.student_id(type='hidden', name='student_id')
-        .ui.basic.center.aligned.segment
-          .actions
-            button.ui.button.approve.green.yesIamSure Yes
-            .ui.button.cancel.red.noIamNotSure No
-
-    .ui.small.modal#pairingDateTime-modal
-      i.close.icon
-      .header Pairing Session
-      .content
-        .ui.fluid.action.input
-          input#date_time(type='text', name='date_time')
-          .actions
-            button.ui.button.approve.green#createPairingDateTime(type='submit', value='' + pairing_sessions[0].status)
-              b(style='font-size:1.2em;') Create
-
     .ui.small.modal#alert-modal
       i.close.icon
       .header#alert-header Alert!
@@ -302,7 +257,7 @@ block content
     .ui.small.modal#confirm-modal
       .header#confirm-header Alert!
       .content
-        input#input_confirm_modal(type='hidden')
+        input#inp_cm(type='hidden')
         p#confirm-message Something message.
         .ui.basic.center.aligned.segment
           .actions
@@ -469,7 +424,7 @@ block content
     .ui.raised.very.padded.container
       .ui.centered.grid(style='padding-top:20px;')
         +detailSection(sections, occupation)
-        .ten.wide.column#main-container
+        .ten.wide.column#first_container
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
@@ -538,7 +493,7 @@ block content
                   else
                     p.text-center No project.          
                     
-        .ten.wide.column#first-sub-container(style='display:none;')
+        .ten.wide.column#second_container(style='display:none;')
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
@@ -546,11 +501,11 @@ block content
             .ui.middle.aligned.divided.list.studentList
               if students.length > 0
                 each student in students
-                  .item(id=`${student.student_id}`, style='padding-left:15px; padding-right:15px;')
+                  .item(id=`${student.enrollment_id}`, style='padding-left:15px; padding-right:15px;')
                     .right.floated.content
                       case occupation
                         when 0
-                          a.ui.right.floated.alignedvertical.animated.removeStudent.button.red(id=`${student.enrollment_id}`, name=`${student.first_name}` + ' ' + `${student.last_name}`, value=`${student.student_id}`, style='display:none;')
+                          a.ui.right.floated.alignedvertical.animated.button.red(onclick='on_click_remove_student_button('+student.enrollment_id+',\"'+student.first_name+'\",\"'+student.last_name+'\")')
                             .hidden.content(style='color:white;') Remove
                             .visible.content
                               i.sign.out.icon
@@ -565,7 +520,7 @@ block content
               else
                 p.text-center No student.  
                       
-        .ten.wide.column#second-sub-container(style='display:none;')
+        .ten.wide.column#third_container(style='display:none;')
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
@@ -615,7 +570,7 @@ block content
                             .five.wide.column#pairing-button-column
                               case pairing_session.status
                                 when 0
-                                  .ui.right.floated.alignedvertical.animated.button(onclick='onClickViewPairingHistory('+pairing_session.pairing_session_id+')')
+                                  .ui.right.floated.alignedvertical.animated.button(onclick='onClickViewPairingRecord('+pairing_session.pairing_session_id+')')
                                     .hidden.content(style='color:#5D5D5D;') View
                                     .visible.content
                                       i.eye.icon
@@ -625,7 +580,7 @@ block content
                                   .ui.top.right.floated.pointing.dropdown.button.blue#viewAndInactivePairing
                                     font(color='white') Select
                                     .menu
-                                      .item(onclick='onClickViewPairingHistory('+pairing_session.pairing_session_id+')') View
+                                      .item(onclick='onClickViewPairingRecord('+pairing_session.pairing_session_id+')') View
                                       .item#inactivePairingMenu(onclick='onClickInactivePairingMenu('+pairing_session.pairing_session_id+')') Inactive
                                   script(type='text/javascript').
                                     $('.ui.pointing.dropdown').dropdown();

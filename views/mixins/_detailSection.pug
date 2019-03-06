@@ -18,17 +18,17 @@ mixin detailSection(sections, occupation)
                   when 0
                     p
                       i.book.icon
-                      button.btn.main-menu Assignments
+                      button.btn.first_container_menu Assignments
                   default
                     p
                       i.file.icon
-                      button.btn.main-menu Projects
+                      button.btn.first_container_menu Projects
           .item
             .content
               .description
                 p
                   i.student.icon
-                  button.btn.students-menu Students
+                  button.btn.second_container_menu Students
           .item
             .content
               .description
@@ -36,11 +36,11 @@ mixin detailSection(sections, occupation)
                   when 0
                     p
                       i.sitemap.icon
-                      button.btn.pairs-menu Pairs
+                      button.btn.third_container_menu Pairs
                   default
                     p
                       i.book.icon
-                      button.btn.pairs-menu Assignments
+                      button.btn.third_container_menu Assignments
           case occupation
             when 0
               .item

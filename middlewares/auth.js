@@ -15,18 +15,18 @@ exports.isLoggedOut = (req, res, next) => {
 }
 
 exports.validateSection = async (req, res, next) => {
-  console.log('section_id : ' + req.query.section_id)
+  //console.log('section_id : ' + req.query.section_id)
   var occupation = req.user.info.occupation
   var query;
   var res_object;
-  console.log('req.user.occupation : ' + occupation)
+  //console.log('req.user.occupation : ' + occupation)
   if(occupation == 'teacher') {
 
     query = 'SELECT * FROM teacher AS t JOIN course AS c ON t.teacher_id = c.teacher_id JOIN section AS s ON c.course_id = s.course_id WHERE s.section_id = ' + req.query.section_id + ' AND t.username = \'' + req.user.username + '\''
-    res_object = await con.getTeacher(query)
+    res_object = await con.select_teacher(query)
   } else {
     query = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id WHERE e.section_id = ' + req.query.section_id + ' AND st.username = \'' + req.user.username + '\''
-    res_object = await con.getStudent(query)
+    res_object = await con.select_student(query)
   }
 
   console.log('res_object : ', res_object)

@@ -255,7 +255,7 @@ exports.createSection = async (req, res) => {
   res.redirect('lobby')
 }
 
-exports.create_pairing_session = async (req, res) => {
+exports.createPairingSession = async (req, res) => {
   const insert_pairing_session = 'INSERT INTO pairing_session (section_id, date_time, status) VALUES ?'
   const querySection = 'SELECT * FROM section AS s WHERE s.section_id = ' + req.body.section_id + '';
   const section = await con.getSection(querySection);
