@@ -25,7 +25,7 @@ $(document).ready(function() {
     $('#confirm-pairing').click(function(){
       const session_status = $('.newPairingSession').attr('value')
       if(session_status <= 0){
-        ////console.log('#confirm-pairing : ' + $('#pairing_session_id').attr('value') + ', session_status : ' + $('.newPairingSession').attr('value'))
+        //console.log('#confirm-pairing : ' + $('#pairing_session_id').attr('value') + ', session_status : ' + $('.newPairingSession').attr('value'))
         parameters = {pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value'), partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), student_objects: $('#student_objects').attr('value')}
         $.post('/classroom/createPairingRecord', parameters, function(data){
           const res_status = data.res_status
@@ -105,7 +105,7 @@ $(document).ready(function() {
         })
       } else if(message == 'Are you sure you want to assign this assignment to all student pairs?'){
         parameters = JSON.parse($('#inp_cm').attr('value'))
-        ////console.log('parameters : ', parameters)
+        //console.log('parameters : ', parameters)
         $.post('/classroom/assignAssignment', parameters, function (data){
           var res_status = data.res_status
           if(res_status == 'Please pair all students before assign the assignment!'){
@@ -206,7 +206,7 @@ function onClickPairingButton(enrollment_id, avg_score, username) {
   $(".user-list").empty();
   $(".user-list").append("<div class='li ui item'>Search result</div>")
 
-  ////console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score + ', username : ' + username)
+  //console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score + ', username : ' + username)
   $('.student-score').text('Student score ' + parseFloat(avg_score).toFixed(2))
   $('#student_id_inp_psm').attr('value', enrollment_id)
   $('#avg_score_inp_psm').attr('value', avg_score)
@@ -260,7 +260,7 @@ function onClickAddPartnerButton(student_id, partner_id, purpose) {
   $('#confirm-header').text('Student pairing')
   $('#confirm-message').text('Are you sure you want to cancel pairing?')
   $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
-  ////console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
+  //console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
   showStudentList('pair', $('#pairing_session_id').attr('value'))
 }
 
@@ -305,15 +305,30 @@ function showStudentList(command, pairing_session_id){
     } else {
       $('#partner_keys').attr('value', JSON.stringify(partner_keys))
       $('#pairing_objective').attr('value', JSON.stringify(data.pairing_objective))
-      ////console.log('pairing_objective : ', data.pairing_objective)
-      ////console.log('partner_keys : ', data.partner_keys)
+      //console.log('pairing_objective : ', data.pairing_objective)
+      //console.log('partner_keys : ', data.partner_keys)
     }
     $('#student_list_modal').modal('show');
   })
 }
 
+function onClickCreateSession(pairing_date_time_id, session_status){
+  //console.log('pairing_date : ' + pairing_date_time_id + ', session_status : ' + session_status)
+  //console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
+  if($('.newPairingSession').attr('value') <= 0) {
+    $('#partner-keys').attr('value', '{}')
+    $('#pairing-objective').attr('value', '{}')
+    pairingOrViewingisHided('pair')
+    showStudentList('pair', $('#pairing_session_id').attr('value'))
+  } else {
+    $('#alert-header').text('Pairing session')
+    $('#alert-message').text('Cannot create a new session! Please set current session to completed before create a new session.')
+    $('#alert-modal').modal('show')
+  }
+}
+
 function onClickInactivePairingMenu(pairing_session_id){
-  ////console.log('pairing_session_id: ' + pairing_session_id)
+  //console.log('pairing_session_id: ' + pairing_session_id)
   $('#inp_cm').attr('value', pairing_session_id)
   $('#confirm-header').text('Complete pairing session')
   $('#confirm-message').text('Are you sure you want to complete this pairing session?')
@@ -336,7 +351,7 @@ function pairingOrViewingisHided(command){
 function onClickViewPairingRecord(pairing_session_id) {
   $('#partner_keys').attr('value', '{}')
   $('#pairing_objective').attr('value', '{}')
-  ////console.log('pairing_session_id : ' + pairing_session_id)
+  //console.log('pairing_session_id : ' + pairing_session_id)
   pairingOrViewingisHided('view')
   showStudentList('view', pairing_session_id)
 }

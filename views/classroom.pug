@@ -535,7 +535,7 @@ block content
                 case occupation
                   when 0
                     a.right
-                      button#new.ui.button.approve.green.newPairingSession(style='float: right;', onclick='onClickPairStudent('+`$('#pairing_session_id').attr('value')`+','+pairing_sessions[0].status+')', value=`${pairing_sessions[0].status}`) Create Session
+                      button#new.ui.button.approve.green.newPairingSession(style='float: right;', onclick='onClickCreateSession('+`$('#pairing_session_id').attr('value')`+','+pairing_sessions[0].status+')', value=`${pairing_sessions[0].status}`) Create Session
             .ui.divided.items#pairingSession
               case occupation
                 when 0

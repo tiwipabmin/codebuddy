@@ -359,12 +359,19 @@ exports.getSection = async (req, res) => {
 
 exports.removeStudent = async (req, res) => {
   //console.log('student_id : ' + req.body.enrollment_id)
-  var remove_student_by_enrollment_id = 'DELETE FROM enrollment WHERE enrollment_id = ' + req.body.enrollment_id;
-  var status = await con.remove_student(remove_student_by_enrollment_id);
-  let temp = {}
-  temp['status'] = status
-  console.log('temp : ' + temp + ', ' + status)
-  res.json(temp).status(200)
+  var select_pairing_record_by_enrollment_id = 'SELECT * FROM pairing_record WHERE enrollment_id = ' + req.body.enrollment_id;
+  var pairing_record = await con.select_pairing_record(select_pairing_record_by_enrollment_id);
+  if(!pairing_record.length) {
+    var remove_enrollment_by_enrollment_id = 'DELETE FROM enrollment WHERE enrollment_id = ' + req.body.enrollment_id;
+    var status = await con.remove_student(remove_enrollment_by_enrollment_id);
+    let temp = {}
+    temp['status'] = status
+    res.json(temp).status(200)
+  } else {
+    let temp = {}
+    temp['status'] = 'Cannot remove the student from the classroom because the student has already had pairing records!'
+    res.json(temp).status(200)
+  }
 }
 
 exports.joinClass = async (req, res) => {
