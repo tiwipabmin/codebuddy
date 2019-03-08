@@ -17,12 +17,7 @@ const router = express.Router()
  */
 router.get('/', auth.isSignedIn, auth.validateSection, catchErrors(webController.getSection))
 router.post('/', auth.isSignedIn, catchErrors(webController.createSection))
-  // .use(auth.isSignedIn)
-  // .route('/')
-  // .get(webController.getSection)
-  // .post(catchErrors(webController.createSection))
 
-router.get('/getPairingDateTime', auth.isSignedIn, catchErrors(webController.getPairingDateTime))
 router.get('/searchStudentByPurpose', auth.isSignedIn, catchErrors(webController.searchStudentByPurpose))
 router.get('/getStudentsFromSection', auth.isSignedIn, catchErrors(webController.getStudentsFromSection))
 router.get('/searchStudent', auth.isSignedIn, catchErrors(webController.searchStudent))

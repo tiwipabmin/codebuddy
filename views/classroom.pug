@@ -548,9 +548,9 @@ block content
                               b(style='font-size:1.5em;')
                                 case pairing_session.status
                                   when 0
-                                    header(style='color:#5D5D5D;') Session : !{pairingTimes - index}
+                                    header(style='color:#5D5D5D;') Session : !{pairing_times - index}
                                   default
-                                    header.header-pending-and-active Session : !{pairingTimes - index}
+                                    header.header-pending-and-active Session : !{pairing_times - index}
                               .description
                                 case pairing_session.status
                                   when 0
@@ -574,8 +574,6 @@ block content
                                     .hidden.content(style='color:#5D5D5D;') View
                                     .visible.content
                                       i.eye.icon
-                                when 1
-                                  .ui.right.floated.button.blue#pairStudent(style='text-color:white;') Pair
                                 default
                                   .ui.top.right.floated.pointing.dropdown.button.blue#viewAndInactivePairing
                                     font(color='white') Select
@@ -589,11 +587,9 @@ block content
                               when 0
                                 .ui.label#status(style='background-color:#E8E8E8; color:#665D5D;') COMPLETED
                               when 1
-                                .ui.label#status(style='background-color:#f1c232; color:white;') PENDING
-                              when 2
                                 .ui.label#status(style='background-color:#16AB39; color:white;') ACTIVE
                   else
-                    p.text-center No session.  
+                    p.text-center#no_session No session.  
                 default
                   if assignments.length > 0
                     each assignment in assignments

@@ -29,21 +29,22 @@ $(document).ready(function() {
         parameters = {pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value'), partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), student_objects: $('#student_objects').attr('value')}
         $.post('/classroom/createPairingRecord', parameters, function(data){
           const res_status = data.res_status
-          var pairingTime = data.pairingTime
+          var pairing_time = data.pairing_time
           if(session_status < 0) {
-            pairingTime = 1
-          } else pairingTime++
+            pairing_time = 1
+          } else pairing_time++
           if(res_status == 'There is no student in the classroom!'){
             alert(res_status)
           } else if(res_status == 'Please pair all students!'){
             alert(res_status)
             $('#student_list_modal').modal('show');
           } else if(res_status == 'Update completed.'){
+            $('#no_session').empty();
             var item = $('<div id=\'pairing' + data.pairing_session_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
             var content = $('<div class=\'content\'></div>')
             var grid = $('<div class=\'ui grid\'></div>')
             var extra = $('<div class=\'extra\'><div id=\'status\' class=\'ui label\' style=\'background-color:#16AB39; color:white;\'>ACTIVE</div></div>')
-            var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.5em\'><header class=\'header-pending-and-active\'>Session : ' + pairingTime + '</header></b><div class=\'description\'><p><b class=\'date-time\'>Start at : </b><font class=\'font-pending-and-active\'>' + data.date_time + '</font><br><b class=\'date-time\'>End at : </b><font id=\'endAt\' class=\'font-pending-and-active\'>' + data.time_end + '</font></p></div></div>')
+            var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.5em\'><header class=\'header-pending-and-active\'>Session : ' + pairing_time + '</header></b><div class=\'description\'><p><b class=\'date-time\'>Start at : </b><font class=\'font-pending-and-active\'>' + data.date_time + '</font><br><b class=\'date-time\'>End at : </b><font id=\'endAt\' class=\'font-pending-and-active\'>' + data.time_end + '</font></p></div></div>')
             var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+data.pairing_session_id+')\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_session_id+')\'>Inactive</div></div></div>')
             grid.append(elevenColumn)
             grid.append(fiveColumn)
@@ -97,6 +98,7 @@ $(document).ready(function() {
               $('#pairing-button-column').empty()
               $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' onclick='onClickViewPairingRecord("+$('#inp_cm').attr('value')+")'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
               $('.newPairingSession').attr('value', 0);
+              console.log('.newPairingSession : ' + $('.newPairingSession').attr('value'))
             } else {
               alert(status)
             }
@@ -165,9 +167,9 @@ $(document).ready(function() {
             if (students.length > 0) {
                 students.forEach(function(student) {
                   if(pairing_objective[student.enrollment_id] == -1) {
-                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id_inp_psm').attr('value')+","+student.enrollment_id+",\""+purpose+"\")'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
+                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id_inp_psm').attr('value')+","+student.enrollment_id+",\""+purpose+"\",2)'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
                   } else {
-                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id_inp_psm').attr('value')+","+student.enrollment_id+",\""+purpose+"\")'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
+                    $(".user-purpose-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id_inp_psm').attr('value')+","+student.enrollment_id+",\""+purpose+"\",2)'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
                   }
                 }, this);
             } else {
@@ -180,19 +182,18 @@ $(document).ready(function() {
 
 function searchStudent(e, section_id){
   //console.log('section_id: ' + section_id)
-  var parameters = { search: e.value, section_id: section_id };
+  var parameters = { search: e.value, section_id: section_id, username: $('#username_inp_psm').attr('value') };
   $.get( 'classroom/searchStudent',parameters, function(data) {
     const students = data.students
     const purpose = data.purpose
     const pairing_objective = JSON.parse($('#pairing_objective').attr('value'))
-    const username = $('#username_inp_psm').attr('value')
     $(".user-list").empty();
     if (students.length > 0) {
       students.forEach(function(student) {
-        if(pairing_objective[student.enrollment_id] == -1 && student.username != username) {
-          $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id_inp_psm').attr('value')+","+student.enrollment_id+",\""+purpose+"\")'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
-        } else if(student.username != username) {
-          $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id_inp_psm').attr('value')+","+student.enrollment_id+",\""+purpose+"\")'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
+        if(pairing_objective[student.enrollment_id] == -1) {
+          $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id_inp_psm').attr('value')+","+student.enrollment_id+",\""+purpose+"\",2)'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
+        } else {
+          $(".user-list").append("<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton("+$('#student_id_inp_psm').attr('value')+","+student.enrollment_id+",\""+purpose+"\",2)'>Add</div></div><img class='ui avatar image' src='"+ student.img +"'><div class='content'><div class='header'>"+student.first_name+" "+student.last_name+"</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score "+parseFloat(student.avg_score).toFixed(2)+"</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student.total_time/3600))+":"+pad(parseInt((student.total_time-(parseInt(student.total_time/3600)*3600))/60))+":"+pad(parseInt(student.total_time%60))+"</div></div></div></div>");
         }
       }, this);
     } else {
@@ -201,67 +202,77 @@ function searchStudent(e, section_id){
   })
 }
 
-function onClickPairingButton(enrollment_id, avg_score, username) {
-  //make user list is empty on search user panel
-  $(".user-list").empty();
-  $(".user-list").append("<div class='li ui item'>Search result</div>")
+function onClickAddPartnerButton(first_param, second_param, third_param, opt) {
+  switch (opt) {
+    case 1:
+      var enrollment_id = first_param
+      var avg_score = second_param
+      var username = third_param
+      //make user list is empty on search user panel
+      $(".user-list").empty();
+      $(".user-list").append("<div class='li ui item'>Search result</div>")
 
-  //console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score + ', username : ' + username)
-  $('.student-score').text('Student score ' + parseFloat(avg_score).toFixed(2))
-  $('#student_id_inp_psm').attr('value', enrollment_id)
-  $('#avg_score_inp_psm').attr('value', avg_score)
-  $('#username_inp_psm').attr('value', username)
-  $(".user-purpose-list").empty();
-  $(".user-purpose-list").append("<li class='ui item'>Please select your purpose.</li>");
-  $('#partner_selection_modal').modal('show')
-}
+      //console.log('section_id : ' + $('#section_id').attr('value') + ', enrollment_id : ' + enrollment_id + ', avg_score : ' + avg_score + ', username : ' + username)
+      $('.student-score').text('Student score ' + parseFloat(avg_score).toFixed(2))
+      $('#student_id_inp_psm').attr('value', enrollment_id)
+      $('#avg_score_inp_psm').attr('value', avg_score)
+      $('#username_inp_psm').attr('value', username)
+      $(".user-purpose-list").empty();
+      $(".user-purpose-list").append("<li class='ui item'>Please select your purpose.</li>");
+      $('#partner_selection_modal').modal('show')
+      break;
+    case 2:
+      var student_id = first_param
+      var partner_id = second_param
+      var purpose = third_param
 
-function onClickAddPartnerButton(student_id, partner_id, purpose) {
-  var partner_keys = JSON.parse($('#partner_keys').attr('value'))
-  var pairing_objective = JSON.parse($('#pairing_objective').attr('value'))
-  var key;
-  var addSamePartner = false
+      var partner_keys = JSON.parse($('#partner_keys').attr('value'))
+      var pairing_objective = JSON.parse($('#pairing_objective').attr('value'))
+      var key;
+      var addSamePartner = false
 
-  // partner_id is value in partner_keys
-  // ex. partner_keys = {0: 1, 2: 3} expected {0: -1, 2: 1, 3: -1}
-  // pair student_id = 2 with partner_id = 1 will make undefined
-  if (partner_keys[partner_id] === undefined) {
-    key = Object.keys(partner_keys).find(key => partner_keys[key] === partner_id)
-    if(key == student_id) {
-      addSamePartner = true
-    }
-  } else {
-    key = partner_keys[partner_id]
-  }
-
-  if(partner_keys[student_id] < 0 && pairing_objective[partner_id] != -1) {
-    partner_keys[key] = -1
-    pairing_objective[key] = -1
-  } else if(partner_keys[student_id] > 0 && !addSamePartner) {
-      if(pairing_objective[partner_id] == -1){
-        partner_keys[partner_keys[student_id]] = -1
-        pairing_objective[partner_keys[student_id]] = -1
+      // partner_id is value in partner_keys
+      // ex. partner_keys = {0: 1, 2: 3} expected {0: -1, 2: 1, 3: -1}
+      // pair student_id = 2 with partner_id = 1 will make undefined
+      if (partner_keys[partner_id] === undefined) {
+        key = Object.keys(partner_keys).find(key => partner_keys[key] === partner_id)
+        if(key == student_id) {
+          addSamePartner = true
+        }
       } else {
+        key = partner_keys[partner_id]
+      }
+
+      if(partner_keys[student_id] < 0 && pairing_objective[partner_id] != -1) {
         partner_keys[key] = -1
         pairing_objective[key] = -1
+      } else if(partner_keys[student_id] > 0 && !addSamePartner) {
+          if(pairing_objective[partner_id] == -1){
+            partner_keys[partner_keys[student_id]] = -1
+            pairing_objective[partner_keys[student_id]] = -1
+          } else {
+            partner_keys[key] = -1
+            pairing_objective[key] = -1
 
-        partner_keys[partner_keys[student_id]] = -1
-        pairing_objective[partner_keys[student_id]] = -1
-    }
+            partner_keys[partner_keys[student_id]] = -1
+            pairing_objective[partner_keys[student_id]] = -1
+        }
+      }
+      //add new partner to student
+      partner_keys[student_id] = partner_id
+      delete partner_keys[partner_id]
+
+      pairing_objective[student_id] = purpose
+      pairing_objective[partner_id] = purpose
+      $('#partner_keys').attr('value', JSON.stringify(partner_keys))
+      $('#pairing_objective').attr('value', JSON.stringify(pairing_objective))
+      $('#confirm-header').text('Student pairing')
+      $('#confirm-message').text('Are you sure you want to cancel pairing?')
+      $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
+      //console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
+      showStudentList('pair', $('#pairing_session_id').attr('value'))
+      break;
   }
-  //add new partner to student
-  partner_keys[student_id] = partner_id
-  delete partner_keys[partner_id]
-
-  pairing_objective[student_id] = purpose
-  pairing_objective[partner_id] = purpose
-  $('#partner_keys').attr('value', JSON.stringify(partner_keys))
-  $('#pairing_objective').attr('value', JSON.stringify(pairing_objective))
-  $('#confirm-header').text('Student pairing')
-  $('#confirm-message').text('Are you sure you want to cancel pairing?')
-  $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
-  //console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
-  showStudentList('pair', $('#pairing_session_id').attr('value'))
 }
 
 function showStudentList(command, pairing_session_id){
@@ -277,12 +288,12 @@ function showStudentList(command, pairing_session_id){
     for (key in partner_keys) {
       if(partner_keys[key] < 0) {
 
-        $('.student-container').append("<div class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickPairingButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\")'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: "+pad(parseInt(0/3600))+":"+pad(parseInt((0-(parseInt(0/3600)*3600))/60))+":"+pad(parseInt(0%60))+"</div><font color='#5D5D5D'> Empty </font><div class='ui circular labels' style='margin-top:2.5px; visibility:hidden;'><a class='ui teal label'> score "+parseFloat(0).toFixed(2)+"</a></div></div></div></div></div></div></div><div class='ui vertical divider'> - </div></div>")
+        $('.student-container').append("<div class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\",1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: "+pad(parseInt(0/3600))+":"+pad(parseInt((0-(parseInt(0/3600)*3600))/60))+":"+pad(parseInt(0%60))+"</div><font color='#5D5D5D'> Empty </font><div class='ui circular labels' style='margin-top:2.5px; visibility:hidden;'><a class='ui teal label'> score "+parseFloat(0).toFixed(2)+"</a></div></div></div></div></div></div></div><div class='ui vertical divider'> - </div></div>")
 
       } else {
 
         if(command == 'pair') {
-          addPartnerButton = "<div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickPairingButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\")'>Add</div>"
+          addPartnerButton = "<div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\",1)'>Add</div>"
         }
         var pairing_objective_str = pairing_objective[key];
         if(pairing_objective_str == 'quality') {
@@ -316,8 +327,8 @@ function onClickCreateSession(pairing_date_time_id, session_status){
   //console.log('pairing_date : ' + pairing_date_time_id + ', session_status : ' + session_status)
   //console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
   if($('.newPairingSession').attr('value') <= 0) {
-    $('#partner-keys').attr('value', '{}')
-    $('#pairing-objective').attr('value', '{}')
+    $('#partner_keys').attr('value', '{}')
+    $('#pairing_objective').attr('value', '{}')
     pairingOrViewingisHided('pair')
     showStudentList('pair', $('#pairing_session_id').attr('value'))
   } else {
