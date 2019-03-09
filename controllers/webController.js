@@ -752,8 +752,9 @@ exports.createAssignment = async (req, res) => {
   const output_specification = (req.body.output_specification).replace(/\s/g, "\\n")
   const sample_input = (req.body.sample_input).replace(/\s/g, "\\n")
   const sample_output = (req.body.sample_output).replace(/\s/g, "\\n")
-  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output) VALUES ?'
-  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output]]
+  const code_editor = req.body.code_editor;
+  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, code_editor) VALUES ?'
+  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output, code_editor]]
   const assignment_id = await con.insert_assignment(insert_assignment, values)
   var assignment = {}
   console.log('assign_id : ' + assignment_id)

@@ -335,6 +335,7 @@ block content
                   option(value='pm.')  pm.
             .six.wide.column(style='text-align:center;')
               b Time end
+              <br>
               .ui.labeled.input
                 select.ui.dropdown.timeEndHh(name='time_end_hh')
                   option(value='00')  00
@@ -381,6 +382,12 @@ block content
       .header Assignment
       .content
         form.ui.form.createAssignment.segment(action='/assignment', method='POST')
+          .field
+            label Code editor :
+            |
+            select.ui.dropdown(name='code_editor')
+              option(value='Conventional programming') Conventional Programming
+              option(value='Jupyter style') Jupyter Style
           .field
             label Title :
             |
@@ -447,12 +454,14 @@ block content
                     each assignment in assignments
                       .item
                         .content
-                          .ui.two.column.grid
-                            .column
-                              a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id)
-                                b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
-                            .column
-                              .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`${section.section_id}`+','+`$('#pairing_session_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\')') Assign
+                          b(style='font-size:1.5em; padding-left:15px; padding-right:15px;')
+                            a.header(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id) !{assignment.title}
+                          .description
+                            .ui.two.column.grid
+                              .column
+                                font(style='padding-left:15px; padding-right:15px;') Code Editor : !{assignment.code_editor}
+                              .column
+                                .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`${section.section_id}`+','+`$('#pairing_session_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\')') Assign
                   else
                     p.text-center No assignment.
                 default
@@ -579,7 +588,7 @@ block content
                                     font(color='white') Select
                                     .menu
                                       .item(onclick='onClickViewPairingRecord('+pairing_session.pairing_session_id+')') View
-                                      .item#inactivePairingMenu(onclick='onClickInactivePairingMenu('+pairing_session.pairing_session_id+')') Inactive
+                                      .item(onclick='onClickCompletedSessionMenu('+pairing_session.pairing_session_id+')') Completed
                                   script(type='text/javascript').
                                     $('.ui.pointing.dropdown').dropdown();
                           .extra

@@ -12,6 +12,21 @@
   display: inline-block;
 }
 
+/* visited link */
+a:visited {
+  color: blue;
+}
+
+/* mouse over link */
+a:hover {
+  color: violet;
+}
+
+/* selected link */
+a:active {
+  color: blue;
+}
+
 .first_container_menu {color: blue;}
 .second_container_menu {color: blue;}
 .third_container_menu {color: blue;}

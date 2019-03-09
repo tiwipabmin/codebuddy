@@ -45,7 +45,7 @@ $(document).ready(function() {
             var grid = $('<div class=\'ui grid\'></div>')
             var extra = $('<div class=\'extra\'><div id=\'status\' class=\'ui label\' style=\'background-color:#16AB39; color:white;\'>ACTIVE</div></div>')
             var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.5em\'><header class=\'header-pending-and-active\'>Session : ' + pairing_time + '</header></b><div class=\'description\'><p><b class=\'date-time\'>Start at : </b><font class=\'font-pending-and-active\'>' + data.date_time + '</font><br><b class=\'date-time\'>End at : </b><font id=\'endAt\' class=\'font-pending-and-active\'>' + data.time_end + '</font></p></div></div>')
-            var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+data.pairing_session_id+')\'> View </div><div class=\'item\' id=\'inactivePairingMenu\' onclick=\'onClickInactivePairingMenu('+data.pairing_session_id+')\'>Inactive</div></div></div>')
+            var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+data.pairing_session_id+')\'> View </div><div class=\'item\' onclick=\'onClickCompletedSessionMenu('+data.pairing_session_id+')\'>Completed</div></div></div>')
             grid.append(elevenColumn)
             grid.append(fiveColumn)
             content.append(grid)
@@ -338,7 +338,7 @@ function onClickCreateSession(pairing_date_time_id, session_status){
   }
 }
 
-function onClickInactivePairingMenu(pairing_session_id){
+function onClickCompletedSessionMenu(pairing_session_id){
   //console.log('pairing_session_id: ' + pairing_session_id)
   $('#inp_cm').attr('value', pairing_session_id)
   $('#confirm-header').text('Complete pairing session')
