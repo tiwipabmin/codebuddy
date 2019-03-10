@@ -6,6 +6,8 @@ mixin pairStudent(user, students)
       input#partner_keys(type='hidden', value='{}')
       input#pairing_objective(type='hidden', value='{}')
       input#student_objects(type='hidden', value='{}')
+      button.ui.button#character_filter(style="font-size:7px;", value='Z-A', onclick='onClickFontFilterButton()') Z-A
+      button.ui.button#avg_score_filter(style="font-size:7px;") 1-100
       .ui.fluid.container.segment.student-list-container.box
         //- .ui.segment
           //- .ui.two.column.very.relaxed.grid

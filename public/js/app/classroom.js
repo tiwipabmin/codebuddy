@@ -279,6 +279,8 @@ function showStudentList(command, pairing_session_id){
   var parameter = { partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), section_id: $('#section_id').val(), pairing_session_id: pairing_session_id, command: command};
   $.get('classroom/getStudentsFromSection',parameter, function(data) {
     var count = 0
+    var completed_filter = false
+    var hasTransfer = false
     const student_objects = data.student_objects
     const partner_keys = data.partner_keys
     const pairing_objective = data.pairing_objective
@@ -288,7 +290,7 @@ function showStudentList(command, pairing_session_id){
     for (key in partner_keys) {
       if(partner_keys[key] < 0) {
 
-        $('.student-container').append("<div class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\",1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: "+pad(parseInt(0/3600))+":"+pad(parseInt((0-(parseInt(0/3600)*3600))/60))+":"+pad(parseInt(0%60))+"</div><font color='#5D5D5D'> Empty </font><div class='ui circular labels' style='margin-top:2.5px; visibility:hidden;'><a class='ui teal label'> score "+parseFloat(0).toFixed(2)+"</a></div></div></div></div></div></div></div><div class='ui vertical divider'> - </div></div>")
+        $('.student-container').append("<li id='"+student_objects[key].first_name+" "+student_objects[key].last_name+"' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\",1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: "+pad(parseInt(0/3600))+":"+pad(parseInt((0-(parseInt(0/3600)*3600))/60))+":"+pad(parseInt(0%60))+"</div><font color='#5D5D5D'> Empty </font><div class='ui circular labels' style='margin-top:2.5px; visibility:hidden;'><a class='ui teal label'> score "+parseFloat(0).toFixed(2)+"</a></div></div></div></div></div></div></div><div class='ui vertical divider'> - </div></li>")
 
       } else {
 
@@ -306,16 +308,16 @@ function showStudentList(command, pairing_session_id){
           pairing_objective_str = "<i class='search icon'></i>"
         }
 
-        $('.student-container').append("<div class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[partner_keys[key]].img+"'></img><div class='content'><div class='right floated content'>"+addPartnerButton+"</div><div class='header'>"+student_objects[partner_keys[key]].first_name+" "+student_objects[partner_keys[key]].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(student_objects[partner_keys[key]].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[partner_keys[key]].total_time/3600))+":"+pad(parseInt((student_objects[partner_keys[key]].total_time-(parseInt(student_objects[partner_keys[key]].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[partner_keys[key]].total_time%60))+"</div></div></div></div></div></div></div><div class='ui vertical divider'> "+pairing_objective_str+" </div></div>")
+        $('.student-container').append("<li id='"+student_objects[key].first_name+" "+student_objects[key].last_name+"' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[partner_keys[key]].img+"'></img><div class='content'><div class='right floated content'>"+addPartnerButton+"</div><div class='header'>"+student_objects[partner_keys[key]].first_name+" "+student_objects[partner_keys[key]].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(student_objects[partner_keys[key]].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[partner_keys[key]].total_time/3600))+":"+pad(parseInt((student_objects[partner_keys[key]].total_time-(parseInt(student_objects[partner_keys[key]].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[partner_keys[key]].total_time%60))+"</div></div></div></div></div></div></div><div class='ui vertical divider'> "+pairing_objective_str+" </div></li>")
       }
       count++;
     }
     if(!count) {
       $('.student-container').append("<div class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><font>No student.</font></div><div class='column'><font>No student.</font></div></div><div class='ui vertical divider'> - </div></div>")
-
     } else {
+      a_z_filter(completed_filter, hasTransfer)
       $('#partner_keys').attr('value', JSON.stringify(partner_keys))
-      $('#pairing_objective').attr('value', JSON.stringify(data.pairing_objective))
+      $('#pairing_objective').attr('value', JSON.stringify(pairing_objective))
       //console.log('pairing_objective : ', data.pairing_objective)
       //console.log('partner_keys : ', data.partner_keys)
     }
@@ -382,6 +384,118 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name){
   $('#confirm-message').attr('value', 'Are you sure you want to remove the student from this classroom?')
   $('#confirm-message').text('Are you sure you want to remove \"' + first_name + ' ' + last_name + '\" from this classroom?')
   $('#confirm-modal').modal('show')
+}
+
+function onClickFontFilterButton(){
+
+  var completed_filter = false
+  var hasTransfer = false
+
+  if($('#character_filter').attr('value') == 'A-Z') {
+    $('#character_filter').attr('value', 'Z-A')
+    $('#character_filter').text('Z-A')
+
+    a_z_filter(completed_filter, hasTransfer)
+
+  } else if($('#character_filter').attr('value') == 'Z-A') {
+    $('#character_filter').attr('value', 'A-Z')
+    $('#character_filter').text('A-Z')
+
+    while(!completed_filter) {
+      $('li.ui.segment').filter(function(indx){
+        var name = $(this).attr('id').toLowerCase()
+        var index = indx
+
+        $('li.ui.segment').filter(function(indx){
+          var _name = $(this).attr('id').toLowerCase()
+          var _index = indx
+          var max_length = name.length > _name.length ? _name.length : name.length
+          if(name != _name) {
+            if(index < _index) {
+              for (i = 0; i <= max_length; i++){
+                if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                  $(this).parent().find("li").eq(index).insertAfter($(this));
+                  index = _index
+                  hasTransfer = true;
+                  break;
+                } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                  break;
+                }
+              }
+            } else if(index > _index) {
+              for (i = 0; i <= max_length; i++){
+                if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+                  $(this).insertAfter($(this).parent().find("li").eq(index));
+                  index = _index
+                  hasTransfer = true;
+                  break;
+                } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                  break;
+                }
+              }
+            }
+          }
+        })
+      })
+
+      if(hasTransfer) {
+        completed_filter = false
+      } else {
+        completed_filter = true
+      }
+
+      hasTransfer = false
+    }
+  }
+}
+
+function a_z_filter(completed_filter, hasTransfer) {
+
+  while(!completed_filter) {
+    $('li.ui.segment').filter(function(indx){
+      var name = $(this).attr('id').toLowerCase()
+      var index = indx
+
+      $('li.ui.segment').filter(function(indx){
+        var _name = $(this).attr('id').toLowerCase()
+        var _index = indx
+        var max_length = name.length > _name.length ? _name.length : name.length
+        if(name != _name) {
+          if(index < _index) {
+            for (i = 0; i <= max_length; i++){
+              if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+                $(this).parent().find("li").eq(index).insertAfter($(this));
+                index = _index
+                hasTransfer = true;
+                break;
+              } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                break;
+              }
+            }
+          } else if(index > _index) {
+            for (i = 0; i <= max_length; i++){
+              if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                $(this).insertAfter($(this).parent().find("li").eq(index));
+                index = _index
+                hasTransfer = true;
+                break;
+              } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                break;
+              }
+            }
+          }
+        }
+      })
+    })
+
+    if(hasTransfer) {
+      completed_filter = false
+    } else {
+      completed_filter = true
+    }
+
+    hasTransfer = false
+  }
 }
 
 
