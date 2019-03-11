@@ -279,8 +279,6 @@ function showStudentList(command, pairing_session_id){
   var parameter = { partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), section_id: $('#section_id').val(), pairing_session_id: pairing_session_id, command: command};
   $.get('classroom/getStudentsFromSection',parameter, function(data) {
     var count = 0
-    var completed_filter = false
-    var hasTransfer = false
     const student_objects = data.student_objects
     const partner_keys = data.partner_keys
     const pairing_objective = data.pairing_objective
@@ -290,7 +288,7 @@ function showStudentList(command, pairing_session_id){
     for (key in partner_keys) {
       if(partner_keys[key] < 0) {
 
-        $('.student-container').append("<li id='"+student_objects[key].first_name+" "+student_objects[key].last_name+"' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\",1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: "+pad(parseInt(0/3600))+":"+pad(parseInt((0-(parseInt(0/3600)*3600))/60))+":"+pad(parseInt(0%60))+"</div><font color='#5D5D5D'> Empty </font><div class='ui circular labels' style='margin-top:2.5px; visibility:hidden;'><a class='ui teal label'> score "+parseFloat(0).toFixed(2)+"</a></div></div></div></div></div></div></div><div class='ui vertical divider'> - </div></li>")
+        $('.student-container').append("<li id='"+key+"' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\",1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: "+pad(parseInt(0/3600))+":"+pad(parseInt((0-(parseInt(0/3600)*3600))/60))+":"+pad(parseInt(0%60))+"</div><font color='#5D5D5D'> Empty </font><div class='ui circular labels' style='margin-top:2.5px; visibility:hidden;'><a class='ui teal label'> score "+parseFloat(0).toFixed(2)+"</a></div></div></div></div></div></div></div><div class='ui vertical divider'> - </div></li>")
 
       } else {
 
@@ -308,14 +306,13 @@ function showStudentList(command, pairing_session_id){
           pairing_objective_str = "<i class='search icon'></i>"
         }
 
-        $('.student-container').append("<li id='"+student_objects[key].first_name+" "+student_objects[key].last_name+"' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[partner_keys[key]].img+"'></img><div class='content'><div class='right floated content'>"+addPartnerButton+"</div><div class='header'>"+student_objects[partner_keys[key]].first_name+" "+student_objects[partner_keys[key]].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(student_objects[partner_keys[key]].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[partner_keys[key]].total_time/3600))+":"+pad(parseInt((student_objects[partner_keys[key]].total_time-(parseInt(student_objects[partner_keys[key]].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[partner_keys[key]].total_time%60))+"</div></div></div></div></div></div></div><div class='ui vertical divider'> "+pairing_objective_str+" </div></li>")
+        $('.student-container').append("<li id='"+key+"' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[key].img+"'></img><div class='content'><div class='header'>"+student_objects[key].first_name+" "+student_objects[key].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score "+parseFloat(student_objects[key].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[key].total_time/3600))+":"+pad(parseInt((student_objects[key].total_time-(parseInt(student_objects[key].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[key].total_time%60))+"</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='"+student_objects[partner_keys[key]].img+"'></img><div class='content'><div class='right floated content'>"+addPartnerButton+"</div><div class='header'>"+student_objects[partner_keys[key]].first_name+" "+student_objects[partner_keys[key]].last_name+"</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score "+parseFloat(student_objects[partner_keys[key]].avg_score).toFixed(2)+"</a></div><div style='font-size: 12px;'>total active time: "+pad(parseInt(student_objects[partner_keys[key]].total_time/3600))+":"+pad(parseInt((student_objects[partner_keys[key]].total_time-(parseInt(student_objects[partner_keys[key]].total_time/3600)*3600))/60))+":"+pad(parseInt(student_objects[partner_keys[key]].total_time%60))+"</div></div></div></div></div></div></div><div class='ui vertical divider'> "+pairing_objective_str+" </div></li>")
       }
       count++;
     }
     if(!count) {
       $('.student-container').append("<div class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><font>No student.</font></div><div class='column'><font>No student.</font></div></div><div class='ui vertical divider'> - </div></div>")
     } else {
-      a_z_filter(completed_filter, hasTransfer)
       $('#partner_keys').attr('value', JSON.stringify(partner_keys))
       $('#pairing_objective').attr('value', JSON.stringify(pairing_objective))
       //console.log('pairing_objective : ', data.pairing_objective)
@@ -386,28 +383,87 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name){
   $('#confirm-modal').modal('show')
 }
 
-function onClickFontFilterButton(){
+function onClickAlphabeticalFilterButton(){
 
   var completed_filter = false
   var hasTransfer = false
+  var student_objects = JSON.parse($('#student_objects').attr('value'))
 
-  if($('#character_filter').attr('value') == 'A-Z') {
-    $('#character_filter').attr('value', 'Z-A')
-    $('#character_filter').text('Z-A')
+  var active_filter = $('#active_filter').attr('value')
+  if(active_filter == 'avg_score' || active_filter == '') {
+    $('#avg_score_filter').attr('class', 'ui button')
+    $('#alphabetical_filter').attr('class', 'ui grey button')
+    $('#active_filter').attr('value', 'alphabet')
 
-    a_z_filter(completed_filter, hasTransfer)
+    $('#avg_score_filter').attr('value', '1-100')
+    $('#avg_score_filter').text('1-100')
+  }
 
-  } else if($('#character_filter').attr('value') == 'Z-A') {
-    $('#character_filter').attr('value', 'A-Z')
-    $('#character_filter').text('A-Z')
+  if($('#alphabetical_filter').attr('value') == 'A-Z') {
+    $('#alphabetical_filter').attr('value', 'Z-A')
+    $('#alphabetical_filter').text('Z-A')
 
     while(!completed_filter) {
       $('li.ui.segment').filter(function(indx){
-        var name = $(this).attr('id').toLowerCase()
+        var key = $(this).attr('id')
+        var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
         var index = indx
 
         $('li.ui.segment').filter(function(indx){
-          var _name = $(this).attr('id').toLowerCase()
+          key = $(this).attr('id')
+          var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+          var _index = indx
+          var max_length = name.length > _name.length ? _name.length : name.length
+          if(name != _name) {
+            if(index < _index) {
+              for (i = 0; i <= max_length; i++){
+                if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+                  $(this).parent().find("li").eq(index).insertAfter($(this));
+                  index = _index
+                  hasTransfer = true;
+                  break;
+                } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                  break;
+                }
+              }
+            } else if(index > _index) {
+              for (i = 0; i <= max_length; i++){
+                if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                  $(this).insertAfter($(this).parent().find("li").eq(index));
+                  index = _index
+                  hasTransfer = true;
+                  break;
+                } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                  break;
+                }
+              }
+            }
+          }
+        })
+      })
+
+      if(hasTransfer) {
+        completed_filter = false
+      } else {
+        completed_filter = true
+      }
+
+      hasTransfer = false
+    }
+
+  } else if($('#alphabetical_filter').attr('value') == 'Z-A') {
+    $('#alphabetical_filter').attr('value', 'A-Z')
+    $('#alphabetical_filter').text('A-Z')
+
+    while(!completed_filter) {
+      $('li.ui.segment').filter(function(indx){
+        var key = $(this).attr('id')
+        var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+        var index = indx
+
+        $('li.ui.segment').filter(function(indx){
+          key = $(this).attr('id')
+          var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
           var _index = indx
           var max_length = name.length > _name.length ? _name.length : name.length
           if(name != _name) {
@@ -449,54 +505,162 @@ function onClickFontFilterButton(){
   }
 }
 
-function a_z_filter(completed_filter, hasTransfer) {
+function onClickAvgScoreFilterButton() {
 
-  while(!completed_filter) {
-    $('li.ui.segment').filter(function(indx){
-      var name = $(this).attr('id').toLowerCase()
-      var index = indx
+  var completed_filter = false
+  var hasTransfer = false
+  var student_objects = JSON.parse($('#student_objects').attr('value'))
 
+  var active_filter = $('#active_filter').attr('value')
+  if(active_filter == 'alphabet' || active_filter == '') {
+    $('#avg_score_filter').attr('class', 'ui grey button')
+    $('#alphabetical_filter').attr('class', 'ui button')
+    $('#active_filter').attr('value', 'avg_score')
+
+    $('#alphabetical_filter').attr('value', 'A-Z')
+    $('#alphabetical_filter').text('A-Z')
+  }
+
+  if($('#avg_score_filter').attr('value') == '1-100') {
+    $('#avg_score_filter').attr('value', '100-1')
+    $('#avg_score_filter').text('100-1')
+
+    while(!completed_filter) {
       $('li.ui.segment').filter(function(indx){
-        var _name = $(this).attr('id').toLowerCase()
-        var _index = indx
-        var max_length = name.length > _name.length ? _name.length : name.length
-        if(name != _name) {
-          if(index < _index) {
-            for (i = 0; i <= max_length; i++){
-              if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+        var key = $(this).attr('id')
+        var avg_score = student_objects[key].avg_score
+        var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+        var index = indx
+
+        $('li.ui.segment').filter(function(indx){
+          key = $(this).attr('id')
+          var _avg_score = student_objects[key].avg_score
+          var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+          var _index = indx
+          var max_length = name.length > _name.length ? _name.length : name.length
+          if(avg_score != _avg_score) {
+            if(index < _index) {
+              if(avg_score > _avg_score) {
                 $(this).parent().find("li").eq(index).insertAfter($(this));
                 index = _index
                 hasTransfer = true;
-                break;
-              } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                break;
               }
-            }
-          } else if(index > _index) {
-            for (i = 0; i <= max_length; i++){
-              if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+            } else if(index > _index) {
+              if(avg_score < _avg_score) {
                 $(this).insertAfter($(this).parent().find("li").eq(index));
                 index = _index
                 hasTransfer = true;
-                break;
-              } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                break;
+              }
+            }
+          } else if(avg_score == _avg_score) {
+            if(name != _name) {
+              if(index < _index) {
+                for (i = 0; i <= max_length; i++){
+                  if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+                    $(this).parent().find("li").eq(index).insertAfter($(this));
+                    index = _index
+                    hasTransfer = true;
+                    break;
+                  } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                    break;
+                  }
+                }
+              } else if(index > _index) {
+                for (i = 0; i <= max_length; i++){
+                  if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                    $(this).insertAfter($(this).parent().find("li").eq(index));
+                    index = _index
+                    hasTransfer = true;
+                    break;
+                  } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                    break;
+                  }
+                }
               }
             }
           }
-        }
+        })
       })
-    })
 
-    if(hasTransfer) {
-      completed_filter = false
-    } else {
-      completed_filter = true
+      if(hasTransfer) {
+        completed_filter = false
+      } else {
+        completed_filter = true
+      }
+
+      hasTransfer = false
     }
 
-    hasTransfer = false
+  } else if($('#avg_score_filter').attr('value') == '100-1') {
+    $('#avg_score_filter').attr('value', '1-100')
+    $('#avg_score_filter').text('1-100')
+
+    while(!completed_filter) {
+      $('li.ui.segment').filter(function(indx){
+        var key = $(this).attr('id')
+        var avg_score = student_objects[key].avg_score
+        var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+        var index = indx
+
+        $('li.ui.segment').filter(function(indx){
+          key = $(this).attr('id')
+          var _avg_score = student_objects[key].avg_score
+          var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+          var _index = indx
+          var max_length = name.length > _name.length ? _name.length : name.length
+          if(avg_score != _avg_score) {
+            if(index < _index) {
+              if(avg_score < _avg_score) {
+                $(this).parent().find("li").eq(index).insertAfter($(this));
+                index = _index
+                hasTransfer = true;
+              }
+            } else if(index > _index) {
+              if(avg_score > _avg_score) {
+                $(this).insertAfter($(this).parent().find("li").eq(index));
+                index = _index
+                hasTransfer = true;
+              }
+            }
+          } else if(avg_score == _avg_score) {
+            if(name != _name) {
+              if(index < _index) {
+                for (i = 0; i <= max_length; i++){
+                  if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+                    $(this).parent().find("li").eq(index).insertAfter($(this));
+                    index = _index
+                    hasTransfer = true;
+                    break;
+                  } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                    break;
+                  }
+                }
+              } else if(index > _index) {
+                for (i = 0; i <= max_length; i++){
+                  if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                    $(this).insertAfter($(this).parent().find("li").eq(index));
+                    index = _index
+                    hasTransfer = true;
+                    break;
+                  } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        })
+      })
+
+      if(hasTransfer) {
+        completed_filter = false
+      } else {
+        completed_filter = true
+      }
+
+      hasTransfer = false
+    }
   }
 }
-
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }
