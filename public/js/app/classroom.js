@@ -70,6 +70,16 @@ $(document).ready(function() {
       const message = $('#confirm-message').attr('value');
       if(message == 'Are you sure you want to cancel pairing?'){
         $('#confirm-modal').modal('show');
+      } else {
+        $('#alphabetical_filter').attr('class', 'ui button')
+        $('#alphabetical_filter').attr('value', 'A-Z')
+        $('#alphabetical_filter').text('A-Z')
+
+        $('#avg_score_filter').attr('class', 'ui button')
+        $('#avg_score_filter').attr('value', '1-100')
+        $('#avg_score_filter').text('1-100')
+
+        $('#active_filter').attr('value', '')
       }
 
     })
@@ -80,6 +90,17 @@ $(document).ready(function() {
       if(message == 'Are you sure you want to cancel pairing?'){
         $('#partner_keys').attr('value', '{}')
         $('#pairing_objective').attr('value', '{}')
+
+        $('#alphabetical_filter').attr('class', 'ui button')
+        $('#alphabetical_filter').attr('value', 'A-Z')
+        $('#alphabetical_filter').text('A-Z')
+
+        $('#avg_score_filter').attr('class', 'ui button')
+        $('#avg_score_filter').attr('value', '1-100')
+        $('#avg_score_filter').text('1-100')
+
+        $('#active_filter').attr('value', '')
+
       } else if(message == 'Are you sure you want to complete this pairing session?'){
         var parameters = {pairing_session_id: $('#inp_cm').attr('value'), section_id: $('#section_id').attr('value'), status: 0}
         $.ajax({
@@ -284,6 +305,10 @@ function showStudentList(command, pairing_session_id){
     const pairing_objective = data.pairing_objective
     var addPartnerButton = "";
     $('#student_objects').attr('value', JSON.stringify(student_objects))
+
+    var completed_filter = false
+    var hasElementMoving = false
+
     $('.student-container').empty();
     for (key in partner_keys) {
       if(partner_keys[key] < 0) {
@@ -315,6 +340,17 @@ function showStudentList(command, pairing_session_id){
     } else {
       $('#partner_keys').attr('value', JSON.stringify(partner_keys))
       $('#pairing_objective').attr('value', JSON.stringify(pairing_objective))
+
+      var active_filter = $('#active_filter').attr('value')
+      if(active_filter == 'A-Z') {
+        sort_A_to_Z(student_objects, completed_filter, hasElementMoving)
+      } else if(active_filter == 'Z-A') {
+        sort_Z_to_A(student_objects, completed_filter, hasElementMoving)
+      } else if(active_filter == '1-100') {
+        sort_avg_score_1_to_100(student_objects, completed_filter, hasElementMoving)
+      } else if(active_filter == '100-1') {
+        sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMoving)
+      }
       //console.log('pairing_objective : ', data.pairing_objective)
       //console.log('partner_keys : ', data.partner_keys)
     }
@@ -386,14 +422,13 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name){
 function onClickAlphabeticalFilterButton(){
 
   var completed_filter = false
-  var hasTransfer = false
+  var hasElementMoving = false
   var student_objects = JSON.parse($('#student_objects').attr('value'))
 
   var active_filter = $('#active_filter').attr('value')
-  if(active_filter == 'avg_score' || active_filter == '') {
+  if(active_filter == '1-100' || active_filter == '100-1' || active_filter == '') {
     $('#avg_score_filter').attr('class', 'ui button')
     $('#alphabetical_filter').attr('class', 'ui grey button')
-    $('#active_filter').attr('value', 'alphabet')
 
     $('#avg_score_filter').attr('value', '1-100')
     $('#avg_score_filter').text('1-100')
@@ -403,119 +438,31 @@ function onClickAlphabeticalFilterButton(){
     $('#alphabetical_filter').attr('value', 'Z-A')
     $('#alphabetical_filter').text('Z-A')
 
-    while(!completed_filter) {
-      $('li.ui.segment').filter(function(indx){
-        var key = $(this).attr('id')
-        var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
-        var index = indx
 
-        $('li.ui.segment').filter(function(indx){
-          key = $(this).attr('id')
-          var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
-          var _index = indx
-          var max_length = name.length > _name.length ? _name.length : name.length
-          if(name != _name) {
-            if(index < _index) {
-              for (i = 0; i <= max_length; i++){
-                if(name.charCodeAt(i) > _name.charCodeAt(i)) {
-                  $(this).parent().find("li").eq(index).insertAfter($(this));
-                  index = _index
-                  hasTransfer = true;
-                  break;
-                } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                  break;
-                }
-              }
-            } else if(index > _index) {
-              for (i = 0; i <= max_length; i++){
-                if(name.charCodeAt(i) < _name.charCodeAt(i)) {
-                  $(this).insertAfter($(this).parent().find("li").eq(index));
-                  index = _index
-                  hasTransfer = true;
-                  break;
-                } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                  break;
-                }
-              }
-            }
-          }
-        })
-      })
+    $('#active_filter').attr('value', 'A-Z')
 
-      if(hasTransfer) {
-        completed_filter = false
-      } else {
-        completed_filter = true
-      }
-
-      hasTransfer = false
-    }
+    sort_A_to_Z(student_objects, completed_filter, hasElementMoving)
 
   } else if($('#alphabetical_filter').attr('value') == 'Z-A') {
     $('#alphabetical_filter').attr('value', 'A-Z')
     $('#alphabetical_filter').text('A-Z')
 
-    while(!completed_filter) {
-      $('li.ui.segment').filter(function(indx){
-        var key = $(this).attr('id')
-        var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
-        var index = indx
+    $('#active_filter').attr('value', 'Z-A')
 
-        $('li.ui.segment').filter(function(indx){
-          key = $(this).attr('id')
-          var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
-          var _index = indx
-          var max_length = name.length > _name.length ? _name.length : name.length
-          if(name != _name) {
-            if(index < _index) {
-              for (i = 0; i <= max_length; i++){
-                if(name.charCodeAt(i) < _name.charCodeAt(i)) {
-                  $(this).parent().find("li").eq(index).insertAfter($(this));
-                  index = _index
-                  hasTransfer = true;
-                  break;
-                } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                  break;
-                }
-              }
-            } else if(index > _index) {
-              for (i = 0; i <= max_length; i++){
-                if(name.charCodeAt(i) > _name.charCodeAt(i)) {
-                  $(this).insertAfter($(this).parent().find("li").eq(index));
-                  index = _index
-                  hasTransfer = true;
-                  break;
-                } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                  break;
-                }
-              }
-            }
-          }
-        })
-      })
-
-      if(hasTransfer) {
-        completed_filter = false
-      } else {
-        completed_filter = true
-      }
-
-      hasTransfer = false
-    }
+    sort_Z_to_A(student_objects, completed_filter, hasElementMoving)
   }
 }
 
 function onClickAvgScoreFilterButton() {
 
   var completed_filter = false
-  var hasTransfer = false
+  var hasElementMoving = false
   var student_objects = JSON.parse($('#student_objects').attr('value'))
 
   var active_filter = $('#active_filter').attr('value')
-  if(active_filter == 'alphabet' || active_filter == '') {
+  if(active_filter == 'A-Z' || active_filter == 'Z-A' || active_filter == '') {
     $('#avg_score_filter').attr('class', 'ui grey button')
     $('#alphabetical_filter').attr('class', 'ui button')
-    $('#active_filter').attr('value', 'avg_score')
 
     $('#alphabetical_filter').attr('value', 'A-Z')
     $('#alphabetical_filter').text('A-Z')
@@ -525,142 +472,261 @@ function onClickAvgScoreFilterButton() {
     $('#avg_score_filter').attr('value', '100-1')
     $('#avg_score_filter').text('100-1')
 
-    while(!completed_filter) {
-      $('li.ui.segment').filter(function(indx){
-        var key = $(this).attr('id')
-        var avg_score = student_objects[key].avg_score
-        var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
-        var index = indx
+    $('#active_filter').attr('value', '1-100')
 
-        $('li.ui.segment').filter(function(indx){
-          key = $(this).attr('id')
-          var _avg_score = student_objects[key].avg_score
-          var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
-          var _index = indx
-          var max_length = name.length > _name.length ? _name.length : name.length
-          if(avg_score != _avg_score) {
-            if(index < _index) {
-              if(avg_score > _avg_score) {
-                $(this).parent().find("li").eq(index).insertAfter($(this));
-                index = _index
-                hasTransfer = true;
-              }
-            } else if(index > _index) {
-              if(avg_score < _avg_score) {
-                $(this).insertAfter($(this).parent().find("li").eq(index));
-                index = _index
-                hasTransfer = true;
-              }
-            }
-          } else if(avg_score == _avg_score) {
-            if(name != _name) {
-              if(index < _index) {
-                for (i = 0; i <= max_length; i++){
-                  if(name.charCodeAt(i) > _name.charCodeAt(i)) {
-                    $(this).parent().find("li").eq(index).insertAfter($(this));
-                    index = _index
-                    hasTransfer = true;
-                    break;
-                  } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                    break;
-                  }
-                }
-              } else if(index > _index) {
-                for (i = 0; i <= max_length; i++){
-                  if(name.charCodeAt(i) < _name.charCodeAt(i)) {
-                    $(this).insertAfter($(this).parent().find("li").eq(index));
-                    index = _index
-                    hasTransfer = true;
-                    break;
-                  } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        })
-      })
-
-      if(hasTransfer) {
-        completed_filter = false
-      } else {
-        completed_filter = true
-      }
-
-      hasTransfer = false
-    }
+    sort_avg_score_1_to_100(student_objects, completed_filter, hasElementMoving)
 
   } else if($('#avg_score_filter').attr('value') == '100-1') {
     $('#avg_score_filter').attr('value', '1-100')
     $('#avg_score_filter').text('1-100')
 
-    while(!completed_filter) {
-      $('li.ui.segment').filter(function(indx){
-        var key = $(this).attr('id')
-        var avg_score = student_objects[key].avg_score
-        var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
-        var index = indx
+    $('#active_filter').attr('value', '100-1')
 
-        $('li.ui.segment').filter(function(indx){
-          key = $(this).attr('id')
-          var _avg_score = student_objects[key].avg_score
-          var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
-          var _index = indx
-          var max_length = name.length > _name.length ? _name.length : name.length
-          if(avg_score != _avg_score) {
-            if(index < _index) {
-              if(avg_score < _avg_score) {
+    sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMoving)
+
+  }
+}
+
+function sort_A_to_Z(student_objects, completed_filter, hasElementMoving){
+  while(!completed_filter) {
+    $('li.ui.segment').filter(function(indx){
+      var key = $(this).attr('id')
+      var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+      var index = indx
+
+      $('li.ui.segment').filter(function(indx){
+        key = $(this).attr('id')
+        var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+        var _index = indx
+        var max_length = name.length > _name.length ? _name.length : name.length
+        if(name != _name) {
+          if(index < _index) {
+            for (i = 0; i <= max_length; i++){
+              if(name.charCodeAt(i) > _name.charCodeAt(i)) {
                 $(this).parent().find("li").eq(index).insertAfter($(this));
                 index = _index
-                hasTransfer = true;
-              }
-            } else if(index > _index) {
-              if(avg_score > _avg_score) {
-                $(this).insertAfter($(this).parent().find("li").eq(index));
-                index = _index
-                hasTransfer = true;
+                hasElementMoving = true;
+                break;
+              } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                break;
               }
             }
-          } else if(avg_score == _avg_score) {
-            if(name != _name) {
-              if(index < _index) {
-                for (i = 0; i <= max_length; i++){
-                  if(name.charCodeAt(i) > _name.charCodeAt(i)) {
-                    $(this).parent().find("li").eq(index).insertAfter($(this));
-                    index = _index
-                    hasTransfer = true;
-                    break;
-                  } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                    break;
-                  }
+          } else if(index > _index) {
+            for (i = 0; i <= max_length; i++){
+              if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                $(this).insertAfter($(this).parent().find("li").eq(index));
+                index = _index
+                hasElementMoving = true;
+                break;
+              } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                break;
+              }
+            }
+          }
+        }
+      })
+    })
+
+    if(hasElementMoving) {
+      completed_filter = false
+    } else {
+      completed_filter = true
+    }
+
+    hasElementMoving = false
+  }
+}
+
+function sort_Z_to_A(student_objects, completed_filter, hasElementMoving){
+
+  while(!completed_filter) {
+    $('li.ui.segment').filter(function(indx){
+      var key = $(this).attr('id')
+      var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+      var index = indx
+
+      $('li.ui.segment').filter(function(indx){
+        key = $(this).attr('id')
+        var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+        var _index = indx
+        var max_length = name.length > _name.length ? _name.length : name.length
+        if(name != _name) {
+          if(index < _index) {
+            for (i = 0; i <= max_length; i++){
+              if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                $(this).parent().find("li").eq(index).insertAfter($(this));
+                index = _index
+                hasElementMoving = true;
+                break;
+              } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                break;
+              }
+            }
+          } else if(index > _index) {
+            for (i = 0; i <= max_length; i++){
+              if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+                $(this).insertAfter($(this).parent().find("li").eq(index));
+                index = _index
+                hasElementMoving = true;
+                break;
+              } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                break;
+              }
+            }
+          }
+        }
+      })
+    })
+
+    if(hasElementMoving) {
+      completed_filter = false
+    } else {
+      completed_filter = true
+    }
+
+    hasElementMoving = false
+  }
+
+}
+
+function sort_avg_score_1_to_100(student_objects, completed_filter, hasElementMoving){
+
+  while(!completed_filter) {
+    $('li.ui.segment').filter(function(indx){
+      var key = $(this).attr('id')
+      var avg_score = student_objects[key].avg_score
+      var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+      var index = indx
+
+      $('li.ui.segment').filter(function(indx){
+        key = $(this).attr('id')
+        var _avg_score = student_objects[key].avg_score
+        var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+        var _index = indx
+        var max_length = name.length > _name.length ? _name.length : name.length
+        if(avg_score != _avg_score) {
+          if(index < _index) {
+            if(avg_score > _avg_score) {
+              $(this).parent().find("li").eq(index).insertAfter($(this));
+              index = _index
+              hasElementMoving = true;
+            }
+          } else if(index > _index) {
+            if(avg_score < _avg_score) {
+              $(this).insertAfter($(this).parent().find("li").eq(index));
+              index = _index
+              hasElementMoving = true;
+            }
+          }
+        } else if(avg_score == _avg_score) {
+          if(name != _name) {
+            if(index < _index) {
+              for (i = 0; i <= max_length; i++){
+                if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+                  $(this).parent().find("li").eq(index).insertAfter($(this));
+                  index = _index
+                  hasElementMoving = true;
+                  break;
+                } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                  break;
                 }
-              } else if(index > _index) {
-                for (i = 0; i <= max_length; i++){
-                  if(name.charCodeAt(i) < _name.charCodeAt(i)) {
-                    $(this).insertAfter($(this).parent().find("li").eq(index));
-                    index = _index
-                    hasTransfer = true;
-                    break;
-                  } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                    break;
-                  }
+              }
+            } else if(index > _index) {
+              for (i = 0; i <= max_length; i++){
+                if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                  $(this).insertAfter($(this).parent().find("li").eq(index));
+                  index = _index
+                  hasElementMoving = true;
+                  break;
+                } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                  break;
                 }
               }
             }
           }
-        })
+        }
       })
+    })
 
-      if(hasTransfer) {
-        completed_filter = false
-      } else {
-        completed_filter = true
-      }
-
-      hasTransfer = false
+    if(hasElementMoving) {
+      completed_filter = false
+    } else {
+      completed_filter = true
     }
+
+    hasElementMoving = false
   }
+
+}
+
+function sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMoving){
+
+  while(!completed_filter) {
+    $('li.ui.segment').filter(function(indx){
+      var key = $(this).attr('id')
+      var avg_score = student_objects[key].avg_score
+      var name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+      var index = indx
+
+      $('li.ui.segment').filter(function(indx){
+        key = $(this).attr('id')
+        var _avg_score = student_objects[key].avg_score
+        var _name = (student_objects[key].first_name + ' ' + student_objects[key].last_name).toLowerCase()
+        var _index = indx
+        var max_length = name.length > _name.length ? _name.length : name.length
+        if(avg_score != _avg_score) {
+          if(index < _index) {
+            if(avg_score < _avg_score) {
+              $(this).parent().find("li").eq(index).insertAfter($(this));
+              index = _index
+              hasElementMoving = true;
+            }
+          } else if(index > _index) {
+            if(avg_score > _avg_score) {
+              $(this).insertAfter($(this).parent().find("li").eq(index));
+              index = _index
+              hasElementMoving = true;
+            }
+          }
+        } else if(avg_score == _avg_score) {
+          if(name != _name) {
+            if(index < _index) {
+              for (i = 0; i <= max_length; i++){
+                if(name.charCodeAt(i) > _name.charCodeAt(i)) {
+                  $(this).parent().find("li").eq(index).insertAfter($(this));
+                  index = _index
+                  hasElementMoving = true;
+                  break;
+                } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
+                  break;
+                }
+              }
+            } else if(index > _index) {
+              for (i = 0; i <= max_length; i++){
+                if(name.charCodeAt(i) < _name.charCodeAt(i)) {
+                  $(this).insertAfter($(this).parent().find("li").eq(index));
+                  index = _index
+                  hasElementMoving = true;
+                  break;
+                } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
+                  break;
+                }
+              }
+            }
+          }
+        }
+      })
+    })
+
+    if(hasElementMoving) {
+      completed_filter = false
+    } else {
+      completed_filter = true
+    }
+
+    hasElementMoving = false
+  }
+
 }
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }
