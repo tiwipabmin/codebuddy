@@ -2,9 +2,8 @@
 .CodeMirror {
   /* Set height, width, borders, and global font properties here */
   font-family: monospace;
-  /*height: 300px;*/
   color: black;
-    border: 1px solid #eee;
+  border: 1px solid #eee;
   height: 500px;
 }
 
