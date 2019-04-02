@@ -120,7 +120,7 @@ exports.getPlayground = async (req, res) => {
     partner_obj = await User
     .findOne({ _id: project.creator_id})
   }
-  if (project.programming_style == 'interactive') {
+  if (project.programming_style == 'Interactive') {
     res.render('playground_interactive', { project, title: `${project.title} - Playground`, messages, partner_obj})
   } else {
     res.render('playground_conventional', { project, title: `${project.title} - Playground`, messages, partner_obj})
@@ -756,9 +756,9 @@ exports.createAssignment = async (req, res) => {
   const output_specification = (req.body.output_specification).replace(/\s/g, "\\n")
   const sample_input = (req.body.sample_input).replace(/\s/g, "\\n")
   const sample_output = (req.body.sample_output).replace(/\s/g, "\\n")
-  const code_editor = req.body.code_editor;
-  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, code_editor) VALUES ?'
-  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output, code_editor]]
+  const programming_style = req.body.programming_style;
+  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style) VALUES ?'
+  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style]]
   const assignment_id = await con.insert_assignment(insert_assignment, values)
   var assignment = {}
   console.log('assign_id : ' + assignment_id)
@@ -839,6 +839,7 @@ exports.assignAssignment = async (req, res) => {
   }
   const pairing_session_id = req.body.pairing_session_id;
   const assignment_id = parseInt(req.body.assignment_id)
+  const programming_style = req.body.programming_style;
   const title = req.body.title;
   const description = req.body.description;
   const swaptime = '1';
@@ -886,7 +887,7 @@ exports.assignAssignment = async (req, res) => {
     }
   }
 
-  console.log('student_objects : ', student_objects)
+  // console.log('student_objects : ', student_objects)
   count = 0;
   console.log('already_received : ', already_received)
   for(_key in student_objects) {
@@ -916,6 +917,8 @@ exports.assignAssignment = async (req, res) => {
       }
       delete student_objects[student_objects[_key].partner_id]
 
+      console.log('Programming Style: ' + programming_style)
+
       project.creator = creator;
       project.collaborator = collaborator;
       creator = await User
@@ -930,7 +933,8 @@ exports.assignAssignment = async (req, res) => {
           $set: {
             creator_id: creator._id,
             collaborator_id: collaborator._id,
-            assignment_id: assignment_id
+            assignment_id: assignment_id,
+            programming_style: programming_style
           }
         }, (err) => {
           if (err) throw err

@@ -29,7 +29,7 @@ exports.validateSection = async (req, res, next) => {
     res_object = await con.select_student(query)
   }
 
-  console.log('res_object : ', res_object)
+  // console.log('res_object : ', res_object)
   if(res_object.length) {
     return next()
   } else {

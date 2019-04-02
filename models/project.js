@@ -29,6 +29,7 @@ const projectSchema = new mongoose.Schema({
   swaptime: {type : String, default: '5'},
   status: String,
   files: { type : Array , default: ['main'] },
+  assignment_id: Number,
   programming_style: String
 })
 

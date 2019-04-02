@@ -402,8 +402,8 @@ function onClickViewPairingRecord(pairing_session_id) {
   showStudentList('view', pairing_session_id)
 }
 
-function onClickAssign(section_id, pairing_date_time_id, assignment_id, title, description) {
-  var parameters = {section_id: section_id, pairing_session_id: pairing_date_time_id, assignment_id: assignment_id, title: title, description: description}
+function onClickAssign(section_id, pairing_date_time_id, assignment_id, title, description, programming_style) {
+  var parameters = {section_id: section_id, pairing_session_id: pairing_date_time_id, assignment_id: assignment_id, title: title, description: description, programming_style: programming_style}
   $('#inp_cm').attr('value', JSON.stringify(parameters))
   $('#confirm-header').text('Assign assignment')
   $('#confirm-message').attr('value', 'Are you sure you want to assign this assignment to all student pairs?')

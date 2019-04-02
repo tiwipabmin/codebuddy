@@ -383,11 +383,11 @@ block content
       .content
         form.ui.form.createAssignment.segment(action='/assignment', method='POST')
           .field
-            label Code editor :
+            label Programming Style :
             |
-            select.ui.dropdown(name='code_editor')
-              option(value='Conventional programming') Conventional Programming
-              option(value='Jupyter style') Jupyter Style
+            select.ui.dropdown(name='programming_style')
+              option(value='Interactive') Interactive
+              option(value='Conventional') Conventional
           .field
             label Title :
             |
@@ -459,9 +459,9 @@ block content
                           .description
                             .ui.two.column.grid
                               .column
-                                font(style='padding-left:15px; padding-right:15px;') Code Editor : !{assignment.code_editor}
+                                font(style='padding-left:15px; padding-right:15px;') Programming Style : !{assignment.programming_style}
                               .column
-                                .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`${section.section_id}`+','+`$('#pairing_session_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\')') Assign
+                                .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`${section.section_id}`+','+`$('#pairing_session_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\',\''+assignment.programming_style+'\')') Assign
                   else
                     p.text-center No assignment.
                 default
