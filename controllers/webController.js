@@ -120,7 +120,11 @@ exports.getPlayground = async (req, res) => {
     partner_obj = await User
     .findOne({ _id: project.creator_id})
   }
-  res.render('playground', { project, title: `${project.title} - Playground`, messages, partner_obj})
+  if (project.programming_style == 'interactive') {
+    res.render('playground_interactive', { project, title: `${project.title} - Playground`, messages, partner_obj})
+  } else {
+    res.render('playground_conventional', { project, title: `${project.title} - Playground`, messages, partner_obj})
+  }
 }
 
 exports.getHistory = async (req, res) => {
@@ -1012,6 +1016,7 @@ exports.getProgress = async (req, res) => {
     project = await Project.findOne({
       pid: scores[i].pid
     })
+    projectTitles.push(project.title)
 
     projectTitles.push(project.title)
 

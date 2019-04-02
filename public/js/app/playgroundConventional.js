@@ -91,6 +91,7 @@ function changeTheme() {
 /**
  * User join the project
  */
+socket.emit('load playground', { programming_style: 'conventional' })
 socket.emit('join project', {
   pid: getParameterByName('pid'),
   username: user
