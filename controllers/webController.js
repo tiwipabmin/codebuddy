@@ -1022,8 +1022,6 @@ exports.getProgress = async (req, res) => {
     })
     projectTitles.push(project.title)
 
-    projectTitles.push(project.title)
-
     // project time data
     projectTimes.push((scores[i].time/60).toFixed(2))
 
