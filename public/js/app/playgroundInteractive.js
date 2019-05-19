@@ -467,6 +467,9 @@ function runCode() {
     codeFocusBlock: getCodeFocusBlock(),
     focusBlock: detectFocusBlock
   })
+  socket.emit('save lines of code', {
+    uid: uid
+  })
 }
 
 /**
