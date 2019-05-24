@@ -55,6 +55,11 @@ module.exports = (io, client, redis, projects) => {
         if (err) throw err
       })
 
+      // Increase user's enter count
+      const user = await User.findOne({ username: curUser })
+      const project = await Project.findOne({ pid: projectId })
+      await Score.update({ pid: projectId, uid: user._id }, { $inc: { 'participation.enter': 1 } })
+
       // Checking if this project hasn't have any roles assigned.
       if (!projects[projectId]) {
         winston.info(`created new projects['${projectId}']`)
@@ -69,9 +74,14 @@ module.exports = (io, client, redis, projects) => {
         winston.info(projects[projectId].count)
         client.emit('role selection')
       } else {
-        Project.findOne({ pid: projectId}, function (err, res) {
+        Project.findOne({ pid: projectId}, async function (err, res) {
           if (err) return handleError(err);
           projects[projectId].count += 1
+
+          // Increase users' pairing count
+          await Score.update({ pid: projectId, uid: project.creator_id }, { $inc: { 'participation.pairing': 1 } })
+          await Score.update({ pid: projectId, uid: project.collaborator_id }, { $inc: { 'participation.pairing': 1 } })
+
           winston.info(projects[projectId].count)
           client.emit('role updated', { projectRoles: projects[projectId], project: res})
         })
@@ -694,6 +704,10 @@ module.exports = (io, client, redis, projects) => {
                 time: 0,
                 lines_of_code: 0,
                 error_count: 0,
+                participation: {
+                  enter: 0,
+                  pairing: 0
+                },
                 createdAt: Date.now()
               }
               Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {

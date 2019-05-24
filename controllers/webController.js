@@ -939,6 +939,26 @@ exports.assignAssignment = async (req, res) => {
         }, (err) => {
           if (err) throw err
         })
+
+        // Insert score records
+        const uids = [creator._id, collaborator._id]
+        uids.forEach(function (uid) {
+          const scoreModel = {
+            pid: project._id,
+            uid: uid,
+            score: 0,
+            time: 0,
+            lines_of_code: 0,
+            error_count: 0,
+            participation: {
+              join: 0,
+              pairing: 0
+            },
+            createdAt: Date.now()
+          }
+          new Score(scoreModel).save()
+        })
+
         //create directory
         var dir1 = './public/project_files';
         var dir2 = './public/project_files/'+project.pid;
@@ -1006,6 +1026,8 @@ exports.getProgress = async (req, res) => {
   let linesOfCodes = [];
   let productivitys = [];
   let errors = [];
+  let enters = [];
+  let pairings = [];
 
   const user = await User.findOne({
     username: username
@@ -1023,7 +1045,7 @@ exports.getProgress = async (req, res) => {
     projectTitles.push(project.title)
 
     // project time data
-    projectTimes.push((scores[i].time/60).toFixed(2))
+    projectTimes.push(scores[i].time)
 
     // project score data
     projectScores.push(scores[i].score)
@@ -1036,6 +1058,12 @@ exports.getProgress = async (req, res) => {
 
     // error data
     errors.push(scores[i].error_count)
+  
+    // enter data
+    enters.push(scores[i].participation.enter)
+
+    // pairing data
+    pairings.push(scores[i].participation.pairing)
   }
 
   data['fullname'] = user.info.firstname + ' ' + user.info.lastname;
@@ -1048,5 +1076,8 @@ exports.getProgress = async (req, res) => {
   data['linesOfCodes'] = linesOfCodes;
   data['productivitys'] = productivitys;
   data['errors'] = errors;
+  data['enters'] = enters;
+  data['pairings'] = pairings;
+  console.log(data)
   res.send(data)
 }

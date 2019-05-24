@@ -31,6 +31,16 @@ const scoreSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Please fill in error count']
   },
+  participation: {
+    enter: {
+      type: Number,
+      required: [true, 'Please fill in join count']
+    },
+    pairing: {
+      type: Number,
+      required: [true, 'Please fill in pairing count']
+    }
+  },
   createdAt: { type: Date, default: Date.now }
 })
 

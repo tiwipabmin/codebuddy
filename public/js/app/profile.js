@@ -27,6 +27,29 @@ window.onload = function() {
                     colorschemes: {
                         scheme: 'office.BlueGreen6'
                     }
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function (tooltipItem, data) {
+                            return data['labels'][tooltipItem[0]['index']];
+                        },
+                        label: function (tooltipItem, data) {
+                            var sec_num = data['datasets'][0]['data'][tooltipItem['index']];
+                            var hours = Math.floor(sec_num / 3600);
+                            var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+                            var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+                            hours > 0 ? hours += 'h ' : hours = ''
+                            minutes > 0 ? minutes += 'm ' : minutes = ''
+                            seconds > 0 ? seconds += 's ' : seconds = ''
+                            return hours + minutes + seconds;
+                        },
+                        afterLabel: function (tooltipItem) {
+                            var enter = data.enters[tooltipItem['index']]
+                            var pairing = data.pairings[tooltipItem['index']]
+                            return 'Enters: ' + enter + ' times' + '\nPairings: ' + pairing + ' times';
+                        }
+                    }
                 }
             }
         });
@@ -203,7 +226,14 @@ window.onload = function() {
                     }],
                     yAxes: [{
                         ticks: {
-                            beginAtZero:true
+                            beginAtZero: true,
+                            userCallback: function(label, index, labels) {
+                                // when the floored value is the same as the value we have a whole number
+                                if (Math.floor(label) === label) {
+                                    return label;
+                                }
+           
+                            },
                         },
                         scaleLabel: {
                             display: true,
