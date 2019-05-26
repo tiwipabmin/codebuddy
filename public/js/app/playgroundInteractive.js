@@ -70,7 +70,9 @@ function setEditor(fileName){
   cm.addKeyMap({
     "Alt-R": function(cm) { runCode() },
     "Alt-N": function(cm) { addBlock() },
-    "Alt-D": function(cm) { deleteBlock() }
+    "Alt-D": function(cm) { deleteBlock() },
+    "Alt-Up": function(cm) { moveBlock('up') },
+    "Alt-Down": function(cm) { moveBlock('down') }
   })
   cm.on('focus', (cm) => {
     var prevFocusBlock = detectFocusBlock
@@ -207,7 +209,9 @@ socket.on('update block', (payload) => {
     cm.addKeyMap({
       "Alt-R": function(cm) { runCode() },
       "Alt-N": function(cm) { addBlock() },
-      "Alt-D": function(cm) { deleteBlock() }
+      "Alt-D": function(cm) { deleteBlock() },
+      "Alt-Up": function(cm) { moveBlock('up') },
+      "Alt-Down": function(cm) { moveBlock('down') }
     })
 
     cm.on('focus', (cm) => {
@@ -924,6 +928,40 @@ function deleteFile(fileName){
 
 function deleteBlock() {
   socket.emit('delete block', { blockId: editors[detectFocusBlock].blockId, index: detectFocusBlock });
+}
+
+function moveBlock(key) {
+  var temp
+  var segmentCodeBlock = document.getElementsByClassName('code-block-container')
+
+  if (key == 'up' && detectFocusBlock != 0) {
+    segmentCodeBlock[detectFocusBlock].parentNode.insertBefore(segmentCodeBlock[detectFocusBlock], segmentCodeBlock[detectFocusBlock-1])
+
+    temp = projectFiles[detectFocusBlock]
+    projectFiles[detectFocusBlock] = projectFiles[detectFocusBlock-1]
+    projectFiles[detectFocusBlock-1] = temp
+
+    temp = editors[detectFocusBlock]
+    editors[detectFocusBlock] = editors[detectFocusBlock-1]
+    editors[detectFocusBlock-1] = temp
+
+    detectFocusBlock -= 1
+  } else if (key == 'down' && detectFocusBlock != editors.length-1) {
+    // there is no insertAfter, so we basically swap the bottom block up
+    segmentCodeBlock[detectFocusBlock+1].parentNode.insertBefore(segmentCodeBlock[detectFocusBlock+1], segmentCodeBlock[detectFocusBlock])
+
+    temp = projectFiles[detectFocusBlock]
+    projectFiles[detectFocusBlock] = projectFiles[detectFocusBlock+1]
+    projectFiles[detectFocusBlock+1] = temp
+
+    temp = editors[detectFocusBlock]
+    editors[detectFocusBlock] = editors[detectFocusBlock+1]
+    editors[detectFocusBlock+1] = temp
+
+    detectFocusBlock += 1
+  }
+
+  socket.emit('move block', { projectFiles: projectFiles})
 }
 
 function onClickExport(){

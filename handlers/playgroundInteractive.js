@@ -313,6 +313,21 @@ module.exports = (io, client, redis, projects) => {
   })
 
   /**
+   * `move block` event fired when user move block
+   * @param {Object} payload fileName
+   */
+  client.on('move block', async (payload) => {
+    // update block id in mongoDB
+    Project.update({
+      pid: projectId
+    }, {
+      files: payload.projectFiles
+    }, (err) => {
+      if (err) throw err
+    })
+  })
+
+  /**
    * `role selected` event fired when one of the project user select his role
    * @param {Ibject} payload user selected role and partner username
    * then socket will broadcast the role to his partner
