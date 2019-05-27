@@ -942,9 +942,9 @@ exports.assignAssignment = async (req, res) => {
 
         // Insert score records
         const uids = [creator._id, collaborator._id]
-        uids.forEach(async function (uid) {
+        uids.forEach(function (uid) {
           const scoreModel = {
-            pid: project._id,
+            pid: project.pid,
             uid: uid,
             score: 0,
             time: 0,
@@ -956,7 +956,7 @@ exports.assignAssignment = async (req, res) => {
             },
             createdAt: Date.now()
           }
-          await new Score(scoreModel).save()
+          new Score(scoreModel).save()
         })
 
         //create directory
