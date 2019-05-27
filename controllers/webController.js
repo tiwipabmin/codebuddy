@@ -956,7 +956,7 @@ exports.assignAssignment = async (req, res) => {
             },
             createdAt: Date.now()
           }
-          new Score(scoreModel).save()
+          await new Score(scoreModel).save()
         })
 
         //create directory
