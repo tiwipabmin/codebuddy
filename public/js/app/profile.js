@@ -81,6 +81,9 @@ window.onload = function() {
                         scaleLabel: {
                             display: true,
                             labelString: 'Project'
+                        },
+                        ticks: {
+                            display: false
                         }
                     }],
                     yAxes: [{
@@ -128,6 +131,9 @@ window.onload = function() {
                         scaleLabel: {
                             display: true,
                             labelString: 'Project'
+                        },
+                        ticks: {
+                            display: false
                         }
                     }],
                     yAxes: [{
@@ -175,6 +181,9 @@ window.onload = function() {
                         scaleLabel: {
                             display: true,
                             labelString: 'Project'
+                        },
+                        ticks: {
+                            display: false
                         }
                     }],
                     yAxes: [{
@@ -222,6 +231,9 @@ window.onload = function() {
                         scaleLabel: {
                             display: true,
                             labelString: 'Project'
+                        },
+                        ticks: {
+                            display: false
                         }
                     }],
                     yAxes: [{
