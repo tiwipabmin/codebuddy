@@ -951,7 +951,7 @@ exports.assignAssignment = async (req, res) => {
             lines_of_code: 0,
             error_count: 0,
             participation: {
-              join: 0,
+              enter: 0,
               pairing: 0
             },
             createdAt: Date.now()

@@ -34,7 +34,7 @@ const scoreSchema = new mongoose.Schema({
   participation: {
     enter: {
       type: Number,
-      required: [true, 'Please fill in join count']
+      required: [true, 'Please fill in enter count']
     },
     pairing: {
       type: Number,
