@@ -942,7 +942,7 @@ exports.assignAssignment = async (req, res) => {
 
         // Insert score records
         const uids = [creator._id, collaborator._id]
-        uids.forEach(function (uid) {
+        uids.forEach(async function (uid) {
           const scoreModel = {
             pid: project._id,
             uid: uid,
