@@ -1058,7 +1058,7 @@ exports.getProgress = async (req, res) => {
 
     // error data
     errors.push(scores[i].error_count)
-  
+
     // enter data
     enters.push(scores[i].participation.enter)
 

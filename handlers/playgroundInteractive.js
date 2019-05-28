@@ -598,7 +598,7 @@ module.exports = (io, client, redis, projects) => {
     pythonProcess.stderr.on('data', (data) => {
       output = data.toString()
       console.log("error : " + output)
-      
+
       var arrowLocation = output.indexOf('>>>')
       var drawArrow = ''
 
