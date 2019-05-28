@@ -753,6 +753,8 @@ exports.getStudentsFromSection = async (req, res) => {
 exports.createAssignment = async (req, res) => {
   //console.log('section_id: ' + parseInt(req.body.section_id) + ', title: ' + req.body.title + ', description: ' + req.body.description + ', input_specification: ' + req.body.input_specification + ', output_specification: ' + req.body.output_specification + ', sample_input: ' + req.body.sample_input + ', sample_output: ' + req.body.sample_output)
   const section_id = parseInt(req.body.section_id)
+  var section = {}
+  section.section_id = section_id
   const title = (req.body.title).replace(/\s/g, "\\n")
   const description = (req.body.description).replace(/\s/g, "\\n");
   console.log('des---- :',description);
@@ -774,7 +776,7 @@ exports.createAssignment = async (req, res) => {
     assignment.output_specification = output_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_input = sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
-    res.render('assignment', {assignment, section_id, title: title})
+    res.render('assignment', {assignment, section, title: title})
   } else {
     res.redirect('/classroom?section_id=' + section_id)
   }
