@@ -45,6 +45,7 @@ var editors = []
 var output = {}
 var sizeOutputObjects = 0;
 var detectFocusBlock = 0;
+var executingBlock;
 var hasError = false;
 
 projectFiles.forEach(newEditorFacade);
@@ -434,7 +435,7 @@ function addDivOutput(textOutput, blockId){
 
 socket.on('show output', (payload) => {
   var textOutput = document.createTextNode(payload)
-  var blockId = editors[detectFocusBlock].blockId
+  var blockId = editors[executingBlock].blockId
   if(blockId in output){
     output[blockId] = textOutput
     var preformattedText = document.getElementById(blockId + "-pre")
@@ -448,7 +449,7 @@ socket.on('show output', (payload) => {
 })
 
 socket.on('update execution count', (payload) => {
-  var blockId = editors[detectFocusBlock].blockId
+  var blockId = editors[executingBlock].blockId
   document.getElementById(blockId+'-in').innerHTML = 'In ['+payload+']:'
 })
 
@@ -459,14 +460,19 @@ socket.on('update block highlight', (payload) => {
 
 //อัพเดท focus block ของทั้ง 2 คน
 socket.on('focus block', (payload) => {
-  detectFocusBlock = payload
+  executingBlock = payload
+  if (executingBlock != editors.length-1) {
+    detectFocusBlock += 1
+    socket.emit('codemirror on focus', { prevFocus: detectFocusBlock-1, newFocus: detectFocusBlock })
+    editors[detectFocusBlock].editor.focus()
+    editors[detectFocusBlock].editor.setCursor(0,0)
+  }
 })
 
 /**
  * Run code
  */
 function runCode() {
-  console.log(editors)
   socket.emit('run code', {
     codeFocusBlock: getCodeFocusBlock(),
     focusBlock: detectFocusBlock
