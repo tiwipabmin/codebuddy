@@ -612,9 +612,9 @@ block content
                     each assignment in assignments
                       .item
                         .content
-                          .ui.two.column.grid
-                            .column
-                              a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id)
-                                b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
+                          a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id)
+                            b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
+                          .description
+                            p(style='padding-left:15px; padding-right:15px;') !{assignment.description}
                   else
                     p.text-center No assignment.
