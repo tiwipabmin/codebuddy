@@ -328,7 +328,7 @@ socket.on('show reviewer active time', (payload) => {
  * `beforeunload` event will fired and sending client disconnection to the server
  */
 $(window).on('beforeunload', () => {
-  storeActiveTime()
+  // storeActiveTime()
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
@@ -338,7 +338,7 @@ $(window).on('beforeunload', () => {
 })
 
 $(window).bind('hashchange', function() {
-  storeActiveTime()
+  // storeActiveTime()
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
@@ -773,6 +773,21 @@ $(function(){
     }
   }, 1000);
 
+  var lastSavedTime = 0
+
+  setInterval(function() {
+    const counts = $('#counts_min_sec').attr('data-count');
+    let add = counts - lastSavedTime
+
+    if (counts !== undefined && add > 0) {
+      socket.emit('save active time',{
+        uid: uid,
+        time: add
+      })
+      
+      lastSavedTime = counts
+    }
+  }, 10000)
 });
 
 console.log("is typing : " + $('#inputMessage').val())
