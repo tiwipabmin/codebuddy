@@ -155,6 +155,22 @@ $(document).ready(function() {
             }
           }
         })
+      } else if (message == 'Are you sure you want to delete this assignment?') {
+        assignment_id = $('#inp_cm').attr('value')
+        $.ajax({
+          url: '/api/deleteAssignment',
+          type: 'delete',
+          data: {
+            assignment_id
+          },
+          success: function (res) {
+            if(res.status == 'delete this assignment complete.') {
+              $('#a' + assignment_id).remove()
+            } else {
+              alert(res.status)
+            }
+          }
+        })
       }
 
       $('#confirm-message').attr('value', 'Something message.')
@@ -408,6 +424,15 @@ function onClickAssign(section_id, pairing_date_time_id, assignment_id, title, d
   $('#confirm-header').text('Assign assignment')
   $('#confirm-message').attr('value', 'Are you sure you want to assign this assignment to all student pairs?')
   $('#confirm-message').text('Are you sure you want to assign this assignment to all student pairs?')
+  $('#confirm-modal').modal('show');
+}
+
+function onClickDeleteAssignment(assignment_id) {
+  var assingment_id = assignment_id
+  $('#inp_cm').attr('value', assignment_id)
+  $('#confirm-header').text('Delete assignment')
+  $('#confirm-message').attr('value', 'Are you sure you want to delete this assignment?')
+  $('#confirm-message').text('Are you sure you want to delete this assignment?')
   $('#confirm-modal').modal('show');
 }
 

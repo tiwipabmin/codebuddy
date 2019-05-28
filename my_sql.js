@@ -135,6 +135,15 @@ exports.insert_assignment = (query, values) => {
   })
 }
 
+exports.delete_assignment = (query) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject('delete this assignment fail.');
+      resolve('delete this assignment complete.');
+    })
+  })
+}
+
 exports.update_assignment = (query, values) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){
