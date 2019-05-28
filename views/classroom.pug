@@ -382,12 +382,18 @@ block content
       .header Assignment
       .content
         form.ui.form.createAssignment.segment(action='/assignment', method='POST')
-          .field
+          .inline.fields
             label Programming Style :
-            |
-            select.ui.dropdown(name='programming_style')
-              option(value='Interactive') Interactive
-              option(value='Conventional') Conventional
+            .field
+              .ui.radio.checkbox
+                input(type='radio' name='programming_style' value='Interactive' checked='checked')
+                |  
+                label Interactive
+            .field
+              .ui.radio.checkbox
+                input(type='radio' name='programming_style' value='Conventional')
+                |  
+                label Conventional
           .field
             label Title :
             |
@@ -477,7 +483,7 @@ block content
                               .ui.grid
                                 .eleven.wide.column
                                   b(style='font-size:1.2em;')
-                                    a.header(href='/project?pid='+project.pid+'&user_role=creator')= project.title
+                                    a.header(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')= project.title
                                   .description= project.description
                                   | Last updated #{moment(project.createdAt).fromNow()}
                                   | (

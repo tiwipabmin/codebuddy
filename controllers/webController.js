@@ -108,6 +108,10 @@ exports.getLobby = async (req, res) => {
 exports.getPlayground = async (req, res) => {
   if (!req.query.pid) res.redirect('/dashboard')
   const user_role = req.query.user_role
+  var section_id = parseInt(req.query.section_id)
+  var section = {}
+  section.section_id = section_id
+  console.log('section_id in getPlayground func : ', section.section_id)
   let partner_obj = ''
   const project = await Project.findOne({ pid: req.query.pid })
   const messages = await Message
@@ -121,9 +125,9 @@ exports.getPlayground = async (req, res) => {
     .findOne({ _id: project.creator_id})
   }
   if (project.programming_style == 'Interactive') {
-    res.render('playground_interactive', { project, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_interactive', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
   } else {
-    res.render('playground_conventional', { project, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_conventional', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
   }
 }
 

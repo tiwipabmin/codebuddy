@@ -8,6 +8,10 @@
           a.item(href='/lobby')
             i.coffee.icon
             |  Lobby
+          if (section)
+            a.item(href='/classroom?section_id='+section.section_id)
+              i.grid.layout.icon
+              |  Classroom
           a.item(href='/notifications')
             i.Alarm.icon
             |  Notifications
@@ -24,7 +28,9 @@
                   = user.username
                 .ui.inverted.divider
                 case occupation
-                  when 1
+                  when 0
+                    - break
+                  default
                     a.item(href='/profile/'+user.username)
                       i.unhide.icon
                       |  Your Profile

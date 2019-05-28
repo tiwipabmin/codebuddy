@@ -5,7 +5,7 @@ mixin registerForm(user)
         .required.field
           label Username
           |  
-          input(type='text' name='username' placeholder='codebuddy.com/profile/`username`' required)
+          input(type='text' name='username' placeholder='Username' required)
         .required.field
           label Password
           |  
@@ -23,18 +23,30 @@ mixin registerForm(user)
           label Last Name
           |  
           input(type='text' name='lastname' placeholder='Last Name' required)
-        .field
+        .required.field
           label Occupation
-          |
-          select.ui.dropdown.day(name='occupation')
-            option(value='student') Student
-            option(value='teacher') Teacher
+          .field
+            .ui.radio.checkbox
+              input(type='radio' name='occupation' value='student' checked='checked')
+              |  
+              label Student
+          .field
+            .ui.radio.checkbox
+              input(type='radio' name='occupation' value='teacher')
+              |  
+              label Teacher
+        //- .field
+        //-   label Occupation
+        //-   |
+        //-   select.ui.dropdown.day(name='occupation')
+        //-     option(value='student') Student
+        //-     option(value='teacher') Teacher
           //- input(type='text' name='occupation' placeholder='occupation')
         .required.field
           label Gender
           .field
             .ui.radio.checkbox
-              input(type='radio' name='gender' value='male')
+              input(type='radio' name='gender' value='male' checked='checked')
               |  
               label Male
           .field
