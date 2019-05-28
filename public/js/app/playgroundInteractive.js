@@ -455,7 +455,8 @@ socket.on('update execution count', (payload) => {
 
 socket.on('update block highlight', (payload) => {
   document.getElementById(editors[payload.prevFocus].blockId+'-div').style.border = ''
-  document.getElementById(editors[payload.newFocus].blockId+'-div').style.border = '2px solid #dddddd'
+  document.getElementById(editors[payload.newFocus].blockId+'-div').style.border = 'thin solid #2185d0'
+  document.getElementById(editors[payload.newFocus].blockId+'-div').style.borderLeft = 'thick solid #2185d0'
 })
 
 //อัพเดท focus block ของทั้ง 2 คน
