@@ -321,6 +321,7 @@ exports.getSection = async (req, res) => {
   } else if (assignments.length) {
     for (_index in assignments) {
       assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+      assignments[_index].description = assignments[_index].description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     }
   }
 
