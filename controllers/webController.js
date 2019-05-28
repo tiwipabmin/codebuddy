@@ -803,6 +803,8 @@ exports.getAssignment = async (req, res) => {
   const select_assignment_by_assignment_id = 'SELECT * FROM assignment WHERE assignment_id = ' + req.query.assignment_id
   var assignment = await con.select_assignment(select_assignment_by_assignment_id)
   var title = 'Assignment'
+  var section = {}
+  section.section_id = section_id
 
   var occupation = 1;
   if(req.user.info.occupation == 'teacher') {
@@ -821,7 +823,7 @@ exports.getAssignment = async (req, res) => {
     assignment.sample_input = assignment.sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = assignment.sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
   }
-  res.render('assignment', {assignment, section_id, occupation, title: title})
+  res.render('assignment', {assignment, section, occupation, title: title})
 }
 
 exports.assignAssignment = async (req, res) => {

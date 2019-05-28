@@ -138,7 +138,7 @@ block content
                           |
                           textarea#sample_output(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;') !{assignment.sample_output}
                   input(type='hidden', name='assignment_id', value=`${assignment.assignment_id}`)
-                  input(type='hidden', name='section_id', value=`${section_id}`)
+                  input(type='hidden', name='section_id', value=`${section.section_id}`)
                   .ui.basic.center.aligned.segment
                     .actions
                       button.ui.button.approve.green(type='submit') Update
@@ -194,6 +194,6 @@ block content
               h3.ui.header Sample Output
               .ui.segment
                 p !{assignment.sample_output}
-    a.button.ui.labeled.icon.button(href='/classroom?section_id='+section_id, style='margin-top:20px;')
+    a.button.ui.labeled.icon.button(href='/classroom?section_id='+section.section_id, style='margin-top:20px;')
       i.reply.icon
       font Back
