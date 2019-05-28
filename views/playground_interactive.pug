@@ -144,7 +144,7 @@ block content
                   i.folder.icon
                   .content
                     .header src
-                      a.ui.label(id='exportBtn' onClick='showExportModal()') export file
+                      //- a.ui.label(id='exportBtn' onClick='showExportModal()') export file
                     .description Source files for project
                     .list.relaxed#file-list(style="margin:0px;")
                       //- each file, index in project.files
@@ -169,10 +169,10 @@ block content
                       //-               .ui.button.approve.red(data-value='cancel') Cancel
                       .item.cursor-pointer(id='main-file')
                         div(id='main-file-icon')
-                          i.file.icon
-                          .middle.aligned.content
-                            .header(id='main-header') main
-                            .description Main file
+                        i.file.icon
+                        .middle.aligned.content
+                          .header(id='main-header') main
+                          .description Main file
           .ui.small.modal#export-modal
             .header Export File
             .content
