@@ -961,6 +961,7 @@ function moveBlock(key) {
     detectFocusBlock += 1
   }
 
+  editors[detectFocusBlock].editor.focus()
   socket.emit('move block', { projectFiles: projectFiles})
 }
 
