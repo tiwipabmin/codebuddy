@@ -4,7 +4,7 @@ const shortid = require('shortid')
 const con = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "codebuddy",
   database: "classroom_management_system"
 })
 
