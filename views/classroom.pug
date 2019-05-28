@@ -458,16 +458,18 @@ block content
                 when 0
                   if assignments.length > 0
                     each assignment in assignments
-                      .item
+                      .item(id='a'+`${assignment.assignment_id}`)
                         .content
                           b(style='font-size:1.5em; padding-left:15px; padding-right:15px;')
                             a.header(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id) !{assignment.title}
                           .description
-                            .ui.two.column.grid
-                              .column
-                                font(style='padding-left:15px; padding-right:15px;') Programming Style : !{assignment.programming_style}
-                              .column
-                                .ui.right.floated.button.green#assign(style='margin-right:19px', onclick='onClickAssign('+`${section.section_id}`+','+`$('#pairing_session_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\',\''+assignment.programming_style+'\')') Assign
+                            p(style='padding-left:15px; padding-right:15px;') !{assignment.description}
+                            p(style='padding-left:15px; padding-right:15px;') Programming Style : !{assignment.programming_style}
+                            .extra
+                              .ui.right.floated.button.red#delete(style='margin-right:19px', onclick='onClickDeleteAssignment('+`${assignment.assignment_id}`+')') Delete
+                              .ui.right.floated.button.green#assign(onclick='onClickAssign('+`${section.section_id}`+','+`$('#pairing_session_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\',\''+assignment.programming_style+'\')') Assign
+                            //- .ui.two.column.grid
+                            //-   .column
                   else
                     p.text-center No assignment.
                 default

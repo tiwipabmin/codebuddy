@@ -8,7 +8,7 @@ const router = express.Router()
 
 router.get('/usernames', auth.isSignedIn, catchErrors(userController.getUsernames))
 router.delete('/removeStudent', auth.isSignedIn, catchErrors(webController.removeStudent))
+router.delete('/deleteAssignment', auth.isSignedIn, catchErrors(webController.deleteAssignment))
 router.delete('/deleteSection', auth.isSignedIn, catchErrors(webController.deleteSection))
-router.post('/createPairingDateTime', auth.isSignedIn, catchErrors(webController.createPairingDateTime))
 
 module.exports = router

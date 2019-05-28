@@ -359,6 +359,7 @@ exports.getSection = async (req, res) => {
         }
       });
     }
+    projects_in_section.reverse()
     pairing_sessions = [{status: -1}]
 
     res.render('classroom', { occupation, section, assignments, students, projects_in_section, pairing_sessions, title: section.course_name })
@@ -780,6 +781,13 @@ exports.createAssignment = async (req, res) => {
   } else {
     res.redirect('/classroom?section_id=' + section_id)
   }
+}
+
+exports.deleteAssignment = async (req, res) => {
+  var delete_assignment = 'DELETE FROM assignment WHERE assignment_id = ' + req.body.assignment_id;
+  var res_status = await con.delete_assignment(delete_assignment)
+  console.log('assignment_id: ', req.body.assignment_id)
+  res.send({status: res_status})
 }
 
 exports.updateAssignment = async (req, res) => {
