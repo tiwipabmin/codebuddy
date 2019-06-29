@@ -327,6 +327,7 @@ exports.getSection = async (req, res) => {
 
   if(occupation == 'teacher') {
     occupation = 0
+    var assignment_set = JSON.stringify(assignments)
     var select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
     var pairing_sessions = [];
 
@@ -337,7 +338,7 @@ exports.getSection = async (req, res) => {
       pairing_sessions = [{status: -1}]
     }
 
-    res.render('classroom', { occupation, section, assignments, students, pairing_sessions, pairing_times, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, title: section.course_name })
   } else {
     occupation = 1
     var projects_in_section = []

@@ -126,7 +126,7 @@ $(document).ready(function() {
             // $('#createPairingDateTime').attr('value', 0)
           }
         })
-      } else if(message == 'Are you sure you want to assign this assignment to all student pairs?'){
+      } else if(message == 'Are you sure you want to assign these assignment to all student pairs?'){
         parameters = JSON.parse($('#inp_cm').attr('value'))
         //console.log('parameters : ', parameters)
         $.post('/classroom/assignAssignment', parameters, function (data){
@@ -427,8 +427,26 @@ function onClickAssign(section_id, pairing_date_time_id, assignment_id, title, d
   $('#confirm-modal').modal('show');
 }
 
-function on_click_assign_button(assignments) {
-  console.log('Assignment_set, ', typeof(JSON.parse(assignments)))
+function on_click_assign_button(assignment_set) {
+  let assignment_set_j = JSON.parse(assignment_set)
+  let assignment_is_selected = []
+  let assignment_id = -1;
+  assignment_set_j.forEach(function(e){
+    assignment_id = e.assignment_id
+    $('#'+assignment_id+'_is_selected').is(':checked') === true ? assignment_is_selected.push(e) : null;
+  })
+
+  if(assignment_is_selected.length) {
+    $('#inp_cm').attr('value', JSON.stringify(assignment_is_selected))
+    $('#confirm-header').text('Assign assignment')
+    $('#confirm-message').attr('value', 'Are you sure you want to assign these assignment to all student pairs?')
+    $('#confirm-message').text('Are you sure you want to assign these assignment to all student pairs?')
+    $('#confirm-modal').modal('show');
+  } else {
+    $('#alert-header').text('Select assignment')
+    $('#alert-message').text('Please!!!, select an assignment before click the \"assign\" button.')
+    $('#alert-modal').modal('show')
+  }
 }
 
 function onClickDeleteAssignment(assignment_id) {
@@ -765,21 +783,17 @@ function on_click_assignment(id, assignment_set, opt) {
       $('#'+id).is(':checked') == true ? $('#'+id).prop('checked', false) : $('#'+id).prop('checked', true)
 
       break;
-    default: console.log('The checkbox of '+id+' is clicked!')
+    default:
   }
-  let is_there = 'Is there element in this array, '
-  let assignment_id = parseInt((id.split('_'))[0])
-  let index_of_element = assignment_set_j.indexOf(assignment_id)
-  if($('#'+id).is(':checked')){
-    if(index_of_element === -1) {
-      assignment_set_j.push(assignment_id)
-    }
-  } else {
-    if(index_of_element !== -1) {
-      assignment_set_j.splice(index_of_element, 1)
-    }
-  }
-  $('#assignment_set').attr('value', JSON.stringify(assignment_set_j))
+}
+
+function on_click_clear_checkbox_button(assignment_set) {
+  // let assignment_set_j = JSON.parse(assignment_set)
+  // console.log('sadfsadfsafsa, ', assignment)
+  // assignment_set_j.forEach(function(e){
+  //   console.log('id, ', e)
+  //   $('#'+e+'_is_selected').prop('checked', false)
+  // })
 }
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }

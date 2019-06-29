@@ -199,6 +199,12 @@ block content
     input#pairing_session_id(type='hidden', value=pairing_sessions[0].pairing_session_id)
     input#section_id(type='hidden', value=`${section.section_id}`)
     input#assignment_set(type='hidden', value='[]')
+    script(type='text/javascript').
+      $(document).ready(function(){
+        if(!{occupation} === 0) {
+          $('#assignment_set').attr('value', JSON.stringify(!{assignment_set}))
+        }
+      })
     +pairStudent(user, students)
     //- .ui.small.modal#newProject-modal
     //-   i.close.icon
@@ -450,8 +456,9 @@ block content
                 div
                   case occupation
                     when 0
+                      button#new.ui.button.approve.blue(style='float: right;' onclick='on_click_clear_checkbox_button('+`$('#assignment_set').attr('value')`+')') Clear Checkbox
                       button#new.ui.button.approve.red(style='float: right;') Delete
-                      button#new.ui.button.approve.yellow(style='float: right;') Assign
+                      button#new.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#assignment_set').attr('value')`+')') Assign
                       button#new.ui.button.approve.green.newAssignment(style='float: right;') Create
                     //default
                     //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
