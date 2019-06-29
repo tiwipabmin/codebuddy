@@ -427,6 +427,10 @@ function onClickAssign(section_id, pairing_date_time_id, assignment_id, title, d
   $('#confirm-modal').modal('show');
 }
 
+function on_click_assign_button(assignments) {
+  console.log('Assignment_set, ', typeof(JSON.parse(assignments)))
+}
+
 function onClickDeleteAssignment(assignment_id) {
   var assingment_id = assignment_id
   $('#inp_cm').attr('value', assignment_id)
@@ -752,6 +756,30 @@ function sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMo
     hasElementMoving = false
   }
 
+}
+
+function on_click_assignment(id, assignment_set, opt) {
+  let assignment_set_j = JSON.parse(assignment_set)
+  switch (opt) {
+    case 1:
+      $('#'+id).is(':checked') == true ? $('#'+id).prop('checked', false) : $('#'+id).prop('checked', true)
+
+      break;
+    default: console.log('The checkbox of '+id+' is clicked!')
+  }
+  let is_there = 'Is there element in this array, '
+  let assignment_id = parseInt((id.split('_'))[0])
+  let index_of_element = assignment_set_j.indexOf(assignment_id)
+  if($('#'+id).is(':checked')){
+    if(index_of_element === -1) {
+      assignment_set_j.push(assignment_id)
+    }
+  } else {
+    if(index_of_element !== -1) {
+      assignment_set_j.splice(index_of_element, 1)
+    }
+  }
+  $('#assignment_set').attr('value', JSON.stringify(assignment_set_j))
 }
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }
