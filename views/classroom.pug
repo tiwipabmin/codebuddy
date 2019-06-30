@@ -439,7 +439,6 @@ block content
               .ui.button.cancel.red(data-value='cancel') Cancel
           .ui.error.message
 
-
     .ui.raised.very.padded.container
       .ui.centered.grid(style='padding-top:20px;')
         +detailSection(sections, occupation)
@@ -456,10 +455,11 @@ block content
                 div
                   case occupation
                     when 0
-                      button#new.ui.button.approve.blue(style='float: right;' onclick='on_click_clear_checkbox_button('+`$('#assignment_set').attr('value')`+')') Clear Checkbox
-                      button#new.ui.button.approve.red(style='float: right;') Delete
-                      button#new.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#assignment_set').attr('value')`+')') Assign
-                      button#new.ui.button.approve.green.newAssignment(style='float: right;') Create
+                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0, '+`$('#assignment_set').attr('value')`+')') Clear Checkbox
+                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1, '+`$('#assignment_set').attr('value')`+')') Check All of Box
+                      button.ui.button.approve.red(style='float: right;') Delete
+                      button.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#assignment_set').attr('value')`+', '+`$('#pairing_session_id').attr('value')`+')') Assign
+                      button.ui.button.approve.green.newAssignment(style='float: right;') Create
                     //default
                     //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
             .ui.divided.items
@@ -473,12 +473,12 @@ block content
                             a.header(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id) !{assignment.title}
                           .description
                             .ui.grid
-                              .fourteen.wide.column.assignment_is_selected(onclick='on_click_assignment(\"'+`${assignment.assignment_id}`+'_is_selected'+'\", '+`$('#assignment_set').attr('value')`+', 1)')
+                              .fourteen.wide.column.assignment_is_selected(onclick='on_click_assignment(1, \"'+`${assignment.assignment_id}`+'_is_selected'+'\")')
                                 p(style='padding-left:15px; padding-right:15px;') !{assignment.description}
                                 p(style='padding-left:15px; padding-right:15px;') Programming Style : !{assignment.programming_style}
                               .two.wide.column
                                 .ui.checkbox
-                                  input.checkbox_is_clicked(type='checkbox' id=''+`${assignment.assignment_id}`+'_is_selected' onclick='on_click_assignment('+`$(this).attr('id')`+', '+`$('#assignment_set').attr('value')`+', 0)')
+                                  input.checkbox_is_clicked(type='checkbox' id=''+`${assignment.assignment_id}`+'_is_selected' onclick='on_click_assignment(0, '+`$(this).attr('id')`+')')
                                   label
                             //- .extra
                             //-   .ui.right.floated.button.red#delete(style='margin-right:19px', onclick='onClickDeleteAssignment('+`${assignment.assignment_id}`+')') Delete
