@@ -126,16 +126,17 @@ $(document).ready(function() {
             // $('#createPairingDateTime').attr('value', 0)
           }
         })
-      } else if(message == 'Are you sure you want to assign this assignment to all student pairs?'){
+      } else if(message == 'Are you sure you want to assign these assignments to all student pairs?'){
         parameters = JSON.parse($('#inp_cm').attr('value'))
-        //console.log('parameters : ', parameters)
         $.post('/classroom/assignAssignment', parameters, function (data){
           var res_status = data.res_status
           if(res_status == 'Please pair all students before assign the assignment!'){
             alert(res_status)
-          } else if(res_status == 'You already assigned this assignment!') {
+          } else if(res_status == 'You already assigned these assignments!') {
             alert(res_status)
           } else if(res_status == 'Successfully assigned this assignment!') {
+            alert(res_status)
+          } else if(res_status == 'Completed test!') {
             alert(res_status)
           }
         })
@@ -418,13 +419,36 @@ function onClickViewPairingRecord(pairing_session_id) {
   showStudentList('view', pairing_session_id)
 }
 
-function onClickAssign(section_id, pairing_date_time_id, assignment_id, title, description, programming_style) {
-  var parameters = {section_id: section_id, pairing_session_id: pairing_date_time_id, assignment_id: assignment_id, title: title, description: description, programming_style: programming_style}
+function onClickAssign(section_id, pairing_session_id, assignment_id, title, description, programming_style) {
+  var parameters = {section_id: section_id, pairing_session_id: pairing_session_id, assignment_id: assignment_id, title: title, description: description, programming_style: programming_style}
   $('#inp_cm').attr('value', JSON.stringify(parameters))
   $('#confirm-header').text('Assign assignment')
   $('#confirm-message').attr('value', 'Are you sure you want to assign this assignment to all student pairs?')
   $('#confirm-message').text('Are you sure you want to assign this assignment to all student pairs?')
   $('#confirm-modal').modal('show');
+}
+
+function on_click_assign_button(assignment_set, pairing_session_id) {
+  let assignment_set_j = JSON.parse(assignment_set)
+  let assignment_is_selected = []
+  let assignment_id = -1;
+  assignment_set_j.forEach(function(e){
+    assignment_id = e.assignment_id
+    $('#'+assignment_id+'_is_selected').is(':checked') === true ? assignment_is_selected.push(e) : null;
+  })
+
+  if(assignment_is_selected.length) {
+    parameters = {assignment_set: assignment_is_selected, pairing_session_id: pairing_session_id}
+    $('#inp_cm').attr('value', JSON.stringify(parameters))
+    $('#confirm-header').text('Assign assignment')
+    $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
+    $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
+    $('#confirm-modal').modal('show');
+  } else {
+    $('#alert-header').text('Select assignment')
+    $('#alert-message').text('Please!!!, select an assignment before click the \"assign\" button.')
+    $('#alert-modal').modal('show')
+  }
 }
 
 function onClickDeleteAssignment(assignment_id) {
@@ -752,6 +776,34 @@ function sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMo
     hasElementMoving = false
   }
 
+}
+
+function on_click_assignment(opt, id) {
+  switch (opt) {
+    case 1:
+      $('#'+id).is(':checked') == true ? $('#'+id).prop('checked', false) : $('#'+id).prop('checked', true)
+
+      break;
+    default:
+  }
+}
+
+function checkbox_event(opt, assignment_set) {
+  let assignment_set_j = JSON.parse(assignment_set)
+  switch (opt) {
+    //on click the "Check All of Box" button
+    case 1:
+      assignment_set_j.forEach(function(e){
+        $('#'+e.assignment_id+'_is_selected').prop('checked', true)
+      })
+
+      break;
+    //on click the "Clear Checkbox" button
+    default:
+      assignment_set_j.forEach(function(e){
+        $('#'+e.assignment_id+'_is_selected').prop('checked', false)
+      })
+  }
 }
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }

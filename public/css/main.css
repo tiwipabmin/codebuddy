@@ -36,6 +36,8 @@ a:active {
 .third_container_menu:hover {color: violet;}
 .settings-menu:hover {color: violet;}
 
+.assignment_is_selected:hover {cursor: pointer;}
+
 .curve-box {
     /* overflow-wrap: break-word;
     word-wrap: break-word;

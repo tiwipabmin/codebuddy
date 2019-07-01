@@ -487,6 +487,8 @@ module.exports = (io, client, redis, projects) => {
     client.to(projectId).emit('update status', payload)
   })
 
+  var detectInput = 'empty'
+
   /**
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
@@ -526,11 +528,33 @@ module.exports = (io, client, redis, projects) => {
           }
         })
       }
+
+      //Resolve the output get echo the input ex. input is 'input', output is 'input input'
+      var splitData = data.split('\n')
+      console.log('Split Data, ', splitData)
+      if(detectInput !== 'empty') {
+        console.log('DetectInput is true, ', detectInput)
+        if(splitData[0].indexOf(String.valueOf(detectInput))) {
+          data = splitData.slice(1, splitData.length).join('\n')
+          console.log('Data, ', data)
+          detectInput = 'empty'
+        }
+      }
+
       io.in(projectId).emit('term update', data)
     })
-
-    setTimeout(pythonProcess.kill.bind(pythonProcess), 3000);
+    // setTimeout(pythonProcess.kill.bind(pythonProcess), 1000);
   })
+
+  /**
+   * `run code` event fired when user click on run button from front-end
+   * @param {Object} payload code from editor
+   */
+   client.on('term accept input', (payload) => {
+     var inputTerm = payload.inputTerm
+     detectInput = inputTerm
+     pythonProcess.write(inputTerm + '\r')
+   })
 
   /**
    * `pause running code` event fired when user click on pause button from front-end

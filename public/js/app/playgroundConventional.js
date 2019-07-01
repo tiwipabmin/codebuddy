@@ -117,7 +117,7 @@ socket.on('init state', (payload) => {
   function setEditorValue(fileName) {
     if(editorValues!=null){
       editor[fileName].setValue(editorValues[fileName])
-    }    
+    }
   }
 
   code = payload.editor
@@ -155,7 +155,7 @@ socket.on('update tab', (payload) => {
     //setup file
     projectFiles.push(fileName);
     newEditorFacade(fileName);
-    var html = '<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><div id="'+fileName+'-file-icon"/><i class="file icon"/><div class="middle aligned content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div>'+                        
+    var html = '<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><div id="'+fileName+'-file-icon"/><i class="file icon"/><div class="middle aligned content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div>'+
                             '<div class="delete-file">'+
                               '<span onClick=showDeleteFileModal("'+fileName+'")>'+
                                 '<i class="trash alternate outline icon" id="delete-icon"></i>'+
@@ -170,7 +170,7 @@ socket.on('update tab', (payload) => {
                                   '<div class="ui button approve red" data-value="cancel"> Cancel </div>'+
                                 '</div>'+
                               '</div>'+
-                          '</div>'+ 
+                          '</div>'+
                           '</div></div>'
     $('#file-list').append(html);
     $('#export-checklist').append('<div class="item export-file-item" id="'+fileName+'-export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
@@ -241,7 +241,7 @@ socket.on('role updated', (payload) => {
       roles.partner = 'coder'
     }
   }
-  
+
   function setOptionFileNoCursor(fileName) {
     editor[fileName].setOption('readOnly', 'nocursor')
   }
@@ -260,7 +260,7 @@ socket.on('show reviewer active time', (payload) => {
     $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs + " mins");
   } else {
     $('#buddy_counts_min_sec').hide();
-  } 
+  }
 })
 
 /**
@@ -369,6 +369,7 @@ term.open(document.getElementById('xterm-container'), false)
 term._initialized = true;
 
 var shellprompt = '\033[1;3;31m$ \033[0m';
+var inputTerm = 'empty'
 
 term.prompt = function () {
   term.write('\r\n' + shellprompt);
@@ -380,6 +381,14 @@ term.on('key', function (key, ev) {
   );
 
   if (ev.keyCode == 13) {
+    if(inputTerm !== 'empty') {
+      inputTerm = inputTerm.slice(inputTerm.indexOf('y') + 1, inputTerm.length)
+      socket.emit('term accept input', {
+        inputTerm: inputTerm
+      })
+      console.log('inputTerm, ', inputTerm)
+      inputTerm = 'empty'
+    }
     term.prompt();
   } else if (ev.keyCode == 8) {
     // Do not delete the prompt
@@ -391,6 +400,10 @@ term.on('key', function (key, ev) {
     term.write(key);
   }
 });
+
+term.on('keypress', function (key) {
+  inputTerm += key;
+})
 
 /**
  * Pause running code
@@ -463,7 +476,7 @@ socket.on('show score', (payload) => {
   $('#showScore-modal').modal('show')
   $('p#show-point').text("Your score is "+parseFloat(payload.score).toFixed(2)+" points.");
   if (uid == payload.uid) {
-    $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points"); 	
+    $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points");
   }
   $('#showScore-modal')
   .modal({
@@ -491,7 +504,7 @@ socket.on('auto update score', (payload) => {
     uid: uid,
     code: getAllFileEditor()
   })
-  
+
 })
 
 /**
@@ -501,11 +514,11 @@ socket.on('show auto update score', (payload) => {
   console.log(payload)
   $('p#project-score-point').text("score : " + parseFloat(payload.score));
   if (uid == payload.uid) {
-    $('#user-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2)); 	
+    $('#user-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2));
   } else {
     $('#partner-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2));
   }
-  
+
 })
 
 /**
@@ -532,6 +545,8 @@ socket.on('set editor open tab', (payload) => {
     editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
   }
 })
+
+var lastInput = ''
 
 /**
  * Terminal socket
@@ -652,7 +667,7 @@ $(document)
           uid: uid,
           text: ''
         })
-  }  
+  }
 });
 
 $(function(){
@@ -703,7 +718,7 @@ $(function(){
         uid: uid,
         time: add
       })
-      
+
       lastSavedTime = counts
     }
   }, 10000)
@@ -757,7 +772,7 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 function addFile(){
   $('#filename-modal').modal('show')
   $('.filename').val('')
-  
+
   //disable create button when input is empty
   $('#createBtn').prop('disabled', true);
   $('.filename').keyup(function() {
@@ -774,7 +789,7 @@ function addFile(){
         }
         if(!fileName.match(/^[0-9a-zA-Z\.]*$/) || fileName.indexOf('.') !== -1){
           $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">Filename should not have special characters.</p>')
-        } 
+        }
       }else{
         $('.file.name.exists.warning').html('')
       }
@@ -796,7 +811,7 @@ function getActiveTab(fileName){
     //open tab which is already closed
     if(isNewTab&&(isCloseTab==false)){
       openTab(fileName)
-    }      
+    }
   }
 
   if(isCloseTab){currentTab='main'; fileName='main';}
@@ -855,11 +870,11 @@ function exportSingleFile(fileName, text){
   document.body.removeChild(element);
 }
 
-function showExportModal(){  
+function showExportModal(){
   $('#export-modal').modal('show')
 }
 
-function showDeleteFileModal(fileName){  
+function showDeleteFileModal(fileName){
   $('#'+fileName+'-delete-file-modal').modal('show')
 }
 
@@ -875,7 +890,7 @@ function onClickExport(){
     }
   })
   socket.emit('export file', {
-    fileNameList: filenameList, 
+    fileNameList: filenameList,
     code: getAllFileEditor()
   })
   // exportSingleFile(fileName, text)
@@ -886,7 +901,7 @@ function setOnChangeEditer(fileName) {
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
   editor[fileName].on('change', (ins, data) => {
-    
+
     var text = data.text.toString().charCodeAt(0)
     var enterline = parseInt(data.to.line)+1
     var remove = data.removed
@@ -896,7 +911,7 @@ function setOnChangeEditer(fileName) {
     //check when enter new line
     if(text==44){
       console.log('enter '+enterline)
-        for(var i in comments){  
+        for(var i in comments){
           if((comments[i].line > enterline) && (comments[i].file==fileName)){
             isEnter = true
             comments[i].line = parseInt(comments[i].line)+1
@@ -912,9 +927,9 @@ function setOnChangeEditer(fileName) {
 
     //check when delete line
     if(remove.length==2){
-      for(var i in comments){          
+      for(var i in comments){
         if((comments[i].line > enterline-1) && (comments[i].file==fileName)){
-          isDelete = true        
+          isDelete = true
           comments[i].line = parseInt(comments[i].line)-1
         }
       }
@@ -935,7 +950,7 @@ function setOnChangeEditer(fileName) {
       isDelete: isDelete,
       currentTab: fileName,
       fileName : fileName
-    })    
+    })
   })
 }
 
@@ -959,7 +974,7 @@ function setOnDoubleClickEditor(fileName) {
     $('input.hidden.file.name').val(fileName)
     let line = $('input.disabled.line.no').val()
     switch (roles.user) {
-      case 'coder':    
+      case 'coder':
         for(var i in comments){
           if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
             $('textarea.line.coder.disabled.description').val(comments[i].description)
@@ -967,7 +982,7 @@ function setOnDoubleClickEditor(fileName) {
           }else{
             $('textarea.line.coder.disabled.description').val('')
           }
-        }     
+        }
         $('.ui.coder.small.modal').modal('show')
         break
       case 'reviewer':
