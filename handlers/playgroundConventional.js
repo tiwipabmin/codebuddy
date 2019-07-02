@@ -684,10 +684,34 @@ module.exports = (io, client, redis, projects) => {
    * @param {Object} payload code from editor
    */
   client.on('submit code', (payload) => {
-    console.log(payload.mode)
     const mode = payload.mode
     const uid = payload.uid
     const code = payload.code
+
+    /**
+    * Check python files not empty at line 695 - 707
+    **/
+    let split_code = ''
+    let join_code = ''
+    let empty = true
+    let count_error = 0
+    let count_file = 0
+
+    for(var key in code) {
+      count_file++
+      let element_ = code[key]
+      split_code = element_.split('\n')
+      join_code = split_code.join('')
+      split_code = join_code.split(' ')
+      join_code = split_code.join('')
+
+      if(join_code != '') {
+        empty = false
+      } else {
+        count_error++
+      }
+    }
+
     let pylintProcess;
     var args = ['-j', '4']
 
@@ -701,158 +725,184 @@ module.exports = (io, client, redis, projects) => {
     if (process.platform === 'win32') {
       pylintProcess = nodepty.spawn('pylint.exe', args, {})
     } else {
-      pylintProcess = nodepty.spawn('pylint', args, {});
+      pylintProcess = nodepty.spawn('pylint', args, {})
     }
 
+    /**
+    * This listener may be send data three times per one process or more
+    **/
     pylintProcess.on('data', (data) => {
-      //get score from pylint
+      /** get score from the message of pylint that's
+      *  " ************* Module main
+      *    public\project_files\FUNmY7nU8h\main.py:1:0: C0304: Final newline missing (missi
+      *    ng-final-newline)
+      *    public\project_files\FUNmY7nU8h\main.py:1:0: C0111: Missing module docstring (mi
+      *    ssing-docstring)
+      *    --------------------------------------------------------------------
+      *    Your code has been rated at 80.00/100.00 (previous run: 80.00/100.00, +0.00) "
+      **/
       const before_score = data.indexOf("Your code has been rated at");
       let score = 0;
       if (before_score != -1) {
         const after_score = data.indexOf("/10");
         score = data.slice(before_score + 28, after_score)
-      } else if (data.indexOf('E:') < 0) {
-        score = 0
       }
+      // else if (data.indexOf('E:') < 0) {
+      //   // console.log('data, ', data, ', data.indexOf(\'E:\'), ', data.indexOf('E:'))
+      //   score = 0
+      // }
       data = data.replace(/\/10/g, "/100.00")
-      Project.where({pid: projectId}).findOne(function (err, project) {
-        if (err);
-        if (project) {
-          if (project.creator_id != null && project.collaborator_id != null) {
-            const users = [project.creator_id, project.collaborator_id]
-            users.forEach(function (element) {
-              const scoreModel = {
-                pid: projectId,
-                uid: element,
-                score: score,
-                time: 0,
-                lines_of_code: 0,
-                error_count: 0,
-                participation: {
-                  enter: 0,
-                  pairing: 0
-                },
-                createdAt: Date.now()
-              }
-              Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
-                if (err) throw err
-                if (!oldScore) {
-                  new Score(scoreModel, (err) => {
-                    if (err) throw err
-                  }).save()
 
-                  // recalculate score
-                  sumScore = Score.aggregate([
-                    { $match:{
-                        uid: element
-                    }},
-                    { $group: {
-                        _id: '$uid',
-                        avg: {$avg: '$score'}
-                    }}
-                  ], function (err, results) {
-                      if (err) {
-                          console.log(err)
-                          return
-                      }
-                      if (results) {
-                        // sum = 0;
-                        results.forEach(function (result) {
-                          // start update
-                          User.update({
-                            _id: element
-                          }, {
-                            $set: {
-                              avgScore: result.avg
-                            }
-                          }, function (err, userReturn) {
-                            if (err);
-                            if (userReturn) {
-                              console.log(userReturn)
-                            }
-                          });
-                          // end update
-                          const shownScore = {
-                            score: score,
-                            uid: element,
-                            avgScore: result.avg
-                          }
-                          if (mode == "auto") {
-                            io.in(projectId).emit('show auto update score', shownScore)
-                          } else {
-                            io.in(projectId).emit('show score', shownScore)
-                            io.in(projectId).emit('show auto update score', shownScore)
-                          }
-                        })
-                      }
-                  });
-                  // end recalculate score
+      /**
+      * as the listener may be send data three times per one process or more,
+      * so the score of project must to save once.
+      * The line of process is 757 to 903
+      **/
+      if((!empty && score == 0 && data.indexOf("(syntax-error)") != -1 && count_error == 0 && count_file == 1) || (!empty && data.indexOf("Your code has been rated at") != -1) || (empty && score == 0 && data.indexOf("public\\project_files\\") == -1)) {
+        if(data.indexOf("(syntax-error)") != -1) {
+          count_error++
+        }
+        Project.where({pid: projectId}).findOne(function (err, project) {
+          if (err);
+          if (project) {
+            if (project.creator_id != null && project.collaborator_id != null) {
+              const users = [project.creator_id, project.collaborator_id]
+              users.forEach(function (element) {
+                const scoreModel = {
+                  pid: projectId,
+                  uid: element,
+                  score: score,
+                  time: 0,
+                  lines_of_code: 0,
+                  error_count: 0,
+                  participation: {
+                    enter: 0,
+                    pairing: 0
+                  },
+                  createdAt: Date.now()
                 }
-                if (oldScore) {
-                  Score.update({
-                    pid: projectId,
-                    uid: element
-                  }, {
-                    $set: {
-                      score: score
-                    }
-                  }, function (err, scoreReturn) {
-                    if (err) throw err
-                    if (scoreReturn) {
-                      // recalculate score
-                      sumScore = Score.aggregate([
-                        { $match:{
-                            uid: element
-                        }},
-                        { $group: {
-                            _id: '$uid',
-                            avg: {$avg: '$score'}
-                        }}
-                      ], function (err, results) {
-                          if (err) {
+                Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
+                  if (err) throw err
+                  if (!oldScore) {
+                    new Score(scoreModel, (err) => {
+                      if (err) throw err
+                    }).save()
+
+                    // recalculate score
+                    sumScore = Score.aggregate([
+                      { $match:{
+                          uid: element
+                      }},
+                      { $group: {
+                          _id: '$uid',
+                          avg: {$avg: '$score'}
+                      }}
+                    ], function (err, results) {
+                        if (err) {
                             console.log(err)
                             return
-                          }
-                          if (results) {
-                            // sum = 0;
-                            results.forEach(function (result) {
-                              // start update
-                              User.update({
-                                _id: element
-                              }, {
-                                $set: {
-                                  avgScore: result.avg
-                                }
-                              }, function (err, userReturn) {
-                                if (err);
-                                if (userReturn) {
-                                  console.log(userReturn)
-                                }
-                              });
-                              // end update
-                              const shownScore = {
-                                score: score,
-                                uid: element,
+                        }
+                        if (results) {
+                          // sum = 0;
+                          results.forEach(function (result) {
+                            // start update
+                            User.update({
+                              _id: element
+                            }, {
+                              $set: {
                                 avgScore: result.avg
                               }
-                              if (mode == "auto") {
-                                io.in(projectId).emit('show auto update score', shownScore)
-                              } else {
-                                io.in(projectId).emit('show score', shownScore)
-                                io.in(projectId).emit('show auto update score', shownScore)
+                            }, function (err, userReturn) {
+                              if (err);
+                              if (userReturn) {
+                                console.log(userReturn)
                               }
-                            })
-                          }
-                      });
-                      // end recalculate score
-                    }
-                  });
-                }
-              });
-            }, this);
+                            });
+                            // end update
+                            const shownScore = {
+                              score: score,
+                              uid: element,
+                              avgScore: result.avg
+                            }
+                            if (mode == "auto") {
+                              io.in(projectId).emit('show auto update score', shownScore)
+                            } else {
+                              io.in(projectId).emit('show score', shownScore)
+                              io.in(projectId).emit('show auto update score', shownScore)
+                            }
+                          })
+                        }
+                    });
+                    // end recalculate score
+                  }
+                  if (oldScore) {
+                    Score.update({
+                      pid: projectId,
+                      uid: element
+                    }, {
+                      $set: {
+                        score: score
+                      }
+                    }, async function (err, scoreReturn) {
+                      if (err) throw err
+                      if (scoreReturn) {
+                        // recalculate score
+                        sumScore = await Score.aggregate([
+                          { $match:{
+                              uid: element
+                          }},
+                          { $group: {
+                              _id: '$uid',
+                              avg: {$avg: '$score'}
+                          }}
+                        ], function (err, results) {
+                            if (err) {
+                              console.log(err)
+                              return
+                            }
+                            if (results) {
+                              // sum = 0;
+                              results.forEach(function (result) {
+                                // start update
+                                User.update({
+                                  _id: element
+                                }, {
+                                  $set: {
+                                    avgScore: result.avg
+                                  }
+                                }, function (err, userReturn) {
+                                  if (err);
+                                  if (userReturn) {
+                                    console.log(userReturn)
+                                  }
+                                });
+                                // end update
+                                const shownScore = {
+                                  score: score,
+                                  uid: element,
+                                  avgScore: result.avg
+                                }
+                                if (mode == "auto") {
+                                  // console.log('auto', oldScore)
+                                  io.in(projectId).emit('show auto update score', shownScore)
+                                } else {
+                                  // console.log('not auto', oldScore)
+                                  io.in(projectId).emit('show score', shownScore)
+                                  io.in(projectId).emit('show auto update score', shownScore)
+                                }
+                              })
+                            }
+                        });
+                        // end recalculate score
+                      }
+                    });
+                  }
+                });
+              }, this);
+            }
           }
-        }
-      });
+        });
+      }
       io.in(projectId).emit('term update', data)
     })
   })
