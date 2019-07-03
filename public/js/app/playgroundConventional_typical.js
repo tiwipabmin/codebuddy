@@ -91,7 +91,7 @@ function changeTheme() {
 /**
  * User join the project
  */
-socket.emit('load playground', { programming_style: 'conventional' })
+socket.emit('load playground', { programming_style: 'conventional typical' })
 socket.emit('join project', {
   pid: getParameterByName('pid'),
   username: user
@@ -254,14 +254,14 @@ socket.on('role updated', (payload) => {
   // startCountdown()
 })
 
-socket.on('show reviewer active time', (payload) => {
-  if(roles.user === 'coder' && payload.counts >= 0) {
-    $('#buddy_counts_min_sec').show();
-    $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs + " mins");
-  } else {
-    $('#buddy_counts_min_sec').hide();
-  }
-})
+// socket.on('show reviewer active time', (payload) => {
+//   if(roles.user === 'coder' && payload.counts >= 0) {
+//     $('#buddy_counts_min_sec').show();
+//     $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs + " mins");
+//   } else {
+//     $('#buddy_counts_min_sec').hide();
+//   }
+// })
 
 /**
  * If user exit or going elsewhere which can be caused this project window closed
@@ -330,12 +330,12 @@ function submitReview() {
   $('textarea.line.description').val('')
 }
 
-socket.on('new review', (payload) => {
-  comments = payload
-  comments.map((comment) => {
-    editor[comment.file].addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
-  })
-})
+// socket.on('new review', (payload) => {
+//   comments = payload
+//   comments.map((comment) => {
+//     editor[comment.file].addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
+//   })
+// })
 
 function deleteReview() {
   socket.emit('delete review', {
@@ -345,17 +345,17 @@ function deleteReview() {
   })
 }
 
-socket.on('update after delete review', (payload) =>{
-  comments = payload.comments
-  deleteline = payload.deleteline
-  editor[payload.file].removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
-})
+// socket.on('update after delete review', (payload) =>{
+//   comments = payload.comments
+//   deleteline = payload.deleteline
+//   editor[payload.file].removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
+// })
 
-socket.on('is typing', (payload) => {
-  if (uid != payload.uid) {
-    $('#show-is-typing').text(payload.text);
-  }
-})
+// socket.on('is typing', (payload) => {
+//   if (uid != payload.uid) {
+//     $('#show-is-typing').text(payload.text);
+//   }
+// })
 
 /**
  * Run code
@@ -559,30 +559,30 @@ socket.on('term update', (payload) => {
 /**
  * Terminal socket
  */
-socket.on('update message', (payload) => {
-  updateScroll()
-  if (payload.user._id === uid) {
-    $(".message-list").append("<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>"+ payload.message.message +"</p></div></li>");
-    $("#inputMessage").val("")
-    // socket.emit('is typing', {
-    //   uid: uid,
-    //   text: ''
-    // })
-  } else {
-    $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
-  }
-})
-
-socket.on('download file', (payload) => {
-  var projectId = payload
-  var a = document.createElement("a");
-  document.body.appendChild(a);
-  a.style = "display: none";
-  a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
-  a.download = projectId+'.zip'
-  a.click();
-  document.body.removeChild(a);
-})
+// socket.on('update message', (payload) => {
+//   updateScroll()
+//   if (payload.user._id === uid) {
+//     $(".message-list").append("<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>"+ payload.message.message +"</p></div></li>");
+//     $("#inputMessage").val("")
+//     // socket.emit('is typing', {
+//     //   uid: uid,
+//     //   text: ''
+//     // })
+//   } else {
+//     $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
+//   }
+// })
+//
+// socket.on('download file', (payload) => {
+//   var projectId = payload
+//   var a = document.createElement("a");
+//   document.body.appendChild(a);
+//   a.style = "display: none";
+//   a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
+//   a.download = projectId+'.zip'
+//   a.click();
+//   document.body.removeChild(a);
+// })
 
 /**
  * WebRTC TEST MUTING
@@ -1012,7 +1012,7 @@ function getAllFileEditor() {
 function newEditorFacade(fileName) {
   setEditor(fileName)
   setOnChangeEditer(fileName)
-  setOnDoubleClickEditor(fileName)
+  // setOnDoubleClickEditor(fileName)
 
   //setup partner active tab
   if(fileName == "main") {

@@ -390,16 +390,21 @@ block content
         form.ui.form.createAssignment.segment(action='/assignment', method='POST')
           .inline.fields
             label Programming Style :
+            //- .field
+            //-   .ui.radio.checkbox
+            //-     input(type='radio' name='programming_style' value='Interactive' checked='checked')
+            //-     |  
+            //-     label Interactive
             .field
               .ui.radio.checkbox
-                input(type='radio' name='programming_style' value='Interactive' checked='checked')
+                input(type='radio' name='programming_style' value='Conventional typical')
                 |  
-                label Interactive
+                label Conventional typical
             .field
               .ui.radio.checkbox
-                input(type='radio' name='programming_style' value='Conventional')
+                input(type='radio' name='programming_style' value='Conventional codebuddy')
                 |  
-                label Conventional
+                label Conventional codebuddy
           .field
             label Title :
             |

@@ -83,33 +83,25 @@ function config(passport) {
       // var user_id;
       if (!user) {
         return done(null, false, { message: 'Username or Email is not exist'})
+      } else if (user.active) {
+        return done(null, false, { message: 'Account is active!'})
       }
       var verifyPassword = await user.verifyPassword(password)
-      console.log('user : ', user, ', password : ' + verifyPassword)
-        // if (user.occupation == 'teacher') {
-        //     var selectTeacher = 'SELECT teacher_id FROM teacher WHERE username = \"' + email + '\"'
-        //     con.connect.query(selectTeacher, function (err, result) {
-        //         if (err) throw err;
-        //         user_id = result[0].teacher_id
-        //         // var selectCourse = 'SELECT course_name FROM course, teacher WHERE course.teacher_id = teacher.teacher_id AND course.teacher_id = \"' + user_id + '\"'
-        //         // con.connect.query(selectCourse, function (err, result) {
-        //         //     if (err) throw err;
-        //         //     redis.hset(`course:${email}`, 'course', JSON.stringify(result))
-        //         // })
-        //     })
-        // } else if(user.occupation == 'student') {
-        //   var selectTeacher = 'SELECT student_id FROM student WHERE username = \"' + email + '\"'
-        //   con.connect.query(selectTeacher, function (err, result) {
-        //       if (err) throw err;
-        //       student_id = result[0].student_id
-        //       var selectCourse = 'SELECT course_name FROM course, teacher WHERE course.teacher_id = teacher.teacher_id AND course.teacher_id = \"' + teacher_id + '\"'
-        //       con.connect.query(selectCourse, function (err, result) {
-        //           if (err) throw err;
-        //           redis.hset(`course:${email}`, 'course', JSON.stringify(result))
-        //       })
-        //   })
-        // }
-      return verifyPassword ? done(null, user) : done(null, false, { message: 'Wrong password' })
+      if (verifyPassword) {
+        // const res_status = await User.update({
+        //   $or: [{ email }, { username: email }]
+        // }, {
+        //   $set: {
+        //     active: true
+        //   }
+        // }, (err) => {
+        //   if (err) throw err
+        // })
+        console.log('user, user , verifyPassword, ', verifyPassword, ', active, ', user.active)
+        return done(null, user)
+      } else {
+        return done(null, false, { message: 'Wrong password' })
+      }
     } catch (err) {
       return done(err)
     }
