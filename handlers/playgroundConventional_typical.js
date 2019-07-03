@@ -293,7 +293,7 @@ module.exports = (io, client, redis, projects) => {
    * then socket will broadcast the role to his partner
    */
   client.on('role selected', (payload) => {
-    countdownTimer()
+    // countdownTimer()
     if (payload.select === 0) {
       projects[projectId].roles.reviewer = curUser
       projects[projectId].roles.coder = payload.partner
