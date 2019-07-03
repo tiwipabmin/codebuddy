@@ -1,0 +1,357 @@
+extends layout/layoutPlayground.pug
+
+block script
+  link(rel='stylesheet' href='/css/main.css')
+  link(rel='stylesheet' href='/xterm/xterm.css')
+  link(rel='stylesheet' href='/codemirror/lib/codemirror.css')
+  link(rel='stylesheet' href='/codemirror/addon/selection/active-line.js')
+  link(rel='stylesheet' href='/codemirror/theme/blackboard.css')
+  link(rel='stylesheet' href='/codemirror/theme/seti.css')
+  link(rel='stylesheet' href='/codemirror/theme/material.css')
+block content
+    //- select role modal
+    .ui.basic.modal#selectRole-modal
+      .ui.icon.header
+        i.users.icon
+        |     Please Select Your Role
+      .content
+        .actions
+          center
+            .ui.blue.massive.inverted.positive.button
+              i.keyboard.icon
+              |       Coder
+            .ui.green.massive.inverted.negative.button
+              i.unhide.icon
+              |       Reviewer
+    //- show score modal
+    .ui.basic.modal#showScore-modal
+      .ui.icon.header
+        i.student.icon
+        p#show-point
+        |       Summary
+        p#show-avg-point
+      .content
+        .actions
+          center
+            .ui.blue.massive.inverted.positive.button
+              i.remove.icon
+              |       Close
+    .ui.modal
+    .ui.reviewer.small.modal
+      .header Code Review
+      .content
+        .ui.form
+          .field
+            label File :
+            |  
+            input.disabled.file.name(type='text' placeholder='File', disabled='')
+            input.hidden.file.name(type='hidden')
+          .field
+            label Line No :
+            |  
+            input.disabled.line.no(type='text' placeholder='Your Project Name', disabled='')
+          .field
+            label Comment :
+            |  
+            textarea.line.reviewer.description(rows='4' cols='50' placeholder='Something about this line')
+          .ui.basic.center.aligned.segment()
+            .actions
+              button.ui.button.approve.green(onClick='submitReview()') Submit
+              .ui.button.approve.red(data-value='cancel') Cancel
+              .ui.floated.alignedvertical.animated.deleteProject.button.approve(onClick='deleteReview()' tabindex='0')
+                        .hidden.content Delete
+                        .visible.content
+                          i.trash.icon
+    .ui.coder.small.modal
+      .header Review Description
+      .content
+        .ui.form
+          .field
+            label File :
+            |  
+            input.disabled.file.name(type='text' placeholder='File', disabled='')
+          .field
+            label Line No :
+            |  
+            input.disabled.line.no(type='text' placeholder='Line number', disabled='')
+          .field
+            label Comment :
+            textarea.coder.disabled.line.description(rows='4' cols='50' placeholder='Something about this line', disabled='')
+          .ui.basic.center.aligned.segment()
+            .actions
+              .ui.button.approve.red(data-value='cancel') Close
+
+    .ui.container.segment
+      .ui.grid
+        .six.wide.column
+          .ui.grid
+            .sixteen.wide.column.padding-left-20.padding-right-20
+              div.ui.relaxed.items
+                div.item
+                  div
+                    a.ui.tiny.image.circular
+                      img(src=user.img)
+                    //- p.user-role-label.text-center
+                  div.content.padding-10
+                    p.header #{user.info.firstname}   #{user.info.lastname} <b> (@#{user.username}) </b>
+                    div.description
+                      a.ui.teal.circular.label#user-point-label score : 0
+        .four.wide.column
+          center
+            h1.ui.header= project.title
+            #swapTimer(style='margin: 0 0 10 0')
+              //- span.time
+              //-   .countdown
+              //-   .auto-swap-warning
+              //- div.margin-top-15
+              //-   button.ui.primary.labeled.icon.button.margin-top-15(onClick='switchRole()')
+              //-     i.refresh.icon
+              //-     |  Switch Role
+              //- - let partner_obj = partner_obj
+              //- - if partner_obj is null
+              - let partner_img = partner_obj === null ? '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg' : partner_obj.img
+              - while (partner_img == user.img) {partner_img = '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg'}
+              - let partner = user.username === project.creator ? project.collaborator : project.creator
+              - let curUser = user.username === project.creator ? project.creator : project.collaborator
+        .six.wide.column
+          .ui.grid    
+            .sixteen.wide.column.padding-left-20.padding-right-20
+              div.ui.relaxed.items
+                div.item
+                  div
+                    a.ui.tiny.image.circular
+                      img(src=partner_img)
+                    //- p.partner-role-label.text-center
+                  div.content.padding-10
+                    p.header #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>
+                      span.user.status
+                    div.description
+                      a.ui.teal.circular.label#partner-point-label score : 0
+      .ui.divider
+      br
+      .ui.grid
+        .four.wide.column
+          .ui.top.attached.tabular.demo.menu
+            a.active.item(data-tab='first') Project
+            |  
+            a.item(data-tab='second') Setting
+            .right.menu
+              .item
+          .ui.bottom.attached.active.tab.segment(data-tab='first')
+            p
+              .ui.list
+                .item
+                  i.folder.icon
+                  .content
+                    .header src
+                      a.ui.label(id='exportBtn' onClick='showExportModal()') export file
+                    .description Source files for project
+                    .list.relaxed#file-list(style="margin:0px;")
+                      each file, index in project.files
+                        .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
+                          div(id=file+'-file-icon')
+                          i.file.icon
+                          .middle.aligned.content
+                            if(file === 'main')
+                              .header(id=file+'-header') main.py
+                              .description Main python file
+                            else
+                              .header(id=file+'-header')=file+'.py'
+                              .delete-file
+                                span(onClick=`showDeleteFileModal(${JSON.stringify(file)})`)
+                                  i.trash.alternate.outline.icon(id='delete-icon')
+                                .ui.small.modal(id=file+'-delete-file-modal')
+                                  .header Delete File
+                                  .content  
+                                    p='Do you want to delete ' + file + '.py?'
+                                  .actions
+                                    button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
+                                    .ui.button.approve.red(data-value='cancel') Cancel 
+          .ui.small.modal#export-modal
+            .header Export File
+            .content  
+              .item
+                .ui.master.checkbox
+                  input(type="checkbox" name="allfile")
+                  label Select all file
+                .list#export-checklist
+                  each file in project.files
+                    .item.export-file-item(id=file+'-export-file-item')
+                      .ui.child.checkbox
+                        input(type="checkbox", name='checkbox-file', value=file)
+                        label=file+'.py'       
+            .actions
+              button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
+              .ui.button.approve.red(data-value='cancel') Cancel  
+
+          .ui.bottom.attached.tab.segment(data-tab='second')
+            .ui.toggle.lightmodetoggle.checkbox
+              input(type='checkbox',onChange='changeTheme()')#lightmodetoggle
+              label Enable Light Mode 
+          //- .ui.segments
+          //-   .ui.segment
+          //-     p Video Chat 
+          //-       button.ui.mute.toggle.button.active(onClick='muteEvent(this)')
+          //-         i.unmute.icon
+          //-       button.ui.video.toggle.button.active(onClick='videoEvent(this)')
+          //-         i.video.play.icon
+          //-   .ui.secondary.segment
+          //-     style.
+          //-       .videoContainer {
+          //-       position: relative;
+          //-       width: 200px;
+          //-       height: 150px;
+          //-       }
+          //-       .videoContainer video {
+          //-       position: absolute;
+          //-       width: 100%;
+          //-       height: 100%;
+          //-       }
+          //-       .volume_bar {
+          //-       position: absolute;
+          //-       width: 5px;
+          //-       height: 0px;
+          //-       right: 0px;
+          //-       bottom: 0px;
+          //-       background-color: #12acef;
+          //-       }
+          //-     p#subTitle
+          //-     form#createRoom              
+          //-     p Buddy
+          //-     #buddy_counts_min_sec.ui.red.circular.label active time: 00:00 min
+          //-     .videoContainer
+          //-       #remoteVideo
+          //-     .ui.divider
+          //-     p You
+          //-     #counts_min_sec.ui.red.circular.label active time: 00:00 min
+          //-     .videoContainer
+          //-       video#localVideo(style='height: 150px; transform: scaleX(-1);', oncontextmenu='return false;')
+          //-       canvas(id="canvas" width="320" height="240" style="transform: scaleX(-1);")
+          //-       #localVolume.volume_bar
+        .twelve.wide.column.right
+          .ui.grid
+            .sixteen.wide.column
+              p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") score : 0
+              //- a.ui.label(style='margin-left:10px;' href='/history?pid='+project.pid+'&curUser='+curUser) view history
+              button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()' data-tooltip="Verify" data-inverted="")
+                i.unhide.icon
+              button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
+                i.play.icon
+              button.ui.icon.button.negative.float-right(id='pause' onClick='pauseRunCode()' data-tooltip="Pause" data-inverted="")
+                i.pause.icon
+                
+          //- file tab  
+          .ui.form
+            .ui.top.attached.tabular.file.menu(id='file-tabs')
+              each file, index in project.files
+                if index == 0
+                  a.active.item(id=file data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
+                else
+                  a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py'        
+                    span(onClick=`closeTab(${JSON.stringify(file)})`)
+                      i.delete.icon(id='close-tab-icon')
+              a.item(class='add-file' onClick='addFile()') 
+                i.plus.icon
+            .ui.tab-content
+              each file,index in project.files
+                if index == 0
+                  .ui.bottom.attached.active.tab.segment(id=file+'-tab' data-tab='main')
+                    //- textarea#f.show
+                    textarea(id=file+'text').show
+                else
+                  .ui.bottom.attached.tab.segment(id=file+'-tab' data-tab=file)
+                    //- textarea#demotext.show
+                    textarea(id=file+'text').show
+            input(type='hidden' id='projectFiles' value=project.files)
+          .ui.small.modal#filename-modal
+            .header Filename
+            .content
+              center.ui.form
+                input.filename(type='text' style='width: 70%;') 
+                label(style='font-size:17px;')  .py 
+              .file.name.exists.warning
+            .actions
+              button.ui.button.approve.green(id='createBtn' onClick='createFile()') Create
+              .ui.button.approve.red(data-value='cancel') Cancel
+                    
+          .ui.segments
+            .ui.segment
+              .ui.grid
+                .ten.wide.column
+                  p Terminal
+                .six.wide.column
+                  button.ui.button.float-right(id='clearTerm' onClick='clearTerminal()') Clear
+            .ui.secondary.segment
+              #xterm-container
+
+    //- .ui.chatbox(id="live-chat")
+    //-   header.clearfix
+    //-       eight.wide.column(style="float: left;") 
+    //-         i.comments.icon(style="float: left;") 
+    //-         p Chat
+    //-       eight.wide.column(style="float: right;") 
+    //-         i.angle.up.icon(id="angle-up")
+    //-   .chat
+    //-     .chat-history
+    //-       .ui.items.message-list(id="chatheight")
+    //-         if messages.length == 0
+    //-           .ui.item
+    //-           | Send message to your pair.
+    //-         else
+    //-           each message in messages
+    //-             .ui.item
+    //-               if (message.uid != user._id)
+    //-                 img.ui.avatar.image(src=partner_img)
+    //-                 .curve-box #{message.message}
+    //-               else 
+    //-                 //- img.ui.avatar.image(src=`${user.img}`)
+    //-                 .content
+    //-                 .curve-box-user #{message.message}
+    //-                 //- a.header Thara
+    //- 
+    //-     .ui.chatbottom
+    //-       p#show-is-typing
+    //-         .ui.form(action='/project', method='POST')
+    //-           .field
+    //-             .ui.grid
+    //-               .twelve.wide.column
+    //-                 input.ui.input(type='text', id="inputMessage", name='message', placeholder='Type here')
+    //-               .four.wide.column
+    //-                 button.ui.button.icon(type='submit', onClick='sendMessage()')
+    //-                   i.send.icon
+    //-     .twelve.wide.column.right
+    //-   style.
+    //-     .face-tracking {
+    //-       width: 320;
+    //-       height: 240px;
+    //-       position: relative;
+    //-       background: #eee;
+    //-       overflow: hidden;
+    //-     }
+    //-     .face-tracking video,canvas {
+    //-       position: absolute;
+    //-     }
+
+    script.
+      let user="#{user.username}"
+      let uid="#{user._id}"
+      let partner="#{partner}"
+      let partner_img="#{partner_img}"
+    script(type='text/javascript').
+      $(document).ready(function(){
+          $('.demo.menu .item').tab({history:false});
+          $('.file.menu .item').tab({history:false});
+
+      });
+    script(src='/codemirror/lib/codemirror.js')
+    script(src='/codemirror/mode/python/python.js')
+    //- script(src='/js/static/simplewebrtc.bundle.js')
+    //- script(src='/js/static/webrtc.js')
+    script(src='/js/static/socket.io.min.js')
+    script(src='/xterm/xterm.js')
+    script(src='/xterm/addons/fit/fit.js')
+    script(src='/js/static/countdown.min.js')
+    script(src='/js/app/playgroundConventional_typical.js')
+    script(src='/js/app/main.js')
+    script(src='/trackingjs/build/tracking-min.js')
+    script(src='/trackingjs/build/data/face-min.js')

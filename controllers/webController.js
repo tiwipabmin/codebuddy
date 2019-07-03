@@ -127,7 +127,12 @@ exports.getPlayground = async (req, res) => {
   if (project.programming_style == 'Interactive') {
     res.render('playground_interactive', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
   } else {
-    res.render('playground_conventional', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+    let sub_style = project.programming_style.split(' ')
+    if(sub_style[1] == 'codebuddy') {
+      res.render('playground_conventional_codebuddy', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+    } else {
+      res.render('playground_conventional_typical', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+    }
   }
 }
 
@@ -842,7 +847,6 @@ exports.assignAssignment = async (req, res) => {
   const select_enrollment_by_section_id = 'SELECT * FROM enrollment WHERE section_id = ' + req.body.assignment_set[0].section_id
   const enrollments = await con.select_enrollment(select_enrollment_by_section_id);
   const assignment_set = req.body.assignment_set
-  let assignmenttt = assignment_set[0]
   var count = 0;
   //check student pairing
   for (_index in enrollments) {
@@ -858,7 +862,6 @@ exports.assignAssignment = async (req, res) => {
   }
 
   const pairing_session_id = req.body.pairing_session_id;
-  const programming_style = assignmenttt.programming_style;
   const swaptime = '1';
   const language = '0';
   const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairing_session_id
@@ -867,6 +870,7 @@ exports.assignAssignment = async (req, res) => {
   var collaborator = 'username';
   var student_objects = {}
   var project = new Project();
+  let programming_style = 'Conventional codebuddy';
   let simulation_objects = {};
   let assignment_id = 1;
 
@@ -930,6 +934,7 @@ exports.assignAssignment = async (req, res) => {
       project = new Project()
       project.title = new_assignment_set[_index].title;
       project.description = new_assignment_set[_index].description;
+      project.programming_style = new_assignment_set[_index].programming_style;
       project.language = language;
       project.swaptime = swaptime;
       project.status = '';
@@ -958,8 +963,7 @@ exports.assignAssignment = async (req, res) => {
           $set: {
             creator_id: creator._id,
             collaborator_id: collaborator._id,
-            assignment_id: assignment_id,
-            programming_style: programming_style
+            assignment_id: assignment_id
           }
         }, (err) => {
           if (err) throw err
