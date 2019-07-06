@@ -121,6 +121,15 @@ block script
                 }
               ]
             },
+            week: {
+              identifier: 'week',
+              rules: [
+                {
+                  type   : 'integer[1...100]',
+                  prompt : 'Please enter an integer value'
+                }
+              ]
+            },
             description: {
               identifier: 'description',
               rules: [
@@ -390,25 +399,27 @@ block content
         form.ui.form.createAssignment.segment(action='/assignment', method='POST')
           .inline.fields
             label Programming Style :
-            //- .field
-            //-   .ui.radio.checkbox
-            //-     input(type='radio' name='programming_style' value='Interactive' checked='checked')
-            //-     |  
-            //-     label Interactive
             .field
               .ui.radio.checkbox
-                input(type='radio' name='programming_style' value='Conventional typical')
+                input(type='radio' name='programming_style' value='Co-located')
                 |  
-                label Conventional typical
+                label Co-located ( ทำ Pair แบบดั้งเดิม )
             .field
               .ui.radio.checkbox
-                input(type='radio' name='programming_style' value='Conventional codebuddy')
+                input(type='radio' name='programming_style' value='Remote')
                 |  
-                label Conventional codebuddy
-          .field
-            label Title :
-            |
-            input(type='text', name='title', placeholder='Your title')
+                label Remote ( ทำ Pair ทางไกลคนละเครื่อง )
+          .ui.grid
+            .thirteen.wide.column
+              .field
+                label Title :
+                |
+                input(type='text', name='title', placeholder='Your title')
+            .three.wide.column
+              .field
+                label Week :
+                |
+                input(type='text', name='week', placeholder='Week', maxlength='3')
           .field
             label Description :
             |
@@ -457,9 +468,24 @@ block content
                   default
                     h1.ui.header#headerContainer My Project
               .right.column
+                script(type='text/javascript').
+                  $('#weeks').dropdown();
                 div
                   case occupation
                     when 0
+                      .ui.selection.dropdown#weeks(style='float: right;')
+                        i.dropdown.icon
+                        if weeks.length > 0
+                          .default.text Select week
+                        else
+                          .default.text No week
+                        .menu#menu_week
+                          if weeks.length > 0
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`$('#assignment_set').attr('value')`+')') All
+                          each week in weeks
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`$('#assignment_set').attr('value')`+')') !{week}
+                      script(type='text/javascript').
+                        $('#weeks').dropdown();
                       button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0, '+`$('#assignment_set').attr('value')`+')') Clear Checkbox
                       button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1, '+`$('#assignment_set').attr('value')`+')') Check All of Box
                       button.ui.button.approve.red(style='float: right;') Delete
@@ -467,7 +493,7 @@ block content
                       button.ui.button.approve.green.newAssignment(style='float: right;') Create
                     //default
                     //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
-            .ui.divided.items
+            .ui.divided.items#assignment_items
               case occupation
                 when 0
                   if assignments.length > 0
@@ -504,7 +530,7 @@ block content
                                 .eleven.wide.column
                                   b(style='font-size:1.2em;')
                                     a.header(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')= project.title
-                                  .description= project.description
+                                  .description !{project.description}
                                   | Last updated #{moment(project.createdAt).fromNow()}
                                   | (
                                   a(href='/profile/'+project.collaborator ) @#{project.collaborator}

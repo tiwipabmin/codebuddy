@@ -105,10 +105,35 @@ block content
               .header Assignment
               .content
                 form.ui.form.createAssignment.segment(action='/assignment/updateAssignment', method='POST')
-                  .field
-                    label Title :
-                    |
-                    input(type='text', name='title', placeholder='Your title', value=`${assignment.title}`)
+                  .inline.fields
+                    label Programming Style :
+                    .field
+                      .ui.radio.checkbox
+                        if assignment.programming_style == 'Co-located'
+                          input(type='radio' name='programming_style' value='Co-located' checked='checked')
+                        else
+                          input(type='radio' name='programming_style' value='Co-located')
+                        |  
+                        label Co-located ( ทำ Pair แบบดั้งเดิม )
+                    .field
+                      .ui.radio.checkbox
+                        if assignment.programming_style == 'Remote'
+                          input(type='radio' name='programming_style' value='Remote' checked='checked')
+                        else
+                          input(type='radio' name='programming_style' value='Remote')
+                        |  
+                        label Remote ( ทำ Pair ทางไกลคนละเครื่อง )
+                  .ui.grid
+                    .thirteen.wide.column
+                      .field
+                        label Title :
+                        |
+                        input(type='text', name='title', placeholder='Your title', value=`${assignment.title}`)
+                    .three.wide.column
+                      .field
+                        label Week :
+                        |
+                        input(type='text', name='week', placeholder='Week', maxlength='3', value=`${assignment.week}`)
                   .field
                     label Description :
                     |

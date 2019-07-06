@@ -91,7 +91,7 @@ function changeTheme() {
 /**
  * User join the project
  */
-socket.emit('load playground', { programming_style: 'conventional codebuddy' })
+socket.emit('load playground', { programming_style: 'Remote' })
 socket.emit('join project', {
   pid: getParameterByName('pid'),
   username: user
@@ -504,7 +504,7 @@ socket.on('auto update score', (payload) => {
     uid: uid,
     code: getAllFileEditor()
   })
-
+  term.writeln('Scoring pytest.py...')
 })
 
 /**

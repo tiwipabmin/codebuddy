@@ -124,15 +124,14 @@ exports.getPlayground = async (req, res) => {
     partner_obj = await User
     .findOne({ _id: project.creator_id})
   }
+
+  // console.log('programming_style, ', project.programming_style)
   if (project.programming_style == 'Interactive') {
     res.render('playground_interactive', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
-  } else {
-    let sub_style = project.programming_style.split(' ')
-    if(sub_style[1] == 'codebuddy') {
-      res.render('playground_conventional_codebuddy', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
-    } else {
-      res.render('playground_conventional_typical', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
-    }
+  } else if(project.programming_style == 'Co-located') {
+    res.render('playground_conventional_typical', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+  } else if(project.programming_style == 'Remote') {
+    res.render('playground_conventional_codebuddy', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
   }
 }
 
@@ -313,6 +312,7 @@ exports.getSection = async (req, res) => {
   var section = [];
   var students = [];
   var assignments = [];
+  var weeks = [];
   section = await con.getSection(querySection)
   students = await con.select_student(queryStudent)
   assignments = await con.select_assignment(select_assignment_by_section_id)
@@ -327,6 +327,7 @@ exports.getSection = async (req, res) => {
     for (_index in assignments) {
       assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
       assignments[_index].description = assignments[_index].description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+      weeks.indexOf(assignments[_index].week) == -1 ? weeks.push(assignments[_index].week) : null;
     }
   }
 
@@ -343,10 +344,10 @@ exports.getSection = async (req, res) => {
       pairing_sessions = [{status: -1}]
     }
 
-    res.render('classroom', { occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, weeks, title: section.course_name })
   } else {
     occupation = 1
-    var projects_in_section = []
+    let projects_in_section = []
     var count = 0
     const projects = await Project
       .find({ $and : [
@@ -359,6 +360,7 @@ exports.getSection = async (req, res) => {
       projects.forEach(function(project){
         if(project.assignment_id == assignments[i].assignment_id) {
           projects_in_section[count] = project
+          console.log('description, ', projects_in_section[count].description)
           count++;
           // console.log(projects_in_section, '-----------TRUE');
         } else {
@@ -764,26 +766,27 @@ exports.createAssignment = async (req, res) => {
   var section = {}
   section.section_id = section_id
   const title = (req.body.title).replace(/\s/g, "\\n")
+  const week = parseInt(req.body.week)
   const description = (req.body.description).replace(/\s/g, "\\n");
-  console.log('des---- :',description);
   const input_specification = (req.body.input_specification).replace(/\s/g, "\\n")
   const output_specification = (req.body.output_specification).replace(/\s/g, "\\n")
   const sample_input = (req.body.sample_input).replace(/\s/g, "\\n")
   const sample_output = (req.body.sample_output).replace(/\s/g, "\\n")
   const programming_style = req.body.programming_style;
-  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style) VALUES ?'
-  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style]]
+  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style, week) VALUES ?'
+  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style, week]]
   const assignment_id = await con.insert_assignment(insert_assignment, values)
   var assignment = {}
-  console.log('assign_id : ' + assignment_id)
   if(typeof assignment_id == 'number') {
     assignment.assignment_id = assignment_id
     assignment.title = title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+    assignment.week = week
     assignment.description = description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.input_specification = input_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.output_specification = output_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_input = sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+    assignment.programming_style = programming_style
     res.render('assignment', {assignment, section, title: title})
   } else {
     res.redirect('/classroom?section_id=' + section_id)
@@ -802,14 +805,16 @@ exports.updateAssignment = async (req, res) => {
   const section_id = req.body.section_id
   const title = (req.body.title).replace(/\s/g, "\\\\n");
   const description = (req.body.description).replace(/\s/g, "\\\\n");
+  const week = parseInt(req.body.week)
   //console.log('des---- :', description);
   const input_specification = (req.body.input_specification).replace(/\s/g, "\\\\n");
   const output_specification = (req.body.output_specification).replace(/\s/g, "\\\\n");
   const sample_input = (req.body.sample_input).replace(/\s/g, "\\\\n");
   const sample_output = (req.body.sample_output).replace(/\s/g, "\\\\n");
+  const programming_style = req.body.programming_style;
   // console.log('assignment_id: ' + assignment_id + ', section_id: ' + section_id)
   //console.log('title: ' + title + ', description: ' + description + ', input_specification: ' + input_specification + ', output_specification: ' + output_specification + ', sample_input: ' + sample_input + ', sample_output: ' + sample_output)
-  const update_assignment = 'UPDATE assignment SET title = \'' + title + '\', description = \'' + description + '\', input_specification = \'' + input_specification + '\', output_specification = \'' + output_specification + '\', sample_input = \'' + sample_input + '\', sample_output = \'' + sample_output + '\' WHERE assignment_id = ' + assignment_id
+  const update_assignment = 'UPDATE assignment SET title = \'' + title + '\', description = \'' + description + '\', input_specification = \'' + input_specification + '\', output_specification = \'' + output_specification + '\', sample_input = \'' + sample_input + '\', sample_output = \'' + sample_output + '\', programming_style = \'' + programming_style + '\', week = ' + week + ' WHERE assignment_id = ' + assignment_id
   //console.log('update_assignment : ', update_assignment)
   const res_status = await con.update_assignment(update_assignment)
   res.redirect('/assignment?section_id='+section_id+'&assignment_id='+assignment_id)
@@ -870,7 +875,7 @@ exports.assignAssignment = async (req, res) => {
   var collaborator = 'username';
   var student_objects = {}
   var project = new Project();
-  let programming_style = 'Conventional codebuddy';
+  let programming_style = 'Remote';
   let simulation_objects = {};
   let assignment_id = 1;
 

@@ -460,12 +460,52 @@ function onClickDeleteAssignment(assignment_id) {
   $('#confirm-modal').modal('show');
 }
 
-function on_click_remove_student_button(enrollment_id, first_name, last_name){
+function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   $('#inp_cm').attr('value', enrollment_id)
   $('#confirm-header').text('Remove Student')
   $('#confirm-message').attr('value', 'Are you sure you want to remove the student from this classroom?')
   $('#confirm-message').text('Are you sure you want to remove \"' + first_name + ' ' + last_name + '\" from this classroom?')
   $('#confirm-modal').modal('show')
+}
+
+function on_click_weeks_dropdown(id, assignment_set) {
+  assignment_set = JSON.parse(assignment_set)
+  let week = id.split('week')
+  week = parseInt(week[0])
+  let assignment_of_week = []
+  for (_index in assignment_set){
+    if(assignment_set[_index].week == week) {
+      assignment_of_week.push(assignment_set[_index])
+    } else if (week < 0) {
+      assignment_of_week.push(assignment_set[_index])
+    }
+  }
+  $('#assignment_items').empty()
+  let item = null;
+  let content = null;
+  let description = null;
+  let grid = null;
+  let fourteen_wide_column = null;
+  let two_wide_column = null;
+  let checkbox = null;
+  let assignment = null;
+  for(_index in assignment_of_week) {
+    assignment = assignment_of_week[_index];
+    item = $('<div class=\'item\' id=\'a'+assignment.assignment_id+'\'></div>')
+    content = $('<div class=\'content\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'><a class=\'header\' href=\'/assignment?section_id='+assignment.section_id+'&assignment_id='+assignment.assignment_id+'\'>'+assignment.title+'</b></div>')
+    description = $('<div class=\'description\'>')
+    grid = $('<div class=\'ui grid\'></div>')
+    fourteen_wide_column = $('<div class=\'fourteen wide column assignment_is_selected\' onclick=\'on_click_assignment(1, \"'+assignment.assignment_id+'_is_selected\")\'><p style=\'padding-left:15px; padding-right:15px;\'>'+assignment.description+'</p><p style=\'padding-left:15px; padding-right:15px;\'>Programming Style : '+assignment.programming_style+'</p></div>')
+    two_wide_column = $('<div class=\'two wide column\'></div>')
+    checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
+    item.append(content)
+    content.append(description)
+    description.append(grid)
+    grid.append(fourteen_wide_column)
+    grid.append(two_wide_column)
+    two_wide_column.append(checkbox)
+    $('#assignment_items').append(item)
+  }
 }
 
 function onClickAlphabeticalFilterButton(){
@@ -779,6 +819,7 @@ function sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMo
 }
 
 function on_click_assignment(opt, id) {
+  console.log('Typeof, ', typeof(opt), ', number is ', opt, ', id is ', id)
   switch (opt) {
     case 1:
       $('#'+id).is(':checked') == true ? $('#'+id).prop('checked', false) : $('#'+id).prop('checked', true)
