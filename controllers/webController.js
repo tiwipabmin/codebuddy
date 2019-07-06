@@ -313,6 +313,7 @@ exports.getSection = async (req, res) => {
   var students = [];
   var assignments = [];
   var weeks = [];
+  let pagination = [];
   section = await con.getSection(querySection)
   students = await con.select_student(queryStudent)
   assignments = await con.select_assignment(select_assignment_by_section_id)
@@ -324,14 +325,23 @@ exports.getSection = async (req, res) => {
   if(!assignments.length) {
     assignments = []
   } else if (assignments.length) {
+    let page = 1;
+    let count = 0;
     for (_index in assignments) {
       assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
       assignments[_index].description = assignments[_index].description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+      assignments[_index].page = page
+      count++
+      if(count % 5 == 0 || _index == (assignments.length) - 1){
+        pagination.indexOf(page) == -1 ? pagination.push(page) : null;
+        page++
+      }
       weeks.indexOf(assignments[_index].week) == -1 ? weeks.push(assignments[_index].week) : null;
     }
   }
 
   if(occupation == 'teacher') {
+    console.log('pagination, ', pagination)
     occupation = 0
     var assignment_set = JSON.stringify(assignments)
     var select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
@@ -344,11 +354,11 @@ exports.getSection = async (req, res) => {
       pairing_sessions = [{status: -1}]
     }
 
-    res.render('classroom', { occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, weeks, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, weeks, pagination, title: section.course_name })
   } else {
     occupation = 1
     let projects_in_section = []
-    var count = 0
+    let count = 0
     const projects = await Project
       .find({ $and : [
           {status: {$ne : "pending"} },
@@ -360,7 +370,6 @@ exports.getSection = async (req, res) => {
       projects.forEach(function(project){
         if(project.assignment_id == assignments[i].assignment_id) {
           projects_in_section[count] = project
-          console.log('description, ', projects_in_section[count].description)
           count++;
           // console.log(projects_in_section, '-----------TRUE');
         } else {
