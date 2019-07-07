@@ -341,7 +341,6 @@ exports.getSection = async (req, res) => {
   }
 
   if(occupation == 'teacher') {
-    console.log('pagination, ', pagination)
     occupation = 0
     var assignment_set = JSON.stringify(assignments)
     var select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';

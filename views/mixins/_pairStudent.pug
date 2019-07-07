@@ -9,6 +9,7 @@ mixin pairStudent(user, students)
       input#active_filter(type='hidden', value='')
       button.ui.button#alphabetical_filter(style="font-size:7px;", value='A-Z', onclick='onClickAlphabeticalFilterButton()') A-Z
       button.ui.button#avg_score_filter(style="font-size:7px;", value='1-100', onclick='onClickAvgScoreFilterButton()') 1-100
+      button.ui.right.floated.button#change_pair(onclick='on_click_change_pair()') Change pair
       .ui.fluid.container.segment.student-list-container.box
         //- .ui.segment
           //- .ui.two.column.very.relaxed.grid

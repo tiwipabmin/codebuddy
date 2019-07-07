@@ -2,6 +2,7 @@ extends layout/layout.pug
 
 block script
     script(src='/js/app/classroom.js')
+    script(src='/js/app/student_pair_event.js')
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
     link(rel='stylesheet' href='/css/main.css')
@@ -209,7 +210,7 @@ block content
     input#section_id(type='hidden', value=`${section.section_id}`)
     input#assignment_set(type='hidden', value='[]')
     input#assignment_check_saving(type='hidden', value='{}')
-    input#inp_week(type='hidden', value='-1week')
+    input#assignment_of_week(type='hidden', value='[]')
     script(type='text/javascript').
       $(document).ready(function(){
         if(!{occupation} === 0) {
@@ -481,31 +482,31 @@ block content
                           .default.text Select week
                         else
                           .default.text No week
-                        .menu#menu_week
+                        .menu#menu_week(name='status')
                           if weeks.length > 0
-                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`$('#assignment_set').attr('value')`+', '+`$('#assignment_check_saving').attr('value')`+')') All
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+')') All
                           each week in weeks
-                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`$('#assignment_set').attr('value')`+', '+`$('#assignment_check_saving').attr('value')`+')') !{week}
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+')') !{week}
                       script(type='text/javascript').
                         $('#weeks').dropdown();
-                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0, '+`$('#assignment_set').attr('value')`+', '+`$('#assignment_check_saving').attr('value')`+')') Clear Checkbox
-                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1, '+`$('#assignment_set').attr('value')`+', '+`$('#assignment_check_saving').attr('value')`+')') Check All of Box
+                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0)') Clear Checkbox
+                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1)') Check All of Box
                       button.ui.button.approve.red(style='float: right;') Delete
-                      button.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#assignment_set').attr('value')`+', '+`$('#pairing_session_id').attr('value')`+', '+`$('#assignment_check_saving').attr('value')`+')') Assign
+                      button.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#pairing_session_id').attr('value')`+')') Assign
                       button.ui.button.approve.green.newAssignment(style='float: right;') Create
                     //default
                     //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
             if pagination.length                
               .ui.pagination.menu#assignment_pagination
                 each page in pagination
-                  a.item(id='page'+`${page}`, onclick='on_click_page('+`${page}`+', '+`$('#assignment_set').attr('value')`+', '+`$('#assignment_check_saving').attr('value')`+')')= page
+                  a.item(id='page'+`${page}`, onclick='on_click_page('+`${page}`+')')= page
             .ui.divided.items#assignment_items
               case occupation
                 when 0
                   if assignments.length > 0
                     script(type='text/javascript').
                       $(document).ready(function() {
-                        on_click_page(1, $('#assignment_set').attr('value'), $('#assignment_check_saving').attr('value'))
+                        on_click_weeks_dropdown('-1week')
                         
                         let assignment_set = JSON.parse($('#assignment_set').attr('value'))
                         assignment_set.forEach(function(e){
