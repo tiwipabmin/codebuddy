@@ -1114,8 +1114,8 @@ exports.assignAssignment = async (req, res) => {
     for(var key in partner_keys_objects){
       search_project = await Project.findOne({
         assignment_id: assignment_set[_index].assignment_id,
-        creator: student_objects[key].username,
-        collaborator: student_objects[partner_keys_objects[key]].username,
+        $or: [{creator: student_objects[key].username}, {collaborator: student_objects[key].username}],
+        $or: [{creator: student_objects[partner_keys_objects[key]].username}, {collaborator: student_objects[partner_keys_objects[key]].username}],
         $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
       })
 
