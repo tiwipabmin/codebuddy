@@ -1,14 +1,16 @@
-mixin pairStudent(user, students)
+mixin pairStudent(user, students, pairing_sessions, section)
   .ui.small.modal#student_list_modal
     i.close.icon#close_student_list
     .header Student list
     .content
       input#partner_keys(type='hidden', value='{}')
+      input#cloning_partner_keys(type='hidden', value='{}')
       input#pairing_objective(type='hidden', value='{}')
       input#student_objects(type='hidden', value='{}')
       input#active_filter(type='hidden', value='')
       button.ui.button#alphabetical_filter(style="font-size:7px;", value='A-Z', onclick='onClickAlphabeticalFilterButton()') A-Z
       button.ui.button#avg_score_filter(style="font-size:7px;", value='1-100', onclick='onClickAvgScoreFilterButton()') 1-100
+      button.ui.right.floated.button#change_pair(onclick='on_click_change_pair()') Change pair
       .ui.fluid.container.segment.student-list-container.box
         //- .ui.segment
           //- .ui.two.column.very.relaxed.grid
@@ -30,7 +32,7 @@ mixin pairStudent(user, students)
               i.line.chart.icon
       .ui.basic.center.aligned.segment
         .actions
-          button.ui.button.approve.green#confirm-pairing(type='submit') Confirm
+          button.ui.button.approve.green#confirm-pairing(type='submit', value='create') Confirm
           .ui.button.approve.red#cancel-pairing(data-value='cancel') Cancel
 
   .ui.small.modal#partner_selection_modal

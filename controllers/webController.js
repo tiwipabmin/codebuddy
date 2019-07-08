@@ -124,15 +124,14 @@ exports.getPlayground = async (req, res) => {
     partner_obj = await User
     .findOne({ _id: project.creator_id})
   }
+
+  // console.log('programming_style, ', project.programming_style)
   if (project.programming_style == 'Interactive') {
     res.render('playground_interactive', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
-  } else {
-    let sub_style = project.programming_style.split(' ')
-    if(sub_style[1] == 'codebuddy') {
-      res.render('playground_conventional_codebuddy', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
-    } else {
-      res.render('playground_conventional_typical', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
-    }
+  } else if(project.programming_style == 'Co-located') {
+    res.render('playground_conventional_typical', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+  } else if(project.programming_style == 'Remote') {
+    res.render('playground_conventional_codebuddy', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
   }
 }
 
@@ -313,6 +312,8 @@ exports.getSection = async (req, res) => {
   var section = [];
   var students = [];
   var assignments = [];
+  var weeks = [];
+  let pagination = [];
   section = await con.getSection(querySection)
   students = await con.select_student(queryStudent)
   assignments = await con.select_assignment(select_assignment_by_section_id)
@@ -324,9 +325,18 @@ exports.getSection = async (req, res) => {
   if(!assignments.length) {
     assignments = []
   } else if (assignments.length) {
+    let page = 1;
+    let count = 0;
     for (_index in assignments) {
       assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
       assignments[_index].description = assignments[_index].description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+      assignments[_index].page = page
+      count++
+      if(count % 5 == 0 || _index == (assignments.length) - 1){
+        pagination.indexOf(page) == -1 ? pagination.push(page) : null;
+        page++
+      }
+      weeks.indexOf(assignments[_index].week) == -1 ? weeks.push(assignments[_index].week) : null;
     }
   }
 
@@ -343,11 +353,11 @@ exports.getSection = async (req, res) => {
       pairing_sessions = [{status: -1}]
     }
 
-    res.render('classroom', { occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, weeks, pagination, title: section.course_name })
   } else {
     occupation = 1
-    var projects_in_section = []
-    var count = 0
+    let projects_in_section = []
+    let count = 0
     const projects = await Project
       .find({ $and : [
           {status: {$ne : "pending"} },
@@ -463,11 +473,14 @@ exports.updatePairingSession = async (req, res) => {
   //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_session_id + ', partner_keys : ', partner_keys)
 
   //create date time at this moment
-  var time_end = new Date()
-  var str_time_end = time_end.toString()
-  var split_time_end = str_time_end.split(' ')
-  var slice_time_end = split_time_end.slice(0, 5)
-  time_end = slice_time_end.join(' ')
+  var date_time = new Date()
+  var str_date_time = date_time.toString()
+  var split_date_time = str_date_time.split(' ')
+  var slice_date_time = split_date_time.slice(1, 5)
+  var month = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+  var num_month = month[slice_date_time[0]]
+  num_month === undefined ? num_month = '13' : null;
+  var time_end = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + ' ' + slice_date_time[3]
 
   const status = req.body.status
   const pairing_session_id = req.body.pairing_session_id
@@ -594,6 +607,181 @@ exports.searchStudentByPurpose = async (req, res) => {
   res.send({students: students, purpose: purpose})
 }
 
+exports.getPairing = async (req, res) => {
+  let pairing_session_id = parseInt(req.query.pairing_session_id)
+  let section_id = parseInt(req.query.section_id)
+  const select_pairing_record_by_pairing_session_id = 'SELECT * FROM pairing_record WHERE pairing_session_id = ' + pairing_session_id
+  let pairing_record = await con.select_pairing_record(select_pairing_record_by_pairing_session_id)
+
+  const select_enrollment_by_section_id = 'SELECT * FROM enrollment WHERE section_id = ' + section_id
+  let enrollment = await con.select_enrollment(select_enrollment_by_section_id)
+
+  let pairing_record_objects = {}
+  let enrollment_objects = {}
+  for (_index in pairing_record) {
+    pairing_record_objects[pairing_record[_index].enrollment_id] = pairing_record[_index]
+  }
+
+  for(_index in enrollment) {
+    enrollment_objects[enrollment[_index].enrollment_id] = enrollment[_index]
+  }
+  // console.log('pairing_record_objects, ', pairing_record_objects, ', enrollment_objects, ', enrollment_objects)
+
+  let partner_keys = {}
+  let pairing_objective = {}
+  for (var element_en in enrollment_objects) {
+    if (enrollment_objects[element_en].partner_id == null){
+      console.log('enrollment_objects[element_en].partner_id, ', enrollment_objects[element_en].partner_id, ', enrollment_id, ', enrollment_objects[element_en].enrollment_id)
+      partner_keys[enrollment_objects[element_en].enrollment_id] = -1
+      pairing_objective[enrollment_objects[element_en].enrollment_id] = -1
+
+      delete enrollment_objects[enrollment_objects[element_en].enrollment_id]
+    } else {
+      for (var element_pair in pairing_record_objects) {
+        if(enrollment_objects[element_en].enrollment_id == pairing_record_objects[element_pair].enrollment_id) {
+          if(pairing_record_objects[element_pair].role == 'host') {
+            partner_keys[enrollment_objects[element_en].enrollment_id] = enrollment_objects[element_en].partner_id
+          } else if(pairing_record_objects[element_pair].role == 'partner') {
+            partner_keys[enrollment_objects[element_en].partner_id] = enrollment_objects[element_en].enrollment_id
+          }
+
+          pairing_objective[enrollment_objects[element_en].enrollment_id] = pairing_record_objects[element_pair].pairing_objective
+          pairing_objective[enrollment_objects[element_en].partner_id] = pairing_record_objects[element_pair].pairing_objective
+          //console.log('partner_keys, ', partner_keys, ', pairing_objective, ', pairing_objective, ', pairing_record_objects[element_pair].pairing_objective', pairing_record_objects[element_pair].pairing_objective)
+          delete pairing_record_objects[enrollment_objects[element_en]]
+          delete enrollment_objects[enrollment_objects[element_en].partner_id]
+          delete enrollment_objects[enrollment_objects[element_en]]
+          delete pairing_record_objects[pairing_record_objects[element_pair]]
+        }
+      }
+    }
+  }
+
+  res.send({status: "Pull information successfully", partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)})
+}
+
+exports.updatePairing = async (req, res) => {
+  //console.log('cloning_partner_keys, ', req.body.cloning_partner_keys, ', partner_keys, ', req.body.partner_keys)
+  let partner_keys = req.body.partner_keys
+  let cloning_partner_keys = req.body.cloning_partner_keys
+  let pairing_objective = req.body.pairing_objective
+  let pairing_session_id = req.body.pairing_session_id
+  let section_id = req.body.section_id
+  let only_changed_partner_keys = {}
+  let count = 0
+
+  /*
+  ** if there aren't student pairing, server will send message which 'Please, pair all student!'
+  */
+  for(key in partner_keys) {
+    if(parseInt(partner_keys[key]) < 0) {
+      res.send({status: 'Please pair all students!'})
+      return
+    }
+
+    if (cloning_partner_keys[key] === undefined) {
+      count++
+      only_changed_partner_keys[key] = partner_keys[key]
+    } else if (cloning_partner_keys[key] != partner_keys[key]){
+      count++
+      only_changed_partner_keys[key] = partner_keys[key]
+    }
+  }
+
+  if(!count) {
+    res.send({status: 'Nothing update'})
+  }
+
+  const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
+  let pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
+  let time_start = pairing_session[0].date_time
+  time_start = time_start.split(' ')
+  time_start = time_start[0]
+
+  const select_student_by_section_id = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
+  const students = await con.select_student(select_student_by_section_id)
+
+  const select_pairing_record_by_pairing_session_id = 'SELECT * FROM pairing_record WHERE pairing_session_id = ' + pairing_session_id;
+  let pairing_record = await con.select_pairing_record(select_pairing_record_by_pairing_session_id)
+
+  let pairing_record_objects = {}
+  for(_index in pairing_record) {
+    pairing_record_objects[pairing_record[_index].enrollment_id] = pairing_record[_index].role
+  }
+
+  let student_objects = {}
+
+  for(_index in students) {
+    student_objects[students[_index].enrollment_id] = {
+      username: students[_index].username,
+      role: pairing_record_objects[students[_index].enrollment_id]
+    }
+  }
+
+  let status = ''
+  for (var key in only_changed_partner_keys) {
+    if(student_objects[key].role == 'host') {
+      status = await Project.deleteMany({
+        creator: student_objects[key].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+      })
+    } else if (student_objects[key].role == 'partner') {
+      status = await Project.deleteMany({
+        collaborator: student_objects[key].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+      })
+    }
+
+    if(student_objects[only_changed_partner_keys[key]].role == 'host') {
+      status = await Project.deleteMany({
+        creator: student_objects[only_changed_partner_keys[key]].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+      })
+    } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
+      status = await Project.deleteMany({
+        collaborator: student_objects[only_changed_partner_keys[key]].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+      })
+    }
+  }
+
+  let delete_pairing_record_by_enrollment_id_and_pairing_session_id = ''
+  let insert_pairing_record = ''
+  let update_enrollment_by_enrollment_id = ''
+  let pairing_record_values = []
+  let enrollment = ''
+  for (var key in only_changed_partner_keys) {
+    delete_pairing_record_by_enrollment_id_and_pairing_session_id = 'DELETE FROM pairing_record WHERE enrollment_id = ' + parseInt(key) + ' AND pairing_session_id = ' + pairing_session_id;
+    pairing_record = await con.select_pairing_record(delete_pairing_record_by_enrollment_id_and_pairing_session_id)
+
+    // console.log('Delete completed, ', key)
+    update_enrollment_by_enrollment_id = 'UPDATE enrollment SET partner_id = ' + parseInt(only_changed_partner_keys[key]) + ' WHERE enrollment_id = ' + key
+    enrollment = await con.update_enrollment(update_enrollment_by_enrollment_id);
+
+    // console.log('Update completed, ', key)
+    insert_pairing_record = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
+    pairing_record_values = [[parseInt(key), pairing_session_id, parseInt(only_changed_partner_keys[key]), pairing_objective[key], 'host']]
+    pairing_record = await con.insert_pairing_record(insert_pairing_record, pairing_record_values)
+    // console.log('Create completed, ', key)
+
+    delete_pairing_record_by_enrollment_id_and_pairing_session_id = 'DELETE FROM pairing_record WHERE enrollment_id = ' + parseInt(only_changed_partner_keys[key]) + ' AND pairing_session_id = ' + pairing_session_id;
+    pairing_record = await con.select_pairing_record(delete_pairing_record_by_enrollment_id_and_pairing_session_id)
+
+    // console.log('Delete completed, ', only_changed_partner_keys[key])
+    update_enrollment_by_enrollment_id = 'UPDATE enrollment SET partner_id = ' + key + ' WHERE enrollment_id = ' + only_changed_partner_keys[key]
+    enrollment = await con.update_enrollment(update_enrollment_by_enrollment_id);
+
+    // console.log('Update completed, ', only_changed_partner_keys[key])
+    insert_pairing_record = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
+    pairing_record_values = [[parseInt(only_changed_partner_keys[key]), pairing_session_id, parseInt(key), pairing_objective[only_changed_partner_keys[key]], 'partner']]
+    pairing_record = await con.insert_pairing_record(insert_pairing_record, pairing_record_values)
+    // console.log('Create completed, ', key)
+  }
+
+  //console.log('only_changed_partner_keys, ', only_changed_partner_keys, ', time_start, ', time_start, ', student_objects, ', student_objects)
+  res.send({status: "Update pairing successfully"})
+}
+
 exports.createPairingRecord = async (req, res) => {
   const partner_keys = JSON.parse(req.body.partner_keys)
   const pairing_objective = JSON.parse(req.body.pairing_objective)
@@ -638,10 +826,13 @@ exports.createPairingRecord = async (req, res) => {
   var date_time = new Date()
   var str_date_time = date_time.toString()
   var split_date_time = str_date_time.split(' ')
-  var slice_date_time = split_date_time.slice(0, 5)
-  date_time = slice_date_time.join(' ')
+  var slice_date_time = split_date_time.slice(1, 5)
+  var month = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+  var num_month = month[slice_date_time[0]]
+  num_month === undefined ? num_month = '13' : null;
+  var date = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + ' ' + slice_date_time[3]
 
-  const values = [[section[0].section_id, date_time, 2]]
+  const values = [[section[0].section_id, date, 2]]
   const pairing_session_id = await con.insert_pairing_session(insert_pairing_session, values)
 
   if(typeof pairing_session_id == 'number') {
@@ -690,7 +881,7 @@ exports.createPairingRecord = async (req, res) => {
       const update_pairing_session_by_pairing_session_id = 'UPDATE pairing_session SET status = 1 WHERE pairing_session_id = ' + pairing_session_id
       res_status = await con.update_pairing_session(update_pairing_session_by_pairing_session_id)
     }
-    res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairing_time: pairing_time, date_time: date_time, time_end: '-'})
+    res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairing_time: pairing_time, date_time: date, time_end: '-'})
   } else {
     res.send({res_status: 'Update failed.'})
   }
@@ -704,6 +895,10 @@ exports.getStudentsFromSection = async (req, res) => {
   //console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   const students = await con.select_student(queryStudent)
+  const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id;
+  const pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
+  console.log('pairing_session, ', pairing_session, ', pairing_session_id, ', pairing_session_id)
+
   var arePairingsActive = false;
   for(i in students){
     if(students[i].partner_id != null) {
@@ -755,7 +950,7 @@ exports.getStudentsFromSection = async (req, res) => {
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
   }
-  res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective})
+  res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective, command: command, pairing_session_status: pairing_session[0].status})
 }
 
 exports.createAssignment = async (req, res) => {
@@ -764,26 +959,27 @@ exports.createAssignment = async (req, res) => {
   var section = {}
   section.section_id = section_id
   const title = (req.body.title).replace(/\s/g, "\\n")
+  const week = parseInt(req.body.week)
   const description = (req.body.description).replace(/\s/g, "\\n");
-  console.log('des---- :',description);
   const input_specification = (req.body.input_specification).replace(/\s/g, "\\n")
   const output_specification = (req.body.output_specification).replace(/\s/g, "\\n")
   const sample_input = (req.body.sample_input).replace(/\s/g, "\\n")
   const sample_output = (req.body.sample_output).replace(/\s/g, "\\n")
   const programming_style = req.body.programming_style;
-  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style) VALUES ?'
-  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style]]
+  const insert_assignment = 'INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style, week) VALUES ?'
+  const values = [[section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style, week]]
   const assignment_id = await con.insert_assignment(insert_assignment, values)
   var assignment = {}
-  console.log('assign_id : ' + assignment_id)
   if(typeof assignment_id == 'number') {
     assignment.assignment_id = assignment_id
     assignment.title = title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+    assignment.week = week
     assignment.description = description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.input_specification = input_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.output_specification = output_specification.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_input = sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+    assignment.programming_style = programming_style
     res.render('assignment', {assignment, section, title: title})
   } else {
     res.redirect('/classroom?section_id=' + section_id)
@@ -802,14 +998,16 @@ exports.updateAssignment = async (req, res) => {
   const section_id = req.body.section_id
   const title = (req.body.title).replace(/\s/g, "\\\\n");
   const description = (req.body.description).replace(/\s/g, "\\\\n");
+  const week = parseInt(req.body.week)
   //console.log('des---- :', description);
   const input_specification = (req.body.input_specification).replace(/\s/g, "\\\\n");
   const output_specification = (req.body.output_specification).replace(/\s/g, "\\\\n");
   const sample_input = (req.body.sample_input).replace(/\s/g, "\\\\n");
   const sample_output = (req.body.sample_output).replace(/\s/g, "\\\\n");
+  const programming_style = req.body.programming_style;
   // console.log('assignment_id: ' + assignment_id + ', section_id: ' + section_id)
   //console.log('title: ' + title + ', description: ' + description + ', input_specification: ' + input_specification + ', output_specification: ' + output_specification + ', sample_input: ' + sample_input + ', sample_output: ' + sample_output)
-  const update_assignment = 'UPDATE assignment SET title = \'' + title + '\', description = \'' + description + '\', input_specification = \'' + input_specification + '\', output_specification = \'' + output_specification + '\', sample_input = \'' + sample_input + '\', sample_output = \'' + sample_output + '\' WHERE assignment_id = ' + assignment_id
+  const update_assignment = 'UPDATE assignment SET title = \'' + title + '\', description = \'' + description + '\', input_specification = \'' + input_specification + '\', output_specification = \'' + output_specification + '\', sample_input = \'' + sample_input + '\', sample_output = \'' + sample_output + '\', programming_style = \'' + programming_style + '\', week = ' + week + ' WHERE assignment_id = ' + assignment_id
   //console.log('update_assignment : ', update_assignment)
   const res_status = await con.update_assignment(update_assignment)
   res.redirect('/assignment?section_id='+section_id+'&assignment_id='+assignment_id)
@@ -870,96 +1068,90 @@ exports.assignAssignment = async (req, res) => {
   var collaborator = 'username';
   var student_objects = {}
   var project = new Project();
-  let programming_style = 'Conventional codebuddy';
+  let programming_style = 'Remote';
   let simulation_objects = {};
   let assignment_id = 1;
+  let partner_keys_objects = {}
+  let assignment_of_each_pair = {}
+  let assignment_set_objects = {}
 
-  count = 0
+  const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
+  let pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
+  let time_start = pairing_session[0].date_time
+  time_start = time_start.split(' ')
+  time_start = time_start[0]
+
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
-    count++;
   }
 
+  for(_index in assignment_set) {
+    assignment_set_objects[assignment_set[_index].assignment_id] = assignment_set[_index]
+  }
+
+  simulation_objects = Object.assign({}, student_objects)
+  for(key in simulation_objects) {
+    if(simulation_objects[key].role == 'host') {
+      console.log('host', key)
+      partner_keys_objects[key] = simulation_objects[key].partner_id
+      assignment_of_each_pair[key] = []
+    } else {
+      console.log('partner', key)
+      partner_keys_objects[simulation_objects[key].partner_id] = key
+      assignment_of_each_pair[simulation_objects[key].partner_id] = []
+    }
+
+    delete simulation_objects[simulation_objects[key].partner_id]
+    delete simulation_objects[key]
+  }
+
+  console.log('partner_keys_objects, ', partner_keys_objects)
+
   let search_project = {};
-  let new_assignment_set = []
-  let had_project;
 
-  // Check the all of student have been having project or not
+  count = 0
   for(_index in assignment_set){
-
-    assignment_id = parseInt(assignment_set[_index].assignment_id)
-    simulation_objects = Object.assign({}, student_objects)
-    had_project = count
-
-    for(key in simulation_objects) {
-
-      // A user already had project, The "search_project" object doesn't equal null
+    for(var key in partner_keys_objects){
       search_project = await Project.findOne({
-        assignment_id: assignment_id,
-        creator: simulation_objects[key].username,
-        collaborator: simulation_objects[simulation_objects[key].partner_id].username
+        assignment_id: assignment_set[_index].assignment_id,
+        creator: student_objects[key].username,
+        collaborator: student_objects[partner_keys_objects[key]].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
       })
 
       if(search_project == null) {
-        search_project = await Project.findOne({
-          assignment_id: assignment_id,
-          creator: simulation_objects[simulation_objects[key].partner_id].username,
-          collaborator: simulation_objects[key].username
-        })
+        count++
+        assignment_of_each_pair[key].push(assignment_set[_index].assignment_id)
       }
-
-      // Remove a user from the "simulation_objects" object
-      if(search_project != null) {
-        delete simulation_objects[simulation_objects[key].partner_id]
-        delete simulation_objects[key]
-        had_project = had_project - 2
-      }
-    }
-
-    // if the all of student have been hasing a project since the begin, the "new_assignment_set" array doesn't push element
-    if(had_project != 0) {
-      new_assignment_set.push(assignment_set[_index])
     }
   }
+  console.log('assignment_of_each_pair, ', assignment_of_each_pair)
 
   // Assign each assignment to the all of student
-  count = 0;
-  for(_index in new_assignment_set){
+  for (key in assignment_of_each_pair) {
+    for (_index in assignment_of_each_pair[key]) {
+      assignment_id = assignment_of_each_pair[key][_index]
+      console.log(key, ' : ', assignment_id)
 
-    count++;
-    simulation_objects = Object.assign({}, student_objects)
-    assignment_id = parseInt(new_assignment_set[_index].assignment_id)
-
-    for(_key in simulation_objects) {
       project = new Project()
-      project.title = new_assignment_set[_index].title;
-      project.description = new_assignment_set[_index].description;
-      project.programming_style = new_assignment_set[_index].programming_style;
+      project.title = assignment_set_objects[assignment_id].title;
+      project.description = assignment_set_objects[assignment_id].description;
+      project.programming_style = assignment_set_objects[assignment_id].programming_style;
       project.language = language;
       project.swaptime = swaptime;
       project.status = '';
 
-      if(simulation_objects[_key].role == 'host') {
-        creator = simulation_objects[_key].username
-        collaborator = simulation_objects[simulation_objects[_key].partner_id].username
-      } else if(simulation_objects[_key].role == 'partner') {
-        creator = simulation_objects[simulation_objects[_key].partner_id].username
-        collaborator = simulation_objects[_key].username
-      }
-      delete simulation_objects[simulation_objects[_key].partner_id]
-      delete simulation_objects[_key]
-
+      creator = student_objects[key].username
+      collaborator = student_objects[partner_keys_objects[key]].username
       project.creator = creator;
       project.collaborator = collaborator;
-      creator = await User
-      .findOne({ username: creator})
-      collaborator = await User
-      .findOne({ username: collaborator})
+      creator = await User.findOne({ username: creator})
+      collaborator = await User.findOne({ username: collaborator})
       if (collaborator != null) {
         project = await (project).save()
         Project.update({
           _id: project._id
-        }, {
+          }, {
           $set: {
             creator_id: creator._id,
             collaborator_id: collaborator._id,

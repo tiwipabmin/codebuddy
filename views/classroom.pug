@@ -2,6 +2,7 @@ extends layout/layout.pug
 
 block script
     script(src='/js/app/classroom.js')
+    script(src='/js/app/student_pair_event.js')
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
     link(rel='stylesheet' href='/css/main.css')
@@ -121,6 +122,15 @@ block script
                 }
               ]
             },
+            week: {
+              identifier: 'week',
+              rules: [
+                {
+                  type   : 'integer[1...100]',
+                  prompt : 'Please enter an integer value'
+                }
+              ]
+            },
             description: {
               identifier: 'description',
               rules: [
@@ -199,13 +209,15 @@ block content
     input#pairing_session_id(type='hidden', value=pairing_sessions[0].pairing_session_id)
     input#section_id(type='hidden', value=`${section.section_id}`)
     input#assignment_set(type='hidden', value='[]')
+    input#assignment_check_saving(type='hidden', value='{}')
+    input#assignment_of_week(type='hidden', value='[]')
     script(type='text/javascript').
       $(document).ready(function(){
         if(!{occupation} === 0) {
           $('#assignment_set').attr('value', JSON.stringify(!{assignment_set}))
         }
       })
-    +pairStudent(user, students)
+    +pairStudent(user, students, pairing_sessions, section)
     //- .ui.small.modal#newProject-modal
     //-   i.close.icon
     //-   .header Create New Project
@@ -390,25 +402,27 @@ block content
         form.ui.form.createAssignment.segment(action='/assignment', method='POST')
           .inline.fields
             label Programming Style :
-            //- .field
-            //-   .ui.radio.checkbox
-            //-     input(type='radio' name='programming_style' value='Interactive' checked='checked')
-            //-     |  
-            //-     label Interactive
             .field
               .ui.radio.checkbox
-                input(type='radio' name='programming_style' value='Conventional typical')
+                input(type='radio' name='programming_style' value='Co-located' checked='checked')
                 |  
-                label Conventional typical
+                label Co-located ( ทำ Pair แบบดั้งเดิม )
             .field
               .ui.radio.checkbox
-                input(type='radio' name='programming_style' value='Conventional codebuddy')
+                input(type='radio' name='programming_style' value='Remote')
                 |  
-                label Conventional codebuddy
-          .field
-            label Title :
-            |
-            input(type='text', name='title', placeholder='Your title')
+                label Remote ( ทำ Pair ทางไกลคนละเครื่อง )
+          .ui.grid
+            .thirteen.wide.column
+              .field
+                label Title :
+                |
+                input(type='text', name='title', placeholder='Your title')
+            .three.wide.column
+              .field
+                label Week :
+                |
+                input(type='text', name='week', placeholder='Week', maxlength='3')
           .field
             label Description :
             |
@@ -457,37 +471,48 @@ block content
                   default
                     h1.ui.header#headerContainer My Project
               .right.column
+                script(type='text/javascript').
+                  $('#weeks').dropdown();
                 div
                   case occupation
                     when 0
-                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0, '+`$('#assignment_set').attr('value')`+')') Clear Checkbox
-                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1, '+`$('#assignment_set').attr('value')`+')') Check All of Box
+                      .ui.selection.dropdown#weeks(style='float: right;')
+                        i.dropdown.icon
+                        if weeks.length > 0
+                          .default.text Select week
+                        else
+                          .default.text No week
+                        .menu#menu_week(name='status')
+                          if weeks.length > 0
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+')') All
+                          each week in weeks
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+')') !{week}
+                      script(type='text/javascript').
+                        $('#weeks').dropdown();
+                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0)') Clear Checkbox
+                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1)') Check All of Box
                       button.ui.button.approve.red(style='float: right;') Delete
-                      button.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#assignment_set').attr('value')`+', '+`$('#pairing_session_id').attr('value')`+')') Assign
+                      button.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#pairing_session_id').attr('value')`+')') Assign
                       button.ui.button.approve.green.newAssignment(style='float: right;') Create
                     //default
                     //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
-            .ui.divided.items
+            if pagination.length                
+              .ui.pagination.menu#assignment_pagination
+                each page in pagination
+                  a.item(id='page'+`${page}`, onclick='on_click_page('+`${page}`+')')= page
+            .ui.divided.items#assignment_items
               case occupation
                 when 0
                   if assignments.length > 0
-                    each assignment in assignments
-                      .item(id='a'+`${assignment.assignment_id}`)
-                        .content
-                          b(style='font-size:1.5em; padding-left:15px; padding-right:15px;')
-                            a.header(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id) !{assignment.title}
-                          .description
-                            .ui.grid
-                              .fourteen.wide.column.assignment_is_selected(onclick='on_click_assignment(1, \"'+`${assignment.assignment_id}`+'_is_selected'+'\")')
-                                p(style='padding-left:15px; padding-right:15px;') !{assignment.description}
-                                p(style='padding-left:15px; padding-right:15px;') Programming Style : !{assignment.programming_style}
-                              .two.wide.column
-                                .ui.checkbox
-                                  input.checkbox_is_clicked(type='checkbox' id=''+`${assignment.assignment_id}`+'_is_selected' onclick='on_click_assignment(0, '+`$(this).attr('id')`+')')
-                                  label
-                            //- .extra
-                            //-   .ui.right.floated.button.red#delete(style='margin-right:19px', onclick='onClickDeleteAssignment('+`${assignment.assignment_id}`+')') Delete
-                            //-   .ui.right.floated.button.green#assign(onclick='onClickAssign('+`${section.section_id}`+','+`$('#pairing_session_id').attr('value')`+',\''+assignment.assignment_id+'\',\''+assignment.title+'\',\''+assignment.description+'\',\''+assignment.programming_style+'\')') Assign
+                    script(type='text/javascript').
+                      $(document).ready(function() {
+                        on_click_weeks_dropdown('-1week')
+                        
+                        let assignment_set = JSON.parse($('#assignment_set').attr('value'))
+                        assignment_set.forEach(function(e){
+                          $('#'+e.assignment_id+'_is_selected').prop('checked', false)
+                        })
+                      })
                   else
                     p.text-center No assignment.
                 default
@@ -504,7 +529,7 @@ block content
                                 .eleven.wide.column
                                   b(style='font-size:1.2em;')
                                     a.header(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')= project.title
-                                  .description= project.description
+                                  .description !{project.description}
                                   | Last updated #{moment(project.createdAt).fromNow()}
                                   | (
                                   a(href='/profile/'+project.collaborator ) @#{project.collaborator}
@@ -526,8 +551,8 @@ block content
                               = project.creator
                             |)
                   else
-                    p.text-center No project.          
-                    
+                    p.text-center No project.  
+            
         .ten.wide.column#second_container(style='display:none;')
           .ui.segment
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')

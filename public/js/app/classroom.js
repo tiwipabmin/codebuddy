@@ -24,7 +24,7 @@ $(document).ready(function() {
     });
     $('#confirm-pairing').click(function(){
       const session_status = $('.newPairingSession').attr('value')
-      if(session_status <= 0){
+      if(session_status <= 0 && $('#confirm-pairing').attr('value') == 'create'){
         //console.log('#confirm-pairing : ' + $('#pairing_session_id').attr('value') + ', session_status : ' + $('.newPairingSession').attr('value'))
         parameters = {pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value'), partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), student_objects: $('#student_objects').attr('value')}
         $.post('/classroom/createPairingRecord', parameters, function(data){
@@ -59,6 +59,30 @@ $(document).ready(function() {
             alert(status)
           }
         })
+      } else if (session_status == 1 && $('#confirm-pairing').attr('value') == 'change'){
+        let parameters = {partner_keys: JSON.parse($('#partner_keys').attr('value')), cloning_partner_keys: JSON.parse($('#cloning_partner_keys').attr('value')), pairing_objective: JSON.parse($('#pairing_objective').attr('value')), pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value')}
+        console.log('parameters, ', parameters)
+        $.ajax({
+          url: '/classroom/updatePairing',
+          type: 'put',
+          data: parameters,
+          success: function(data){
+            var status = data.status
+            if(status == 'Update pairing successfully') {
+              $('#partner_keys').attr('value', {})
+              $('#cloning_partner_keys').attr('value', {})
+              $('#pairing_objective').attr('value', {})
+              pairingOrViewingisHided('view')
+              alert(status)
+            } else if(status == 'Please pair all students!'){
+              alert(status)
+              $('#student_list_modal').modal('show');
+            } else {
+              alert(status)
+            }
+            $('#confirm-pairing').attr('value', 'create')
+          }
+        })
       } else {
         $('#alert-header').text('Pairing session')
         $('#alert-message').text('You can\'t create session!')
@@ -80,6 +104,7 @@ $(document).ready(function() {
         $('#avg_score_filter').text('1-100')
 
         $('#active_filter').attr('value', '')
+        $('#confirm-pairing').attr('value', 'create')
       }
 
     })
@@ -100,6 +125,7 @@ $(document).ready(function() {
         $('#avg_score_filter').text('1-100')
 
         $('#active_filter').attr('value', '')
+        $('#confirm-pairing').attr('value', 'create')
 
       } else if(message == 'Are you sure you want to complete this pairing session?'){
         var parameters = {pairing_session_id: $('#inp_cm').attr('value'), section_id: $('#section_id').attr('value'), status: 0}
@@ -241,6 +267,7 @@ function searchStudent(e, section_id){
 }
 
 function onClickAddPartnerButton(first_param, second_param, third_param, opt) {
+  // console.log('partner_keys, ', JSON.parse($('#partner_keys').attr('value')), ', pairing_objective, ', JSON.parse($('#pairing_objective').attr('value')))
   switch (opt) {
     case 1:
       var enrollment_id = first_param
@@ -320,11 +347,28 @@ function showStudentList(command, pairing_session_id){
     const student_objects = data.student_objects
     const partner_keys = data.partner_keys
     const pairing_objective = data.pairing_objective
+    const pairing_session_status = data.pairing_session_status
+    const command = data.command
     var addPartnerButton = "";
     $('#student_objects').attr('value', JSON.stringify(student_objects))
 
     var completed_filter = false
     var hasElementMoving = false
+
+    if(command == 'pair') {
+      if(pairing_session_status == 1) {
+        $('#change_pair').show()
+      } else {
+        $('#change_pair').hide()
+      }
+
+    } else if(command == 'view') {
+      if(pairing_session_status == 1) {
+        $('#change_pair').show()
+      } else {
+        $('#change_pair').hide()
+      }
+    }
 
     $('.student-container').empty();
     for (key in partner_keys) {
@@ -377,7 +421,7 @@ function showStudentList(command, pairing_session_id){
 
 function onClickCreateSession(pairing_date_time_id, session_status){
   //console.log('pairing_date : ' + pairing_date_time_id + ', session_status : ' + session_status)
-  //console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
+  // console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
   if($('.newPairingSession').attr('value') <= 0) {
     $('#partner_keys').attr('value', '{}')
     $('#pairing_objective').attr('value', '{}')
@@ -428,15 +472,17 @@ function onClickAssign(section_id, pairing_session_id, assignment_id, title, des
   $('#confirm-modal').modal('show');
 }
 
-function on_click_assign_button(assignment_set, pairing_session_id) {
-  let assignment_set_j = JSON.parse(assignment_set)
+function on_click_assign_button(pairing_session_id) {
+  let assignment_of_week = JSON.parse($('#assignment_of_week').attr('value'))
+  let assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
   let assignment_is_selected = []
   let assignment_id = -1;
-  assignment_set_j.forEach(function(e){
-    assignment_id = e.assignment_id
-    $('#'+assignment_id+'_is_selected').is(':checked') === true ? assignment_is_selected.push(e) : null;
+  assignment_of_week.forEach(function(e){
+    if(assignment_check_saving[e.assignment_id+'_is_selected']) {
+      assignment_is_selected.push(e)
+    }
   })
-
+  // console.log('assignment_is_selected, ', assignment_is_selected)
   if(assignment_is_selected.length) {
     parameters = {assignment_set: assignment_is_selected, pairing_session_id: pairing_session_id}
     $('#inp_cm').attr('value', JSON.stringify(parameters))
@@ -460,7 +506,7 @@ function onClickDeleteAssignment(assignment_id) {
   $('#confirm-modal').modal('show');
 }
 
-function on_click_remove_student_button(enrollment_id, first_name, last_name){
+function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   $('#inp_cm').attr('value', enrollment_id)
   $('#confirm-header').text('Remove Student')
   $('#confirm-message').attr('value', 'Are you sure you want to remove the student from this classroom?')
@@ -468,71 +514,87 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name){
   $('#confirm-modal').modal('show')
 }
 
-function onClickAlphabeticalFilterButton(){
+function on_click_weeks_dropdown(id) {
+  assignment_set = JSON.parse($('#assignment_set').attr('value'))
+  let week = id.split('week')
+  week = parseInt(week[0])
+  let assignment_of_week = []
 
-  var completed_filter = false
-  var hasElementMoving = false
-  var student_objects = JSON.parse($('#student_objects').attr('value'))
-
-  var active_filter = $('#active_filter').attr('value')
-  if(active_filter == '1-100' || active_filter == '100-1' || active_filter == '') {
-    $('#avg_score_filter').attr('class', 'ui button')
-    $('#alphabetical_filter').attr('class', 'ui grey button')
-
-    $('#avg_score_filter').attr('value', '1-100')
-    $('#avg_score_filter').text('1-100')
+  for (_index in assignment_set){
+    if(assignment_set[_index].week == week) {
+      assignment_of_week.push(assignment_set[_index])
+    } else if (week < 0) {
+      assignment_of_week.push(assignment_set[_index])
+    }
   }
 
-  if($('#alphabetical_filter').attr('value') == 'A-Z') {
-    $('#alphabetical_filter').attr('value', 'Z-A')
-    $('#alphabetical_filter').text('Z-A')
-
-
-    $('#active_filter').attr('value', 'A-Z')
-
-    sort_A_to_Z(student_objects, completed_filter, hasElementMoving)
-
-  } else if($('#alphabetical_filter').attr('value') == 'Z-A') {
-    $('#alphabetical_filter').attr('value', 'A-Z')
-    $('#alphabetical_filter').text('A-Z')
-
-    $('#active_filter').attr('value', 'Z-A')
-
-    sort_Z_to_A(student_objects, completed_filter, hasElementMoving)
+  let pagination = []
+  let page = 1;
+  let count = 0;
+  for (_index in assignment_of_week) {
+    assignment_of_week[_index].page = page
+    count++
+    if(count % 5 == 0 || _index == (assignment_of_week.length) - 1) {
+      pagination.indexOf(page) == -1 ? pagination.push(page) : null;
+      page++
+    }
   }
+
+  $('#assignment_pagination').empty()
+  $('#assignment_of_week').attr('value', JSON.stringify(assignment_of_week))
+  let item = null;
+  for(_index in pagination) {
+    item = $('<a class=\'item\' id=\'page'+pagination[_index]+'\' onclick=\'on_click_page('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    $('#assignment_pagination').append(item)
+  }
+  on_click_page(1)
 }
 
-function onClickAvgScoreFilterButton() {
-
-  var completed_filter = false
-  var hasElementMoving = false
-  var student_objects = JSON.parse($('#student_objects').attr('value'))
-
-  var active_filter = $('#active_filter').attr('value')
-  if(active_filter == 'A-Z' || active_filter == 'Z-A' || active_filter == '') {
-    $('#avg_score_filter').attr('class', 'ui grey button')
-    $('#alphabetical_filter').attr('class', 'ui button')
-
-    $('#alphabetical_filter').attr('value', 'A-Z')
-    $('#alphabetical_filter').text('A-Z')
+function on_click_page(page) {
+  $('.active.item').attr({
+    class: 'item'
+  })
+  $('#page'+page).attr({
+    class: 'active item'
+  })
+  assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
+  assignment_of_week = JSON.parse($('#assignment_of_week').attr('value'))
+  page = parseInt(page)
+  let start = (page * 5) - 5
+  let end = page * 5
+  if((end - assignment_of_week.length) % 5 != 0 && assignment_of_week.length < end) {
+    end = assignment_of_week.length % 5
+    end += start
   }
-
-  if($('#avg_score_filter').attr('value') == '1-100') {
-    $('#avg_score_filter').attr('value', '100-1')
-    $('#avg_score_filter').text('100-1')
-
-    $('#active_filter').attr('value', '1-100')
-
-    sort_avg_score_1_to_100(student_objects, completed_filter, hasElementMoving)
-
-  } else if($('#avg_score_filter').attr('value') == '100-1') {
-    $('#avg_score_filter').attr('value', '1-100')
-    $('#avg_score_filter').text('1-100')
-
-    $('#active_filter').attr('value', '100-1')
-
-    sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMoving)
-
+  $('#assignment_items').empty()
+  let item = null;
+  let content = null;
+  let description = null;
+  let grid = null;
+  let fourteen_wide_column = null;
+  let two_wide_column = null;
+  let checkbox = null;
+  let assignment = null;
+  for(_index = start; _index < end; _index++) {
+    assignment = assignment_of_week[_index];
+    item = $('<div class=\'item\' id=\'a'+assignment.assignment_id+'\'></div>')
+    content = $('<div class=\'content\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'><a class=\'header\' href=\'/assignment?section_id='+assignment.section_id+'&assignment_id='+assignment.assignment_id+'\'>'+assignment.title+'</b></div>')
+    description = $('<div class=\'description\'>')
+    grid = $('<div class=\'ui grid\'></div>')
+    fourteen_wide_column = $('<div class=\'fourteen wide column assignment_is_selected\' onclick=\'on_click_assignment(1, \"'+assignment.assignment_id+'_is_selected\")\'><p style=\'padding-left:15px; padding-right:15px;\'>'+assignment.description+'</p><p style=\'padding-left:15px; padding-right:15px;\'>Programming Style : '+assignment.programming_style+'</p></div>')
+    two_wide_column = $('<div class=\'two wide column\'></div>')
+    if(assignment_check_saving[assignment.assignment_id+'_is_selected']) {
+      checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' checked=\'checked\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
+    } else {
+      checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
+    }
+    item.append(content)
+    content.append(description)
+    description.append(grid)
+    grid.append(fourteen_wide_column)
+    grid.append(two_wide_column)
+    two_wide_column.append(checkbox)
+    $('#assignment_items').append(item)
   }
 }
 
@@ -779,31 +841,48 @@ function sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMo
 }
 
 function on_click_assignment(opt, id) {
+  assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
   switch (opt) {
     case 1:
-      $('#'+id).is(':checked') == true ? $('#'+id).prop('checked', false) : $('#'+id).prop('checked', true)
+      if($('#'+id).is(':checked') == true){
+        $('#'+id).prop('checked', false)
+        delete assignment_check_saving[id]
+      } else {
+         $('#'+id).prop('checked', true)
+         assignment_check_saving[id] = true
+      }
 
       break;
     default:
+      if($('#'+id).is(':checked') == true){
+        assignment_check_saving[id] = true
+      } else {
+        delete assignment_check_saving[id]
+      }
   }
+  $('#assignment_check_saving').attr('value', JSON.stringify(assignment_check_saving))
 }
 
-function checkbox_event(opt, assignment_set) {
-  let assignment_set_j = JSON.parse(assignment_set)
+function checkbox_event(opt) {
+  let assignment_of_week = JSON.parse($('#assignment_of_week').attr('value'))
+  assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
   switch (opt) {
     //on click the "Check All of Box" button
     case 1:
-      assignment_set_j.forEach(function(e){
+      assignment_of_week.forEach(function(e){
         $('#'+e.assignment_id+'_is_selected').prop('checked', true)
+        assignment_check_saving[e.assignment_id+'_is_selected'] = true
       })
 
       break;
     //on click the "Clear Checkbox" button
     default:
-      assignment_set_j.forEach(function(e){
+      assignment_of_week.forEach(function(e){
         $('#'+e.assignment_id+'_is_selected').prop('checked', false)
+        delete assignment_check_saving[e.assignment_id+'_is_selected']
       })
   }
+  $('#assignment_check_saving').attr('value', JSON.stringify(assignment_check_saving))
 }
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }

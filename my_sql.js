@@ -117,9 +117,9 @@ exports.insert_enrollment = (query, values) => {
   })
 }
 
-exports.update_enrollment = (query, values) => {
+exports.update_enrollment = (query) => {
   return new Promise(function(resolve, reject){
-    con.query(query, [values], function(err, res){
+    con.query(query, function(err, res){
       if(err) reject('Update failed.');
       resolve('Update completed.');
     })
@@ -176,6 +176,15 @@ exports.select_pairing_record = (query) => {
     con.query(query, function(err, res){
       if(err) reject(err);
       else resolve(res);
+    })
+  })
+}
+
+exports.delete_pairing_record = (query) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, function(err, res){
+      if(err) reject('Delete failed.');
+      else resolve('Delete completed.');
     })
   })
 }
