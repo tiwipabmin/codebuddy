@@ -1,9 +1,10 @@
-mixin pairStudent(user, students)
+mixin pairStudent(user, students, pairing_sessions, section)
   .ui.small.modal#student_list_modal
     i.close.icon#close_student_list
     .header Student list
     .content
       input#partner_keys(type='hidden', value='{}')
+      input#cloning_partner_keys(type='hidden', value='{}')
       input#pairing_objective(type='hidden', value='{}')
       input#student_objects(type='hidden', value='{}')
       input#active_filter(type='hidden', value='')
@@ -31,7 +32,7 @@ mixin pairStudent(user, students)
               i.line.chart.icon
       .ui.basic.center.aligned.segment
         .actions
-          button.ui.button.approve.green#confirm-pairing(type='submit') Confirm
+          button.ui.button.approve.green#confirm-pairing(type='submit', value='create') Confirm
           .ui.button.approve.red#cancel-pairing(data-value='cancel') Cancel
 
   .ui.small.modal#partner_selection_modal

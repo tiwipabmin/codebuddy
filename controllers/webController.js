@@ -473,11 +473,14 @@ exports.updatePairingSession = async (req, res) => {
   //console.log('status : ' + req.body.status + ', pairing_id : ' + req.body.pairing_session_id + ', partner_keys : ', partner_keys)
 
   //create date time at this moment
-  var time_end = new Date()
-  var str_time_end = time_end.toString()
-  var split_time_end = str_time_end.split(' ')
-  var slice_time_end = split_time_end.slice(0, 5)
-  time_end = slice_time_end.join(' ')
+  var date_time = new Date()
+  var str_date_time = date_time.toString()
+  var split_date_time = str_date_time.split(' ')
+  var slice_date_time = split_date_time.slice(1, 5)
+  var month = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+  var num_month = month[slice_date_time[0]]
+  num_month === undefined ? num_month = '13' : null;
+  var time_end = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + ' ' + slice_date_time[3]
 
   const status = req.body.status
   const pairing_session_id = req.body.pairing_session_id
@@ -604,6 +607,174 @@ exports.searchStudentByPurpose = async (req, res) => {
   res.send({students: students, purpose: purpose})
 }
 
+exports.getPairing = async (req, res) => {
+  let pairing_session_id = parseInt(req.query.pairing_session_id)
+  let section_id = parseInt(req.query.section_id)
+  const select_pairing_record_by_pairing_session_id = 'SELECT * FROM pairing_record WHERE pairing_session_id = ' + pairing_session_id
+  let pairing_record = await con.select_pairing_record(select_pairing_record_by_pairing_session_id)
+
+  const select_enrollment_by_section_id = 'SELECT * FROM enrollment WHERE section_id = ' + section_id
+  let enrollment = await con.select_enrollment(select_enrollment_by_section_id)
+
+  let pairing_record_objects = {}
+  let enrollment_objects = {}
+  for (_index in pairing_record) {
+    pairing_record_objects[pairing_record[_index].enrollment_id] = pairing_record[_index]
+  }
+
+  for(_index in enrollment) {
+    enrollment_objects[enrollment[_index].enrollment_id] = enrollment[_index]
+  }
+  // console.log('pairing_record_objects, ', pairing_record_objects, ', enrollment_objects, ', enrollment_objects)
+
+  let partner_keys = {}
+  let pairing_objective = {}
+  for (var element_en in enrollment_objects) {
+    if (enrollment_objects[element_en].partner_id == null){
+      console.log('enrollment_objects[element_en].partner_id, ', enrollment_objects[element_en].partner_id, ', enrollment_id, ', enrollment_objects[element_en].enrollment_id)
+      partner_keys[enrollment_objects[element_en].enrollment_id] = -1
+      pairing_objective[enrollment_objects[element_en].enrollment_id] = -1
+
+      delete enrollment_objects[enrollment_objects[element_en].enrollment_id]
+    } else {
+      for (var element_pair in pairing_record_objects) {
+        if(enrollment_objects[element_en].enrollment_id == pairing_record_objects[element_pair].enrollment_id) {
+          if(pairing_record_objects[element_pair].role == 'host') {
+            partner_keys[enrollment_objects[element_en].enrollment_id] = enrollment_objects[element_en].partner_id
+          } else if(pairing_record_objects[element_pair].role == 'partner') {
+            partner_keys[enrollment_objects[element_en].partner_id] = enrollment_objects[element_en].enrollment_id
+          }
+
+          pairing_objective[enrollment_objects[element_en].enrollment_id] = pairing_record_objects[element_pair].pairing_objective
+          pairing_objective[enrollment_objects[element_en].partner_id] = pairing_record_objects[element_pair].pairing_objective
+          //console.log('partner_keys, ', partner_keys, ', pairing_objective, ', pairing_objective, ', pairing_record_objects[element_pair].pairing_objective', pairing_record_objects[element_pair].pairing_objective)
+          delete pairing_record_objects[enrollment_objects[element_en]]
+          delete enrollment_objects[enrollment_objects[element_en].partner_id]
+          delete enrollment_objects[enrollment_objects[element_en]]
+          delete pairing_record_objects[pairing_record_objects[element_pair]]
+        }
+      }
+    }
+  }
+
+  res.send({status: "Pull information successfully", partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)})
+}
+
+exports.updatePairing = async (req, res) => {
+  //console.log('cloning_partner_keys, ', req.body.cloning_partner_keys, ', partner_keys, ', req.body.partner_keys)
+  let partner_keys = req.body.partner_keys
+  let cloning_partner_keys = req.body.cloning_partner_keys
+  let pairing_objective = req.body.pairing_objective
+  let pairing_session_id = req.body.pairing_session_id
+  let section_id = req.body.section_id
+  let only_changed_partner_keys = {}
+
+  /*
+  ** if there aren't student pairing, server will send message which 'Please, pair all student!'
+  */
+  for(key in partner_keys) {
+    if(parseInt(partner_keys[key]) < 0) {
+      res.send({status: 'Please pair all students!'})
+      return
+    }
+
+    if (cloning_partner_keys[key] === undefined) {
+      only_changed_partner_keys[key] = partner_keys[key]
+    } else if (cloning_partner_keys[key] != partner_keys[key]){
+      only_changed_partner_keys[key] = partner_keys[key]
+    }
+  }
+
+  const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
+  let pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
+  let time_start = pairing_session[0].date_time
+  time_start = time_start.split(' ')
+  time_start = time_start[0]
+
+  const select_student_by_section_id = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
+  const students = await con.select_student(select_student_by_section_id)
+
+  const select_pairing_record_by_pairing_session_id = 'SELECT * FROM pairing_record WHERE pairing_session_id = ' + pairing_session_id;
+  let pairing_record = await con.select_pairing_record(select_pairing_record_by_pairing_session_id)
+
+  let pairing_record_objects = {}
+  for(_index in pairing_record) {
+    pairing_record_objects[pairing_record[_index].enrollment_id] = pairing_record[_index].role
+  }
+
+  let student_objects = {}
+
+  for(_index in students) {
+    student_objects[students[_index].enrollment_id] = {
+      username: students[_index].username,
+      role: pairing_record_objects[students[_index].enrollment_id]
+    }
+  }
+
+  let status = ''
+  for (var key in only_changed_partner_keys) {
+    if(student_objects[key].role == 'host') {
+      status = await Project.deleteMany({
+        creator: student_objects[key].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+      })
+    } else if (student_objects[key].role == 'partner') {
+      status = await Project.deleteMany({
+        collaborator: student_objects[key].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+      })
+    }
+
+    if(student_objects[only_changed_partner_keys[key]].role == 'host') {
+      status = await Project.deleteMany({
+        creator: student_objects[only_changed_partner_keys[key]].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+      })
+    } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
+      status = await Project.deleteMany({
+        collaborator: student_objects[only_changed_partner_keys[key]].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+      })
+    }
+  }
+
+  let delete_pairing_record_by_enrollment_id_and_pairing_session_id = ''
+  let insert_pairing_record = ''
+  let update_enrollment_by_enrollment_id = ''
+  let pairing_record_values = []
+  let enrollment = ''
+  for (var key in only_changed_partner_keys) {
+    delete_pairing_record_by_enrollment_id_and_pairing_session_id = 'DELETE FROM pairing_record WHERE enrollment_id = ' + parseInt(key) + ' AND pairing_session_id = ' + pairing_session_id;
+    pairing_record = await con.select_pairing_record(delete_pairing_record_by_enrollment_id_and_pairing_session_id)
+
+    // console.log('Delete completed, ', key)
+    update_enrollment_by_enrollment_id = 'UPDATE enrollment SET partner_id = ' + parseInt(only_changed_partner_keys[key]) + ' WHERE enrollment_id = ' + key
+    enrollment = await con.update_enrollment(update_enrollment_by_enrollment_id);
+
+    // console.log('Update completed, ', key)
+    insert_pairing_record = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
+    pairing_record_values = [[parseInt(key), pairing_session_id, parseInt(only_changed_partner_keys[key]), pairing_objective[key], 'host']]
+    pairing_record = await con.insert_pairing_record(insert_pairing_record, pairing_record_values)
+    // console.log('Create completed, ', key)
+
+    delete_pairing_record_by_enrollment_id_and_pairing_session_id = 'DELETE FROM pairing_record WHERE enrollment_id = ' + parseInt(only_changed_partner_keys[key]) + ' AND pairing_session_id = ' + pairing_session_id;
+    pairing_record = await con.select_pairing_record(delete_pairing_record_by_enrollment_id_and_pairing_session_id)
+
+    // console.log('Delete completed, ', only_changed_partner_keys[key])
+    update_enrollment_by_enrollment_id = 'UPDATE enrollment SET partner_id = ' + key + ' WHERE enrollment_id = ' + only_changed_partner_keys[key]
+    enrollment = await con.update_enrollment(update_enrollment_by_enrollment_id);
+
+    // console.log('Update completed, ', only_changed_partner_keys[key])
+    insert_pairing_record = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
+    pairing_record_values = [[parseInt(only_changed_partner_keys[key]), pairing_session_id, parseInt(key), pairing_objective[only_changed_partner_keys[key]], 'partner']]
+    pairing_record = await con.insert_pairing_record(insert_pairing_record, pairing_record_values)
+    // console.log('Create completed, ', key)
+  }
+
+  //console.log('only_changed_partner_keys, ', only_changed_partner_keys, ', time_start, ', time_start, ', student_objects, ', student_objects)
+  res.send({status: "Update pairing successfully"})
+}
+
 exports.createPairingRecord = async (req, res) => {
   const partner_keys = JSON.parse(req.body.partner_keys)
   const pairing_objective = JSON.parse(req.body.pairing_objective)
@@ -648,10 +819,13 @@ exports.createPairingRecord = async (req, res) => {
   var date_time = new Date()
   var str_date_time = date_time.toString()
   var split_date_time = str_date_time.split(' ')
-  var slice_date_time = split_date_time.slice(0, 5)
-  date_time = slice_date_time.join(' ')
+  var slice_date_time = split_date_time.slice(1, 5)
+  var month = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+  var num_month = month[slice_date_time[0]]
+  num_month === undefined ? num_month = '13' : null;
+  var date = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + ' ' + slice_date_time[3]
 
-  const values = [[section[0].section_id, date_time, 2]]
+  const values = [[section[0].section_id, date, 2]]
   const pairing_session_id = await con.insert_pairing_session(insert_pairing_session, values)
 
   if(typeof pairing_session_id == 'number') {
@@ -700,7 +874,7 @@ exports.createPairingRecord = async (req, res) => {
       const update_pairing_session_by_pairing_session_id = 'UPDATE pairing_session SET status = 1 WHERE pairing_session_id = ' + pairing_session_id
       res_status = await con.update_pairing_session(update_pairing_session_by_pairing_session_id)
     }
-    res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairing_time: pairing_time, date_time: date_time, time_end: '-'})
+    res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairing_time: pairing_time, date_time: date, time_end: '-'})
   } else {
     res.send({res_status: 'Update failed.'})
   }
@@ -714,6 +888,10 @@ exports.getStudentsFromSection = async (req, res) => {
   //console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
   const students = await con.select_student(queryStudent)
+  const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id;
+  const pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
+  console.log('pairing_session, ', pairing_session, ', pairing_session_id, ', pairing_session_id)
+
   var arePairingsActive = false;
   for(i in students){
     if(students[i].partner_id != null) {
@@ -765,7 +943,7 @@ exports.getStudentsFromSection = async (req, res) => {
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
   }
-  res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective})
+  res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective, command: command, pairing_session_status: pairing_session[0].status})
 }
 
 exports.createAssignment = async (req, res) => {

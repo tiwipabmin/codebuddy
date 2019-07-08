@@ -24,7 +24,7 @@ $(document).ready(function() {
     });
     $('#confirm-pairing').click(function(){
       const session_status = $('.newPairingSession').attr('value')
-      if(session_status <= 0){
+      if(session_status <= 0 && $('#confirm-pairing').attr('value') == 'create'){
         //console.log('#confirm-pairing : ' + $('#pairing_session_id').attr('value') + ', session_status : ' + $('.newPairingSession').attr('value'))
         parameters = {pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value'), partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), student_objects: $('#student_objects').attr('value')}
         $.post('/classroom/createPairingRecord', parameters, function(data){
@@ -59,6 +59,31 @@ $(document).ready(function() {
             alert(status)
           }
         })
+      } else if (session_status == 1 && $('#confirm-pairing').attr('value') == 'change'){
+        let parameters = {partner_keys: JSON.parse($('#partner_keys').attr('value')), cloning_partner_keys: JSON.parse($('#cloning_partner_keys').attr('value')), pairing_objective: JSON.parse($('#pairing_objective').attr('value')), pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value')}
+        console.log('parameters, ', parameters)
+        $.ajax({
+          url: '/classroom/updatePairing',
+          type: 'put',
+          data: parameters,
+          success: function(data){
+            var status = data.status
+            if(status == 'Update pairing successfully') {
+              $('#partner_keys').attr('value', {})
+              $('#cloning_partner_keys').attr('value', {})
+              $('#pairing_objective').attr('value', {})
+              pairingOrViewingisHided('view')
+              $('#confirm-pairing').attr('value', 'create')
+              alert(status)
+            } else if(status == 'Please pair all students!'){
+              alert(status)
+              $('#student_list_modal').modal('show');
+            } else {
+              alert(status)
+            }
+            // $('#createPairingDateTime').attr('value', 0)
+          }
+        })
       } else {
         $('#alert-header').text('Pairing session')
         $('#alert-message').text('You can\'t create session!')
@@ -80,6 +105,7 @@ $(document).ready(function() {
         $('#avg_score_filter').text('1-100')
 
         $('#active_filter').attr('value', '')
+        $('#confirm-pairing').attr('value', 'create')
       }
 
     })
@@ -100,6 +126,7 @@ $(document).ready(function() {
         $('#avg_score_filter').text('1-100')
 
         $('#active_filter').attr('value', '')
+        $('#confirm-pairing').attr('value', 'create')
 
       } else if(message == 'Are you sure you want to complete this pairing session?'){
         var parameters = {pairing_session_id: $('#inp_cm').attr('value'), section_id: $('#section_id').attr('value'), status: 0}
@@ -241,7 +268,7 @@ function searchStudent(e, section_id){
 }
 
 function onClickAddPartnerButton(first_param, second_param, third_param, opt) {
-  console.log('partner_keys, ', JSON.parse($('#partner_keys').attr('value')), ', pairing_objective, ', JSON.parse($('#pairing_objective').attr('value')))
+  // console.log('partner_keys, ', JSON.parse($('#partner_keys').attr('value')), ', pairing_objective, ', JSON.parse($('#pairing_objective').attr('value')))
   switch (opt) {
     case 1:
       var enrollment_id = first_param
@@ -321,11 +348,28 @@ function showStudentList(command, pairing_session_id){
     const student_objects = data.student_objects
     const partner_keys = data.partner_keys
     const pairing_objective = data.pairing_objective
+    const pairing_session_status = data.pairing_session_status
+    const command = data.command
     var addPartnerButton = "";
     $('#student_objects').attr('value', JSON.stringify(student_objects))
 
     var completed_filter = false
     var hasElementMoving = false
+
+    if(command == 'pair') {
+      if(pairing_session_status == 1) {
+        $('#change_pair').show()
+      } else {
+        $('#change_pair').hide()
+      }
+
+    } else if(command == 'view') {
+      if(pairing_session_status == 1) {
+        $('#change_pair').show()
+      } else {
+        $('#change_pair').hide()
+      }
+    }
 
     $('.student-container').empty();
     for (key in partner_keys) {
@@ -378,7 +422,7 @@ function showStudentList(command, pairing_session_id){
 
 function onClickCreateSession(pairing_date_time_id, session_status){
   //console.log('pairing_date : ' + pairing_date_time_id + ', session_status : ' + session_status)
-  //console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
+  // console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
   if($('.newPairingSession').attr('value') <= 0) {
     $('#partner_keys').attr('value', '{}')
     $('#pairing_objective').attr('value', '{}')

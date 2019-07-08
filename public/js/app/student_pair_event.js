@@ -3,7 +3,26 @@ $(document).ready(function() {
 })
 
 function on_click_change_pair() {
-  console.log('Clicked!!!!!!!!')
+  let pairing_session_id = $('#pairing_session_id').attr('value')
+  let section_id = $('#section_id').attr('value')
+  // console.log('pairing_session_id, ', pairing_session_id, ', section_id, ', section_id)
+  let parameters = {pairing_session_id: pairing_session_id, section_id: section_id}
+  $.get('/classroom/getPairing', parameters, function(data) {
+    if(data.status == 'Pull information successfully'){
+      $('#partner_keys').attr('value', data.partner_keys)
+      $('#cloning_partner_keys').attr('value', data.partner_keys)
+      $('#pairing_objective').attr('value', data.pairing_objective)
+      $('#confirm-pairing').attr('value', 'change')
+      $('#confirm-header').text('Alert!')
+      $('#confirm-message').text('Something message.')
+      $('#confirm-message').attr('value', 'Something message.')
+      showStudentList('pair', pairing_session_id)
+      pairingOrViewingisHided('pair')
+      alert(data.status)
+    } else {
+      alert(data.status)
+    }
+  })
 }
 
 function onClickAlphabeticalFilterButton(){
