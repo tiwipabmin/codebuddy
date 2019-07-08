@@ -73,7 +73,6 @@ $(document).ready(function() {
               $('#cloning_partner_keys').attr('value', {})
               $('#pairing_objective').attr('value', {})
               pairingOrViewingisHided('view')
-              $('#confirm-pairing').attr('value', 'create')
               alert(status)
             } else if(status == 'Please pair all students!'){
               alert(status)
@@ -81,7 +80,7 @@ $(document).ready(function() {
             } else {
               alert(status)
             }
-            // $('#createPairingDateTime').attr('value', 0)
+            $('#confirm-pairing').attr('value', 'create')
           }
         })
       } else {

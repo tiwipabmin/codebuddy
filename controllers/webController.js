@@ -668,6 +668,7 @@ exports.updatePairing = async (req, res) => {
   let pairing_session_id = req.body.pairing_session_id
   let section_id = req.body.section_id
   let only_changed_partner_keys = {}
+  let count = 0
 
   /*
   ** if there aren't student pairing, server will send message which 'Please, pair all student!'
@@ -679,10 +680,16 @@ exports.updatePairing = async (req, res) => {
     }
 
     if (cloning_partner_keys[key] === undefined) {
+      count++
       only_changed_partner_keys[key] = partner_keys[key]
     } else if (cloning_partner_keys[key] != partner_keys[key]){
+      count++
       only_changed_partner_keys[key] = partner_keys[key]
     }
+  }
+
+  if(!count) {
+    res.send({status: 'Nothing update'})
   }
 
   const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
@@ -1064,93 +1071,87 @@ exports.assignAssignment = async (req, res) => {
   let programming_style = 'Remote';
   let simulation_objects = {};
   let assignment_id = 1;
+  let partner_keys_objects = {}
+  let assignment_of_each_pair = {}
+  let assignment_set_objects = {}
 
-  count = 0
+  const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
+  let pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
+  let time_start = pairing_session[0].date_time
+  time_start = time_start.split(' ')
+  time_start = time_start[0]
+
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
-    count++;
   }
 
+  for(_index in assignment_set) {
+    assignment_set_objects[assignment_set[_index].assignment_id] = assignment_set[_index]
+  }
+
+  simulation_objects = Object.assign({}, student_objects)
+  for(key in simulation_objects) {
+    if(simulation_objects[key].role == 'host') {
+      console.log('host', key)
+      partner_keys_objects[key] = simulation_objects[key].partner_id
+      assignment_of_each_pair[key] = []
+    } else {
+      console.log('partner', key)
+      partner_keys_objects[simulation_objects[key].partner_id] = key
+      assignment_of_each_pair[simulation_objects[key].partner_id] = []
+    }
+
+    delete simulation_objects[simulation_objects[key].partner_id]
+    delete simulation_objects[key]
+  }
+
+  console.log('partner_keys_objects, ', partner_keys_objects)
+
   let search_project = {};
-  let new_assignment_set = []
-  let had_project;
 
-  // Check the all of student have been having project or not
+  count = 0
   for(_index in assignment_set){
-
-    assignment_id = parseInt(assignment_set[_index].assignment_id)
-    simulation_objects = Object.assign({}, student_objects)
-    had_project = count
-
-    for(key in simulation_objects) {
-
-      // A user already had project, The "search_project" object doesn't equal null
+    for(var key in partner_keys_objects){
       search_project = await Project.findOne({
-        assignment_id: assignment_id,
-        creator: simulation_objects[key].username,
-        collaborator: simulation_objects[simulation_objects[key].partner_id].username
+        assignment_id: assignment_set[_index].assignment_id,
+        creator: student_objects[key].username,
+        collaborator: student_objects[partner_keys_objects[key]].username,
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
       })
 
       if(search_project == null) {
-        search_project = await Project.findOne({
-          assignment_id: assignment_id,
-          creator: simulation_objects[simulation_objects[key].partner_id].username,
-          collaborator: simulation_objects[key].username
-        })
+        count++
+        assignment_of_each_pair[key].push(assignment_set[_index].assignment_id)
       }
-
-      // Remove a user from the "simulation_objects" object
-      if(search_project != null) {
-        delete simulation_objects[simulation_objects[key].partner_id]
-        delete simulation_objects[key]
-        had_project = had_project - 2
-      }
-    }
-
-    // if the all of student have been hasing a project since the begin, the "new_assignment_set" array doesn't push element
-    if(had_project != 0) {
-      new_assignment_set.push(assignment_set[_index])
     }
   }
+  console.log('assignment_of_each_pair, ', assignment_of_each_pair)
 
   // Assign each assignment to the all of student
-  count = 0;
-  for(_index in new_assignment_set){
+  for (key in assignment_of_each_pair) {
+    for (_index in assignment_of_each_pair[key]) {
+      assignment_id = assignment_of_each_pair[key][_index]
+      console.log(key, ' : ', assignment_id)
 
-    count++;
-    simulation_objects = Object.assign({}, student_objects)
-    assignment_id = parseInt(new_assignment_set[_index].assignment_id)
-
-    for(_key in simulation_objects) {
       project = new Project()
-      project.title = new_assignment_set[_index].title;
-      project.description = new_assignment_set[_index].description;
-      project.programming_style = new_assignment_set[_index].programming_style;
+      project.title = assignment_set_objects[assignment_id].title;
+      project.description = assignment_set_objects[assignment_id].description;
+      project.programming_style = assignment_set_objects[assignment_id].programming_style;
       project.language = language;
       project.swaptime = swaptime;
       project.status = '';
 
-      if(simulation_objects[_key].role == 'host') {
-        creator = simulation_objects[_key].username
-        collaborator = simulation_objects[simulation_objects[_key].partner_id].username
-      } else if(simulation_objects[_key].role == 'partner') {
-        creator = simulation_objects[simulation_objects[_key].partner_id].username
-        collaborator = simulation_objects[_key].username
-      }
-      delete simulation_objects[simulation_objects[_key].partner_id]
-      delete simulation_objects[_key]
-
+      creator = student_objects[key].username
+      collaborator = student_objects[partner_keys_objects[key]].username
       project.creator = creator;
       project.collaborator = collaborator;
-      creator = await User
-      .findOne({ username: creator})
-      collaborator = await User
-      .findOne({ username: collaborator})
+      creator = await User.findOne({ username: creator})
+      collaborator = await User.findOne({ username: collaborator})
       if (collaborator != null) {
         project = await (project).save()
         Project.update({
           _id: project._id
-        }, {
+          }, {
           $set: {
             creator_id: creator._id,
             collaborator_id: collaborator._id,
