@@ -377,9 +377,21 @@ exports.getSection = async (req, res) => {
       });
     }
     projects_in_section.reverse()
+
+    page = 1;
+    count = 0;
+    pagination = []
+    for (_index in projects_in_section) {
+      projects_in_section[_index].page = page
+      count++
+      if(count % 5 == 0 || _index == (projects_in_section.length) - 1){
+        pagination.indexOf(page) == -1 ? pagination.push(page) : null;
+        page++
+      }
+    }
     pairing_sessions = [{status: -1}]
 
-    res.render('classroom', { occupation, section, assignments, students, projects_in_section, pairing_sessions, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, students, projects_in_section, pairing_sessions, pagination, title: section.course_name })
   }
 }
 
@@ -690,6 +702,7 @@ exports.updatePairing = async (req, res) => {
 
   if(!count) {
     res.send({status: 'Nothing update'})
+    return
   }
 
   const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
@@ -717,8 +730,177 @@ exports.updatePairing = async (req, res) => {
       role: pairing_record_objects[students[_index].enrollment_id]
     }
   }
+  console.log('Project1, sadddddddddddddddddddddddd')
 
   let status = ''
+  let project_array = []
+  count = 0
+  let out_loop = false
+  for(var key in only_changed_partner_keys) {
+    if(student_objects[key].role == 'host') {
+      status = await Project.find({
+        $or: [{
+          creator: student_objects[key].username,
+          createdAt: {$gt: new Date(time_start)}
+        }, {
+          creator: student_objects[key].username,
+          createdAt: {$lt: new Date(time_start)}
+        }]
+      })
+    } else if (student_objects[key].role == 'partner') {
+      status = await Project.find({
+        $or: [{
+          collaborator: student_objects[key].username,
+          createdAt: {$gt: new Date(time_start)}
+        }, {
+          collaborator: student_objects[key].username,
+          createdAt: {$lt: new Date(time_start)}
+        }]
+      })
+    }
+    //console.log('Project1, ', status, ', username, ', student_objects[key].username, ', role, ', student_objects[key].role)
+    out_loop = false
+    for(_index_s in status){
+      for(_index_p in project_array) {
+        if(project_array[_index_p].indexOf(status[_index_s].pid) != -1) {
+          out_loop = true
+          break
+        }
+      }
+
+      if(out_loop){
+        break
+      }
+    }
+
+    if(!out_loop) {
+      project_array.push([])
+      status.forEach(function(e){
+        project_array[count].push(e.pid)
+      })
+      count++
+    }
+
+    if(student_objects[only_changed_partner_keys[key]].role == 'host') {
+      status = await Project.find({
+        $or: [{
+          creator: student_objects[only_changed_partner_keys[key]].username,
+          createdAt: {$gt: new Date(time_start)}
+        }, {
+          creator: student_objects[only_changed_partner_keys[key]].username,
+          createdAt: {$lt: new Date(time_start)}
+        }]
+      })
+    } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
+      status = await Project.find({
+        $or: [{
+          collaborator: student_objects[only_changed_partner_keys[key]].username,
+          createdAt: {$gt: new Date(time_start)}
+        }, {
+          collaborator: student_objects[only_changed_partner_keys[key]].username,
+          createdAt: {$lt: new Date(time_start)}
+        }]
+      })
+    }
+    //console.log('Project2, ', status, ', username, ', student_objects[only_changed_partner_keys[key]].username, ', role, ', student_objects[only_changed_partner_keys[key]].role)
+    out_loop = false
+    for(_index_s in status){
+      for(_index_p in project_array) {
+        if(project_array[_index_p].indexOf(status[_index_s].pid) != -1) {
+          out_loop = true
+          break
+        }
+      }
+
+      if(out_loop){
+        break
+      }
+    }
+
+    if(!out_loop) {
+      project_array.push([])
+      status.forEach(function(e){
+        project_array[count].push(e.pid)
+      })
+      count++
+    }
+  }
+  console.log('sdffffffffffffffffffffffff')
+  console.log('project_array, ', project_array)
+
+  for(_index_o in project_array) {
+    for(_index_i in project_array[_index_p]) {
+      status = await History.deleteMany({
+        pid: project_array[_index_o][_index_i]
+      })
+      status = await  Score.deleteMany({
+        pid: project_array[_index_o][_index_i]
+      })
+      status = await  Message.deleteMany({
+        pid: project_array[_index_o][_index_i]
+      })
+    }
+  }
+  // // sumScore
+  // for (var key in only_changed_partner_keys) {
+  //   if(student_objects[key].role == 'host') {
+  //     sumScore = await Score.aggregate([
+  //       { $match:{
+  //           uid: element
+  //       }},
+  //       { $group: {
+  //           _id: '$uid',
+  //           avg: {$avg: '$score'}
+  //       }}
+  //     ], function (err, results) {
+  //         if (err) {
+  //           console.log(err)
+  //           return
+  //         }
+  //         if (results) {
+  //           // sum = 0;
+  //           results.forEach(function (result) {
+  //             // start update
+  //             User.update({
+  //               _id: element
+  //             }, {
+  //               $set: {
+  //                 avgScore: result.avg
+  //               }
+  //             }, function (err, userReturn) {
+  //               if (err);
+  //               if (userReturn) {
+  //                 console.log(userReturn)
+  //               }
+  //             });
+  //           })
+  //         }
+  //     });
+  //     status = await Project.deleteMany({
+  //       creator: student_objects[key].username,
+  //       $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+  //     })
+  //   } else if (student_objects[key].role == 'partner') {
+  //     status = await Project.deleteMany({
+  //       collaborator: student_objects[key].username,
+  //       $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+  //     })
+  //   }
+  //
+  //   if(student_objects[only_changed_partner_keys[key]].role == 'host') {
+  //     status = await Project.deleteMany({
+  //       creator: student_objects[only_changed_partner_keys[key]].username,
+  //       $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+  //     })
+  //   } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
+  //     status = await Project.deleteMany({
+  //       collaborator: student_objects[only_changed_partner_keys[key]].username,
+  //       $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+  //     })
+  //   }
+  // }
+
+  //delete many project in one week
   for (var key in only_changed_partner_keys) {
     if(student_objects[key].role == 'host') {
       status = await Project.deleteMany({
@@ -744,6 +926,7 @@ exports.updatePairing = async (req, res) => {
       })
     }
   }
+  console.log('DelteALLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
 
   let delete_pairing_record_by_enrollment_id_and_pairing_session_id = ''
   let insert_pairing_record = ''
@@ -1113,12 +1296,29 @@ exports.assignAssignment = async (req, res) => {
   for(_index in assignment_set){
     for(var key in partner_keys_objects){
       search_project = await Project.findOne({
-        assignment_id: assignment_set[_index].assignment_id,
-        $or: [{creator: student_objects[key].username}, {collaborator: student_objects[key].username}],
-        $or: [{creator: student_objects[partner_keys_objects[key]].username}, {collaborator: student_objects[partner_keys_objects[key]].username}],
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+        $or: [{
+          assignment_id: assignment_set[_index].assignment_id,
+          creator: student_objects[key].username,
+          collaborator: student_objects[partner_keys_objects[key]].username,
+          createdAt: {$gt: new Date(time_start)}
+        }, {
+          assignment_id: assignment_set[_index].assignment_id,
+          creator: student_objects[key].username,
+          collaborator: student_objects[partner_keys_objects[key]].username,
+          createdAt: {$lt: new Date(time_start)}
+        }, {
+          assignment_id: assignment_set[_index].assignment_id,
+          creator: student_objects[partner_keys_objects[key]].username,
+          collaborator: student_objects[key].username,
+          createdAt: {$gt: new Date(time_start)}
+        }, {
+          assignment_id: assignment_set[_index].assignment_id,
+          creator: student_objects[partner_keys_objects[key]].username,
+          collaborator: student_objects[key].username,
+          createdAt: {$lt: new Date(time_start)}
+        }]
       })
-
+      console.log('search_project, ', search_project, ', enrollment_id, ', key, ', username, ', student_objects[key].username)
       if(search_project == null) {
         count++
         assignment_of_each_pair[key].push(assignment_set[_index].assignment_id)
