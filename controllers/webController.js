@@ -338,11 +338,16 @@ exports.getSection = async (req, res) => {
       }
       weeks.indexOf(assignments[_index].week) == -1 ? weeks.push(assignments[_index].week) : null;
     }
+
+    if(pagination[pagination.length - 1] == 1) {
+      pagination = []
+    }
   }
 
+  let assignment_set = ''
   if(occupation == 'teacher') {
     occupation = 0
-    var assignment_set = JSON.stringify(assignments)
+    assignment_set = JSON.stringify(assignments)
     var select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
     var pairing_sessions = [];
 
@@ -376,11 +381,11 @@ exports.getSection = async (req, res) => {
         }
       });
     }
-    projects_in_section.reverse()
 
     page = 1;
     count = 0;
     pagination = []
+    weeks = []
     for (_index in projects_in_section) {
       projects_in_section[_index].page = page
       count++
@@ -388,10 +393,13 @@ exports.getSection = async (req, res) => {
         pagination.indexOf(page) == -1 ? pagination.push(page) : null;
         page++
       }
+      weeks.indexOf(projects_in_section[_index].week) == -1 ? weeks.push(projects_in_section[_index].week) : null;
     }
+    assignment_set = JSON.stringify(projects_in_section)
     pairing_sessions = [{status: -1}]
+    projects_in_section.reverse()
 
-    res.render('classroom', { occupation, section, assignments, students, projects_in_section, pairing_sessions, pagination, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, students, projects_in_section, assignment_set, pairing_sessions, weeks, pagination, title: section.course_name })
   }
 }
 
@@ -744,7 +752,7 @@ exports.updatePairing = async (req, res) => {
           createdAt: {$gt: new Date(time_start)}
         }, {
           creator: student_objects[key].username,
-          createdAt: {$lt: new Date(time_start)}
+          createdAt: {$eq: new Date(time_start)}
         }]
       })
     } else if (student_objects[key].role == 'partner') {
@@ -754,7 +762,7 @@ exports.updatePairing = async (req, res) => {
           createdAt: {$gt: new Date(time_start)}
         }, {
           collaborator: student_objects[key].username,
-          createdAt: {$lt: new Date(time_start)}
+          createdAt: {$eq: new Date(time_start)}
         }]
       })
     }
@@ -788,7 +796,7 @@ exports.updatePairing = async (req, res) => {
           createdAt: {$gt: new Date(time_start)}
         }, {
           creator: student_objects[only_changed_partner_keys[key]].username,
-          createdAt: {$lt: new Date(time_start)}
+          createdAt: {$eq: new Date(time_start)}
         }]
       })
     } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
@@ -798,7 +806,7 @@ exports.updatePairing = async (req, res) => {
           createdAt: {$gt: new Date(time_start)}
         }, {
           collaborator: student_objects[only_changed_partner_keys[key]].username,
-          createdAt: {$lt: new Date(time_start)}
+          createdAt: {$eq: new Date(time_start)}
         }]
       })
     }
@@ -825,11 +833,9 @@ exports.updatePairing = async (req, res) => {
       count++
     }
   }
-  console.log('sdffffffffffffffffffffffff')
-  console.log('project_array, ', project_array)
 
   for(_index_o in project_array) {
-    for(_index_i in project_array[_index_p]) {
+    for(_index_i in project_array[_index_o]) {
       status = await History.deleteMany({
         pid: project_array[_index_o][_index_i]
       })
@@ -841,92 +847,96 @@ exports.updatePairing = async (req, res) => {
       })
     }
   }
-  // // sumScore
-  // for (var key in only_changed_partner_keys) {
-  //   if(student_objects[key].role == 'host') {
-  //     sumScore = await Score.aggregate([
-  //       { $match:{
-  //           uid: element
-  //       }},
-  //       { $group: {
-  //           _id: '$uid',
-  //           avg: {$avg: '$score'}
-  //       }}
-  //     ], function (err, results) {
-  //         if (err) {
-  //           console.log(err)
-  //           return
-  //         }
-  //         if (results) {
-  //           // sum = 0;
-  //           results.forEach(function (result) {
-  //             // start update
-  //             User.update({
-  //               _id: element
-  //             }, {
-  //               $set: {
-  //                 avgScore: result.avg
-  //               }
-  //             }, function (err, userReturn) {
-  //               if (err);
-  //               if (userReturn) {
-  //                 console.log(userReturn)
-  //               }
-  //             });
-  //           })
-  //         }
-  //     });
-  //     status = await Project.deleteMany({
-  //       creator: student_objects[key].username,
-  //       $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
-  //     })
-  //   } else if (student_objects[key].role == 'partner') {
-  //     status = await Project.deleteMany({
-  //       collaborator: student_objects[key].username,
-  //       $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
-  //     })
-  //   }
-  //
-  //   if(student_objects[only_changed_partner_keys[key]].role == 'host') {
-  //     status = await Project.deleteMany({
-  //       creator: student_objects[only_changed_partner_keys[key]].username,
-  //       $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
-  //     })
-  //   } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
-  //     status = await Project.deleteMany({
-  //       collaborator: student_objects[only_changed_partner_keys[key]].username,
-  //       $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
-  //     })
-  //   }
-  // }
 
   //delete many project in one week
   for (var key in only_changed_partner_keys) {
     if(student_objects[key].role == 'host') {
       status = await Project.deleteMany({
         creator: student_objects[key].username,
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$eq: new Date(time_start)}}]
       })
     } else if (student_objects[key].role == 'partner') {
       status = await Project.deleteMany({
         collaborator: student_objects[key].username,
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$eq: new Date(time_start)}}]
       })
     }
 
     if(student_objects[only_changed_partner_keys[key]].role == 'host') {
       status = await Project.deleteMany({
         creator: student_objects[only_changed_partner_keys[key]].username,
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$eq: new Date(time_start)}}]
       })
     } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
       status = await Project.deleteMany({
         collaborator: student_objects[only_changed_partner_keys[key]].username,
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$lt: new Date(time_start)}}]
+        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$eq: new Date(time_start)}}]
       })
     }
   }
-  console.log('DelteALLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
+
+  let sumScore = []
+  // sumScore
+  for (var key in only_changed_partner_keys) {
+    let uid = [key, only_changed_partner_keys[key]]
+    for(_index in uid) {
+      await User.findOne({
+        username: student_objects[uid[_index]].username
+      }, async function (err, element){
+        if(err) {
+          console.log(err)
+        }
+
+        sumScore = await Score.aggregate([
+          { $match:{
+              uid: (element._id).toString()
+          }},
+          { $group: {
+              _id: '$uid',
+              avg: {$avg: '$score'}
+          }}
+        ], function (err, results) {
+            if (err) {
+              console.log(err)
+              return
+            }
+            if (results) {
+              // sum = 0;
+              results.forEach(function (result) {
+                // start update
+                User.updateOne({
+                  _id: result._id
+                }, {
+                  $set: {
+                    avgScore: result.avg
+                  }
+                }, function (err, userReturn) {
+                  if (err);
+                  if (userReturn) {
+                    console.log(userReturn)
+                  }
+                });
+              })
+
+              if(!results.length) {
+                User.updateOne({
+                  _id: element._id
+                }, {
+                  $set: {
+                    avgScore: 0
+                  }
+                }, function (err, userReturn) {
+                  if (err);
+                  if (userReturn) {
+                    console.log(userReturn)
+                  }
+                });
+              }
+            }
+        });
+      })
+    }
+  }
 
   let delete_pairing_record_by_enrollment_id_and_pairing_session_id = ''
   let insert_pairing_record = ''
@@ -1340,6 +1350,7 @@ exports.assignAssignment = async (req, res) => {
       project.language = language;
       project.swaptime = swaptime;
       project.status = '';
+      project.week = assignment_set_objects[assignment_id].week
 
       creator = student_objects[key].username
       collaborator = student_objects[partner_keys_objects[key]].username

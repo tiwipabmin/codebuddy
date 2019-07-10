@@ -1,4 +1,5 @@
 $(document).ready(function() {
+    // import * as moment from 'moment'
     pairingOrViewingisHided('pair')
     // $('#resetPair-button').click(function(){
     //   parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
@@ -514,7 +515,7 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   $('#confirm-modal').modal('show')
 }
 
-function on_click_weeks_dropdown(id) {
+function on_click_weeks_dropdown(id, username, img, opt) {
   assignment_set = JSON.parse($('#assignment_set').attr('value'))
   let week = id.split('week')
   week = parseInt(week[0])
@@ -528,6 +529,7 @@ function on_click_weeks_dropdown(id) {
     }
   }
 
+  console.log('assignment_of_week, ', assignment_of_week)
   let pagination = []
   let page = 1;
   let count = 0;
@@ -540,24 +542,33 @@ function on_click_weeks_dropdown(id) {
     }
   }
 
+  $('div').remove('#assignment_pagination')
+  console.log('pagination1, ', pagination)
+  if(pagination[pagination.length - 1] == 1) {
+    pagination = []
+  } else {
+    console.log('pagination2, ', pagination)
+    $('<div class=\'ui pagination menu\' id=\'assignment_pagination\'></div>').insertBefore('#assignment_items')
+  }
+
   $('#assignment_pagination').empty()
   $('#assignment_of_week').attr('value', JSON.stringify(assignment_of_week))
   let item = null;
   for(_index in pagination) {
-    item = $('<a class=\'item\' id=\'page'+pagination[_index]+'\' onclick=\'on_click_page('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    item = $('<a class=\'item\' id=\'page'+pagination[_index]+'\' onclick=\'on_click_page('+pagination[_index]+', \"'+username+'\", \"'+img+'\", '+opt+')\'>'+pagination[_index]+'</a>')
     $('#assignment_pagination').append(item)
   }
-  on_click_page(1)
+  on_click_page(1, username, img, opt)
 }
 
-function on_click_page(page) {
+function on_click_page(page, username, img, opt) {
   $('.active.item').attr({
     class: 'item'
   })
   $('#page'+page).attr({
     class: 'active item'
   })
-  assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
+
   assignment_of_week = JSON.parse($('#assignment_of_week').attr('value'))
   page = parseInt(page)
   let start = (page * 5) - 5
@@ -566,36 +577,87 @@ function on_click_page(page) {
     end = assignment_of_week.length % 5
     end += start
   }
-  $('#assignment_items').empty()
+
   let item = null;
   let content = null;
-  let description = null;
   let grid = null;
-  let fourteen_wide_column = null;
-  let two_wide_column = null;
-  let checkbox = null;
-  let assignment = null;
-  for(_index = start; _index < end; _index++) {
-    assignment = assignment_of_week[_index];
-    item = $('<div class=\'item\' id=\'a'+assignment.assignment_id+'\'></div>')
-    content = $('<div class=\'content\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'><a class=\'header\' href=\'/assignment?section_id='+assignment.section_id+'&assignment_id='+assignment.assignment_id+'\'>'+assignment.title+'</b></div>')
-    description = $('<div class=\'description\'>')
-    grid = $('<div class=\'ui grid\'></div>')
-    fourteen_wide_column = $('<div class=\'fourteen wide column assignment_is_selected\' onclick=\'on_click_assignment(1, \"'+assignment.assignment_id+'_is_selected\")\'><p style=\'padding-left:15px; padding-right:15px;\'>'+assignment.description+'</p><p style=\'padding-left:15px; padding-right:15px;\'>Programming Style : '+assignment.programming_style+'</p></div>')
-    two_wide_column = $('<div class=\'two wide column\'></div>')
-    if(assignment_check_saving[assignment.assignment_id+'_is_selected']) {
-      checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' checked=\'checked\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
-    } else {
-      checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
-    }
-    item.append(content)
-    content.append(description)
-    description.append(grid)
-    grid.append(fourteen_wide_column)
-    grid.append(two_wide_column)
-    two_wide_column.append(checkbox)
-    $('#assignment_items').append(item)
+  let description = null;
+  $('#assignment_items').empty()
+  switch (opt) {
+    case 0:
+      assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
+      let fourteen_wide_column = null;
+      let two_wide_column = null;
+      let checkbox = null;
+      let assignment = null;
+      for(_index = start; _index < end; _index++) {
+        assignment = assignment_of_week[_index];
+        item = $('<div class=\'item\' id=\'a'+assignment.assignment_id+'\'></div>')
+        content = $('<div class=\'content\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'><a class=\'header\' href=\'/assignment?section_id='+assignment.section_id+'&assignment_id='+assignment.assignment_id+'\'>'+assignment.title+'</b></div>')
+        description = $('<div class=\'description\'>')
+        grid = $('<div class=\'ui grid\'></div>')
+        fourteen_wide_column = $('<div class=\'fourteen wide column assignment_is_selected\' onclick=\'on_click_assignment(1, \"'+assignment.assignment_id+'_is_selected\")\'><p style=\'padding-left:15px; padding-right:15px;\'>'+assignment.description+'</p><p style=\'padding-left:15px; padding-right:15px;\'>Programming Style : '+assignment.programming_style+'</p></div>')
+        two_wide_column = $('<div class=\'two wide column\'></div>')
+        if(assignment_check_saving[assignment.assignment_id+'_is_selected']) {
+          checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' checked=\'checked\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
+        } else {
+          checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
+        }
+        item.append(content)
+        content.append(description)
+        description.append(grid)
+        grid.append(fourteen_wide_column)
+        grid.append(two_wide_column)
+        two_wide_column.append(checkbox)
+        $('#assignment_items').append(item)
+      }
+
+      break;
+    default:
+    let section_id = $('#section_id').attr('value')
+      for(_index = start; _index < end; _index++) {
+        project = assignment_of_week[_index]
+        let div_a = null
+        let img1 = null
+        let img2 = null
+        let img3 = null
+        let eleven_wide_column = null
+        if(project.creator == username) {
+          item = $('<div class=\'item\' style=\'padding-top:10px; padding-bottom:10px;\'></div>')
+          div_a = $('<a href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\' class=\'ui tiny image\' ></a>')
+          img1 = $('<img src=\'/images/blue-folder.png\', style=\'position: absolute;\'/>')
+          img2 = $('<img class=\'ui avatar image\' src=\''+img+'\', style=\'width: 30px;height: 30px;left:25px;top: 20px;\'/>')
+          content = $('<div class=\'content\'></div>')
+          grid = $('<div class=\'ui grid\'></div>')
+          eleven_wide_column = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em;\'><a class=\'header\' href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
+          description = $('<div class=\'description\'>'+project.description+'<br> Last updated '+moment(project.createdAt).fromNow()+' <a href=\'/profile/'+project.collaborator+'\'> @'+project.collaborator+'</a></div>')
+          div_a.append(img1)
+          div_a.append(img2)
+          content.append(grid)
+          grid.append(eleven_wide_column)
+          eleven_wide_column.append(description)
+          item.append(div_a)
+          item.append(content)
+          $('#assignment_items').append(item)
+        } else {
+          item = $('<div class=\'item\' style=\'padding-top:10px;\'></div>')
+          div_a = $('<a class=\'ui tiny image\' href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\'></a>')
+          img1 = $('<img src=\'/images/yellow-folder.png\', style=\'position: absolute;\'/>')
+          img2 = $('<img class=\'img-owner ui avatar image\' src=\''+img+'\', style=\'width: 30px;height: 30px; top: 20px;\'/>')
+          img3 = $('<img class=\'img-partner ui avatar image\' src=\'/images/user_img_4.jpg\', style=\'width:30px; height:30px; top:-10px;\'/>')
+          content = $('<div class=\'content\'><b style=\'font-size:1.2em;\'><a href=\'/project?pid='+project.pid+'&user_role=collaborator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
+          description = $('<div class=\'description\' style=\'margin-top:0px;\'>'+project.description+'<br> Last updated '+moment(project.createdAt).fromNow()+' <a href=\'/profile/'+project.creator+'\'> @'+project.creator+'</a></div>')
+          div_a.append(img1)
+          div_a.append(img2)
+          div_a.append(img3)
+          content.append(description)
+          item.append(div_a)
+          item.append(content)
+          $('#assignment_items').append(item)
+        }
+      }
   }
+
 }
 
 function sort_A_to_Z(student_objects, completed_filter, hasElementMoving){

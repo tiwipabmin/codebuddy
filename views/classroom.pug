@@ -3,6 +3,7 @@ extends layout/layout.pug
 block script
     script(src='/js/app/classroom.js')
     script(src='/js/app/student_pair_event.js')
+    script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
     link(rel='stylesheet' href='/css/main.css')
@@ -213,9 +214,7 @@ block content
     input#assignment_of_week(type='hidden', value='[]')
     script(type='text/javascript').
       $(document).ready(function(){
-        if(!{occupation} === 0) {
-          $('#assignment_set').attr('value', JSON.stringify(!{assignment_set}))
-        }
+        $('#assignment_set').attr('value', JSON.stringify(!{assignment_set}))
       })
     +pairStudent(user, students, pairing_sessions, section)
     //- .ui.small.modal#newProject-modal
@@ -471,24 +470,30 @@ block content
                   default
                     h1.ui.header#headerContainer My Project
               .right.column
-                script(type='text/javascript').
-                  $('#weeks').dropdown();
                 div
+                  .ui.selection.dropdown#weeks(style='float: right;')
+                    i.dropdown.icon
+                    if weeks.length > 0
+                      .default.text Select week
+                    else
+                      .default.text No week
+                    .menu#menu_week(name='status')
+                      if weeks.length > 0
+                        case occupation
+                          when 0
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', 0)') All
+                          default
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', 1)') All
+                      each week in weeks
+                        case occupation
+                          when 0
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', 0)') !{week}
+                          default
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', 1)') !{week}
+                  script(type='text/javascript').
+                    $('#weeks').dropdown();
                   case occupation
                     when 0
-                      .ui.selection.dropdown#weeks(style='float: right;')
-                        i.dropdown.icon
-                        if weeks.length > 0
-                          .default.text Select week
-                        else
-                          .default.text No week
-                        .menu#menu_week(name='status')
-                          if weeks.length > 0
-                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+')') All
-                          each week in weeks
-                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+')') !{week}
-                      script(type='text/javascript').
-                        $('#weeks').dropdown();
                       button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0)') Clear Checkbox
                       button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1)') Check All of Box
                       button.ui.button.approve.red(style='float: right;') Delete
@@ -496,17 +501,17 @@ block content
                       button.ui.button.approve.green.newAssignment(style='float: right;') Create
                     //default
                     //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
-            if pagination.length                
-              .ui.pagination.menu#assignment_pagination
-                each page in pagination
-                  a.item(id='page'+`${page}`, onclick='on_click_page('+`${page}`+')')= page
+            //- if pagination.length                
+            //- 
+            //-     each page in pagination
+            //-       a.item(id='page'+`${page}`, onclick='on_click_page('+`${page}`+')')= page
             .ui.divided.items#assignment_items
               case occupation
                 when 0
                   if assignments.length > 0
                     script(type='text/javascript').
                       $(document).ready(function() {
-                        on_click_weeks_dropdown('-1week')
+                        on_click_weeks_dropdown('-1week', `!{user.username}`, `!{user.img}`.toString, 0)
                         
                         let assignment_set = JSON.parse($('#assignment_set').attr('value'))
                         assignment_set.forEach(function(e){
@@ -517,39 +522,43 @@ block content
                     p.text-center No assignment.
                 default
                   if projects_in_section.length > 0
-                    each project in projects_in_section
-                      if project.creator === user.username
-                          .item(style='padding-top:10px; padding-bottom:10px;')
-                            a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')
-                              img(src='/images/blue-folder.png', style='position: absolute;')
-                              img.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px;left:25px;top: 20px;')
-
-                            .content
-                              .ui.grid
-                                .eleven.wide.column
-                                  b(style='font-size:1.2em;')
-                                    a.header(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')= project.title
-                                  .description !{project.description}
-                                  | Last updated #{moment(project.createdAt).fromNow()}
-                                  | (
-                                  a(href='/profile/'+project.collaborator ) @#{project.collaborator}
-                                  |)
-                      else if project.collaborator === user.username
-                        .item(style='padding-top:10px')
-                          a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')
-                              img(src='/images/yellow-folder.png', style='position: absolute;')
-                              img.img-owner.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px; top:20px;')
-                              img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg', style='width:30px; height:30px; top:-10px;')
-
-                          .content
-                            b(style='font-size:1.2em;')
-                              a(href='/project?pid='+project.pid+'&user_role=collaborator&section_id='+`${section.section_id}`+'')= project.title
-                            .description(style='margin-top:0px;')= project.description
-                            | Last updated #{moment(project.createdAt).fromNow()} (
-                            a(href='/profile/'+project.creator)
-                              | @
-                              = project.creator
-                            |)
+                    script(type='text/javascript').
+                      $(document).ready(function() {
+                        on_click_weeks_dropdown('-1week', `!{user.username}`, `!{user.img}`, 1)
+                      })
+                    //- each project in projects_in_section
+                    //-   if project.creator === user.username
+                    //-       .item(style='padding-top:10px; padding-bottom:10px;')
+                    //-         a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')
+                    //-           img(src='/images/blue-folder.png', style='position: absolute;')
+                    //-           img.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px;left:25px;top: 20px;')
+                    //- 
+                    //-         .content
+                    //-           .ui.grid
+                    //-             .eleven.wide.column
+                    //-               b(style='font-size:1.2em;')
+                    //-                 a.header(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')= project.title
+                    //-               .description !{project.description}
+                    //-               | Last updated #{moment(project.createdAt).fromNow()}
+                    //-               | (
+                    //-               a(href='/profile/'+project.collaborator ) @#{project.collaborator}
+                    //-               |)
+                    //-   else if project.collaborator === user.username
+                    //-     .item(style='padding-top:10px')
+                    //-       a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')
+                    //-           img(src='/images/yellow-folder.png', style='position: absolute;')
+                    //-           img.img-owner.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px; top:20px;')
+                    //-           img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg', style='width:30px; height:30px; top:-10px;')
+                    //- 
+                    //-       .content
+                    //-         b(style='font-size:1.2em;')
+                    //-           a(href='/project?pid='+project.pid+'&user_role=collaborator&section_id='+`${section.section_id}`+'')= project.title
+                    //-         .description(style='margin-top:0px;')= project.description
+                    //-         | Last updated #{moment(project.createdAt).fromNow()} (
+                    //-         a(href='/profile/'+project.creator)
+                    //-           | @
+                    //-           = project.creator
+                    //-         |)
                   else
                     p.text-center No project.  
             
