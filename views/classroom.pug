@@ -209,13 +209,6 @@ block script
 block content
     input#pairing_session_id(type='hidden', value=pairing_sessions[0].pairing_session_id)
     input#section_id(type='hidden', value=`${section.section_id}`)
-    input#assignment_set(type='hidden', value='[]')
-    input#assignment_check_saving(type='hidden', value='{}')
-    input#assignment_of_week(type='hidden', value='[]')
-    script(type='text/javascript').
-      $(document).ready(function(){
-        $('#assignment_set').attr('value', JSON.stringify(!{assignment_set}))
-      })
     +pairStudent(user, students, pairing_sessions, section)
     //- .ui.small.modal#newProject-modal
     //-   i.close.icon
@@ -461,7 +454,7 @@ block content
       .ui.centered.grid(style='padding-top:20px;')
         +detailSection(sections, occupation)
         .ten.wide.column#first_container
-          .ui.segment
+          .ui.segment#segment_in_first_container
             .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 case occupation
@@ -469,7 +462,7 @@ block content
                     h1.ui.header#headerContainer Assignment
                   default
                     h1.ui.header#headerContainer My Project
-              .right.column
+              .right.column#button_head_in_first_container
                 div
                   .ui.selection.dropdown#weeks(style='float: right;')
                     i.dropdown.icon
@@ -481,23 +474,23 @@ block content
                       if weeks.length > 0
                         case occupation
                           when 0
-                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', 0)') All
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${assignment_set}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${pairing_sessions[0].pairing_session_id}`+', 0)') All
                           default
-                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', 1)') All
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${assignment_set}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${pairing_sessions[0].pairing_session_id}`+', 1)') All
                       each week in weeks
                         case occupation
                           when 0
-                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', 0)') !{week}
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${assignment_set}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${pairing_sessions[0].pairing_session_id}`+', 0)') !{week}
                           default
-                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', 1)') !{week}
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${assignment_set}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${pairing_sessions[0].pairing_session_id}`+', 1)') !{week}
                   script(type='text/javascript').
                     $('#weeks').dropdown();
                   case occupation
                     when 0
-                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0)') Clear Checkbox
-                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1)') Check All of Box
+                      button.ui.button.approve.blue(style='float: right;' onClick='checkbox_event('+`${assignment_set}`+', \"-1week\", 0)') Clear Checkbox
+                      button.ui.button.approve.blue(style='float: right;' onClick='checkbox_event('+`${assignment_set}`+', \"-1week\", 1)') Check All of Box
                       button.ui.button.approve.red(style='float: right;') Delete
-                      button.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#pairing_session_id').attr('value')`+')') Assign
+                      button.ui.button.approve.yellow#assign_button(style='float: right;' onclick='on_click_assign_button([], {}, '+`${pairing_sessions[0].pairing_session_id}`+')') Assign
                       button.ui.button.approve.green.newAssignment(style='float: right;') Create
                     //default
                     //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
@@ -505,62 +498,23 @@ block content
             //- 
             //-     each page in pagination
             //-       a.item(id='page'+`${page}`, onclick='on_click_page('+`${page}`+')')= page
-            .ui.divided.items#assignment_items
-              case occupation
-                when 0
-                  if assignments.length > 0
-                    script(type='text/javascript').
-                      $(document).ready(function() {
-                        on_click_weeks_dropdown('-1week', `!{user.username}`, `!{user.img}`.toString, 0)
-                        
-                        let assignment_set = JSON.parse($('#assignment_set').attr('value'))
-                        assignment_set.forEach(function(e){
-                          $('#'+e.assignment_id+'_is_selected').prop('checked', false)
-                        })
-                      })
-                  else
-                    p.text-center No assignment.
-                default
-                  if projects_in_section.length > 0
-                    script(type='text/javascript').
-                      $(document).ready(function() {
-                        on_click_weeks_dropdown('-1week', `!{user.username}`, `!{user.img}`, 1)
-                      })
-                    //- each project in projects_in_section
-                    //-   if project.creator === user.username
-                    //-       .item(style='padding-top:10px; padding-bottom:10px;')
-                    //-         a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')
-                    //-           img(src='/images/blue-folder.png', style='position: absolute;')
-                    //-           img.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px;left:25px;top: 20px;')
-                    //- 
-                    //-         .content
-                    //-           .ui.grid
-                    //-             .eleven.wide.column
-                    //-               b(style='font-size:1.2em;')
-                    //-                 a.header(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')= project.title
-                    //-               .description !{project.description}
-                    //-               | Last updated #{moment(project.createdAt).fromNow()}
-                    //-               | (
-                    //-               a(href='/profile/'+project.collaborator ) @#{project.collaborator}
-                    //-               |)
-                    //-   else if project.collaborator === user.username
-                    //-     .item(style='padding-top:10px')
-                    //-       a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')
-                    //-           img(src='/images/yellow-folder.png', style='position: absolute;')
-                    //-           img.img-owner.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px; top:20px;')
-                    //-           img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg', style='width:30px; height:30px; top:-10px;')
-                    //- 
-                    //-       .content
-                    //-         b(style='font-size:1.2em;')
-                    //-           a(href='/project?pid='+project.pid+'&user_role=collaborator&section_id='+`${section.section_id}`+'')= project.title
-                    //-         .description(style='margin-top:0px;')= project.description
-                    //-         | Last updated #{moment(project.createdAt).fromNow()} (
-                    //-         a(href='/profile/'+project.creator)
-                    //-           | @
-                    //-           = project.creator
-                    //-         |)
-                  else
-                    p.text-center No project.  
+            case occupation
+              when 0
+                if assignments.length > 0
+                  script(type='text/javascript').
+                    $(document).ready(function() {
+                      on_click_weeks_dropdown('-1week', !{assignment_set}, `!{user.username}`, `!{user.img}`, `!{pairing_sessions[0].pairing_session_id}`, 0)
+                    })
+                else
+                  p.text-center No assignment.
+              default
+                if projects_in_section.length > 0
+                  script(type='text/javascript').
+                    $(document).ready(function() {
+                      on_click_weeks_dropdown('-1week', !{assignment_set}, `!{user.username}`, `!{user.img}`, `!{pairing_sessions[0].pairing_session_id}`, 1)
+                    })
+                else
+                  p.text-center No project.  
             
         .ten.wide.column#second_container(style='display:none;')
           .ui.segment
