@@ -305,14 +305,15 @@ exports.updateSection = async (req, res) => {
 }
 
 exports.getSection = async (req, res) => {
-  var occupation = req.user.info.occupation;
-  var queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
-  var querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
-  var select_assignment_by_section_id = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
-  var section = [];
-  var students = [];
-  var assignments = [];
-  var weeks = [];
+  let all_of_information = {}
+  let occupation = req.user.info.occupation;
+  let queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
+  let querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
+  let select_assignment_by_section_id = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
+  let section = [];
+  let students = [];
+  let assignments = [];
+  let weeks = [];
   let pagination = [];
   section = await con.getSection(querySection)
   students = await con.select_student(queryStudent)
@@ -330,17 +331,7 @@ exports.getSection = async (req, res) => {
     for (_index in assignments) {
       assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
       assignments[_index].description = assignments[_index].description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
-      assignments[_index].page = page
-      count++
-      if(count % 5 == 0 || _index == (assignments.length) - 1){
-        pagination.indexOf(page) == -1 ? pagination.push(page) : null;
-        page++
-      }
       weeks.indexOf(assignments[_index].week) == -1 ? weeks.push(assignments[_index].week) : null;
-    }
-
-    if(pagination[pagination.length - 1] == 1) {
-      pagination = []
     }
   }
 
@@ -348,8 +339,8 @@ exports.getSection = async (req, res) => {
   if(occupation == 'teacher') {
     occupation = 0
     assignment_set = JSON.stringify(assignments)
-    var select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
-    var pairing_sessions = [];
+    let select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
+    let pairing_sessions = [];
 
     pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
 
@@ -357,15 +348,18 @@ exports.getSection = async (req, res) => {
     if(!pairing_times) {
       pairing_sessions = [{status: -1}]
     }
+    pack_student = {student_array: students, student_json: JSON.stringify(students)}
 
-    res.render('classroom', { occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, weeks, pagination, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, assignment_set, pack_student, pairing_sessions, pairing_times, weeks, title: section.course_name })
+    // occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, weeks, pagination
   } else {
     occupation = 1
+    weeks = []
     let projects_in_section = []
     let count = 0
     const projects = await Project
       .find({ $and : [
-          {status: {$ne : "pending"} },
+          {status: {$ne : "pending"}},
           {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]}
         ]
       })
@@ -374,32 +368,19 @@ exports.getSection = async (req, res) => {
       projects.forEach(function(project){
         if(project.assignment_id == assignments[i].assignment_id) {
           projects_in_section[count] = project
+          weeks.indexOf(project.week) == -1 ? weeks.push(project.week) : null;
           count++;
-          // console.log(projects_in_section, '-----------TRUE');
-        } else {
-          // console.log(project.assignment_id, '-----------FALSE');
         }
       });
     }
 
-    page = 1;
-    count = 0;
-    pagination = []
-    weeks = []
-    for (_index in projects_in_section) {
-      projects_in_section[_index].page = page
-      count++
-      if(count % 5 == 0 || _index == (projects_in_section.length) - 1){
-        pagination.indexOf(page) == -1 ? pagination.push(page) : null;
-        page++
-      }
-      weeks.indexOf(projects_in_section[_index].week) == -1 ? weeks.push(projects_in_section[_index].week) : null;
-    }
+    pack_student = {student_array: students, student_json: JSON.stringify(students)}
+
     assignment_set = JSON.stringify(projects_in_section)
     pairing_sessions = [{status: -1}]
     projects_in_section.reverse()
 
-    res.render('classroom', { occupation, section, assignments, students, projects_in_section, assignment_set, pairing_sessions, weeks, pagination, title: section.course_name })
+    res.render('classroom', { occupation, section, assignments, pack_student, projects_in_section, assignment_set, pairing_sessions, weeks, pagination, title: section.course_name })
   }
 }
 
@@ -421,20 +402,22 @@ exports.removeStudent = async (req, res) => {
 }
 
 exports.joinClass = async (req, res) => {
-  var querySection = 'SELECT * FROM section WHERE class_code = \'' + req.body.class_code + '\''
-  var queryStudent = 'SELECT * FROM student WHERE username = \'' + req.user.username + '\''
-  var section = await con.getSection(querySection).then(function(res) {
-    console.log('section : ' + res[0])
+  let querySection = 'SELECT * FROM section WHERE class_code = \'' + req.body.class_code + '\''
+  let queryStudent = 'SELECT * FROM student WHERE username = \'' + req.user.username + '\''
+  let section = await con.getSection(querySection).then(function(res) {
     return res
   })
-  var student = await con.select_student(queryStudent).then(function(res) {
-    console.log('student : ' + res[0])
+  let student = await con.select_student(queryStudent).then(function(res) {
     return res
   })
   if(section.length) {
-    var queryEnrollment = 'INSERT INTO enrollment (student_id, section_id, grade) VALUES ?'
-    var values = [[student[0].student_id, section[0].section_id, '4']]
-    var status = await con.insert_enrollment(queryEnrollment, values)
+    let select_enrollment_id_from_student_id = 'SELECT * FROM enrollment WHERE student_id = ' + student[0].student_id
+    let enrollment = await con.select_enrollment(select_enrollment_id_from_student_id)
+    if(!enrollment.length) {
+      let queryEnrollment = 'INSERT INTO enrollment (student_id, section_id, grade) VALUES ?'
+      let values = [[student[0].student_id, section[0].section_id, '4']]
+      let status = await con.insert_enrollment(queryEnrollment, values)
+    }
   }
   res.redirect('/lobby')
 }

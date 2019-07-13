@@ -209,52 +209,7 @@ block script
 block content
     input#pairing_session_id(type='hidden', value=pairing_sessions[0].pairing_session_id)
     input#section_id(type='hidden', value=`${section.section_id}`)
-    +pairStudent(user, students, pairing_sessions, section)
-    //- .ui.small.modal#newProject-modal
-    //-   i.close.icon
-    //-   .header Create New Project
-    //-   .content
-    //-     form.ui.form(action='/project', method='POST')
-    //-       .field
-    //-         label Project Name :
-    //-         |
-    //-         input(type='text', name='title', placeholder='Your Project Name')
-    //-       .field
-    //-         label Description :
-    //-         |
-    //-         input(type='text', name='description', placeholder='Something about your project')
-    //-       .content
-    //-         .ui.grid
-    //-           .six.wide.column
-    //-             .field
-    //-               label Language :
-    //-               select.ui.dropdown(name='language')
-    //-                 option(value='0') Python
-    //-           .six.wide.column
-    //-             .field
-    //-               label Buddy ID :
-    //-               |
-    //-               input(type='hidden' name='creator_id' value=user._id)
-    //-               input(type='hidden' name='creator' value=user.username)
-    //-               input#collaborator-hidden(type='hidden' name='collaborator')
-    //-               input#collaborator(type='text',name='collaborator', placeholder='Search users...', disabled)
-    //-           .four.wide.column
-    //-               button.ui.positive.labeled.icon.button(id='add-collaborator' type='button')
-    //-                 i.user.icon
-    //-                 |  Add
-    //-       .field
-    //-         label Time  :
-    //-         select.ui.dropdown(name='swaptime')
-    //-            option(value='15') 15 minutes (Recommended)
-    //-            option(value='10') 10 minutes
-    //-            option(value='5') 5 minutes
-    //-            option(value='1') 1 minute
-    //-         input(type='hidden' name='status' value="pending")
-    //- 
-    //-       .ui.basic.center.aligned.segment()
-    //-         .actions
-    //-           button.ui.button.approve.green(type='submit') Create
-    //-           .ui.button.approve.red(data-value='cancel') Cancel
+    +pairStudent(user, pack_student.student_array, pairing_sessions, section)
 
     .ui.small.modal#alert-modal
       i.close.icon
@@ -494,10 +449,6 @@ block content
                       button.ui.button.approve.green.newAssignment(style='float: right;') Create
                     //default
                     //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
-            //- if pagination.length                
-            //- 
-            //-     each page in pagination
-            //-       a.item(id='page'+`${page}`, onclick='on_click_page('+`${page}`+')')= page
             case occupation
               when 0
                 if assignments.length > 0
@@ -517,31 +468,16 @@ block content
                   p.text-center No project.  
             
         .ten.wide.column#second_container(style='display:none;')
-          .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+          .ui.segment#segment_in_second_container
+            .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_second_container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 h1.ui.header#headerContainer Student
-            .ui.middle.aligned.divided.list.studentList
-              if students.length > 0
-                each student in students
-                  .item(id=`${student.enrollment_id}`, style='padding-left:15px; padding-right:15px;')
-                    .right.floated.content
-                      case occupation
-                        when 0
-                          a.ui.right.floated.alignedvertical.animated.button.red(onclick='on_click_remove_student_button('+student.enrollment_id+',\"'+student.first_name+'\",\"'+student.last_name+'\")')
-                            .hidden.content(style='color:white;') Remove
-                            .visible.content
-                              i.sign.out.icon
-                    img.ui.avatar.image(src='images/user_img_0.jpg')
-                    .content
-                      case occupation
-                        when 0
-                          a(href='/profile?section_id='+section.section_id+'&username='+student.username)
-                            p !{student.first_name} !{student.last_name}
-                        default
-                            p !{student.first_name} !{student.last_name}
-              else
-                p.text-center No student.  
+            if pack_student.student_array.length > 0
+              script(type='text/javascript').
+                set_item_pagination_in_second_container(!{pack_student.student_json}, !{section.section_id}, !{occupation})
+                on_click_page_number_in_second_container(1)
+            else
+              p.text-center No student.  
                       
         .ten.wide.column#third_container(style='display:none;')
           .ui.segment

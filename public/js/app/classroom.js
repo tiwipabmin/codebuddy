@@ -511,37 +511,36 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   $('#confirm-modal').modal('show')
 }
 
-function get_assignment_of_week(assignment_set, week) {
+function get_items_of_week(items, range, week) {
   week = week.split('week')
   week = parseInt(week[0])
-  let assignment_of_week = []
+  let items_of_week = []
 
-  for (_index in assignment_set){
-    if(assignment_set[_index].week == week) {
-      assignment_of_week.push(assignment_set[_index])
+  for (_index in items){
+    if(items[_index].week == week) {
+      items_of_week.push(items[_index])
     } else if (week < 0) {
-      assignment_of_week.push(assignment_set[_index])
+      items_of_week.push(items[_index])
     }
   }
 
   let pagination = []
   let page = 1;
   let count = 0;
-  for (_index in assignment_of_week) {
-    assignment_of_week[_index].page = page
+  for (_index in items_of_week) {
+    items_of_week[_index].page = page
     count++
-    if(count % 5 == 0 || _index == (assignment_of_week.length) - 1) {
+    if(count % range == 0 || _index == (items_of_week.length) - 1) {
       pagination.indexOf(page) == -1 ? pagination.push(page) : null;
       page++
     }
   }
 
-  return {assignment_of_week: assignment_of_week, pagination: pagination}
+  return {items_of_week: items_of_week, pagination: pagination}
 }
 
 function checkbox_event(assignment_set, id, opt) {
-  console.log('typeof(assignment_set)', typeof(assignment_set), ', assignment_set', assignment_set)
-  let assignment_of_week_ = get_assignment_of_week(assignment_set, id).assignment_of_week
+  let assignment_of_week_ = get_items_of_week(assignment_set, 5, id).items_of_week
   switch (opt) {
     //on click the "Check All of Box" button
     case 1:
@@ -561,11 +560,12 @@ function checkbox_event(assignment_set, id, opt) {
 function on_click_weeks_dropdown(id, assignment_set, username, img, pairing_session_id, opt) {
   // $('#first_container_segment').append('<div class=\'ui active centered inline loader\'></div>')
   assignment_set = assignment_set
-  let res_obj = get_assignment_of_week(assignment_set, id)
-  let assignment_of_week_ = res_obj.assignment_of_week
+  let res_obj = get_items_of_week(assignment_set, 5, id)
+  let assignment_of_week_ = res_obj.items_of_week
   let pagination = res_obj.pagination
 
-  set_assignment_page(pagination, assignment_of_week_, username, img, id, opt)
+  set_item_pagination_in_first_container(pagination, assignment_of_week_, username, img, id, opt)
+
   $('#assign_button').attr('onclick', 'on_click_assign_button('+JSON.stringify(JSON.stringify(assignment_of_week_))+', '+pairing_session_id+')')
   $('div').remove('#assignment_pagination')
   if(pagination[pagination.length - 1] == 1) {
@@ -576,60 +576,56 @@ function on_click_weeks_dropdown(id, assignment_set, username, img, pairing_sess
 
   let item = null;
   for(_index in pagination) {
-    item = $('<a class=\'item\' id=\'page'+pagination[_index]+'\' onclick=\'on_click_page('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    item = $('<a class=\'item fc\' id=\'page_'+pagination[_index]+'_first_container\' onclick=\'on_click_page_number_in_first_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
     $('#assignment_pagination').append(item)
   }
-  on_click_page(1)
+  on_click_page_number_in_first_container(1)
 }
 
-function on_click_page(page) {
-  $('.active.item').attr({
-    class: 'item'
+function on_click_page_number_in_first_container(page) {
+  $('.active.item.fc').attr({
+    class: 'item fc'
   })
-  $('#page'+page).attr({
-    class: 'active item'
+  $('#page_'+page+'_first_container').attr({
+    class: 'active item fc'
   })
 
-  $('.active.assignment').attr({
-    class: 'ui divided items assignment',
+  $('.active.first.container').attr({
+    class: 'ui divided items first container',
     style: 'display: none'
   })
-  $('#assignment_items_'+page).attr({
-    class: 'ui divided items active assignment',
+  $('#items_first_container'+page).attr({
+    class: 'ui divided items active first container',
     style: 'display: block'
   })
 }
 
-function set_assignment_page(pagination, assignment_of_week, username, img, week, opt) {
+function set_item_pagination_in_first_container(pagination, items_of_week, username, img, week, opt) {
   let item = null;
   let content = null;
   let grid = null;
   let description = null;
-  $('div').remove('.active.assignment')
-  $('div').remove('.assignment')
-  console.log('assignment_of_week, ', assignment_of_week)
+  $('div').remove('.active.first.container')
+  $('div').remove('.items.first.container')
   for (_index_p in pagination) {
 
-    $('#segment_in_first_container').append('<div class=\'ui divided items assignment\' id=\'assignment_items_'+pagination[_index_p]+'\'></div>')
+    $('#segment_in_first_container').append('<div class=\'ui divided items first container\' id=\'items_first_container'+pagination[_index_p]+'\'></div>')
 
     if(pagination[_index_p] == 1) {
-      $('#assignment_items_'+pagination[_index_p]).attr('class', 'ui divided items active assignment')
+      $('#items_first_container'+pagination[_index_p]).attr('class', 'ui divided items active first container')
     } else if(pagination[_index_p] > 1) {
-      $('#assignment_items_'+pagination[_index_p]).attr('style', 'display: none')
+      $('#items_first_container'+pagination[_index_p]).attr('style', 'display: none')
     }
 
-    console.log('pagination, ', pagination[_index_p])
-    for (_index_a in assignment_of_week) {
-      console.log('page, ', assignment_of_week[_index_a].page)
-      if(assignment_of_week[_index_a].page == pagination[_index_p]) {
-
+    for (_index_i in items_of_week) {
+      if(items_of_week[_index_i].page == pagination[_index_p]) {
         switch (opt) {
           case 0:
             let fourteen_wide_column = null;
             let two_wide_column = null;
             let checkbox = null;
             let assignment = null;
-            assignment = assignment_of_week[_index_a];
+            assignment = items_of_week[_index_i];
             item = $('<div class=\'item\' id=\'a'+assignment.assignment_id+'\'></div>')
             content = $('<div class=\'content\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'><a class=\'header\' href=\'/assignment?section_id='+assignment.section_id+'&assignment_id='+assignment.assignment_id+'\'>'+assignment.title+'</b></div>')
             description = $('<div class=\'description\'>')
@@ -643,9 +639,7 @@ function set_assignment_page(pagination, assignment_of_week, username, img, week
             grid.append(fourteen_wide_column)
             grid.append(two_wide_column)
             two_wide_column.append(checkbox)
-            $('#assignment_items_'+pagination[_index_p]).append(item)
-
-
+            $('#items_first_container'+pagination[_index_p]).append(item)
             break;
           default:
             let section_id = $('#section_id').attr('value')
@@ -654,7 +648,7 @@ function set_assignment_page(pagination, assignment_of_week, username, img, week
             let img2 = null
             let img3 = null
             let eleven_wide_column = null
-            project = assignment_of_week[_index_a]
+            project = items_of_week[_index_i]
             if(project.creator == username) {
               item = $('<div class=\'item\' style=\'padding-top:10px; padding-bottom:10px;\'></div>')
               div_a = $('<a href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\' class=\'ui tiny image\' ></a>')
@@ -686,17 +680,95 @@ function set_assignment_page(pagination, assignment_of_week, username, img, week
               item.append(div_a)
               item.append(content)
             }
-            $('#assignment_items_'+pagination[_index_p]).append(item)
-
-
+            $('#items_first_container'+pagination[_index_p]).append(item)
         }
-
       }
     }
-
   }
 }
 
+function on_click_page_number_in_second_container(page) {
+  $('.active.item.sc').attr({
+    class: 'item sc'
+  })
+  $('#page_'+page+'_second_container').attr({
+    class: 'active item fc'
+  })
+
+  $('.active.second.container').attr({
+    class: 'ui middle aligned divided list second container',
+    style: 'display: none'
+  })
+  $('#items_second_container'+page).attr({
+    class: 'ui middle aligned divided list active second container',
+    style: 'display: block'
+  })
+}
+
+function set_item_pagination_in_second_container(students, section_id, occupation) {
+  let res_obj = get_items_of_week(students, 10, '-1week')
+  students = res_obj.items_of_week
+  let pagination = res_obj.pagination
+
+  let item = null
+  let student = null
+  let content = null
+  let img = null
+
+  $('div').remove('.active.second.container')
+  $('div').remove('.list.second.container')
+  for (_index_p in pagination) {
+
+    $('#segment_in_second_container').append('<div class=\'ui middle aligned divided list second container\' id=\'items_second_container'+pagination[_index_p]+'\'></div>')
+
+    if(pagination[_index_p] == 1) {
+      $('#items_second_container'+pagination[_index_p]).attr('class', 'ui middle aligned divided list active second container')
+    } else if(pagination[_index_p] > 1) {
+      $('#items_second_container'+pagination[_index_p]).attr('style', 'display: none')
+    }
+
+    for (_index_s in students) {
+      if(students[_index_s].page == pagination[_index_p]) {
+        student = students[_index_s]
+        item = $('<div class=\'item\' id=\''+student.enrollment_id+'\' style=\'padding-left:15px; padding-right:15px;\'></div>')
+        img = $('<img class=\'ui avatar image\' src=\'images/user_img_0.jpg\'/>')
+        switch (occupation) {
+          case 0:
+            let right_floated_content = null
+            let tag_a = null
+            right_floated_content = $('<div class=\'right floated content\'></div>')
+            tag_a = $('<a class=\'ui right floated aligedvertical animated button red\' onclick=\'on_click_remove_student_button('+student.enrollment_id+',\"'+student.first_name+'\",\"'+student.last_name+'\")\'><div class=\'hidden content\' style=\'color:white\'> Remove </div><div class=\'visible content\'><i class=\'sign out icon\'/></div></a>')
+            content = $('<div class=\'content\'><a href=\'/profile?section_id='+section_id+'&username='+student.username+'\'><p> '+student.first_name+' '+student.last_name+' </p></a></div>')
+            right_floated_content.append(tag_a)
+            item.append(right_floated_content)
+            item.append(img)
+            item.append(content)
+
+            break;
+          default:
+            content = $('<div class=\'content\'><p> '+student.first_name+' '+student.last_name+' </p></div>')
+            item.append(img)
+            item.append(content)
+        }
+        $('#items_second_container'+pagination[_index_p]).append(item)
+      }
+    }
+  }
+
+  $('div').remove('#student_pagination')
+  if(pagination[pagination.length - 1] == 1) {
+    pagination = []
+  } else {
+    $('<div class=\'ui pagination menu\' id=\'student_pagination\'></div>').insertAfter('#ui_two_column_in_second_container')
+  }
+
+  item = null;
+  for(_index in pagination) {
+    item = $('<a class=\'item fc\' id=\'page_'+pagination[_index]+'_first_container\' onclick=\'on_click_page_number_in_second_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    $('#student_pagination').append(item)
+  }
+
+}
 
 function sort_A_to_Z(student_objects, completed_filter, hasElementMoving){
   while(!completed_filter) {
