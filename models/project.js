@@ -30,8 +30,11 @@ const projectSchema = new mongoose.Schema({
   status: String,
   files: { type : Array , default: ['main'] },
   assignment_id: Number,
-  programming_style: String,
-  week: { type : Number , default: 1 }
+  programming_style: { type: String, default: 'Remote' },
+  week: { type : Number , default: 1 },
+  end_time: { type: Date, default: Date.now },
+  active_time: { type: Date, default: Date.now },
+  available_project: { type: Boolean, default: false }
 })
 
 /**

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const con = require('../my_sql')
+const moment = require('moment')
 const Redis = require('ioredis')
 var fs = require('fs')
 
@@ -129,9 +130,9 @@ exports.getPlayground = async (req, res) => {
   if (project.programming_style == 'Interactive') {
     res.render('playground_interactive', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
   } else if(project.programming_style == 'Co-located') {
-    res.render('playground_conventional_typical', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_co_located', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
   } else if(project.programming_style == 'Remote') {
-    res.render('playground_conventional_codebuddy', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_remote', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
   }
 }
 
@@ -297,6 +298,8 @@ exports.getSection = async (req, res) => {
   let assignments = [];
   let weeks = [];
   let pagination = [];
+  let pairing_sessions = [];
+  let assignment_set = ''
   section = await con.getSection(querySection)
   students = await con.select_student(queryStudent)
   assignments = await con.select_assignment(select_assignment_by_section_id)
@@ -317,12 +320,10 @@ exports.getSection = async (req, res) => {
     }
   }
 
-  let assignment_set = ''
   if(occupation == 'teacher') {
     occupation = 0
     assignment_set = JSON.stringify(assignments)
     let select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
-    let pairing_sessions = [];
 
     pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
 
@@ -334,7 +335,6 @@ exports.getSection = async (req, res) => {
     pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
 
     res.render('classroom', { occupation, section, assignments, assignment_set, pack_student, pack_pairing_session, pairing_times, weeks, title: section.course_name })
-    // occupation, section, assignments, assignment_set, students, pairing_sessions, pairing_times, weeks, pagination
   } else {
     occupation = 1
     weeks = []
@@ -350,7 +350,7 @@ exports.getSection = async (req, res) => {
       .sort({ createdAt: -1 })
     for (i in clone_assignments) {
       projects.forEach(function(project){
-        if(project.assignment_id == clone_assignments[i].assignment_id) {
+        if(project.assignment_id == clone_assignments[i].assignment_id && project.available_project) {
           projects_in_section.push(project)
           assignments.push(clone_assignments[i])
           weeks.indexOf(project.week) == -1 ? weeks.push(project.week) : null;
@@ -358,14 +358,15 @@ exports.getSection = async (req, res) => {
       });
     }
 
-    pack_student = {students: students, students_strgify: JSON.stringify(students)}
-    pack_assignment = {assignments: assignments, assignments_strgify: JSON.stringify(assignments)}
-
     assignment_set = JSON.stringify(projects_in_section)
     pairing_sessions = [{status: -1}]
     projects_in_section.reverse()
 
-    res.render('classroom', { occupation, section, pack_assignment, pack_student, projects_in_section, assignment_set, pairing_sessions, weeks, pagination, title: section.course_name })
+    pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
+    pack_student = {students: students, students_strgify: JSON.stringify(students)}
+    pack_assignment = {assignments: assignments, assignments_strgify: JSON.stringify(assignments)}
+
+    res.render('classroom', { occupation, section, pack_assignment, pack_student, projects_in_section, pack_pairing_session, assignment_set, weeks, pagination, title: section.course_name })
   }
 }
 
@@ -1243,6 +1244,7 @@ exports.assignAssignment = async (req, res) => {
   let partner_keys_objects = {}
   let assignment_of_each_pair = {}
   let assignment_set_objects = {}
+  let end_time = req.body.end_time
 
   const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
   let pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
@@ -1313,11 +1315,23 @@ exports.assignAssignment = async (req, res) => {
   }
   console.log('assignment_of_each_pair, ', assignment_of_each_pair)
 
+  let date_time = new Date()
+  let str_date_time = date_time.toString()
+  let split_date_time = str_date_time.split(' ')
+  let slice_date_time = split_date_time.slice(1, 5)
+  let month = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+  let num_month = month[slice_date_time[0]]
+  num_month === undefined ? num_month = '13' : null;
+  let start_time = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + 'T' + slice_date_time[3] + 'Z'
+
+  let time_left = moment(new Date(end_time)).diff(moment(new Date(start_time)))
+  console.log('time_left, ', time_left, ', start_time, ', start_time, ', end_time, ', end_time)
+
+  let timeout_handles = []
   // Assign each assignment to the all of student
   for (key in assignment_of_each_pair) {
     for (_index in assignment_of_each_pair[key]) {
       assignment_id = assignment_of_each_pair[key][_index]
-      console.log(key, ' : ', assignment_id)
 
       project = new Project()
       project.title = assignment_set_objects[assignment_id].title;
@@ -1327,6 +1341,9 @@ exports.assignAssignment = async (req, res) => {
       project.swaptime = swaptime;
       project.status = '';
       project.week = assignment_set_objects[assignment_id].week
+      project.end_time = new Date(end_time)
+      project.available_project = true
+      project.createdAt = start_time
 
       creator = student_objects[key].username
       collaborator = student_objects[partner_keys_objects[key]].username
@@ -1347,6 +1364,8 @@ exports.assignAssignment = async (req, res) => {
         }, (err) => {
           if (err) throw err
         })
+
+        timeout_handles.push(project._id)
 
         // Insert score records
         const uids = [creator._id, collaborator._id]
@@ -1386,6 +1405,19 @@ exports.assignAssignment = async (req, res) => {
       }
     }
   }
+
+  setTimeout(async function(){
+    for (_index in timeout_handles) {
+      await Project.update({
+        _id: timeout_handles[_index]
+      }, {
+        $set: {
+          available_project: false
+        }
+      })
+    }
+  }, time_left)
+
 
   if(!count) {
     res.send({res_status: 'You already assigned these assignments!'})

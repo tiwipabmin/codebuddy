@@ -2,7 +2,6 @@ extends layout/layout.pug
 
 block script
     script(src='/js/app/classroom.js')
-    script(src='/js/app/student_pair_event.js')
     script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
@@ -230,6 +229,39 @@ block content
             button.ui.button.approve.green#confirm-button(type='submit') Confirm
             .ui.button.approve.red#cancel-button(data-value='cancel') Cancel
 
+    .ui.small.modal#assignment-end-time-modal
+      i.close.icon
+      .header ตั้งค่าเวลาสิ้นสุดแบบฝึกหัด
+      .content
+        .ui.grid
+          .two.column.row
+            .column(style='text-align:center;')
+              b ปปปป/ดด/วว
+              <br>
+              .ui.labeled.input
+                select.ui.dropdown#year_a(name='year')
+                  .ui.label
+                    b(color='black') /
+                select.ui.dropdown#month_a(name='month')
+                  .ui.label
+                    b(color='black') /
+                select.ui.dropdown#day_a(name='day')
+            .column(style='text-align:center;')
+              b ชช:นน:วว
+              <br>
+              .ui.labeled.input
+                select.ui.dropdown#endTimeHh_a(name='end_time_hh')
+                .ui.label
+                  b(color='black') :
+                select.ui.dropdown#endTimeMm_a(name='end_time_mm')
+                .ui.label
+                  b(color='black') :
+                select.ui.dropdown#endTimeSs_a(name='end_time_ss')
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green#assign_now(type='submit') Assign now!
+            .ui.button.cancel.red(data-value='cancel') Cancel 
+                     
     .ui.small.modal#settings-modal
       i.close.icon
       .header Settings Classroom

@@ -12,15 +12,6 @@ mixin pairStudent(user, students, pairing_sessions, section)
       button.ui.button#avg_score_filter(style="font-size:7px;", value='1-100', onclick='onClickAvgScoreFilterButton()') 1-100
       button.ui.right.floated.button#change_pair(onclick='on_click_change_pair()') Change pair
       .ui.fluid.container.segment.student-list-container.box
-        //- .ui.segment
-          //- .ui.two.column.very.relaxed.grid
-          //-   .column
-          //-     .ui.middle.aligned.divided.list.student-list
-          //-       li.ui.item No student.
-          //-   .column
-          //-     .ui.middle.aligned.divided.list.partner-list
-          //-       li.ui.item No student.
-          //- .ui.vertical.divider
         .ui.middle.aligned.list.student-container
           .ui.segment
             .ui.two.column.very.relaxed.grid

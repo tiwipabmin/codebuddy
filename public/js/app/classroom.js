@@ -40,6 +40,7 @@ $(document).ready(function() {
           } else if(res_status == 'Update completed.'){
             set_item_pagination_in_third_container(pairing_sessions, section_id, 0)
             on_click_page_number_in_third_container(1)
+            $('.ui.pointing.dropdown').dropdown();
             $('.newPairingSession').attr('value', 1)
           } else {
             alert(status)
@@ -458,19 +459,31 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
   assignment_of_week.forEach(function(e){
     $('#'+e.assignment_id+'_is_selected').is(':checked') == true ? assignment_is_selected.push(e) : null
   })
-  // console.log('assignment_is_selected, ', assignment_is_selected)
   if(assignment_is_selected.length) {
-    parameters = {assignment_set: assignment_is_selected, pairing_session_id: pairing_session_id}
-    $('#inp_cm').attr('value', JSON.stringify(parameters))
-    $('#confirm-header').text('Assign assignment')
-    $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
-    $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
-    $('#confirm-modal').modal('show');
+    set_year(1996, 3001, 'year_a', 'dropdown')
+    set_month(1, 13, 'month_a', 'dropdown')
+    set_day(1, 32, 'day_a', 'dropdown')
+    set_hour(0, 24, 'endTimeHh_a', 'dropdown')
+    set_minute(0, 60, 'endTimeMm_a', 'dropdown')
+    set_second(0, 60, 'endTimeSs_a', 'dropdown')
+    $('#assign_now').attr('onclick', 'on_click_assign_now_button('+JSON.stringify(assignment_is_selected)+', '+pairing_session_id+')')
+    $('#assignment-end-time-modal').modal('show');
   } else {
     $('#alert-header').text('Select assignment')
     $('#alert-message').text('Please!!!, select an assignment before click the \"assign\" button.')
     $('#alert-modal').modal('show')
   }
+}
+
+function on_click_assign_now_button(assignment_set, pairing_session_id) {
+  let end_time = $('#year_a').val() + '-' + $('#month_a').val() + '-' + $('#day_a').val() + 'T' + $('#endTimeHh_a').val() + ':' + $('#endTimeMm_a').val() + ':' + $('#endTimeSs_a').val() + 'Z'
+  console.log('end_time, ', end_time)
+  parameters = {assignment_set: assignment_set, pairing_session_id: pairing_session_id, end_time: end_time}
+  $('#inp_cm').attr('value', JSON.stringify(parameters))
+  $('#confirm-header').text('Assign assignment')
+  $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
+  $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
+  $('#confirm-modal').modal('show');
 }
 
 function onClickDeleteAssignment(assignment_id) {
@@ -636,7 +649,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
               content = $('<div class=\'content\'></div>')
               grid = $('<div class=\'ui grid\'></div>')
               eleven_wide_column = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em;\'><a class=\'header\' href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
-              description = $('<div class=\'description\'>'+project.description+'<br> Last updated '+moment(project.createdAt).fromNow()+' <a href=\'/profile/'+project.collaborator+'\'> @'+project.collaborator+'</a></div>')
+              description = $('<div class=\'description\'>'+project.description+'<br> Last updated '+moment(project.active_time).fromNow()+' <a href=\'/profile/'+project.collaborator+'\'> @'+project.collaborator+'</a></div>')
               div_a.append(img1)
               div_a.append(img2)
               content.append(grid)
@@ -651,7 +664,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
               img2 = $('<img class=\'img-owner ui avatar image\' src=\''+img+'\', style=\'width: 30px;height: 30px; top: 20px;\'/>')
               img3 = $('<img class=\'img-partner ui avatar image\' src=\'/images/user_img_4.jpg\', style=\'width:30px; height:30px; top:-10px;\'/>')
               content = $('<div class=\'content\'><b style=\'font-size:1.2em;\'><a href=\'/project?pid='+project.pid+'&user_role=collaborator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
-              description = $('<div class=\'description\' style=\'margin-top:0px;\'>'+project.description+'<br> Last updated '+moment(project.createdAt).fromNow()+' <a href=\'/profile/'+project.creator+'\'> @'+project.creator+'</a></div>')
+              description = $('<div class=\'description\' style=\'margin-top:0px;\'>'+project.description+'<br> Last updated '+moment(project.active_time).fromNow()+' <a href=\'/profile/'+project.creator+'\'> @'+project.creator+'</a></div>')
               div_a.append(img1)
               div_a.append(img2)
               div_a.append(img3)
@@ -811,7 +824,7 @@ function set_item_pagination_in_third_container(objects, section_id, occupation)
             } else {
               tag_b = $('<b style=\'font-size:1.5em;\'><header> Session : '+(pairing_times - _index_o)+' </header></b>')
               description = $('<p><b> Start at : </b><font>'+pairing_session.time_start+'</font><br><b> End at : </b><font>'+pairing_session.time_end+'</font></p>')
-              button = $('<div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'> Select </font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+pairing_session.pairing_session_id+')\'> View </div><div class=\'item\' onclick=\'onClickCompletedSessionMenu('+pairing_session.pairing_session_id+')\'> Completed </div></div></div>')
+              button = $('<div class=\'ui top right floated pointing dropdown button blue\' ><font color=\'white\'> Select </font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+pairing_session.pairing_session_id+')\'> View </div><div class=\'item\' onclick=\'onClickCompletedSessionMenu('+pairing_session.pairing_session_id+')\'> Completed </div></div></div>')
               extra = $('<div class=\'extra\'><div class=\'ui label\' id=\'status\' style=\'background-color:#16AB39; color:white;\'> ACTIVE </div></div>')
             }
             item.append(content)
@@ -856,6 +869,174 @@ function set_item_pagination_in_third_container(objects, section_id, occupation)
     $('#pagination_in_third_container').append(item)
   }
 
+}
+
+function on_click_change_pair() {
+  let pairing_session_id = $('#pairing_session_id').attr('value')
+  let section_id = $('#section_id').attr('value')
+  let parameters = {pairing_session_id: pairing_session_id, section_id: section_id}
+  $.get('/classroom/getPairing', parameters, function(data) {
+    if(data.status == 'Pull information successfully'){
+      $('#partner_keys').attr('value', data.partner_keys)
+      $('#cloning_partner_keys').attr('value', data.partner_keys)
+      $('#pairing_objective').attr('value', data.pairing_objective)
+      $('#confirm-pairing').attr('value', 'change')
+      $('#confirm-header').text('Alert!')
+      $('#confirm-message').text('Something message.')
+      $('#confirm-message').attr('value', 'Something message.')
+      showStudentList('pair', pairing_session_id)
+      pairingOrViewingisHided('pair')
+      alert(data.status)
+    } else {
+      alert(data.status)
+    }
+  })
+}
+
+function onClickAlphabeticalFilterButton(){
+
+  var completed_filter = false
+  var hasElementMoving = false
+  var student_objects = JSON.parse($('#student_objects').attr('value'))
+
+  var active_filter = $('#active_filter').attr('value')
+  if(active_filter == '1-100' || active_filter == '100-1' || active_filter == '') {
+    $('#avg_score_filter').attr('class', 'ui button')
+    $('#alphabetical_filter').attr('class', 'ui grey button')
+
+    $('#avg_score_filter').attr('value', '1-100')
+    $('#avg_score_filter').text('1-100')
+  }
+
+  if($('#alphabetical_filter').attr('value') == 'A-Z') {
+    $('#alphabetical_filter').attr('value', 'Z-A')
+    $('#alphabetical_filter').text('Z-A')
+
+
+    $('#active_filter').attr('value', 'A-Z')
+
+    sort_A_to_Z(student_objects, completed_filter, hasElementMoving)
+
+  } else if($('#alphabetical_filter').attr('value') == 'Z-A') {
+    $('#alphabetical_filter').attr('value', 'A-Z')
+    $('#alphabetical_filter').text('A-Z')
+
+    $('#active_filter').attr('value', 'Z-A')
+
+    sort_Z_to_A(student_objects, completed_filter, hasElementMoving)
+  }
+}
+
+function onClickAvgScoreFilterButton() {
+
+  var completed_filter = false
+  var hasElementMoving = false
+  var student_objects = JSON.parse($('#student_objects').attr('value'))
+
+  var active_filter = $('#active_filter').attr('value')
+  if(active_filter == 'A-Z' || active_filter == 'Z-A' || active_filter == '') {
+    $('#avg_score_filter').attr('class', 'ui grey button')
+    $('#alphabetical_filter').attr('class', 'ui button')
+
+    $('#alphabetical_filter').attr('value', 'A-Z')
+    $('#alphabetical_filter').text('A-Z')
+  }
+
+  if($('#avg_score_filter').attr('value') == '1-100') {
+    $('#avg_score_filter').attr('value', '100-1')
+    $('#avg_score_filter').text('100-1')
+
+    $('#active_filter').attr('value', '1-100')
+
+    sort_avg_score_1_to_100(student_objects, completed_filter, hasElementMoving)
+
+  } else if($('#avg_score_filter').attr('value') == '100-1') {
+    $('#avg_score_filter').attr('value', '1-100')
+    $('#avg_score_filter').text('1-100')
+
+    $('#active_filter').attr('value', '100-1')
+
+    sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMoving)
+
+  }
+}
+
+function set_year(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_month(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_day(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_hour(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_minute(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_second(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
 }
 
 function sort_A_to_Z(student_objects, completed_filter, hasElementMoving){
