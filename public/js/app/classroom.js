@@ -30,31 +30,16 @@ $(document).ready(function() {
         parameters = {pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value'), partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), student_objects: $('#student_objects').attr('value')}
         $.post('/classroom/createPairingRecord', parameters, function(data){
           const res_status = data.res_status
-          var pairing_time = data.pairing_time
-          if(session_status < 0) {
-            pairing_time = 1
-          } else pairing_time++
+          const pairing_sessions = JSON.parse(data.pairing_sessions)
+          const section_id = data.section_id
           if(res_status == 'There is no student in the classroom!'){
             alert(res_status)
           } else if(res_status == 'Please pair all students!'){
             alert(res_status)
             $('#student_list_modal').modal('show');
           } else if(res_status == 'Update completed.'){
-            $('#no_session').empty();
-            var item = $('<div id=\'pairing' + data.pairing_session_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
-            var content = $('<div class=\'content\'></div>')
-            var grid = $('<div class=\'ui grid\'></div>')
-            var extra = $('<div class=\'extra\'><div id=\'status\' class=\'ui label\' style=\'background-color:#16AB39; color:white;\'>ACTIVE</div></div>')
-            var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.5em\'><header class=\'header-pending-and-active\'>Session : ' + pairing_time + '</header></b><div class=\'description\'><p><b class=\'date-time\'>Start at : </b><font class=\'font-pending-and-active\'>' + data.date_time + '</font><br><b class=\'date-time\'>End at : </b><font id=\'endAt\' class=\'font-pending-and-active\'>' + data.time_end + '</font></p></div></div>')
-            var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+data.pairing_session_id+')\'> View </div><div class=\'item\' onclick=\'onClickCompletedSessionMenu('+data.pairing_session_id+')\'>Completed</div></div></div>')
-            grid.append(elevenColumn)
-            grid.append(fiveColumn)
-            content.append(grid)
-            content.append(extra)
-            item.append(content)
-            $('#pairingSession').prepend(item)
-            $('.ui.pointing.dropdown').dropdown();
-            $('#pairing_session_id').attr('value', data.pairing_session_id)
+            set_item_pagination_in_third_container(pairing_sessions, section_id, 0)
+            on_click_page_number_in_third_container(1)
             $('.newPairingSession').attr('value', 1)
           } else {
             alert(status)
@@ -135,18 +120,13 @@ $(document).ready(function() {
           type: 'put',
           data: parameters,
           success: function(data){
-            var status = data.status
+            let status = data.status
+            let pairing_session = JSON.parse(data.pairing_sessions)
+            let section_id = data.section_id
             if(status == 'Update completed.') {
-              $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
-              $('#status').text('COMPLETED')
-              $('.date-time').attr('style', 'color:#5D5D5D;')
-              $('#endAt').text(' ' + data.time_end)
-              $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
-              $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
-              $('#pairing-button-column').empty()
-              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' onclick='onClickViewPairingRecord("+$('#inp_cm').attr('value')+")'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
+              set_item_pagination_in_third_container(pairing_session, section_id, 0)
+              on_click_page_number_in_third_container(1)
               $('.newPairingSession').attr('value', 0);
-              console.log('.newPairingSession : ' + $('.newPairingSession').attr('value'))
             } else {
               alert(status)
             }
@@ -421,7 +401,6 @@ function showStudentList(command, pairing_session_id){
 }
 
 function onClickCreateSession(pairing_session_id, session_status){
-  // console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
   if($('.newPairingSession').attr('value') <= 0) {
     $('#partner_keys').attr('value', '{}')
     $('#pairing_objective').attr('value', '{}')
@@ -609,6 +588,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
   $('div').remove('.items.first.container')
   for (_index_p in pagination) {
 
+    $('div').remove('#items_first_container'+pagination[_index_p])
     $('#segment_in_first_container').append('<div class=\'ui divided items first container\' id=\'items_first_container'+pagination[_index_p]+'\'></div>')
 
     if(pagination[_index_p] == 1) {
@@ -624,8 +604,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
             let fourteen_wide_column = null;
             let two_wide_column = null;
             let checkbox = null;
-            let assignment = null;
-            assignment = items_of_week[_index_i];
+            let assignment = items_of_week[_index_i];
             item = $('<div class=\'item\' id=\'a'+assignment.assignment_id+'\'></div>')
             content = $('<div class=\'content\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'><a class=\'header\' href=\'/assignment?section_id='+assignment.section_id+'&assignment_id='+assignment.assignment_id+'\'>'+assignment.title+'</b></div>')
             description = $('<div class=\'description\'>')
@@ -648,7 +627,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
             let img2 = null
             let img3 = null
             let eleven_wide_column = null
-            project = items_of_week[_index_i]
+            let project = items_of_week[_index_i]
             if(project.creator == username) {
               item = $('<div class=\'item\' style=\'padding-top:10px; padding-bottom:10px;\'></div>')
               div_a = $('<a href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\' class=\'ui tiny image\' ></a>')
@@ -692,7 +671,7 @@ function on_click_page_number_in_second_container(page) {
     class: 'item sc'
   })
   $('#page_'+page+'_second_container').attr({
-    class: 'active item fc'
+    class: 'active item sc'
   })
 
   $('.active.second.container').attr({
@@ -715,10 +694,9 @@ function set_item_pagination_in_second_container(students, section_id, occupatio
   let content = null
   let img = null
 
-  $('div').remove('.active.second.container')
-  $('div').remove('.list.second.container')
   for (_index_p in pagination) {
 
+    $('div').remove('#items_second_container'+pagination[_index_p])
     $('#segment_in_second_container').append('<div class=\'ui middle aligned divided list second container\' id=\'items_second_container'+pagination[_index_p]+'\'></div>')
 
     if(pagination[_index_p] == 1) {
@@ -764,8 +742,118 @@ function set_item_pagination_in_second_container(students, section_id, occupatio
 
   item = null;
   for(_index in pagination) {
-    item = $('<a class=\'item fc\' id=\'page_'+pagination[_index]+'_first_container\' onclick=\'on_click_page_number_in_second_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    item = $('<a class=\'item sc\' id=\'page_'+pagination[_index]+'_second_container\' onclick=\'on_click_page_number_in_second_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
     $('#student_pagination').append(item)
+  }
+
+}
+
+function on_click_page_number_in_third_container(page) {
+  $('.active.item.tc').attr({
+    class: 'item tc'
+  })
+  $('#page_'+page+'_third_container').attr({
+    class: 'active item tc'
+  })
+
+  $('.active.third.container').attr({
+    class: 'ui divided items third container',
+    style: 'display: none'
+  })
+  $('#items_third_container'+page).attr({
+    class: 'ui divided items active third container',
+    style: 'display: block'
+  })
+}
+
+function set_item_pagination_in_third_container(objects, section_id, occupation) {
+  let res_obj = get_items_of_week(objects, 5, '-1week')
+  objects = res_obj.items_of_week
+  let pagination = res_obj.pagination
+
+  let item = null
+  let content = null
+  let description = null
+  let pairing_times = objects.length
+
+  for (_index_p in pagination) {
+
+    $('div').remove('#items_third_container'+pagination[_index_p])
+    $('#segment_in_third_container').append('<div class=\'ui divided items third container\' id=\'items_third_container'+pagination[_index_p]+'\'></div>')
+
+    if(pagination[_index_p] == 1) {
+      $('#items_third_container'+pagination[_index_p]).attr('class', 'ui divided items active third containerr')
+    } else if(pagination[_index_p] > 1) {
+      $('#items_third_container'+pagination[_index_p]).attr('style', 'display: none')
+    }
+
+    for (_index_o in objects) {
+      if(objects[_index_o].page == pagination[_index_p]) {
+        switch (occupation) {
+          case 0:
+            let grid = null
+            let extra = null
+            let eleven_wide_column = null
+            let tag_b = null
+            let five_wide_column = null
+            let button = null
+            let pairing_session = objects[_index_o]
+            item = $('<div class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
+            content = $('<div class=\'content\'></div>')
+            grid = $('<div class=\'ui grid\'></div>')
+            eleven_wide_column = $('<div class=\'eleven wide column\'></div>')
+            five_wide_column = $('<div class=\'five wide column\'></div>')
+            if(pairing_session.status == 0) {
+              tag_b = $('<b style=\'font-size:1.5em;\'><header style=\'color:#5D5D5D;\'> Session : '+(pairing_times - _index_o)+' </header></b>')
+              description = $('<p><b style=\'color:#5D5D5D\'> Start at : </b><font style=\'color:#5D5D5D\'>'+pairing_session.time_start+'</font><br><b style=\'color:#5D5D5D\'> End at : </b><font style=\'color:#5D5D5D\'>'+pairing_session.time_end+'</font></p>')
+              button = $('<div class=\'ui right floated alignedvertical animated button\' onclick=\'onClickViewPairingRecord('+pairing_session.pairing_session_id+')\'><div class=\'hidden content\' style=\'color:#5D5D5D;\'> View </div><div class=\'visible content\'><i class=\'eye icon\'/></div></div>')
+              extra = $('<div class=\'extra\'><div class=\'ui label\' id=\'status\' style=\'background-color:#E8E8E8; color:#665D5D;\'> COMPLETED </div></div>')
+            } else {
+              tag_b = $('<b style=\'font-size:1.5em;\'><header> Session : '+(pairing_times - _index_o)+' </header></b>')
+              description = $('<p><b> Start at : </b><font>'+pairing_session.time_start+'</font><br><b> End at : </b><font>'+pairing_session.time_end+'</font></p>')
+              button = $('<div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'> Select </font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+pairing_session.pairing_session_id+')\'> View </div><div class=\'item\' onclick=\'onClickCompletedSessionMenu('+pairing_session.pairing_session_id+')\'> Completed </div></div></div>')
+              extra = $('<div class=\'extra\'><div class=\'ui label\' id=\'status\' style=\'background-color:#16AB39; color:white;\'> ACTIVE </div></div>')
+            }
+            item.append(content)
+            content.append(grid)
+            content.append(extra)
+            grid.append(eleven_wide_column)
+            grid.append(five_wide_column)
+            eleven_wide_column.append(tag_b)
+            eleven_wide_column.append(description)
+            five_wide_column.append(button)
+            $('#items_third_container'+pagination[_index_p]).append(item)
+
+
+            break;
+          default:
+            let assignment = objects[_index_o]
+            let tag_a = null
+            item = $('<div class=\'item\'></div>')
+            content = $('<div class=\'content\'></div>')
+            tag_a = $('<a href=\'/assignment?section_id='+section_id+'&assignment_id='+assignment.assignment_id+'\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'>'+assignment.title+'</b></a>')
+            description = $('<div class=\'description\'><p style=\'padding-left:15px; padding-right:15px;\'>'+assignment.description+'</p></div>')
+            item.append(content)
+            content.append(tag_a)
+            content.append(description)
+            $('#items_third_container'+pagination[_index_p]).append(item)
+        }
+      }
+    }
+
+  }
+
+  $('div').remove('#pagination_in_third_container')
+  if(pagination[pagination.length - 1] == 1) {
+    pagination = []
+  } else {
+    $('<div class=\'ui pagination menu\' id=\'pagination_in_third_container\'></div>').insertAfter('#ui_two_column_in_third_container')
+  }
+
+  item = null;
+  for(_index in pagination) {
+    item = $('<a class=\'item tc\' id=\'page_'+pagination[_index]+'_third_container\' onclick=\'on_click_page_number_in_third_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    $('#pagination_in_third_container').append(item)
   }
 
 }
