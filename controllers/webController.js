@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
 const con = require('../my_sql')
+const Cryptr = require('cryptr');
+const cryptr = new Cryptr('codebuddy');
 const moment = require('moment')
 const Redis = require('ioredis')
 var fs = require('fs')
@@ -88,19 +90,20 @@ exports.getLobby = async (req, res) => {
       ]
     })
   .sort({ createdAt: -1 })
-  var occupation = req.user.info.occupation;
-  var querySection = 'SELECT * FROM section WHERE class_code = \'xxxxxxxxx\'';
-  var sections = [];
+  let occupation = req.user.info.occupation;
+  let querySection = 'SELECT * FROM section WHERE class_code = \'xxxxxxxxx\'';
+  let sections = [];
   if(occupation == 'teacher') {
     occupation = 0
     querySection = 'SELECT * FROM section AS s JOIN course AS c ON s.course_id = c.course_id JOIN teacher AS t ON c.teacher_id = t.teacher_id AND t.email = \'' + req.user.email + '\''
     sections = await con.getSection(querySection)
-    console.log("occupation : " + occupation + ", teacher : " + req.user.info.occupation)
   } else {
     occupation = 1
     querySection = 'SELECT * FROM course AS c JOIN section AS s ON c.course_id = s.course_id JOIN enrollment AS e ON s.section_id = e.section_id JOIN student AS st ON e.student_id = st.student_id AND st.email = \'' + req.user.email + '\''
     sections = await con.getSection(querySection)
-    console.log("occupation : " + occupation + ", student : " + req.user.info.occupation)
+  }
+  for(_index in sections) {
+    sections[_index].section_id = await cryptr.encrypt(sections[_index].section_id)
   }
   if(!sections.length) sections = []
   res.render('lobby', { projects, invitations, pendings, occupation, sections, title: 'Lobby' })
@@ -109,7 +112,8 @@ exports.getLobby = async (req, res) => {
 exports.getPlayground = async (req, res) => {
   if (!req.query.pid) res.redirect('/dashboard')
   const user_role = req.query.user_role
-  var section_id = parseInt(req.query.section_id)
+  var section_id = req.query.section_id
+  console.log('decrypt sec, ', section_id)
   var section = {}
   section.section_id = section_id
   console.log('section_id in getPlayground func : ', section.section_id)
@@ -188,10 +192,11 @@ exports.getProfile = async (req, res) => {
 exports.getProfileByTeacher = async (req, res) => {
   console.log('section_id : ' + req.query.section_id + ', username : ' + req.query.username)
   const username = req.query.username
+  let section_id = parseInt(cryptr.decrypt(req.query.section_id))
   var assignment_id = []
   var pid = []
 
-  var select_assignment_by_section_id = 'SELECT assignment_id FROM assignment WHERE section_id = ' + req.query.section_id
+  var select_assignment_by_section_id = 'SELECT assignment_id FROM assignment WHERE section_id = ' + section_id
   var assignments = await con.select_assignment(select_assignment_by_section_id);
   for(_index in assignments) {
     assignment_id.push(assignments[_index].assignment_id)
@@ -269,30 +274,34 @@ exports.createSection = async (req, res) => {
 }
 
 exports.deleteSection = async (req, res) => {
-  const delete_section = 'DELETE FROM section WHERE section_id = ' + req.body.section_id;
+  let section_id = parseInt(cryptr.decrypt(req.body.section_id))
+  const delete_section = 'DELETE FROM section WHERE section_id = ' + section_id;
   const res_status = await con.delete_section(delete_section)
   let temp = {}
   temp['status'] = res_status
-  console.log('temp : ' + temp.status + ', ' + req.body.section_id)
+  console.log('temp : ' + temp.status + ', ' + section_id)
   res.json(temp).status(200)
 }
 
 exports.updateSection = async (req, res) => {
+  let section_id = parseInt(cryptr.decrypt(req.body.section_id))
   const time_start = req.body.time_start_hh + ':' + req.body.time_start_mm + '' + req.body.time_start_ap
   const time_end = req.body.time_end_hh + ':' + req.body.time_end_mm + '' + req.body.time_end_ap
   const update_course = 'UPDATE course SET course_name = \'' + req.body.course_name + '\' WHERE course_id = ' + req.body.course_id;
-  const update_section = 'UPDATE section SET section = ' + req.body.section + ', room = \'' + req.body.room + '\', day = \'' + req.body.day + '\', time_start = \'' + time_start + '\', time_end = \'' + time_end + '\' WHERE section_id = ' + req.body.section_id;
+  const update_section = 'UPDATE section SET section = ' + req.body.section + ', room = \'' + req.body.room + '\', day = \'' + req.body.day + '\', time_start = \'' + time_start + '\', time_end = \'' + time_end + '\' WHERE section_id = ' + section_id;
   var courseStatus = await con.update_course(update_course);
   var sectionStatus = await con.update_section(update_section);
-  res.redirect('/classroom?section_id=' + req.body.section_id)
+  res.redirect('/classroom?section_id=' + cryptr.encrypt(section_id))
 }
 
 exports.getSection = async (req, res) => {
+  console.log('req.query.section_id, ', req.query.section_id)
   let all_of_information = {}
+  let section_id = parseInt(cryptr.decrypt(req.query.section_id))
   let occupation = req.user.info.occupation;
-  let queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
-  let querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + req.query.section_id + '';
-  let select_assignment_by_section_id = 'SELECT * FROM assignment WHERE section_id = ' + req.query.section_id
+  let queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
+  let querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + section_id + '';
+  let select_assignment_by_section_id = 'SELECT * FROM assignment WHERE section_id = ' + section_id
   let section = [];
   let students = [];
   let assignments = [];
@@ -305,7 +314,11 @@ exports.getSection = async (req, res) => {
   assignments = await con.select_assignment(select_assignment_by_section_id)
 
   if(!section.length) section = []
-  else section = section[0]
+  else {
+    section = section[0]
+    section.section_id = cryptr.encrypt(section.section_id)
+    console.log('section.section_id, ', section.section_id)
+  }
 
   if(!students.length) students = []
   if(!assignments.length) {
@@ -314,6 +327,8 @@ exports.getSection = async (req, res) => {
     let page = 1;
     let count = 0;
     for (_index in assignments) {
+      assignments[_index].assignment_id = cryptr.encrypt(assignments[_index].assignment_id)
+      assignments[_index].section_id = cryptr.encrypt(assignments[_index].section_id)
       assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
       assignments[_index].description = assignments[_index].description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
       weeks.indexOf(assignments[_index].week) == -1 ? weeks.push(assignments[_index].week) : null;
@@ -321,9 +336,10 @@ exports.getSection = async (req, res) => {
   }
 
   if(occupation == 'teacher') {
+    console.log('req.query.section_id, ', section_id)
     occupation = 0
     assignment_set = JSON.stringify(assignments)
-    let select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + req.query.section_id + ' ORDER BY ps.pairing_session_id DESC';
+    let select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + section_id + ' ORDER BY ps.pairing_session_id DESC';
 
     pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
 
@@ -336,6 +352,7 @@ exports.getSection = async (req, res) => {
 
     res.render('classroom', { occupation, section, assignments, assignment_set, pack_student, pack_pairing_session, pairing_times, weeks, title: section.course_name })
   } else {
+    console.log('req.query.section_id, ', section_id)
     occupation = 1
     weeks = []
     let projects_in_section = []
@@ -350,7 +367,7 @@ exports.getSection = async (req, res) => {
       .sort({ createdAt: -1 })
     for (i in clone_assignments) {
       projects.forEach(function(project){
-        if(project.assignment_id == clone_assignments[i].assignment_id && project.available_project) {
+        if(project.assignment_id == cryptr.decrypt(clone_assignments[i].assignment_id) && project.available_project) {
           projects_in_section.push(project)
           assignments.push(clone_assignments[i])
           weeks.indexOf(project.week) == -1 ? weeks.push(project.week) : null;
@@ -366,6 +383,7 @@ exports.getSection = async (req, res) => {
     pack_student = {students: students, students_strgify: JSON.stringify(students)}
     pack_assignment = {assignments: assignments, assignments_strgify: JSON.stringify(assignments)}
 
+    console.log('req.query.section_id, ', section_id)
     res.render('classroom', { occupation, section, pack_assignment, pack_student, projects_in_section, pack_pairing_session, assignment_set, weeks, pagination, title: section.course_name })
   }
 }
@@ -459,7 +477,7 @@ exports.searchUser = async (req, res) => {
 }
 
 exports.updatePairingSession = async (req, res) => {
-  const section_id = req.body.section_id
+  const section_id = parseInt(cryptr.decrypt(req.body.section_id))
   const pairing_session_id = req.body.pairing_session_id
   const status = req.body.status
 
@@ -480,7 +498,7 @@ exports.updatePairingSession = async (req, res) => {
   let select_pairing_session_by_section_id = ''
   let pairing_sessions = []
   if(res_status == 'Update completed.') {
-    const resetPartner = 'UPDATE enrollment SET partner_id = NULL WHERE section_id = ' + req.body.section_id
+    const resetPartner = 'UPDATE enrollment SET partner_id = NULL WHERE section_id = ' + section_id
     res_status = await con.update_enrollment(resetPartner)
 
     select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + section_id + ' ORDER BY ps.pairing_session_id DESC'
@@ -490,11 +508,11 @@ exports.updatePairingSession = async (req, res) => {
   }
 
   //console.log('res_status : ' + res_status)
-  res.send({status: res_status, time_end: time_end, pairing_sessions: JSON.stringify(pairing_sessions), section_id: section_id})
+  res.send({status: res_status, time_end: time_end, pairing_sessions: JSON.stringify(pairing_sessions), section_id: cryptr.encrypt(section_id)})
 }
 
 exports.resetPair = async (req, res) => {
-  const update_enrollment = 'UPDATE enrollment SET partner_id = ' + req.body.partner_id + ' WHERE section_id = ' + req.body.section_id
+  const update_enrollment = 'UPDATE enrollment SET partner_id = ' + req.body.partner_id + ' WHERE section_id = ' + parseInt(cryptr.decrypt(req.body.section_id))
   const res_status = await con.update_enrollment(update_enrollment)
   res.send({status: res_status})
 }
@@ -533,7 +551,7 @@ exports.searchUserByPurpose = async (req, res) => {
 
 exports.searchStudent = async (req, res) => {
   const search = req.query.search
-  const section_id = req.query.section_id
+  const section_id = parseInt(cryptr.decrypt(req.query.section_id))
   const username = req.query.username
   const select_student_by_section_id_and_literal = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\' OR s.last_name LIKE \'%' + search + '%\')'
   const students = await con.select_student(select_student_by_section_id_and_literal)
@@ -557,7 +575,7 @@ exports.searchStudent = async (req, res) => {
 
 exports.searchStudentByPurpose = async (req, res) => {
   const purpose = req.query.purpose
-  const section_id = req.query.section_id
+  const section_id = parseInt(cryptr.decrypt(req.query.section_id))
   const avg_score = parseFloat(req.query.avg_score)
   const username = req.query.username
   let students = []
@@ -604,7 +622,7 @@ exports.searchStudentByPurpose = async (req, res) => {
 
 exports.getPairing = async (req, res) => {
   let pairing_session_id = parseInt(req.query.pairing_session_id)
-  let section_id = parseInt(req.query.section_id)
+  let section_id = parseInt(cryptr.decrypt(req.query.section_id))
   const select_pairing_record_by_pairing_session_id = 'SELECT * FROM pairing_record WHERE pairing_session_id = ' + pairing_session_id
   let pairing_record = await con.select_pairing_record(select_pairing_record_by_pairing_session_id)
 
@@ -661,7 +679,7 @@ exports.updatePairing = async (req, res) => {
   let cloning_partner_keys = req.body.cloning_partner_keys
   let pairing_objective = req.body.pairing_objective
   let pairing_session_id = req.body.pairing_session_id
-  let section_id = req.body.section_id
+  let section_id = parseInt(cryptr.decrypt(req.body.section_id))
   let only_changed_partner_keys = {}
   let count = 0
 
@@ -713,7 +731,6 @@ exports.updatePairing = async (req, res) => {
       role: pairing_record_objects[students[_index].enrollment_id]
     }
   }
-  console.log('Project1, sadddddddddddddddddddddddd')
 
   let status = ''
   let project_array = []
@@ -954,7 +971,7 @@ exports.createPairingRecord = async (req, res) => {
   const partner_keys = JSON.parse(req.body.partner_keys)
   const pairing_objective = JSON.parse(req.body.pairing_objective)
   const student_objects = JSON.parse(req.body.student_objects)
-  const section_id = req.body.section_id
+  const section_id = parseInt(cryptr.decrypt(req.body.section_id))
   let res_status = 'Confirm completed.'
   let count = 0;
 
@@ -1049,7 +1066,7 @@ exports.createPairingRecord = async (req, res) => {
     select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + section_id + ' ORDER BY ps.pairing_session_id DESC'
     pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
 
-    res.send({res_status: res_status, pairing_sessions: JSON.stringify(pairing_sessions), section_id: section_id})
+    res.send({res_status: res_status, pairing_sessions: JSON.stringify(pairing_sessions), section_id: cryptr.encrypt(section_id)})
 
     // res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairing_time: pairing_time, time_start: date, time_end: '-'})
   } else {
@@ -1062,8 +1079,9 @@ exports.getStudentsFromSection = async (req, res) => {
   var pairing_objective = JSON.parse(req.query.pairing_objective)
   const pairing_session_id = req.query.pairing_session_id
   const command = req.query.command
+  let section_id = parseInt(cryptr.decrypt(req.query.section_id))
   //console.log('partner_keys: ' + partner_keys + ', pairing_objective: ' + pairing_objective)
-  const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + req.query.section_id + ' ORDER BY st.first_name ASC';
+  const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
   const students = await con.select_student(queryStudent)
   const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id;
   const pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
@@ -1125,9 +1143,9 @@ exports.getStudentsFromSection = async (req, res) => {
 
 exports.createAssignment = async (req, res) => {
   //console.log('section_id: ' + parseInt(req.body.section_id) + ', title: ' + req.body.title + ', description: ' + req.body.description + ', input_specification: ' + req.body.input_specification + ', output_specification: ' + req.body.output_specification + ', sample_input: ' + req.body.sample_input + ', sample_output: ' + req.body.sample_output)
-  const section_id = parseInt(req.body.section_id)
+  let section_id = parseInt(cryptr.decrypt(req.body.section_id))
   var section = {}
-  section.section_id = section_id
+  section.section_id = cryptr.encrypt(section_id)
   const title = (req.body.title).replace(/\s/g, "\\n")
   const week = parseInt(req.body.week)
   const description = (req.body.description).replace(/\s/g, "\\n");
@@ -1141,7 +1159,7 @@ exports.createAssignment = async (req, res) => {
   const assignment_id = await con.insert_assignment(insert_assignment, values)
   var assignment = {}
   if(typeof assignment_id == 'number') {
-    assignment.assignment_id = assignment_id
+    assignment.assignment_id = cryptr.encrypt(assignment_id)
     assignment.title = title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.week = week
     assignment.description = description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
@@ -1157,15 +1175,15 @@ exports.createAssignment = async (req, res) => {
 }
 
 exports.deleteAssignment = async (req, res) => {
-  var delete_assignment = 'DELETE FROM assignment WHERE assignment_id = ' + req.body.assignment_id;
+  var delete_assignment = 'DELETE FROM assignment WHERE assignment_id = ' + cryptr.decrypt(req.body.assignment_id);
   var res_status = await con.delete_assignment(delete_assignment)
   console.log('assignment_id: ', req.body.assignment_id)
   res.send({status: res_status})
 }
 
 exports.updateAssignment = async (req, res) => {
-  const assignment_id = req.body.assignment_id
-  const section_id = req.body.section_id
+  const assignment_id = cryptr.decrypt(req.body.assignment_id)
+  const section_id = parseInt(cryptr.decrypt(req.body.section_id))
   const title = (req.body.title).replace(/\s/g, "\\\\n");
   const description = (req.body.description).replace(/\s/g, "\\\\n");
   const week = parseInt(req.body.week)
@@ -1180,12 +1198,12 @@ exports.updateAssignment = async (req, res) => {
   const update_assignment = 'UPDATE assignment SET title = \'' + title + '\', description = \'' + description + '\', input_specification = \'' + input_specification + '\', output_specification = \'' + output_specification + '\', sample_input = \'' + sample_input + '\', sample_output = \'' + sample_output + '\', programming_style = \'' + programming_style + '\', week = ' + week + ' WHERE assignment_id = ' + assignment_id
   //console.log('update_assignment : ', update_assignment)
   const res_status = await con.update_assignment(update_assignment)
-  res.redirect('/assignment?section_id='+section_id+'&assignment_id='+assignment_id)
+  res.redirect('/assignment?section_id='+cryptr.encrypt(section_id)+'&assignment_id='+cryptr.encrypt(assignment_id))
 }
 
 exports.getAssignment = async (req, res) => {
   const section_id = req.query.section_id
-  const select_assignment_by_assignment_id = 'SELECT * FROM assignment WHERE assignment_id = ' + req.query.assignment_id
+  const select_assignment_by_assignment_id = 'SELECT * FROM assignment WHERE assignment_id = ' + cryptr.decrypt(req.query.assignment_id)
   var assignment = await con.select_assignment(select_assignment_by_assignment_id)
   var title = 'Assignment'
   var section = {}
@@ -1200,6 +1218,7 @@ exports.getAssignment = async (req, res) => {
 
   if(assignment.length) {
     assignment = assignment[0]
+    assignment.assignment_id = cryptr.encrypt(assignment.assignment_id)
     title = assignment.title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.title = assignment.title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.description = assignment.description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
@@ -1212,9 +1231,12 @@ exports.getAssignment = async (req, res) => {
 }
 
 exports.assignAssignment = async (req, res) => {
-  const select_enrollment_by_section_id = 'SELECT * FROM enrollment WHERE section_id = ' + req.body.assignment_set[0].section_id
+  const select_enrollment_by_section_id = 'SELECT * FROM enrollment WHERE section_id = ' + cryptr.decrypt(req.body.assignment_set[0].section_id)
   const enrollments = await con.select_enrollment(select_enrollment_by_section_id);
   const assignment_set = req.body.assignment_set
+  for(_index in assignment_set) {
+    assignment_set[_index].assignment_id = cryptr.decrypt(assignment_set[_index].assignment_id)
+  }
   var count = 0;
   //check student pairing
   for (_index in enrollments) {
@@ -1325,6 +1347,10 @@ exports.assignAssignment = async (req, res) => {
   let start_time = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + 'T' + slice_date_time[3] + 'Z'
 
   let time_left = moment(new Date(end_time)).diff(moment(new Date(start_time)))
+  if(time_left < 0) {
+    res.send({res_status: 'Please, set end time again!'})
+    return
+  }
   console.log('time_left, ', time_left, ', start_time, ', start_time, ', end_time, ', end_time)
 
   let timeout_handles = []

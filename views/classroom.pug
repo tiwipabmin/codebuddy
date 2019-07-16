@@ -442,14 +442,14 @@ block content
         +detailSection(sections, occupation)
         .ten.wide.column#first_container
           .ui.segment#segment_in_first_container
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+            .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_first_container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 case occupation
                   when 0
                     h1.ui.header#headerContainer Assignment
                   default
                     h1.ui.header#headerContainer My Project
-              .right.column#button_head_in_first_container
+              .right.column
                 div
                   .ui.selection.dropdown#weeks(style='float: right;')
                     i.dropdown.icon
@@ -479,10 +479,14 @@ block content
                       button.ui.button.approve.red(style='float: right;') Delete
                       button.ui.button.approve.yellow#assign_button(style='float: right;' onclick='on_click_assign_button([], {}, '+`${pack_pairing_session.pairing_sessions[0].pairing_session_id}`+')') Assign
                       button.ui.button.approve.green.newAssignment(style='float: right;') Create
-                    //default
-                    //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
             case occupation
               when 0
+                //- .ui.top.attached.tabular.menu
+                //-   a.item.active(data-tab="one") 1
+                //-   a.item(data-tab="two") 2
+                //- .ui.bottom.attached.tab.segment.active(data-tab="one")
+                //- .ui.bottom.attached.tab.segment(data-tab="two")
+                .ui.section.divider#divider_in_first_container
                 if assignments.length > 0
                   script(type='text/javascript').
                     $(document).ready(function() {
@@ -506,7 +510,7 @@ block content
                 h1.ui.header#headerContainer Student
             if pack_student.students.length > 0
               script(type='text/javascript').
-                set_item_pagination_in_second_container(!{pack_student.students_strgify}, !{section.section_id}, !{occupation})
+                set_item_pagination_in_second_container(!{pack_student.students_strgify}, "!{section.section_id}", !{occupation})
                 on_click_page_number_in_second_container(1)
             else
               p.text-center No student.  
@@ -531,7 +535,7 @@ block content
               when 0
                 if pack_pairing_session.pairing_sessions.length > 0 && pack_pairing_session.pairing_sessions[0].status >= 0
                   script(type='text/javascript').
-                    set_item_pagination_in_third_container(!{pack_pairing_session.pairing_sessions_strgify}, !{section.section_id}, !{occupation})
+                    set_item_pagination_in_third_container(!{pack_pairing_session.pairing_sessions_strgify}, "!{section.section_id}", !{occupation})
                     on_click_page_number_in_third_container(1)
                     $('.ui.pointing.dropdown').dropdown();
                 else
@@ -539,7 +543,7 @@ block content
               default
                 if pack_assignment.assignments.length > 0
                   script(type='text/javascript').
-                    set_item_pagination_in_third_container(!{pack_assignment.assignments_strgify}, !{section.section_id}, !{occupation})
+                    set_item_pagination_in_third_container(!{pack_assignment.assignments_strgify}, "!{section.section_id}", !{occupation})
                     on_click_page_number_in_third_container(1)
                 else
                   p.text-center No assignment.

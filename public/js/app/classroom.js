@@ -1,5 +1,4 @@
 $(document).ready(function() {
-    // import * as moment from 'moment'
     pairingOrViewingisHided('pair')
     // $('#resetPair-button').click(function(){
     //   parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
@@ -145,6 +144,8 @@ $(document).ready(function() {
           } else if(res_status == 'Successfully assigned this assignment!') {
             alert(res_status)
           } else if(res_status == 'Completed test!') {
+            alert(res_status)
+          } else {
             alert(res_status)
           }
         })
@@ -460,7 +461,7 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
     $('#'+e.assignment_id+'_is_selected').is(':checked') == true ? assignment_is_selected.push(e) : null
   })
   if(assignment_is_selected.length) {
-    set_year(1996, 3001, 'year_a', 'dropdown')
+    set_year(2019, 2020, 'year_a', 'dropdown')
     set_month(1, 13, 'month_a', 'dropdown')
     set_day(1, 32, 'day_a', 'dropdown')
     set_hour(0, 24, 'endTimeHh_a', 'dropdown')
@@ -563,7 +564,7 @@ function on_click_weeks_dropdown(id, assignment_set, username, img, pairing_sess
   if(pagination[pagination.length - 1] == 1) {
     pagination = []
   } else {
-    $('<div class=\'ui pagination menu\' id=\'assignment_pagination\'></div>').insertAfter('#button_head_in_first_container')
+    $('<div class=\'ui pagination menu\' id=\'assignment_pagination\'></div>').insertAfter('#divider_in_first_container')
   }
 
   let item = null;
