@@ -2,7 +2,7 @@ extends layout/layout.pug
 
 block script
     script(src='/js/app/classroom.js')
-    script(src='/js/app/student_pair_event.js')
+    script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
     script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
     link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
     link(rel='stylesheet' href='/css/main.css')
@@ -206,63 +206,9 @@ block script
       }
 
 block content
-    input#pairing_session_id(type='hidden', value=pairing_sessions[0].pairing_session_id)
+    input#pairing_session_id(type='hidden', value=pack_pairing_session.pairing_sessions[0].pairing_session_id)
     input#section_id(type='hidden', value=`${section.section_id}`)
-    input#assignment_set(type='hidden', value='[]')
-    input#assignment_check_saving(type='hidden', value='{}')
-    input#assignment_of_week(type='hidden', value='[]')
-    script(type='text/javascript').
-      $(document).ready(function(){
-        if(!{occupation} === 0) {
-          $('#assignment_set').attr('value', JSON.stringify(!{assignment_set}))
-        }
-      })
-    +pairStudent(user, students, pairing_sessions, section)
-    //- .ui.small.modal#newProject-modal
-    //-   i.close.icon
-    //-   .header Create New Project
-    //-   .content
-    //-     form.ui.form(action='/project', method='POST')
-    //-       .field
-    //-         label Project Name :
-    //-         |
-    //-         input(type='text', name='title', placeholder='Your Project Name')
-    //-       .field
-    //-         label Description :
-    //-         |
-    //-         input(type='text', name='description', placeholder='Something about your project')
-    //-       .content
-    //-         .ui.grid
-    //-           .six.wide.column
-    //-             .field
-    //-               label Language :
-    //-               select.ui.dropdown(name='language')
-    //-                 option(value='0') Python
-    //-           .six.wide.column
-    //-             .field
-    //-               label Buddy ID :
-    //-               |
-    //-               input(type='hidden' name='creator_id' value=user._id)
-    //-               input(type='hidden' name='creator' value=user.username)
-    //-               input#collaborator-hidden(type='hidden' name='collaborator')
-    //-               input#collaborator(type='text',name='collaborator', placeholder='Search users...', disabled)
-    //-           .four.wide.column
-    //-               button.ui.positive.labeled.icon.button(id='add-collaborator' type='button')
-    //-                 i.user.icon
-    //-                 |  Add
-    //-       .field
-    //-         label Time  :
-    //-         select.ui.dropdown(name='swaptime')
-    //-            option(value='15') 15 minutes (Recommended)
-    //-            option(value='10') 10 minutes
-    //-            option(value='5') 5 minutes
-    //-            option(value='1') 1 minute
-    //-         input(type='hidden' name='status' value="pending")
-    //- 
-    //-       .ui.basic.center.aligned.segment()
-    //-         .actions
-    //-           button.ui.button.approve.green(type='submit') Create
-    //-           .ui.button.approve.red(data-value='cancel') Cancel
+    +pairStudent(user, pack_student.students, pack_pairing_session.pairing_sessions, section)
 
     .ui.small.modal#alert-modal
       i.close.icon
@@ -283,6 +229,39 @@ block content
             button.ui.button.approve.green#confirm-button(type='submit') Confirm
             .ui.button.approve.red#cancel-button(data-value='cancel') Cancel
 
+    .ui.small.modal#assignment-end-time-modal
+      i.close.icon
+      .header ตั้งค่าเวลาสิ้นสุดแบบฝึกหัด
+      .content
+        .ui.grid
+          .two.column.row
+            .column(style='text-align:center;')
+              b ปปปป/ดด/วว
+              <br>
+              .ui.labeled.input
+                select.ui.dropdown#year_a(name='year')
+                  .ui.label
+                    b(color='black') /
+                select.ui.dropdown#month_a(name='month')
+                  .ui.label
+                    b(color='black') /
+                select.ui.dropdown#day_a(name='day')
+            .column(style='text-align:center;')
+              b ชช:นน:วว
+              <br>
+              .ui.labeled.input
+                select.ui.dropdown#endTimeHh_a(name='end_time_hh')
+                .ui.label
+                  b(color='black') :
+                select.ui.dropdown#endTimeMm_a(name='end_time_mm')
+                .ui.label
+                  b(color='black') :
+                select.ui.dropdown#endTimeSs_a(name='end_time_ss')
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green#assign_now(type='submit') Assign now!
+            .ui.button.cancel.red(data-value='cancel') Cancel 
+                     
     .ui.small.modal#settings-modal
       i.close.icon
       .header Settings Classroom
@@ -462,8 +441,8 @@ block content
       .ui.centered.grid(style='padding-top:20px;')
         +detailSection(sections, occupation)
         .ten.wide.column#first_container
-          .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+          .ui.segment#segment_in_first_container
+            .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_first_container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 case occupation
                   when 0
@@ -471,118 +450,74 @@ block content
                   default
                     h1.ui.header#headerContainer My Project
               .right.column
-                script(type='text/javascript').
-                  $('#weeks').dropdown();
                 div
+                  .ui.selection.dropdown#weeks(style='float: right;')
+                    i.dropdown.icon
+                    if weeks.length > 0
+                      .default.text Select week
+                    else
+                      .default.text No week
+                    .menu#menu_week(name='status')
+                      if weeks.length > 0
+                        case occupation
+                          when 0
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${assignment_set}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${pack_pairing_session.pairing_sessions[0].pairing_session_id}`+', 0)') All
+                          default
+                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${assignment_set}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${pack_pairing_session.pairing_sessions[0].pairing_session_id}`+', 1)') All
+                      each week in weeks
+                        case occupation
+                          when 0
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${assignment_set}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${pack_pairing_session.pairing_sessions[0].pairing_session_id}`+', 0)') !{week}
+                          default
+                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${assignment_set}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${pack_pairing_session.pairing_sessions[0].pairing_session_id}`+', 1)') !{week}
+                  script(type='text/javascript').
+                    $('#weeks').dropdown();
                   case occupation
                     when 0
-                      .ui.selection.dropdown#weeks(style='float: right;')
-                        i.dropdown.icon
-                        if weeks.length > 0
-                          .default.text Select week
-                        else
-                          .default.text No week
-                        .menu#menu_week(name='status')
-                          if weeks.length > 0
-                            .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+')') All
-                          each week in weeks
-                            .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+')') !{week}
-                      script(type='text/javascript').
-                        $('#weeks').dropdown();
-                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(0)') Clear Checkbox
-                      button.ui.button.approve.blue(style='float: right;' onclick='checkbox_event(1)') Check All of Box
+                      button.ui.button.approve.blue(style='float: right;' onClick='checkbox_event('+`${assignment_set}`+', \"-1week\", 0)') Clear Checkbox
+                      button.ui.button.approve.blue(style='float: right;' onClick='checkbox_event('+`${assignment_set}`+', \"-1week\", 1)') Check All of Box
                       button.ui.button.approve.red(style='float: right;') Delete
-                      button.ui.button.approve.yellow(style='float: right;' onclick='on_click_assign_button('+`$('#pairing_session_id').attr('value')`+')') Assign
+                      button.ui.button.approve.yellow#assign_button(style='float: right;' onclick='on_click_assign_button([], {}, '+`${pack_pairing_session.pairing_sessions[0].pairing_session_id}`+')') Assign
                       button.ui.button.approve.green.newAssignment(style='float: right;') Create
-                    //default
-                    //  button#new.ui.button.approve.green.newProject(style='float: right;') Create New Project
-            if pagination.length                
-              .ui.pagination.menu#assignment_pagination
-                each page in pagination
-                  a.item(id='page'+`${page}`, onclick='on_click_page('+`${page}`+')')= page
-            .ui.divided.items#assignment_items
-              case occupation
-                when 0
-                  if assignments.length > 0
-                    script(type='text/javascript').
-                      $(document).ready(function() {
-                        on_click_weeks_dropdown('-1week')
-                        
-                        let assignment_set = JSON.parse($('#assignment_set').attr('value'))
-                        assignment_set.forEach(function(e){
-                          $('#'+e.assignment_id+'_is_selected').prop('checked', false)
-                        })
-                      })
-                  else
-                    p.text-center No assignment.
-                default
-                  if projects_in_section.length > 0
-                    each project in projects_in_section
-                      if project.creator === user.username
-                          .item(style='padding-top:10px; padding-bottom:10px;')
-                            a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')
-                              img(src='/images/blue-folder.png', style='position: absolute;')
-                              img.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px;left:25px;top: 20px;')
-
-                            .content
-                              .ui.grid
-                                .eleven.wide.column
-                                  b(style='font-size:1.2em;')
-                                    a.header(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')= project.title
-                                  .description !{project.description}
-                                  | Last updated #{moment(project.createdAt).fromNow()}
-                                  | (
-                                  a(href='/profile/'+project.collaborator ) @#{project.collaborator}
-                                  |)
-                      else if project.collaborator === user.username
-                        .item(style='padding-top:10px')
-                          a.ui.tiny.image(href='/project?pid='+project.pid+'&user_role=creator&section_id='+`${section.section_id}`+'')
-                              img(src='/images/yellow-folder.png', style='position: absolute;')
-                              img.img-owner.ui.avatar.image(src=`${user.img}`, style='width: 30px;height: 30px; top:20px;')
-                              img.img-partner.ui.avatar.image(src='/images/user_img_4.jpg', style='width:30px; height:30px; top:-10px;')
-
-                          .content
-                            b(style='font-size:1.2em;')
-                              a(href='/project?pid='+project.pid+'&user_role=collaborator&section_id='+`${section.section_id}`+'')= project.title
-                            .description(style='margin-top:0px;')= project.description
-                            | Last updated #{moment(project.createdAt).fromNow()} (
-                            a(href='/profile/'+project.creator)
-                              | @
-                              = project.creator
-                            |)
-                  else
-                    p.text-center No project.  
+            case occupation
+              when 0
+                //- .ui.top.attached.tabular.menu
+                //-   a.item.active(data-tab="one") 1
+                //-   a.item(data-tab="two") 2
+                //- .ui.bottom.attached.tab.segment.active(data-tab="one")
+                //- .ui.bottom.attached.tab.segment(data-tab="two")
+                .ui.section.divider#divider_in_first_container
+                if assignments.length > 0
+                  script(type='text/javascript').
+                    $(document).ready(function() {
+                      on_click_weeks_dropdown('-1week', !{assignment_set}, `!{user.username}`, `!{user.img}`, `!{pack_pairing_session.pairing_sessions[0].pairing_session_id}`, 0)
+                    })
+                else
+                  p.text-center No assignment.
+              default
+                if projects_in_section.length > 0
+                  script(type='text/javascript').
+                    $(document).ready(function() {
+                      on_click_weeks_dropdown('-1week', !{assignment_set}, `!{user.username}`, `!{user.img}`, `!{pack_pairing_session.pairing_sessions[0].pairing_session_id}`, 1)
+                    })
+                else
+                  p.text-center No project.  
             
         .ten.wide.column#second_container(style='display:none;')
-          .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+          .ui.segment#segment_in_second_container
+            .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_second_container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 h1.ui.header#headerContainer Student
-            .ui.middle.aligned.divided.list.studentList
-              if students.length > 0
-                each student in students
-                  .item(id=`${student.enrollment_id}`, style='padding-left:15px; padding-right:15px;')
-                    .right.floated.content
-                      case occupation
-                        when 0
-                          a.ui.right.floated.alignedvertical.animated.button.red(onclick='on_click_remove_student_button('+student.enrollment_id+',\"'+student.first_name+'\",\"'+student.last_name+'\")')
-                            .hidden.content(style='color:white;') Remove
-                            .visible.content
-                              i.sign.out.icon
-                    img.ui.avatar.image(src='images/user_img_0.jpg')
-                    .content
-                      case occupation
-                        when 0
-                          a(href='/profile?section_id='+section.section_id+'&username='+student.username)
-                            p !{student.first_name} !{student.last_name}
-                        default
-                            p !{student.first_name} !{student.last_name}
-              else
-                p.text-center No student.  
+            if pack_student.students.length > 0
+              script(type='text/javascript').
+                set_item_pagination_in_second_container(!{pack_student.students_strgify}, "!{section.section_id}", !{occupation})
+                on_click_page_number_in_second_container(1)
+            else
+              p.text-center No student.  
                       
         .ten.wide.column#third_container(style='display:none;')
-          .ui.segment
-            .ui.two.column.doubling.stackable.grid.container(style='padding-top:20px; margin-bottom:20px;')
+          .ui.segment#segment_in_third_container
+            .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_third_container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 case occupation
                   when 0
@@ -595,69 +530,20 @@ block content
                 case occupation
                   when 0
                     a.right
-                      button#new.ui.button.approve.green.newPairingSession(style='float: right;', onclick='onClickCreateSession('+`$('#pairing_session_id').attr('value')`+','+pairing_sessions[0].status+')', value=`${pairing_sessions[0].status}`) Create Session
-            .ui.divided.items#pairingSession
-              case occupation
-                when 0
-                  if pairing_sessions.length > 0 && pairing_sessions[0].status >= 0
-                    each pairing_session, index in pairing_sessions
-                      .item.pairing-date-time(id=`${pairing_session.pairing_session_id}`, style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;')
-                        .content
-                          .ui.grid
-                            .eleven.wide.column
-                              b(style='font-size:1.5em;')
-                                case pairing_session.status
-                                  when 0
-                                    header(style='color:#5D5D5D;') Session : !{pairing_times - index}
-                                  default
-                                    header.header-pending-and-active Session : !{pairing_times - index}
-                              .description
-                                case pairing_session.status
-                                  when 0
-                                    p
-                                      b(style='color:#5D5D5D;') Start at :
-                                      font(color='#5D5D5D')  !{pairing_session.date_time}
-                                      br
-                                      b(style='color:#5D5D5D;') End at :
-                                      font(color='#5D5D5D')  !{pairing_session.time_end}
-                                  default
-                                    p
-                                      b.date-time Start at :
-                                      font.font-pending-and-active  !{pairing_session.date_time}
-                                      br
-                                      b.date-time End at :
-                                      font.font-pending-and-active#endAt  !{pairing_session.time_end}
-                            .five.wide.column#pairing-button-column
-                              case pairing_session.status
-                                when 0
-                                  .ui.right.floated.alignedvertical.animated.button(onclick='onClickViewPairingRecord('+pairing_session.pairing_session_id+')')
-                                    .hidden.content(style='color:#5D5D5D;') View
-                                    .visible.content
-                                      i.eye.icon
-                                default
-                                  .ui.top.right.floated.pointing.dropdown.button.blue#viewAndInactivePairing
-                                    font(color='white') Select
-                                    .menu
-                                      .item(onclick='onClickViewPairingRecord('+pairing_session.pairing_session_id+')') View
-                                      .item(onclick='onClickCompletedSessionMenu('+pairing_session.pairing_session_id+')') Completed
-                                  script(type='text/javascript').
-                                    $('.ui.pointing.dropdown').dropdown();
-                          .extra
-                            case pairing_session.status
-                              when 0
-                                .ui.label#status(style='background-color:#E8E8E8; color:#665D5D;') COMPLETED
-                              when 1
-                                .ui.label#status(style='background-color:#16AB39; color:white;') ACTIVE
-                  else
-                    p.text-center#no_session No session.  
-                default
-                  if assignments.length > 0
-                    each assignment in assignments
-                      .item
-                        .content
-                          a(href='/assignment?section_id='+section.section_id+'&assignment_id='+assignment.assignment_id)
-                            b(style='font-size:1.5em; padding-left:15px; padding-right:15px;') !{assignment.title}
-                          .description
-                            p(style='padding-left:15px; padding-right:15px;') !{assignment.description}
-                  else
-                    p.text-center No assignment.
+                      button#new.ui.button.approve.green.newPairingSession(style='float: right;', onclick='onClickCreateSession('+`$('#pairing_session_id').attr('value')`+','+pack_pairing_session.pairing_sessions[0].status+')', value=`${pack_pairing_session.pairing_sessions[0].status}`) Create Session
+            case occupation
+              when 0
+                if pack_pairing_session.pairing_sessions.length > 0 && pack_pairing_session.pairing_sessions[0].status >= 0
+                  script(type='text/javascript').
+                    set_item_pagination_in_third_container(!{pack_pairing_session.pairing_sessions_strgify}, "!{section.section_id}", !{occupation})
+                    on_click_page_number_in_third_container(1)
+                    $('.ui.pointing.dropdown').dropdown();
+                else
+                  p.text-center#no_session No session.
+              default
+                if pack_assignment.assignments.length > 0
+                  script(type='text/javascript').
+                    set_item_pagination_in_third_container(!{pack_assignment.assignments_strgify}, "!{section.section_id}", !{occupation})
+                    on_click_page_number_in_third_container(1)
+                else
+                  p.text-center No assignment.

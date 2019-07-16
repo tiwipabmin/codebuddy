@@ -5,6 +5,8 @@
  * @param {Function} next
  */
  const con = require('../my_sql')
+ const Cryptr = require('cryptr');
+ const cryptr = new Cryptr('codebuddy');
 
 exports.isSignedIn = (req, res, next) => {
   return req.isAuthenticated() ? next() : res.redirect('/signin')
@@ -19,13 +21,14 @@ exports.validateSection = async (req, res, next) => {
   var occupation = req.user.info.occupation
   var query;
   var res_object;
+  let section_id = parseInt(cryptr.decrypt(req.query.section_id))
   //console.log('req.user.occupation : ' + occupation)
   if(occupation == 'teacher') {
 
-    query = 'SELECT * FROM teacher AS t JOIN course AS c ON t.teacher_id = c.teacher_id JOIN section AS s ON c.course_id = s.course_id WHERE s.section_id = ' + req.query.section_id + ' AND t.username = \'' + req.user.username + '\''
+    query = 'SELECT * FROM teacher AS t JOIN course AS c ON t.teacher_id = c.teacher_id JOIN section AS s ON c.course_id = s.course_id WHERE s.section_id = ' + section_id + ' AND t.username = \'' + req.user.username + '\''
     res_object = await con.select_teacher(query)
   } else {
-    query = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id WHERE e.section_id = ' + req.query.section_id + ' AND st.username = \'' + req.user.username + '\''
+    query = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id WHERE e.section_id = ' + section_id + ' AND st.username = \'' + req.user.username + '\''
     res_object = await con.select_student(query)
   }
 

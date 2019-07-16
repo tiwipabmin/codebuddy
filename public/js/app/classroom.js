@@ -29,31 +29,17 @@ $(document).ready(function() {
         parameters = {pairing_session_id: $('#pairing_session_id').attr('value'), section_id: $('#section_id').attr('value'), partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), student_objects: $('#student_objects').attr('value')}
         $.post('/classroom/createPairingRecord', parameters, function(data){
           const res_status = data.res_status
-          var pairing_time = data.pairing_time
-          if(session_status < 0) {
-            pairing_time = 1
-          } else pairing_time++
+          const pairing_sessions = JSON.parse(data.pairing_sessions)
+          const section_id = data.section_id
           if(res_status == 'There is no student in the classroom!'){
             alert(res_status)
           } else if(res_status == 'Please pair all students!'){
             alert(res_status)
             $('#student_list_modal').modal('show');
           } else if(res_status == 'Update completed.'){
-            $('#no_session').empty();
-            var item = $('<div id=\'pairing' + data.pairing_session_id + '\' class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
-            var content = $('<div class=\'content\'></div>')
-            var grid = $('<div class=\'ui grid\'></div>')
-            var extra = $('<div class=\'extra\'><div id=\'status\' class=\'ui label\' style=\'background-color:#16AB39; color:white;\'>ACTIVE</div></div>')
-            var elevenColumn = $('<div class=\'eleven wide column\'><b style=\'font-size:1.5em\'><header class=\'header-pending-and-active\'>Session : ' + pairing_time + '</header></b><div class=\'description\'><p><b class=\'date-time\'>Start at : </b><font class=\'font-pending-and-active\'>' + data.date_time + '</font><br><b class=\'date-time\'>End at : </b><font id=\'endAt\' class=\'font-pending-and-active\'>' + data.time_end + '</font></p></div></div>')
-            var fiveColumn = $('<div id=\'pairing-button-column\' class=\'five wide column\'><div class=\'ui top right floated pointing dropdown button blue\'><font color=\'white\'>Select</font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+data.pairing_session_id+')\'> View </div><div class=\'item\' onclick=\'onClickCompletedSessionMenu('+data.pairing_session_id+')\'>Completed</div></div></div>')
-            grid.append(elevenColumn)
-            grid.append(fiveColumn)
-            content.append(grid)
-            content.append(extra)
-            item.append(content)
-            $('#pairingSession').prepend(item)
+            set_item_pagination_in_third_container(pairing_sessions, section_id, 0)
+            on_click_page_number_in_third_container(1)
             $('.ui.pointing.dropdown').dropdown();
-            $('#pairing_session_id').attr('value', data.pairing_session_id)
             $('.newPairingSession').attr('value', 1)
           } else {
             alert(status)
@@ -134,18 +120,13 @@ $(document).ready(function() {
           type: 'put',
           data: parameters,
           success: function(data){
-            var status = data.status
+            let status = data.status
+            let pairing_session = JSON.parse(data.pairing_sessions)
+            let section_id = data.section_id
             if(status == 'Update completed.') {
-              $('#status').attr('style', 'background-color:#E8E8E8; color:#665D5D;')
-              $('#status').text('COMPLETED')
-              $('.date-time').attr('style', 'color:#5D5D5D;')
-              $('#endAt').text(' ' + data.time_end)
-              $('.header-pending-and-active').attr('style', 'color:#5D5D5D;')
-              $('.font-pending-and-active').attr('style', 'color:#5D5D5D;')
-              $('#pairing-button-column').empty()
-              $('#pairing-button-column').append("<div class='ui right floated alignedvertical animated viewPairingHistory button' onclick='onClickViewPairingRecord("+$('#inp_cm').attr('value')+")'><div class='hidden content' style='color:#5D5D5D;'>View</div><div class='visible content'><i class='eye icon'></i></div></div>")
+              set_item_pagination_in_third_container(pairing_session, section_id, 0)
+              on_click_page_number_in_third_container(1)
               $('.newPairingSession').attr('value', 0);
-              console.log('.newPairingSession : ' + $('.newPairingSession').attr('value'))
             } else {
               alert(status)
             }
@@ -163,6 +144,8 @@ $(document).ready(function() {
           } else if(res_status == 'Successfully assigned this assignment!') {
             alert(res_status)
           } else if(res_status == 'Completed test!') {
+            alert(res_status)
+          } else {
             alert(res_status)
           }
         })
@@ -419,9 +402,7 @@ function showStudentList(command, pairing_session_id){
   })
 }
 
-function onClickCreateSession(pairing_date_time_id, session_status){
-  //console.log('pairing_date : ' + pairing_date_time_id + ', session_status : ' + session_status)
-  // console.log('newPairingSession: ' + $('.newPairingSession').attr('value'))
+function onClickCreateSession(pairing_session_id, session_status){
   if($('.newPairingSession').attr('value') <= 0) {
     $('#partner_keys').attr('value', '{}')
     $('#pairing_objective').attr('value', '{}')
@@ -472,29 +453,38 @@ function onClickAssign(section_id, pairing_session_id, assignment_id, title, des
   $('#confirm-modal').modal('show');
 }
 
-function on_click_assign_button(pairing_session_id) {
-  let assignment_of_week = JSON.parse($('#assignment_of_week').attr('value'))
-  let assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
+function on_click_assign_button(assignment_of_week, pairing_session_id) {
+  assignment_of_week = JSON.parse(assignment_of_week)
   let assignment_is_selected = []
   let assignment_id = -1;
   assignment_of_week.forEach(function(e){
-    if(assignment_check_saving[e.assignment_id+'_is_selected']) {
-      assignment_is_selected.push(e)
-    }
+    $('#'+e.assignment_id+'_is_selected').is(':checked') == true ? assignment_is_selected.push(e) : null
   })
-  // console.log('assignment_is_selected, ', assignment_is_selected)
   if(assignment_is_selected.length) {
-    parameters = {assignment_set: assignment_is_selected, pairing_session_id: pairing_session_id}
-    $('#inp_cm').attr('value', JSON.stringify(parameters))
-    $('#confirm-header').text('Assign assignment')
-    $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
-    $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
-    $('#confirm-modal').modal('show');
+    set_year(2019, 2020, 'year_a', 'dropdown')
+    set_month(1, 13, 'month_a', 'dropdown')
+    set_day(1, 32, 'day_a', 'dropdown')
+    set_hour(0, 24, 'endTimeHh_a', 'dropdown')
+    set_minute(0, 60, 'endTimeMm_a', 'dropdown')
+    set_second(0, 60, 'endTimeSs_a', 'dropdown')
+    $('#assign_now').attr('onclick', 'on_click_assign_now_button('+JSON.stringify(assignment_is_selected)+', '+pairing_session_id+')')
+    $('#assignment-end-time-modal').modal('show');
   } else {
     $('#alert-header').text('Select assignment')
     $('#alert-message').text('Please!!!, select an assignment before click the \"assign\" button.')
     $('#alert-modal').modal('show')
   }
+}
+
+function on_click_assign_now_button(assignment_set, pairing_session_id) {
+  let end_time = $('#year_a').val() + '-' + $('#month_a').val() + '-' + $('#day_a').val() + 'T' + $('#endTimeHh_a').val() + ':' + $('#endTimeMm_a').val() + ':' + $('#endTimeSs_a').val() + 'Z'
+  console.log('end_time, ', end_time)
+  parameters = {assignment_set: assignment_set, pairing_session_id: pairing_session_id, end_time: end_time}
+  $('#inp_cm').attr('value', JSON.stringify(parameters))
+  $('#confirm-header').text('Assign assignment')
+  $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
+  $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
+  $('#confirm-modal').modal('show');
 }
 
 function onClickDeleteAssignment(assignment_id) {
@@ -514,87 +504,539 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   $('#confirm-modal').modal('show')
 }
 
-function on_click_weeks_dropdown(id) {
-  assignment_set = JSON.parse($('#assignment_set').attr('value'))
-  let week = id.split('week')
+function get_items_of_week(items, range, week) {
+  week = week.split('week')
   week = parseInt(week[0])
-  let assignment_of_week = []
+  let items_of_week = []
 
-  for (_index in assignment_set){
-    if(assignment_set[_index].week == week) {
-      assignment_of_week.push(assignment_set[_index])
+  for (_index in items){
+    if(items[_index].week == week) {
+      items_of_week.push(items[_index])
     } else if (week < 0) {
-      assignment_of_week.push(assignment_set[_index])
+      items_of_week.push(items[_index])
     }
   }
 
   let pagination = []
   let page = 1;
   let count = 0;
-  for (_index in assignment_of_week) {
-    assignment_of_week[_index].page = page
+  for (_index in items_of_week) {
+    items_of_week[_index].page = page
     count++
-    if(count % 5 == 0 || _index == (assignment_of_week.length) - 1) {
+    if(count % range == 0 || _index == (items_of_week.length) - 1) {
       pagination.indexOf(page) == -1 ? pagination.push(page) : null;
       page++
     }
   }
 
-  $('#assignment_pagination').empty()
-  $('#assignment_of_week').attr('value', JSON.stringify(assignment_of_week))
-  let item = null;
-  for(_index in pagination) {
-    item = $('<a class=\'item\' id=\'page'+pagination[_index]+'\' onclick=\'on_click_page('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
-    $('#assignment_pagination').append(item)
-  }
-  on_click_page(1)
+  return {items_of_week: items_of_week, pagination: pagination}
 }
 
-function on_click_page(page) {
-  $('.active.item').attr({
-    class: 'item'
-  })
-  $('#page'+page).attr({
-    class: 'active item'
-  })
-  assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
-  assignment_of_week = JSON.parse($('#assignment_of_week').attr('value'))
-  page = parseInt(page)
-  let start = (page * 5) - 5
-  let end = page * 5
-  if((end - assignment_of_week.length) % 5 != 0 && assignment_of_week.length < end) {
-    end = assignment_of_week.length % 5
-    end += start
+function checkbox_event(assignment_set, id, opt) {
+  let assignment_of_week_ = get_items_of_week(assignment_set, 5, id).items_of_week
+  switch (opt) {
+    //on click the "Check All of Box" button
+    case 1:
+      assignment_of_week_.forEach(function(e){
+        $('#'+e.assignment_id+'_is_selected').prop('checked', true)
+      })
+
+      break;
+    //on click the "Clear Checkbox" button
+    default:
+      assignment_of_week_.forEach(function(e){
+        $('#'+e.assignment_id+'_is_selected').prop('checked', false)
+      })
   }
-  $('#assignment_items').empty()
+}
+
+function on_click_weeks_dropdown(id, assignment_set, username, img, pairing_session_id, opt) {
+  // $('#first_container_segment').append('<div class=\'ui active centered inline loader\'></div>')
+  assignment_set = assignment_set
+  let res_obj = get_items_of_week(assignment_set, 5, id)
+  let assignment_of_week_ = res_obj.items_of_week
+  let pagination = res_obj.pagination
+
+  set_item_pagination_in_first_container(pagination, assignment_of_week_, username, img, id, opt)
+
+  $('#assign_button').attr('onclick', 'on_click_assign_button('+JSON.stringify(JSON.stringify(assignment_of_week_))+', '+pairing_session_id+')')
+  $('div').remove('#assignment_pagination')
+  if(pagination[pagination.length - 1] == 1) {
+    pagination = []
+  } else {
+    $('<div class=\'ui pagination menu\' id=\'assignment_pagination\'></div>').insertAfter('#divider_in_first_container')
+  }
+
+  let item = null;
+  for(_index in pagination) {
+    item = $('<a class=\'item fc\' id=\'page_'+pagination[_index]+'_first_container\' onclick=\'on_click_page_number_in_first_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    $('#assignment_pagination').append(item)
+  }
+  on_click_page_number_in_first_container(1)
+}
+
+function on_click_page_number_in_first_container(page) {
+  $('.active.item.fc').attr({
+    class: 'item fc'
+  })
+  $('#page_'+page+'_first_container').attr({
+    class: 'active item fc'
+  })
+
+  $('.active.first.container').attr({
+    class: 'ui divided items first container',
+    style: 'display: none'
+  })
+  $('#items_first_container'+page).attr({
+    class: 'ui divided items active first container',
+    style: 'display: block'
+  })
+}
+
+function set_item_pagination_in_first_container(pagination, items_of_week, username, img, week, opt) {
   let item = null;
   let content = null;
-  let description = null;
   let grid = null;
-  let fourteen_wide_column = null;
-  let two_wide_column = null;
-  let checkbox = null;
-  let assignment = null;
-  for(_index = start; _index < end; _index++) {
-    assignment = assignment_of_week[_index];
-    item = $('<div class=\'item\' id=\'a'+assignment.assignment_id+'\'></div>')
-    content = $('<div class=\'content\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'><a class=\'header\' href=\'/assignment?section_id='+assignment.section_id+'&assignment_id='+assignment.assignment_id+'\'>'+assignment.title+'</b></div>')
-    description = $('<div class=\'description\'>')
-    grid = $('<div class=\'ui grid\'></div>')
-    fourteen_wide_column = $('<div class=\'fourteen wide column assignment_is_selected\' onclick=\'on_click_assignment(1, \"'+assignment.assignment_id+'_is_selected\")\'><p style=\'padding-left:15px; padding-right:15px;\'>'+assignment.description+'</p><p style=\'padding-left:15px; padding-right:15px;\'>Programming Style : '+assignment.programming_style+'</p></div>')
-    two_wide_column = $('<div class=\'two wide column\'></div>')
-    if(assignment_check_saving[assignment.assignment_id+'_is_selected']) {
-      checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' checked=\'checked\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
-    } else {
-      checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
+  let description = null;
+  $('div').remove('.active.first.container')
+  $('div').remove('.items.first.container')
+  for (_index_p in pagination) {
+
+    $('div').remove('#items_first_container'+pagination[_index_p])
+    $('#segment_in_first_container').append('<div class=\'ui divided items first container\' id=\'items_first_container'+pagination[_index_p]+'\'></div>')
+
+    if(pagination[_index_p] == 1) {
+      $('#items_first_container'+pagination[_index_p]).attr('class', 'ui divided items active first container')
+    } else if(pagination[_index_p] > 1) {
+      $('#items_first_container'+pagination[_index_p]).attr('style', 'display: none')
     }
-    item.append(content)
-    content.append(description)
-    description.append(grid)
-    grid.append(fourteen_wide_column)
-    grid.append(two_wide_column)
-    two_wide_column.append(checkbox)
-    $('#assignment_items').append(item)
+
+    for (_index_i in items_of_week) {
+      if(items_of_week[_index_i].page == pagination[_index_p]) {
+        switch (opt) {
+          case 0:
+            let fourteen_wide_column = null;
+            let two_wide_column = null;
+            let checkbox = null;
+            let assignment = items_of_week[_index_i];
+            item = $('<div class=\'item\' id=\'a'+assignment.assignment_id+'\'></div>')
+            content = $('<div class=\'content\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'><a class=\'header\' href=\'/assignment?section_id='+assignment.section_id+'&assignment_id='+assignment.assignment_id+'\'>'+assignment.title+'</b></div>')
+            description = $('<div class=\'description\'>')
+            grid = $('<div class=\'ui grid\'></div>')
+            fourteen_wide_column = $('<div class=\'fourteen wide column assignment_is_selected\' onclick=\'on_click_assignment(1, \"'+assignment.assignment_id+'_is_selected\")\'><p style=\'padding-left:15px; padding-right:15px;\'>'+assignment.description+'</p><p style=\'padding-left:15px; padding-right:15px;\'>Programming Style : '+assignment.programming_style+'</p></div>')
+            two_wide_column = $('<div class=\'two wide column\'></div>')
+            checkbox = $('<div class=\'ui checkbox\'><input class=\'checkbox_is_clicked\' type=\'checkbox\' id=\''+assignment.assignment_id+'_is_selected\' onclick=\'on_click_assignment(0, \"'+assignment.assignment_id+'_is_selected\")\'/><label></label></div>')
+            item.append(content)
+            content.append(description)
+            description.append(grid)
+            grid.append(fourteen_wide_column)
+            grid.append(two_wide_column)
+            two_wide_column.append(checkbox)
+            $('#items_first_container'+pagination[_index_p]).append(item)
+            break;
+          default:
+            let section_id = $('#section_id').attr('value')
+            let div_a = null
+            let img1 = null
+            let img2 = null
+            let img3 = null
+            let eleven_wide_column = null
+            let project = items_of_week[_index_i]
+            if(project.creator == username) {
+              item = $('<div class=\'item\' style=\'padding-top:10px; padding-bottom:10px;\'></div>')
+              div_a = $('<a href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\' class=\'ui tiny image\' ></a>')
+              img1 = $('<img src=\'/images/blue-folder.png\', style=\'position: absolute;\'/>')
+              img2 = $('<img class=\'ui avatar image\' src=\''+img+'\', style=\'width: 30px;height: 30px;left:25px;top: 20px;\'/>')
+              content = $('<div class=\'content\'></div>')
+              grid = $('<div class=\'ui grid\'></div>')
+              eleven_wide_column = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em;\'><a class=\'header\' href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
+              description = $('<div class=\'description\'>'+project.description+'<br> Last updated '+moment(project.active_time).fromNow()+' <a href=\'/profile/'+project.collaborator+'\'> @'+project.collaborator+'</a></div>')
+              div_a.append(img1)
+              div_a.append(img2)
+              content.append(grid)
+              grid.append(eleven_wide_column)
+              eleven_wide_column.append(description)
+              item.append(div_a)
+              item.append(content)
+            } else {
+              item = $('<div class=\'item\' style=\'padding-top:10px;\'></div>')
+              div_a = $('<a class=\'ui tiny image\' href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\'></a>')
+              img1 = $('<img src=\'/images/yellow-folder.png\', style=\'position: absolute;\'/>')
+              img2 = $('<img class=\'img-owner ui avatar image\' src=\''+img+'\', style=\'width: 30px;height: 30px; top: 20px;\'/>')
+              img3 = $('<img class=\'img-partner ui avatar image\' src=\'/images/user_img_4.jpg\', style=\'width:30px; height:30px; top:-10px;\'/>')
+              content = $('<div class=\'content\'><b style=\'font-size:1.2em;\'><a href=\'/project?pid='+project.pid+'&user_role=collaborator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
+              description = $('<div class=\'description\' style=\'margin-top:0px;\'>'+project.description+'<br> Last updated '+moment(project.active_time).fromNow()+' <a href=\'/profile/'+project.creator+'\'> @'+project.creator+'</a></div>')
+              div_a.append(img1)
+              div_a.append(img2)
+              div_a.append(img3)
+              content.append(description)
+              item.append(div_a)
+              item.append(content)
+            }
+            $('#items_first_container'+pagination[_index_p]).append(item)
+        }
+      }
+    }
+  }
+}
+
+function on_click_page_number_in_second_container(page) {
+  $('.active.item.sc').attr({
+    class: 'item sc'
+  })
+  $('#page_'+page+'_second_container').attr({
+    class: 'active item sc'
+  })
+
+  $('.active.second.container').attr({
+    class: 'ui middle aligned divided list second container',
+    style: 'display: none'
+  })
+  $('#items_second_container'+page).attr({
+    class: 'ui middle aligned divided list active second container',
+    style: 'display: block'
+  })
+}
+
+function set_item_pagination_in_second_container(students, section_id, occupation) {
+  let res_obj = get_items_of_week(students, 10, '-1week')
+  students = res_obj.items_of_week
+  let pagination = res_obj.pagination
+
+  let item = null
+  let student = null
+  let content = null
+  let img = null
+
+  for (_index_p in pagination) {
+
+    $('div').remove('#items_second_container'+pagination[_index_p])
+    $('#segment_in_second_container').append('<div class=\'ui middle aligned divided list second container\' id=\'items_second_container'+pagination[_index_p]+'\'></div>')
+
+    if(pagination[_index_p] == 1) {
+      $('#items_second_container'+pagination[_index_p]).attr('class', 'ui middle aligned divided list active second container')
+    } else if(pagination[_index_p] > 1) {
+      $('#items_second_container'+pagination[_index_p]).attr('style', 'display: none')
+    }
+
+    for (_index_s in students) {
+      if(students[_index_s].page == pagination[_index_p]) {
+        student = students[_index_s]
+        item = $('<div class=\'item\' id=\''+student.enrollment_id+'\' style=\'padding-left:15px; padding-right:15px;\'></div>')
+        img = $('<img class=\'ui avatar image\' src=\'images/user_img_0.jpg\'/>')
+        switch (occupation) {
+          case 0:
+            let right_floated_content = null
+            let tag_a = null
+            right_floated_content = $('<div class=\'right floated content\'></div>')
+            tag_a = $('<a class=\'ui right floated aligedvertical animated button red\' onclick=\'on_click_remove_student_button('+student.enrollment_id+',\"'+student.first_name+'\",\"'+student.last_name+'\")\'><div class=\'hidden content\' style=\'color:white\'> Remove </div><div class=\'visible content\'><i class=\'sign out icon\'/></div></a>')
+            content = $('<div class=\'content\'><a href=\'/profile?section_id='+section_id+'&username='+student.username+'\'><p> '+student.first_name+' '+student.last_name+' </p></a></div>')
+            right_floated_content.append(tag_a)
+            item.append(right_floated_content)
+            item.append(img)
+            item.append(content)
+
+            break;
+          default:
+            content = $('<div class=\'content\'><p> '+student.first_name+' '+student.last_name+' </p></div>')
+            item.append(img)
+            item.append(content)
+        }
+        $('#items_second_container'+pagination[_index_p]).append(item)
+      }
+    }
+  }
+
+  $('div').remove('#student_pagination')
+  if(pagination[pagination.length - 1] == 1) {
+    pagination = []
+  } else {
+    $('<div class=\'ui pagination menu\' id=\'student_pagination\'></div>').insertAfter('#ui_two_column_in_second_container')
+  }
+
+  item = null;
+  for(_index in pagination) {
+    item = $('<a class=\'item sc\' id=\'page_'+pagination[_index]+'_second_container\' onclick=\'on_click_page_number_in_second_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    $('#student_pagination').append(item)
+  }
+
+}
+
+function on_click_page_number_in_third_container(page) {
+  $('.active.item.tc').attr({
+    class: 'item tc'
+  })
+  $('#page_'+page+'_third_container').attr({
+    class: 'active item tc'
+  })
+
+  $('.active.third.container').attr({
+    class: 'ui divided items third container',
+    style: 'display: none'
+  })
+  $('#items_third_container'+page).attr({
+    class: 'ui divided items active third container',
+    style: 'display: block'
+  })
+}
+
+function set_item_pagination_in_third_container(objects, section_id, occupation) {
+  let res_obj = get_items_of_week(objects, 5, '-1week')
+  objects = res_obj.items_of_week
+  let pagination = res_obj.pagination
+
+  let item = null
+  let content = null
+  let description = null
+  let pairing_times = objects.length
+
+  for (_index_p in pagination) {
+
+    $('div').remove('#items_third_container'+pagination[_index_p])
+    $('#segment_in_third_container').append('<div class=\'ui divided items third container\' id=\'items_third_container'+pagination[_index_p]+'\'></div>')
+
+    if(pagination[_index_p] == 1) {
+      $('#items_third_container'+pagination[_index_p]).attr('class', 'ui divided items active third containerr')
+    } else if(pagination[_index_p] > 1) {
+      $('#items_third_container'+pagination[_index_p]).attr('style', 'display: none')
+    }
+
+    for (_index_o in objects) {
+      if(objects[_index_o].page == pagination[_index_p]) {
+        switch (occupation) {
+          case 0:
+            let grid = null
+            let extra = null
+            let eleven_wide_column = null
+            let tag_b = null
+            let five_wide_column = null
+            let button = null
+            let pairing_session = objects[_index_o]
+            item = $('<div class=\'item\' style=\'padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;\'></div>')
+            content = $('<div class=\'content\'></div>')
+            grid = $('<div class=\'ui grid\'></div>')
+            eleven_wide_column = $('<div class=\'eleven wide column\'></div>')
+            five_wide_column = $('<div class=\'five wide column\'></div>')
+            if(pairing_session.status == 0) {
+              tag_b = $('<b style=\'font-size:1.5em;\'><header style=\'color:#5D5D5D;\'> Session : '+(pairing_times - _index_o)+' </header></b>')
+              description = $('<p><b style=\'color:#5D5D5D\'> Start at : </b><font style=\'color:#5D5D5D\'>'+pairing_session.time_start+'</font><br><b style=\'color:#5D5D5D\'> End at : </b><font style=\'color:#5D5D5D\'>'+pairing_session.time_end+'</font></p>')
+              button = $('<div class=\'ui right floated alignedvertical animated button\' onclick=\'onClickViewPairingRecord('+pairing_session.pairing_session_id+')\'><div class=\'hidden content\' style=\'color:#5D5D5D;\'> View </div><div class=\'visible content\'><i class=\'eye icon\'/></div></div>')
+              extra = $('<div class=\'extra\'><div class=\'ui label\' id=\'status\' style=\'background-color:#E8E8E8; color:#665D5D;\'> COMPLETED </div></div>')
+            } else {
+              tag_b = $('<b style=\'font-size:1.5em;\'><header> Session : '+(pairing_times - _index_o)+' </header></b>')
+              description = $('<p><b> Start at : </b><font>'+pairing_session.time_start+'</font><br><b> End at : </b><font>'+pairing_session.time_end+'</font></p>')
+              button = $('<div class=\'ui top right floated pointing dropdown button blue\' ><font color=\'white\'> Select </font><div class=\'menu\'><div class=\'item\' onclick=\'onClickViewPairingRecord('+pairing_session.pairing_session_id+')\'> View </div><div class=\'item\' onclick=\'onClickCompletedSessionMenu('+pairing_session.pairing_session_id+')\'> Completed </div></div></div>')
+              extra = $('<div class=\'extra\'><div class=\'ui label\' id=\'status\' style=\'background-color:#16AB39; color:white;\'> ACTIVE </div></div>')
+            }
+            item.append(content)
+            content.append(grid)
+            content.append(extra)
+            grid.append(eleven_wide_column)
+            grid.append(five_wide_column)
+            eleven_wide_column.append(tag_b)
+            eleven_wide_column.append(description)
+            five_wide_column.append(button)
+            $('#items_third_container'+pagination[_index_p]).append(item)
+
+
+            break;
+          default:
+            let assignment = objects[_index_o]
+            let tag_a = null
+            item = $('<div class=\'item\'></div>')
+            content = $('<div class=\'content\'></div>')
+            tag_a = $('<a href=\'/assignment?section_id='+section_id+'&assignment_id='+assignment.assignment_id+'\'><b style=\'font-size:1.5em; padding-left:15px; padding-right:15px;\'>'+assignment.title+'</b></a>')
+            description = $('<div class=\'description\'><p style=\'padding-left:15px; padding-right:15px;\'>'+assignment.description+'</p></div>')
+            item.append(content)
+            content.append(tag_a)
+            content.append(description)
+            $('#items_third_container'+pagination[_index_p]).append(item)
+        }
+      }
+    }
+
+  }
+
+  $('div').remove('#pagination_in_third_container')
+  if(pagination[pagination.length - 1] == 1) {
+    pagination = []
+  } else {
+    $('<div class=\'ui pagination menu\' id=\'pagination_in_third_container\'></div>').insertAfter('#ui_two_column_in_third_container')
+  }
+
+  item = null;
+  for(_index in pagination) {
+    item = $('<a class=\'item tc\' id=\'page_'+pagination[_index]+'_third_container\' onclick=\'on_click_page_number_in_third_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
+    $('#pagination_in_third_container').append(item)
+  }
+
+}
+
+function on_click_change_pair() {
+  let pairing_session_id = $('#pairing_session_id').attr('value')
+  let section_id = $('#section_id').attr('value')
+  let parameters = {pairing_session_id: pairing_session_id, section_id: section_id}
+  $.get('/classroom/getPairing', parameters, function(data) {
+    if(data.status == 'Pull information successfully'){
+      $('#partner_keys').attr('value', data.partner_keys)
+      $('#cloning_partner_keys').attr('value', data.partner_keys)
+      $('#pairing_objective').attr('value', data.pairing_objective)
+      $('#confirm-pairing').attr('value', 'change')
+      $('#confirm-header').text('Alert!')
+      $('#confirm-message').text('Something message.')
+      $('#confirm-message').attr('value', 'Something message.')
+      showStudentList('pair', pairing_session_id)
+      pairingOrViewingisHided('pair')
+      alert(data.status)
+    } else {
+      alert(data.status)
+    }
+  })
+}
+
+function onClickAlphabeticalFilterButton(){
+
+  var completed_filter = false
+  var hasElementMoving = false
+  var student_objects = JSON.parse($('#student_objects').attr('value'))
+
+  var active_filter = $('#active_filter').attr('value')
+  if(active_filter == '1-100' || active_filter == '100-1' || active_filter == '') {
+    $('#avg_score_filter').attr('class', 'ui button')
+    $('#alphabetical_filter').attr('class', 'ui grey button')
+
+    $('#avg_score_filter').attr('value', '1-100')
+    $('#avg_score_filter').text('1-100')
+  }
+
+  if($('#alphabetical_filter').attr('value') == 'A-Z') {
+    $('#alphabetical_filter').attr('value', 'Z-A')
+    $('#alphabetical_filter').text('Z-A')
+
+
+    $('#active_filter').attr('value', 'A-Z')
+
+    sort_A_to_Z(student_objects, completed_filter, hasElementMoving)
+
+  } else if($('#alphabetical_filter').attr('value') == 'Z-A') {
+    $('#alphabetical_filter').attr('value', 'A-Z')
+    $('#alphabetical_filter').text('A-Z')
+
+    $('#active_filter').attr('value', 'Z-A')
+
+    sort_Z_to_A(student_objects, completed_filter, hasElementMoving)
+  }
+}
+
+function onClickAvgScoreFilterButton() {
+
+  var completed_filter = false
+  var hasElementMoving = false
+  var student_objects = JSON.parse($('#student_objects').attr('value'))
+
+  var active_filter = $('#active_filter').attr('value')
+  if(active_filter == 'A-Z' || active_filter == 'Z-A' || active_filter == '') {
+    $('#avg_score_filter').attr('class', 'ui grey button')
+    $('#alphabetical_filter').attr('class', 'ui button')
+
+    $('#alphabetical_filter').attr('value', 'A-Z')
+    $('#alphabetical_filter').text('A-Z')
+  }
+
+  if($('#avg_score_filter').attr('value') == '1-100') {
+    $('#avg_score_filter').attr('value', '100-1')
+    $('#avg_score_filter').text('100-1')
+
+    $('#active_filter').attr('value', '1-100')
+
+    sort_avg_score_1_to_100(student_objects, completed_filter, hasElementMoving)
+
+  } else if($('#avg_score_filter').attr('value') == '100-1') {
+    $('#avg_score_filter').attr('value', '1-100')
+    $('#avg_score_filter').text('1-100')
+
+    $('#active_filter').attr('value', '100-1')
+
+    sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMoving)
+
+  }
+}
+
+function set_year(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_month(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_day(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_hour(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_minute(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
+  }
+}
+
+function set_second(start, end, id, input_type) {
+  $('#'+id).empty()
+  for(i = start; i < end; i++){
+    if(input_type == 'dropdown') {
+      let value = i.toString()
+      if(value.length == 1) {
+        value = '0' + value
+      }
+      $('#'+id).append('<option value=\''+value+'\'>'+value+'</option>')
+    }
   }
 }
 
@@ -841,48 +1283,13 @@ function sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMo
 }
 
 function on_click_assignment(opt, id) {
-  assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
   switch (opt) {
     case 1:
-      if($('#'+id).is(':checked') == true){
-        $('#'+id).prop('checked', false)
-        delete assignment_check_saving[id]
-      } else {
-         $('#'+id).prop('checked', true)
-         assignment_check_saving[id] = true
-      }
+      $('#'+id).is(':checked') == true ? $('#'+id).prop('checked', false) : $('#'+id).prop('checked', true)
 
       break;
     default:
-      if($('#'+id).is(':checked') == true){
-        assignment_check_saving[id] = true
-      } else {
-        delete assignment_check_saving[id]
-      }
   }
-  $('#assignment_check_saving').attr('value', JSON.stringify(assignment_check_saving))
-}
-
-function checkbox_event(opt) {
-  let assignment_of_week = JSON.parse($('#assignment_of_week').attr('value'))
-  assignment_check_saving = JSON.parse($('#assignment_check_saving').attr('value'))
-  switch (opt) {
-    //on click the "Check All of Box" button
-    case 1:
-      assignment_of_week.forEach(function(e){
-        $('#'+e.assignment_id+'_is_selected').prop('checked', true)
-        assignment_check_saving[e.assignment_id+'_is_selected'] = true
-      })
-
-      break;
-    //on click the "Clear Checkbox" button
-    default:
-      assignment_of_week.forEach(function(e){
-        $('#'+e.assignment_id+'_is_selected').prop('checked', false)
-        delete assignment_check_saving[e.assignment_id+'_is_selected']
-      })
-  }
-  $('#assignment_check_saving').attr('value', JSON.stringify(assignment_check_saving))
 }
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }
