@@ -31,9 +31,6 @@ $(document).ready(function() {
 function on_click_ui_purpose_tab (index, purpose, student_id, pairing_session_id, username, avg_score, section_id, partner_keys, pairing_objective) {
   $('.ui-purpose').removeClass('teal inverted')
   $('#ui-purpose-'+index).addClass('teal inverted')
-  $('#global_loader').attr({
-    'style': 'display: block; position: fixed;'
-  })
   let parameters = { student_id: student_id, pairing_session_id: pairing_session_id, username: username, avg_score: avg_score, section_id: section_id, purpose: purpose, partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)};
   $.get( 'classroom/searchStudentByPurpose',parameters, function(data) {
       $(".user-purpose-list").empty();
@@ -56,9 +53,6 @@ function on_click_ui_purpose_tab (index, purpose, student_id, pairing_session_id
       } else {
           $(".user-purpose-list").append("<li class='ui item'>No results</li>")
       }
-      $('#global_loader').attr({
-        'style': 'display: none; position: fixed;'
-      })
   })
 }
 
@@ -461,8 +455,6 @@ function showStudentList(command, partner_keys, pairing_objective, pairing_sessi
 
 function onClickCreateSession(pairing_session_id, section_id, pairing_session_status){
   if($('#newPairingSession').attr('value') <= 0) {
-    // $('#partner_keys').attr('value', '{}')
-    // $('#pairing_objective').attr('value', '{}')
     pairingOrViewingisHided('pair')
     showStudentList('pair', {}, {}, pairing_session_id, section_id)
   } else {
