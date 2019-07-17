@@ -201,6 +201,9 @@ socket.on('role selection', () => {
           select: 0,
           partner
         })
+        $('#global_loader').attr({
+          'style': 'display: block; position: fixed;'
+        })
       },
       onApprove : function() {
         console.log('select : coder')
@@ -208,9 +211,15 @@ socket.on('role selection', () => {
           select: 1,
           partner
         })
+        $('#global_loader').attr({
+          'style': 'display: block; position: fixed;'
+        })
       }
     })
     .modal('show')
+    $('#global_loader').attr({
+      'style': 'display: none; position: fixed;'
+    })
 })
 
 socket.on('countdown', (payload) => {
@@ -221,6 +230,9 @@ socket.on('countdown', (payload) => {
     $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
     $(".auto-swap-warning").html(``)
   }
+  $('#global_loader').attr({
+    'style': 'display: none; position: fixed;'
+  })
 })
 
 socket.on('role updated', (payload) => {

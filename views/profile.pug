@@ -8,8 +8,8 @@ block script
     script(src='/js/app/profile.js')
     link(rel='stylesheet' href='/css/main.css')
 block content
-    input(type='hidden' id='username' value=username)
-    input(type='hidden' id='pid' value=pid)
+    input(type='hidden' id='username' value=information_set.common.username)
+    input(type='hidden' id='pid' value=information_set.common.pid)
     .ui.raised.very.padded.container.segment
       .ui.relaxed.grid.container
         .six.wide.column

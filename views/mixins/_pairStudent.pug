@@ -1,16 +1,14 @@
-mixin pairStudent(user, students, pairing_sessions, section)
+mixin pairStudent()
   .ui.small.modal#student_list_modal
     i.close.icon#close_student_list
     .header Student list
     .content
-      input#partner_keys(type='hidden', value='{}')
       input#cloning_partner_keys(type='hidden', value='{}')
-      input#pairing_objective(type='hidden', value='{}')
-      input#student_objects(type='hidden', value='{}')
+      input#cloning_pairing_objective(type='hidden', value='{}')
       input#active_filter(type='hidden', value='')
-      button.ui.button#alphabetical_filter(style="font-size:7px;", value='A-Z', onclick='onClickAlphabeticalFilterButton()') A-Z
-      button.ui.button#avg_score_filter(style="font-size:7px;", value='1-100', onclick='onClickAvgScoreFilterButton()') 1-100
-      button.ui.right.floated.button#change_pair(onclick='on_click_change_pair()') Change pair
+      button.ui.active.button#alphabetical_filter(style="font-size:7px;", value='A-Z') A-Z
+      button.ui.button#avg_score_filter(style="font-size:7px;", value='1-100') 1-100
+      button.ui.right.floated.button#change_pair(onclick='on_click_change_pair('+information_set.common.pairing_sessions[0].pairing_session_id+', \"'+information_set.common.section.section_id+'\")') Change pair
       .ui.fluid.container.segment.student-list-container.box
         .ui.middle.aligned.list.student-container
           .ui.segment
@@ -29,9 +27,6 @@ mixin pairStudent(user, students, pairing_sessions, section)
   .ui.small.modal#partner_selection_modal
     .header Select partner
     .content
-      input#student_id_inp_psm(type='hidden')
-      input#avg_score_inp_psm(type='hidden')
-      input#username_inp_psm(type='hidden')
       .ui.top.attached.tabular.menu
         a.item.active(data-tab="purpose") Select by purpose
         a.item(data-tab="search") Search partner
@@ -65,7 +60,7 @@ mixin pairStudent(user, students, pairing_sessions, section)
           .six.wide.column
             .ui.category.search
               .ui.icon.input
-                input.prompt(type="text", placeholder="Search by username...", id="search-user-input", onkeyup="searchStudent(this, "+`$('#section_id').attr('value')`+")")
+                input.prompt(type="text", placeholder="Search by username...", id="search-user-by-input")
                 i.search.icon
           .ten.wide.column
               .ui.segment.container.user-purpose.box

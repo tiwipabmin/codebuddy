@@ -1,5 +1,7 @@
 .ui.attached.stackable.menu
       .ui.container
+        .ui.active.inverted.dimmer#global_loader(style='position:fixed; display:none;')
+          .ui.text.loader Loading
         img.logo.large(src='/images/logo-codebuddy-s.png')
         if (user)
           //- a.item(href='/dashboard')
@@ -8,8 +10,8 @@
           a.item(href='/lobby')
             i.coffee.icon
             |  Lobby
-          if (section)
-            a.item(href='/classroom?section_id='+section.section_id)
+          if (information_set.common.section)
+            a.item(href='/classroom?section_id='+information_set.common.section.section_id)
               i.grid.layout.icon
               |  Classroom
           a.item(href='/notifications')
@@ -27,13 +29,11 @@
                   | Signed in as 
                   = user.username
                 .ui.inverted.divider
-                case occupation
-                  when 0
-                    - break
-                  default
-                    a.item(href='/profile/'+user.username)
-                      i.unhide.icon
-                      |  Your Profile
+                if user.info.occupation === 'teacher'
+                else
+                  a.item(href='/profile/'+user.username)
+                    i.unhide.icon
+                    |  Your Profile
                 //- a.item(href='/settings/profile')
                 //-   i.setting.icon
                 //-   |  Setting Profile
