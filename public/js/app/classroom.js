@@ -273,9 +273,6 @@ function on_click_confirm_button(parameters){
 
 function searchStudent(id, student_id, section_id, pairing_session_id, username, partner_keys, pairing_objective){
   //console.log('section_id: ' + section_id)
-  $('#global_loader').attr({
-    'style': 'display: block; position: fixed;'
-  })
   var parameters = { search: $(id).val(), student_id: student_id, section_id: section_id, pairing_session_id: pairing_session_id, username: username, partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)};
   $.get( 'classroom/searchStudent',parameters, function(data) {
     const student_id = data.student_id
@@ -298,9 +295,6 @@ function searchStudent(id, student_id, section_id, pairing_session_id, username,
     } else {
       $(".user-list").append("<li class='ui item'>No results</li>")
     }
-    $('#global_loader').attr({
-      'style': 'display: none; position: fixed;'
-    })
   })
 }
 
@@ -381,9 +375,6 @@ function onClickAddPartnerButton(first_param, second_param, third_param, section
 }
 
 function showStudentList(command, partner_keys, pairing_objective, pairing_session_id, section_id){
-  $('#global_loader').attr({
-    'style': 'display: block; position: fixed;'
-  })
   let parameter = { partner_keys: JSON.stringify(partner_keys), pairing_objective:  JSON.stringify(pairing_objective), section_id: section_id, pairing_session_id: pairing_session_id, command: command};
   // var parameter = { partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), section_id: section_id, pairing_session_id: pairing_session_id, command: command};
   $.get('classroom/getStudentsFromSection',parameter, function(data) {
@@ -465,9 +456,6 @@ function showStudentList(command, partner_keys, pairing_objective, pairing_sessi
       //console.log('partner_keys : ', data.partner_keys)
     }
     $('#student_list_modal').modal('show');
-    $('#global_loader').attr({
-      'style': 'display: none; position: fixed;'
-    })
   })
 }
 
