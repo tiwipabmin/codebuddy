@@ -1021,7 +1021,6 @@ exports.createPairingRecord = async (req, res) => {
   num_month === undefined ? num_month = '13' : null;
   let date = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + ' ' + slice_date_time[3]
 
-
   const values = [[section[0].section_id, date, 1]]
   const pairing_session_id = await con.insert_pairing_session(insert_pairing_session, values)
 
