@@ -248,15 +248,14 @@ block content
           h1.ui.header My Classroom
         .right.column
           a.right
-            case occupation
-              when 0
-                button#new.ui.button.approve.green.newClassroom(style='float: right;') Create New Classroom
-              default
-                button#new.ui.button.approve.green.joinClassroom(style='float: right;') Join Classroom
+            if user.info.occupation === 'teacher'
+              button#new.ui.button.approve.green.newClassroom(style='float: right;') Create New Classroom
+            else
+              button#new.ui.button.approve.green.joinClassroom(style='float: right;') Join Classroom
       br
       .ui.devided.items
-        if sections.length > 0
-          each section in sections
+        if information_set.common.sections.length > 0
+          each section in information_set.common.sections
             if user.info.occupation === 'teacher'
                     .item(id=`${section.section_id}`, style='padding-top:2px; padding-bottom:5px;')
                         .content

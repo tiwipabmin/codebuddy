@@ -90,33 +90,34 @@ exports.getLobby = async (req, res) => {
       ]
     })
   .sort({ createdAt: -1 })
+  let information_set = {}
   let occupation = req.user.info.occupation;
-  let querySection = 'SELECT * FROM section WHERE class_code = \'xxxxxxxxx\'';
+  let select_section_by_class_code = 'SELECT * FROM section WHERE class_code = \'xxxxxxxxx\'';
   let sections = [];
   if(occupation == 'teacher') {
     occupation = 0
-    querySection = 'SELECT * FROM section AS s JOIN course AS c ON s.course_id = c.course_id JOIN teacher AS t ON c.teacher_id = t.teacher_id AND t.email = \'' + req.user.email + '\''
-    sections = await con.getSection(querySection)
+    select_section_by_class_code = 'SELECT * FROM section AS s JOIN course AS c ON s.course_id = c.course_id JOIN teacher AS t ON c.teacher_id = t.teacher_id AND t.email = \'' + req.user.email + '\''
+    sections = await con.getSection(select_section_by_class_code)
   } else {
     occupation = 1
-    querySection = 'SELECT * FROM course AS c JOIN section AS s ON c.course_id = s.course_id JOIN enrollment AS e ON s.section_id = e.section_id JOIN student AS st ON e.student_id = st.student_id AND st.email = \'' + req.user.email + '\''
-    sections = await con.getSection(querySection)
+    select_section_by_class_code = 'SELECT * FROM course AS c JOIN section AS s ON c.course_id = s.course_id JOIN enrollment AS e ON s.section_id = e.section_id JOIN student AS st ON e.student_id = st.student_id AND st.email = \'' + req.user.email + '\''
+    sections = await con.getSection(select_section_by_class_code)
   }
   for(_index in sections) {
     sections[_index].section_id = await cryptr.encrypt(sections[_index].section_id)
   }
   if(!sections.length) sections = []
-  res.render('lobby', { projects, invitations, pendings, occupation, sections, title: 'Lobby' })
+  information_set = {common: {occupation: occupation, sections: sections}}
+  res.render('lobby', { information_set, title: 'Lobby' })
 }
 
 exports.getPlayground = async (req, res) => {
+  let information_set = {}
   if (!req.query.pid) res.redirect('/dashboard')
   const user_role = req.query.user_role
   var section_id = req.query.section_id
-  console.log('decrypt sec, ', section_id)
   var section = {}
   section.section_id = section_id
-  console.log('section_id in getPlayground func : ', section.section_id)
   let partner_obj = ''
   const project = await Project.findOne({ pid: req.query.pid })
   const messages = await Message
@@ -129,14 +130,15 @@ exports.getPlayground = async (req, res) => {
     partner_obj = await User
     .findOne({ _id: project.creator_id})
   }
+  information_set = {common: {project: project, section: section}}
 
   // console.log('programming_style, ', project.programming_style)
   if (project.programming_style == 'Interactive') {
-    res.render('playground_interactive', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_interactive', { information_set, title: `${project.title} - Playground`, messages, partner_obj})
   } else if(project.programming_style == 'Co-located') {
-    res.render('playground_co_located', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_co_located', { information_set, title: `${project.title} - Playground`, messages, partner_obj})
   } else if(project.programming_style == 'Remote') {
-    res.render('playground_remote', { project, section, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_remote', { information_set, title: `${project.title} - Playground`, messages, partner_obj})
   }
 }
 
@@ -164,7 +166,9 @@ exports.getHistory = async (req, res) => {
 
   const histories = await History
     .find({ pid: req.query.pid})
-  res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, title: 'History' })
+
+  information_set = {common: {}}
+  res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, information_set, title: 'History' })
 }
 
 exports.getAboutUs = (req, res) => {
@@ -177,7 +181,8 @@ exports.getFeature = (req, res) => {
 
 exports.getProfile = async (req, res) => {
   const username = req.user.username;
-  var pid = [];
+  let information_set = {}
+  let pid = [];
 
   const projects = await Project
     .find({ $or: [{ creator: req.user.username }, { collaborator: req.user.username }] })
@@ -186,11 +191,12 @@ exports.getProfile = async (req, res) => {
     pid.push(projects[_index].pid)
   }
 
-  res.render('profile', { username, pid , title: username + " Progress"})
+  information_set = {common: {username: username, pid: pid}}
+
+  res.render('profile', { information_set, title: username + " Progress"})
 }
 
 exports.getProfileByTeacher = async (req, res) => {
-  console.log('section_id : ' + req.query.section_id + ', username : ' + req.query.username)
   const username = req.query.username
   let section_id = parseInt(cryptr.decrypt(req.query.section_id))
   var assignment_id = []
@@ -279,7 +285,6 @@ exports.deleteSection = async (req, res) => {
   const res_status = await con.delete_section(delete_section)
   let temp = {}
   temp['status'] = res_status
-  console.log('temp : ' + temp.status + ', ' + section_id)
   res.json(temp).status(200)
 }
 
@@ -295,37 +300,34 @@ exports.updateSection = async (req, res) => {
 }
 
 exports.getSection = async (req, res) => {
-  console.log('req.query.section_id, ', req.query.section_id)
-  let all_of_information = {}
+  let information_set = {}
   let section_id = parseInt(cryptr.decrypt(req.query.section_id))
   let occupation = req.user.info.occupation;
-  let queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
-  let querySection = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + section_id + '';
+  let select_student_by_section_id = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
+  let select_section_by_section_id = 'SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = ' + section_id + '';
   let select_assignment_by_section_id = 'SELECT * FROM assignment WHERE section_id = ' + section_id
+  let select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + section_id + ' ORDER BY ps.pairing_session_id DESC';
   let section = [];
   let students = [];
   let assignments = [];
   let weeks = [];
-  let pagination = [];
   let pairing_sessions = [];
   let assignment_set = ''
-  section = await con.getSection(querySection)
-  students = await con.select_student(queryStudent)
+  section = await con.getSection(select_section_by_section_id)
+  students = await con.select_student(select_student_by_section_id)
   assignments = await con.select_assignment(select_assignment_by_section_id)
+  pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
 
   if(!section.length) section = []
   else {
     section = section[0]
     section.section_id = cryptr.encrypt(section.section_id)
-    console.log('section.section_id, ', section.section_id)
   }
 
   if(!students.length) students = []
   if(!assignments.length) {
     assignments = []
   } else if (assignments.length) {
-    let page = 1;
-    let count = 0;
     for (_index in assignments) {
       assignments[_index].assignment_id = cryptr.encrypt(assignments[_index].assignment_id)
       assignments[_index].section_id = cryptr.encrypt(assignments[_index].section_id)
@@ -335,24 +337,19 @@ exports.getSection = async (req, res) => {
     }
   }
 
+  if(!pairing_sessions.length) pairing_sessions = [{pairing_session_id: -1, status: -1}]
+
   if(occupation == 'teacher') {
-    console.log('req.query.section_id, ', section_id)
     occupation = 0
-    assignment_set = JSON.stringify(assignments)
-    let select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + section_id + ' ORDER BY ps.pairing_session_id DESC';
 
-    pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
+    information_set = {common: {occupation: occupation, section: section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
 
-    const pairing_times = pairing_sessions.length
-    if(!pairing_times) {
-      pairing_sessions = [{status: -1}]
-    }
-    pack_student = {students: students, students_strgify: JSON.stringify(students)}
-    pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
-
-    res.render('classroom', { occupation, section, assignments, assignment_set, pack_student, pack_pairing_session, pairing_times, weeks, title: section.course_name })
+    res.render('classroom', { information_set, title: section.course_name })
+    // pack_student = {students: students, students_strgify: JSON.stringify(students)}
+    // pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
+    //
+    // res.render('classroom', { section, assignments, assignment_set, pack_student, pack_pairing_session, pairing_times, weeks, title: section.course_name })
   } else {
-    console.log('req.query.section_id, ', section_id)
     occupation = 1
     weeks = []
     let projects_in_section = []
@@ -375,16 +372,16 @@ exports.getSection = async (req, res) => {
       });
     }
 
-    assignment_set = JSON.stringify(projects_in_section)
-    pairing_sessions = [{status: -1}]
     projects_in_section.reverse()
 
-    pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
-    pack_student = {students: students, students_strgify: JSON.stringify(students)}
-    pack_assignment = {assignments: assignments, assignments_strgify: JSON.stringify(assignments)}
+    information_set = {common: {occupation: occupation, section: section, projects: projects_in_section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {projects: JSON.stringify(projects_in_section), assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
 
-    console.log('req.query.section_id, ', section_id)
-    res.render('classroom', { occupation, section, pack_assignment, pack_student, projects_in_section, pack_pairing_session, assignment_set, weeks, pagination, title: section.course_name })
+    res.render('classroom', { information_set, title: section.course_name })
+    // pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
+    // pack_student = {students: students, students_strgify: JSON.stringify(students)}
+    // pack_assignment = {assignments: assignments, assignments_strgify: JSON.stringify(assignments)}
+
+    // res.render('classroom', { section, pack_assignment, pack_student, projects_in_section, pack_pairing_session, assignment_set, weeks, title: section.course_name })
   }
 }
 
@@ -469,7 +466,6 @@ exports.deleteProject = async (req, res) => {
 
 exports.searchUser = async (req, res) => {
   const keyword = req.query.search
-  console.log(req.query.search)
   const users = await User.find( {
     username: {$regex: '.*' + keyword + '.*'}
   })
@@ -493,7 +489,6 @@ exports.updatePairingSession = async (req, res) => {
 
   const update_pairing_session_by_pairing_session_id = 'UPDATE pairing_session SET status = ' + status + ', time_end = \'' + time_end + '\' WHERE pairing_session_id = ' + pairing_session_id;
   var res_status = await con.update_pairing_session(update_pairing_session_by_pairing_session_id)
-  console.log('res_status, ', res_status)
 
   let select_pairing_session_by_section_id = ''
   let pairing_sessions = []
@@ -521,7 +516,6 @@ exports.searchUserByPurpose = async (req, res) => {
   const purpose = req.query.purpose
   const uid = req.query.uid
   const score = parseFloat(req.query.score)
-  console.log(req.query.purpose+" "+ req.query.uid+" "+req.query.score)
   let users = []
   if("quality"==purpose){
     users = await User.find({
@@ -544,14 +538,15 @@ exports.searchUserByPurpose = async (req, res) => {
       ],
       _id: {$ne: uid}
     })
-    console.log(purpose)
   }
   res.send(users)
 }
 
 exports.searchStudent = async (req, res) => {
   const search = req.query.search
+  const student_id = req.query.student_id
   const section_id = parseInt(cryptr.decrypt(req.query.section_id))
+  const pairing_session_id = req.query.pairing_session_id
   const username = req.query.username
   const select_student_by_section_id_and_literal = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\' OR s.last_name LIKE \'%' + search + '%\')'
   const students = await con.select_student(select_student_by_section_id_and_literal)
@@ -570,14 +565,16 @@ exports.searchStudent = async (req, res) => {
       new_students.push(students[_index])
     }
   }
-  res.send({students: new_students, purpose: 'none'})
+  res.send({student_id: student_id, students: new_students, purpose: 'none', section_id: cryptr.encrypt(section_id), pairing_session_id: pairing_session_id, partner_keys: req.query.partner_keys, pairing_objective: req.query.pairing_objective})
 }
 
 exports.searchStudentByPurpose = async (req, res) => {
-  const purpose = req.query.purpose
-  const section_id = parseInt(cryptr.decrypt(req.query.section_id))
-  const avg_score = parseFloat(req.query.avg_score)
+  const student_id = req.query.student_id
+  const pairing_session_id = req.query.pairing_session_id
   const username = req.query.username
+  const avg_score = parseFloat(req.query.avg_score)
+  const section_id = parseInt(cryptr.decrypt(req.query.section_id))
+  const purpose = req.query.purpose
   let students = []
   let users = []
   if("quality"==purpose){
@@ -585,7 +582,6 @@ exports.searchStudentByPurpose = async (req, res) => {
       avgScore: { $lte: avg_score+10, $gte : avg_score-10},
       username: {$ne: username}
     })
-    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users.length : ', users)
   } else if ("experience"==purpose){
     users = await User.find({
       $or:[
@@ -594,7 +590,6 @@ exports.searchStudentByPurpose = async (req, res) => {
       ],
       username: {$ne: username}
     })
-    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users.length : ' + users.length)
   } else {
     users = await User.find({
       $or:[
@@ -603,7 +598,6 @@ exports.searchStudentByPurpose = async (req, res) => {
       ],
       username: {$ne: username}
     })
-    console.log('purpose : ' + req.query.purpose + ', avg_score : ' + parseFloat(req.query.avg_score) + ', users.length : ' + users.length)
   }
   let count = 0;
   for(_index in users){
@@ -617,7 +611,7 @@ exports.searchStudentByPurpose = async (req, res) => {
       count++;
     }
   }
-  res.send({students: students, purpose: purpose})
+  res.send({student_id: student_id, pairing_session_id: pairing_session_id, students: students, purpose: purpose, section_id: cryptr.encrypt(section_id), partner_keys: req.query.partner_keys, pairing_objective: req.query.pairing_objective})
 }
 
 exports.getPairing = async (req, res) => {
@@ -644,7 +638,7 @@ exports.getPairing = async (req, res) => {
   let pairing_objective = {}
   for (var element_en in enrollment_objects) {
     if (enrollment_objects[element_en].partner_id == null){
-      console.log('enrollment_objects[element_en].partner_id, ', enrollment_objects[element_en].partner_id, ', enrollment_id, ', enrollment_objects[element_en].enrollment_id)
+      // console.log('enrollment_objects[element_en].partner_id, ', enrollment_objects[element_en].partner_id, ', enrollment_id, ', enrollment_objects[element_en].enrollment_id)
       partner_keys[enrollment_objects[element_en].enrollment_id] = -1
       pairing_objective[enrollment_objects[element_en].enrollment_id] = -1
 
@@ -670,13 +664,16 @@ exports.getPairing = async (req, res) => {
     }
   }
 
-  res.send({status: "Pull information successfully", partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)})
+  console.log('partner_keys, ', partner_keys)
+
+  res.send({status: "Pull information successfully", pairing_session_id: pairing_session_id, section_id: cryptr.encrypt(section_id), partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)})
 }
 
 exports.updatePairing = async (req, res) => {
   //console.log('cloning_partner_keys, ', req.body.cloning_partner_keys, ', partner_keys, ', req.body.partner_keys)
   let partner_keys = req.body.partner_keys
   let cloning_partner_keys = req.body.cloning_partner_keys
+  let cloning_pairing_objective = req.body.cloning_pairing_objective
   let pairing_objective = req.body.pairing_objective
   let pairing_session_id = req.body.pairing_session_id
   let section_id = parseInt(cryptr.decrypt(req.body.section_id))
@@ -696,6 +693,11 @@ exports.updatePairing = async (req, res) => {
       count++
       only_changed_partner_keys[key] = partner_keys[key]
     } else if (cloning_partner_keys[key] != partner_keys[key]){
+      count++
+      only_changed_partner_keys[key] = partner_keys[key]
+    }
+
+    if(cloning_pairing_objective[key] != pairing_objective[key]) {
       count++
       only_changed_partner_keys[key] = partner_keys[key]
     }
@@ -970,10 +972,11 @@ exports.updatePairing = async (req, res) => {
 exports.createPairingRecord = async (req, res) => {
   const partner_keys = JSON.parse(req.body.partner_keys)
   const pairing_objective = JSON.parse(req.body.pairing_objective)
-  const student_objects = JSON.parse(req.body.student_objects)
   const section_id = parseInt(cryptr.decrypt(req.body.section_id))
   let res_status = 'Confirm completed.'
   let count = 0;
+
+  console.log('partner_keys, ', partner_keys, ', pairing_objective, ', pairing_objective, ', section_id, ', section_id)
 
   let pairing_record_values = []
   let add_partner_to_student;
@@ -1066,7 +1069,25 @@ exports.createPairingRecord = async (req, res) => {
     select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + section_id + ' ORDER BY ps.pairing_session_id DESC'
     pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
 
-    res.send({res_status: res_status, pairing_sessions: JSON.stringify(pairing_sessions), section_id: cryptr.encrypt(section_id)})
+    let select_assignment_by_section_id = 'SELECT * FROM assignment WHERE section_id = ' + section_id
+    assignments = await con.select_assignment(select_assignment_by_section_id)
+
+    let weeks = [];
+    if(!assignments.length) {
+      assignments = []
+    } else if (assignments.length) {
+      for (_index in assignments) {
+        assignments[_index].assignment_id = cryptr.encrypt(assignments[_index].assignment_id)
+        assignments[_index].section_id = cryptr.encrypt(assignments[_index].section_id)
+        assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+        assignments[_index].description = assignments[_index].description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+        weeks.indexOf(assignments[_index].week) == -1 ? weeks.push(assignments[_index].week) : null;
+      }
+    }
+
+    let data_for_weeks_dropdown_function = {assignments: JSON.stringify(assignments), username: req.user.info.username, img: req.user.info.img, weeks: weeks}
+
+    res.send({res_status: res_status, pairing_sessions: JSON.stringify(pairing_sessions), section_id: cryptr.encrypt(section_id), data_for_weeks_dropdown_function: JSON.stringify(data_for_weeks_dropdown_function)})
 
     // res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairing_time: pairing_time, time_start: date, time_end: '-'})
   } else {
@@ -1084,8 +1105,7 @@ exports.getStudentsFromSection = async (req, res) => {
   const queryStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
   const students = await con.select_student(queryStudent)
   const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id;
-  const pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
-  console.log('pairing_session, ', pairing_session, ', pairing_session_id, ', pairing_session_id)
+  let pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
 
   var arePairingsActive = false;
   for(i in students){
@@ -1106,7 +1126,6 @@ exports.getStudentsFromSection = async (req, res) => {
   }
   if(!count && !arePairingsActive && command == 'pair'){
     for(_index in students) {
-      console.log(students[_index])
       partner_keys[students[_index].enrollment_id] = -1
       pairing_objective[students[_index].enrollment_id] = -1
     }
@@ -1138,12 +1157,15 @@ exports.getStudentsFromSection = async (req, res) => {
   for(_index in students) {
     student_objects[students[_index].enrollment_id] = students[_index]
   }
+  if(!pairing_session.length) pairing_session = [{status: -1}]
+  console.log('partner_keys, ', partner_keys)
   res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective, command: command, pairing_session_status: pairing_session[0].status})
 }
 
 exports.createAssignment = async (req, res) => {
   //console.log('section_id: ' + parseInt(req.body.section_id) + ', title: ' + req.body.title + ', description: ' + req.body.description + ', input_specification: ' + req.body.input_specification + ', output_specification: ' + req.body.output_specification + ', sample_input: ' + req.body.sample_input + ', sample_output: ' + req.body.sample_output)
   let section_id = parseInt(cryptr.decrypt(req.body.section_id))
+  let information_set = {}
   var section = {}
   section.section_id = cryptr.encrypt(section_id)
   const title = (req.body.title).replace(/\s/g, "\\n")
@@ -1168,7 +1190,8 @@ exports.createAssignment = async (req, res) => {
     assignment.sample_input = sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.programming_style = programming_style
-    res.render('assignment', {assignment, section, title: title})
+    information_set = {common: {assignment: assignment, section: section}}
+    res.render('assignment', {information_set, title: title})
   } else {
     res.redirect('/classroom?section_id=' + section_id)
   }
@@ -1177,7 +1200,6 @@ exports.createAssignment = async (req, res) => {
 exports.deleteAssignment = async (req, res) => {
   var delete_assignment = 'DELETE FROM assignment WHERE assignment_id = ' + cryptr.decrypt(req.body.assignment_id);
   var res_status = await con.delete_assignment(delete_assignment)
-  console.log('assignment_id: ', req.body.assignment_id)
   res.send({status: res_status})
 }
 
@@ -1204,17 +1226,11 @@ exports.updateAssignment = async (req, res) => {
 exports.getAssignment = async (req, res) => {
   const section_id = req.query.section_id
   const select_assignment_by_assignment_id = 'SELECT * FROM assignment WHERE assignment_id = ' + cryptr.decrypt(req.query.assignment_id)
-  var assignment = await con.select_assignment(select_assignment_by_assignment_id)
-  var title = 'Assignment'
-  var section = {}
+  let assignment = await con.select_assignment(select_assignment_by_assignment_id)
+  let title = 'Assignment'
+  let information_set = {}
+  let section = {}
   section.section_id = section_id
-
-  var occupation = 1;
-  if(req.user.info.occupation == 'teacher') {
-    occupation = 0;
-  } else if (req.user.info.occupation == 'student') {
-    occupation = 1;
-  }
 
   if(assignment.length) {
     assignment = assignment[0]
@@ -1227,7 +1243,8 @@ exports.getAssignment = async (req, res) => {
     assignment.sample_input = assignment.sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = assignment.sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
   }
-  res.render('assignment', {assignment, section, occupation, title: title})
+  information_set = {common: {assignment: assignment, section: section}}
+  res.render('assignment', {information_set, title: title})
 }
 
 exports.assignAssignment = async (req, res) => {
@@ -1285,11 +1302,9 @@ exports.assignAssignment = async (req, res) => {
   simulation_objects = Object.assign({}, student_objects)
   for(key in simulation_objects) {
     if(simulation_objects[key].role == 'host') {
-      console.log('host', key)
       partner_keys_objects[key] = simulation_objects[key].partner_id
       assignment_of_each_pair[key] = []
     } else {
-      console.log('partner', key)
       partner_keys_objects[simulation_objects[key].partner_id] = key
       assignment_of_each_pair[simulation_objects[key].partner_id] = []
     }
@@ -1297,8 +1312,6 @@ exports.assignAssignment = async (req, res) => {
     delete simulation_objects[simulation_objects[key].partner_id]
     delete simulation_objects[key]
   }
-
-  console.log('partner_keys_objects, ', partner_keys_objects)
 
   let search_project = {};
 
@@ -1328,14 +1341,12 @@ exports.assignAssignment = async (req, res) => {
           createdAt: {$lt: new Date(time_start)}
         }]
       })
-      console.log('search_project, ', search_project, ', enrollment_id, ', key, ', username, ', student_objects[key].username)
       if(search_project == null) {
         count++
         assignment_of_each_pair[key].push(assignment_set[_index].assignment_id)
       }
     }
   }
-  console.log('assignment_of_each_pair, ', assignment_of_each_pair)
 
   let date_time = new Date()
   let str_date_time = date_time.toString()
@@ -1347,11 +1358,11 @@ exports.assignAssignment = async (req, res) => {
   let start_time = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + 'T' + slice_date_time[3] + 'Z'
 
   let time_left = moment(new Date(end_time)).diff(moment(new Date(start_time)))
+  console.log('time_left, ', time_left, ', start_time, ', start_time, ', end_time, ', end_time)
   if(time_left < 0) {
     res.send({res_status: 'Please, set end time again!'})
     return
   }
-  console.log('time_left, ', time_left, ', start_time, ', start_time, ', end_time, ', end_time)
 
   let timeout_handles = []
   // Assign each assignment to the all of student
@@ -1433,6 +1444,7 @@ exports.assignAssignment = async (req, res) => {
   }
 
   setTimeout(async function(){
+    console.log('setTimeout started!!!!!!!!!!!!!!!!!')
     for (_index in timeout_handles) {
       await Project.update({
         _id: timeout_handles[_index]
