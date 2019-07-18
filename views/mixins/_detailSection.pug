@@ -5,16 +5,16 @@ mixin detailSection()
         .item
           .content
             b(style='font-size:1.2em;')
-              header= information_set.common.section.course_name
+              header= data_set.common.section.course_name
             .description
-              p   Section !{information_set.common.section.section} Room !{information_set.common.section.room}
-              p   !{information_set.common.section.day} !{information_set.common.section.time_start} - !{information_set.common.section.time_end}
+              p   Section !{data_set.common.section.section} Room !{data_set.common.section.room}
+              p   !{data_set.common.section.day} !{data_set.common.section.time_start} - !{data_set.common.section.time_end}
       .ui.segment
         .ui.items
           .item
             .content
               .description
-                case information_set.common.occupation
+                case data_set.common.occupation
                   when 0
                     p
                       i.book.icon
@@ -32,7 +32,7 @@ mixin detailSection()
           .item
             .content
               .description
-                case information_set.common.occupation
+                case data_set.common.occupation
                   when 0
                     p
                       i.sitemap.icon
@@ -41,7 +41,7 @@ mixin detailSection()
                     p
                       i.book.icon
                       button.btn.third_container_menu Assignments
-          case information_set.common.occupation
+          case data_set.common.occupation
             when 0
               .item
                 .content

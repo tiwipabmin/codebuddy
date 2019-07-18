@@ -10,8 +10,8 @@
           a.item(href='/lobby')
             i.coffee.icon
             |  Lobby
-          if (information_set.common.section)
-            a.item(href='/classroom?section_id='+information_set.common.section.section_id)
+          if (data_set.common.section)
+            a.item(href='/classroom?section_id='+data_set.common.section.section_id)
               i.grid.layout.icon
               |  Classroom
           a.item(href='/notifications')

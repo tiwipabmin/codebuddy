@@ -115,6 +115,7 @@ function on_click_confirm_button(parameters){
           $('#menu_week').empty()
           create_weeks_dropdown('#menu_week', pairing_sessions[0].pairing_session_id, data_for_weeks_dropdown_function)
           $('#weeks').dropdown();
+          on_click_weeks_dropdown('-1week', JSON.parse(data_for_weeks_dropdown_function.assignments), data_for_weeks_dropdown_function.username, data_for_weeks_dropdown_function.img, pairing_sessions[0].pairing_session_id, 0)
           set_item_pagination_in_third_container(pairing_sessions, section_id, "teacher")
           on_click_page_number_in_third_container(1)
           $('#change_pair').attr('onclick', 'on_click_change_pair('+pairing_sessions[0].pairing_session_id+', \"'+section_id+'\")')
@@ -241,7 +242,7 @@ function on_click_confirm_button(parameters){
         })
       }
     })
-  } else if (message == 'Are you sure you want to delete this assignment?') {
+  } else if (message == 'Are you sure you want to delete these assignment?') {
     $('#global_loader').attr({
       'style': 'display: block; position: fixed;'
     })
@@ -250,10 +251,24 @@ function on_click_confirm_button(parameters){
       type: 'delete',
       data: parameters,
       success: function (res) {
-        if(res.status == 'delete this assignment complete.') {
-          $('#a' + assignment_id).remove()
+        let status = res.data_set.common.status
+        let assignments = JSON.parse(res.data_set.json.assignments)
+        let username = res.data_set.common.username
+        let img = res.data_set.common.img
+        let pairing_session_id = res.data_set.common.pairing_session_id
+        let opt = 0
+        let weeks = res.data_set.common.weeks
+        let data_for_weeks_dropdown_function = {assignments: JSON.stringify(assignments), username: username, img: img, weeks: weeks}
+        if(status == 'Delete all of these assignment successfully.') {
+          $('#menu_week').empty()
+          create_weeks_dropdown('#menu_week', pairing_session_id, data_for_weeks_dropdown_function)
+          $('#weeks').dropdown();
+          on_click_weeks_dropdown('-1week', assignments, username, img, pairing_session_id, opt)
+          $('#clear_checkbox').attr('onclick', 'checkbox_event('+JSON.stringify(assignments)+', \'-1week\', 0)')
+          $('#check_all_of_box').attr('onclick', 'checkbox_event('+JSON.stringify(assignments)+', \'-1week\', 1)')
+          alert(status)
         } else {
-          alert(res.status)
+          alert(status)
         }
         $('#global_loader').attr({
           'style': 'display: none; position: fixed;'
@@ -506,10 +521,10 @@ function onClickAssign(section_id, pairing_session_id, assignment_id, title, des
 function on_click_assign_button(assignment_of_week, pairing_session_id) {
   assignment_of_week = JSON.parse(assignment_of_week)
   let assignment_is_selected = []
-  let assignment_id = -1;
   assignment_of_week.forEach(function(e){
     $('#'+e.assignment_id+'_is_selected').is(':checked') == true ? assignment_is_selected.push(e) : null
   })
+  console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
   if(assignment_is_selected.length) {
     set_year(2019, 2020, 'year_a', 'dropdown')
     set_month(1, 13, 'month_a', 'dropdown')
@@ -521,7 +536,7 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
     $('#assignment-end-time-modal').modal('show');
   } else {
     $('#alert-header').text('Select assignment')
-    $('#alert-message').text('Please!!!, select an assignment before click the \"assign\" button.')
+    $('#alert-message').text('Please!!!, select an assignment before click the \"Assign\" button.')
     $('#alert-modal').modal('show')
   }
 }
@@ -536,13 +551,25 @@ function on_click_assign_now_button(assignment_set, pairing_session_id) {
   $('#confirm-modal').modal('show');
 }
 
-function onClickDeleteAssignment(assignment_id) {
-  let parameters = JSON.stringify({assignment_id: assignment_id})
-  $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
-  $('#confirm-header').text('Delete assignment')
-  $('#confirm-message').attr('value', 'Are you sure you want to delete this assignment?')
-  $('#confirm-message').text('Are you sure you want to delete this assignment?')
-  $('#confirm-modal').modal('show');
+function onClickDeleteAssignment(assignment_of_week) {
+  let assignment_is_selected = []
+  assignment_of_week.forEach(function(e){
+    $('#'+e.assignment_id+'_is_selected').is(':checked') == true ? assignment_is_selected.push(e) : null
+  })
+  console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
+  if(!assignment_is_selected.length) {
+    $('#alert-header').text('Select assignment')
+    $('#alert-message').text('Please!!!, select an assignment before click the \"Delete\" button.')
+    $('#alert-modal').modal('show')
+  } else {
+    let parameters = JSON.stringify({assignment_is_selected: assignment_is_selected})
+    $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
+    $('#confirm-header').text('Delete assignments')
+    $('#confirm-message').attr('value', 'Are you sure you want to delete these assignment?')
+    $('#confirm-message').text('Are you sure you want to delete these assignment?')
+    $('#confirm-modal').modal('show');
+  }
+
 }
 
 function on_click_remove_student_button(enrollment_id, first_name, last_name) {
@@ -600,6 +627,25 @@ function checkbox_event(assignment_set, id, opt) {
   }
 }
 
+function on_click_button_in_uspm(id) {
+  console.log('element_id_in_uspm, ', id)
+  $('.item.active.uspm').attr({
+    class: 'item uspm'
+  })
+  $('#'+id).attr({
+    class: 'item active uspm'
+  })
+
+  $('.segment.active.uspm').attr({
+    class: 'ui segment uspm',
+    style: 'display: none'
+  })
+  $('#'+id+'_segment').attr({
+    class: 'ui segment active uspm',
+    style: 'display: block'
+  })
+}
+
 function create_weeks_dropdown(id, pairing_session_id, data_set) {
   $(''+id).append('<div class=\'item\' id=\'-1week\' data-value=\'-1\' onclick=\'on_click_weeks_dropdown(\"-1week\", '+data_set.assignments+', \"'+data_set.username+'\", \"'+data_set.img+'\", '+pairing_session_id+', 0)\'>All</div>')
   data_set.weeks.forEach(function (e){
@@ -618,18 +664,21 @@ function on_click_weeks_dropdown(id, assignment_set, username, img, pairing_sess
   set_item_pagination_in_first_container(pagination, assignment_of_week_, username, img, id, opt)
 
   $('#assign_button').attr('onclick', 'on_click_assign_button('+JSON.stringify(JSON.stringify(assignment_of_week_))+', '+pairing_session_id+')')
+  $('#delete_assignment_button').attr('onclick', 'onClickDeleteAssignment('+JSON.stringify(assignment_of_week_)+')')
   $('div').remove('#assignment_pagination')
   if(pagination[pagination.length - 1] == 1) {
     pagination = []
-  } else {
+  } else if(pagination.length) {
     $('<div class=\'ui pagination menu\' id=\'assignment_pagination\'></div>').insertAfter('#divider_in_first_container')
   }
 
   let item = null;
+
   for(_index in pagination) {
     item = $('<a class=\'item fc\' id=\'page_'+pagination[_index]+'_first_container\' onclick=\'on_click_page_number_in_first_container('+pagination[_index]+')\'>'+pagination[_index]+'</a>')
     $('#assignment_pagination').append(item)
   }
+
   on_click_page_number_in_first_container(1)
 }
 
@@ -658,6 +707,10 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
   let description = null;
   $('div').remove('.active.first.container')
   $('div').remove('.items.first.container')
+
+  $('p').remove('#no_assignment')
+  if(!pagination.length) $('#segment_in_first_container').append('<p class=\'text-center\' id=\'no_assignment\'>No assignment.</p>')
+
   for (_index_p in pagination) {
 
     $('div').remove('#items_first_container'+pagination[_index_p])
@@ -931,9 +984,6 @@ function set_item_pagination_in_third_container(objects, section_id, occupation)
 }
 
 function on_click_change_pair(pairing_session_id, section_id) {
-  $('#global_loader').attr({
-    'style': 'display: block; position: fixed;'
-  })
   let parameters = {pairing_session_id: pairing_session_id, section_id: section_id}
   $.get('/classroom/getPairing', parameters, function(data) {
     if(data.status == 'Pull information successfully'){
@@ -950,9 +1000,6 @@ function on_click_change_pair(pairing_session_id, section_id) {
     } else {
       alert(data.status)
     }
-    $('#global_loader').attr({
-      'style': 'display: none; position: fixed;'
-    })
   })
 }
 

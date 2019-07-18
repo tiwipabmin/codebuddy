@@ -96,7 +96,7 @@ block content
   .ui.segment.container
     .ui.two.column.grid
       .middle.aligned.column
-        h1.ui.header !{information_set.common.assignment.title}
+        h1.ui.header !{data_set.common.assignment.title}
       if user.info.occupation == 'teacher'
         .right.aligned.column
           .ui.button.approve.grey#edit-assignment(onclick='showAssignmentModal()') Edit
@@ -109,7 +109,7 @@ block content
                     label Programming Style :
                     .field
                       .ui.radio.checkbox
-                        if information_set.common.assignment.programming_style == 'Co-located'
+                        if data_set.common.assignment.programming_style == 'Co-located'
                           input(type='radio' name='programming_style' value='Co-located' checked='checked')
                         else
                           input(type='radio' name='programming_style' value='Co-located')
@@ -117,7 +117,7 @@ block content
                         label Co-located ( ทำ Pair แบบดั้งเดิม )
                     .field
                       .ui.radio.checkbox
-                        if information_set.common.assignment.programming_style == 'Remote'
+                        if data_set.common.assignment.programming_style == 'Remote'
                           input(type='radio' name='programming_style' value='Remote' checked='checked')
                         else
                           input(type='radio' name='programming_style' value='Remote')
@@ -128,42 +128,42 @@ block content
                       .field
                         label Title :
                         |
-                        input(type='text', name='title', placeholder='Your title', value=`${information_set.common.assignment.title}`)
+                        input(type='text', name='title', placeholder='Your title', value=`${data_set.common.assignment.title}`)
                     .three.wide.column
                       .field
                         label Week :
                         |
-                        input(type='text', name='week', placeholder='Week', maxlength='3', value=`${information_set.common.assignment.week}`)
+                        input(type='text', name='week', placeholder='Week', maxlength='3', value=`${data_set.common.assignment.week}`)
                   .field
                     label Description :
                     |
-                    textarea#description(type='text', name='description', placeholder='Some content...', style='resize:none;') !{information_set.common.assignment.description}
+                    textarea#description(type='text', name='description', placeholder='Some content...', style='resize:none;') !{data_set.common.assignment.description}
                   .ui.grid
                     .two.column.row
                       .column
                         .field
                           label Input specification :
                           |
-                          textarea#input_specification(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;') !{information_set.common.assignment.input_specification}
+                          textarea#input_specification(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;') !{data_set.common.assignment.input_specification}
                       .column
                         .field
                           label Output specification :
                           |
-                          textarea#output_specification(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;') !{information_set.common.assignment.output_specification}
+                          textarea#output_specification(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;') !{data_set.common.assignment.output_specification}
                   .ui.grid
                     .two.column.row
                       .column
                         .field
                           label Sample Input :
                           |
-                          textarea#sample_input(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;') !{information_set.common.assignment.sample_input}
+                          textarea#sample_input(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;') !{data_set.common.assignment.sample_input}
                       .column
                         .field
                           label Sample Output :
                           |
-                          textarea#sample_output(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;') !{information_set.common.assignment.sample_output}
-                  input(type='hidden', name='assignment_id', value=`${information_set.common.assignment.assignment_id}`)
-                  input(type='hidden', name='section_id', value=`${information_set.common.section.section_id}`)
+                          textarea#sample_output(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;') !{data_set.common.assignment.sample_output}
+                  input(type='hidden', name='assignment_id', value=`${data_set.common.assignment.assignment_id}`)
+                  input(type='hidden', name='section_id', value=`${data_set.common.section.section_id}`)
                   .ui.basic.center.aligned.segment
                     .actions
                       button.ui.button.approve.green(type='submit') Update
@@ -173,7 +173,7 @@ block content
                     $(document).ready(function () {
                       $('#edit-assignment').click(function(){
                         var assignment = !{JSON.stringify(assignment)}
-                        console.log("assignment : ",  information_set.common.assignment.description)
+                        console.log("assignment : ",  data_set.common.assignment.description)
                         assignment.title = assignment.title.replace(/<br>/g, "\n")
                         assignment.description = assignment.description.replace(/<br>/g, "\n")
                         assignment.input_specification = assignment.input_specification.replace(/<br>/g, "\n")
@@ -190,27 +190,27 @@ block content
     .ui.two.column.grid
       .column(style="display: flex;")
         .ui.segment(style="flex: 1;")
-          p !{information_set.common.assignment.description}
+          p !{data_set.common.assignment.description}
       .column
         .ui.two.column.grid
           .row
             .eight.wide.column
               h3.ui.header Input Specification
               .ui.segment
-                p !{information_set.common.assignment.input_specification}
+                p !{data_set.common.assignment.input_specification}
             .eight.wide.column
               h3.ui.header Output Specification
               .ui.segment
-                p !{information_set.common.assignment.output_specification}
+                p !{data_set.common.assignment.output_specification}
           .row
             .eight.wide.column
               h3.ui.header Sample Input
               .ui.segment
-                p !{information_set.common.assignment.sample_input}
+                p !{data_set.common.assignment.sample_input}
             .eight.wide.column
               h3.ui.header Sample Output
               .ui.segment
-                p !{information_set.common.assignment.sample_output}
-    a.button.ui.labeled.icon.button(href='/classroom?section_id='+information_set.common.section.section_id, style='margin-top:20px;')
+                p !{data_set.common.assignment.sample_output}
+    a.button.ui.labeled.icon.button(href='/classroom?section_id='+data_set.common.section.section_id, style='margin-top:20px;')
       i.reply.icon
       font Back

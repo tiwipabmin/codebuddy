@@ -90,7 +90,7 @@ exports.getLobby = async (req, res) => {
       ]
     })
   .sort({ createdAt: -1 })
-  let information_set = {}
+  let data_set = {}
   let occupation = req.user.info.occupation;
   let select_section_by_class_code = 'SELECT * FROM section WHERE class_code = \'xxxxxxxxx\'';
   let sections = [];
@@ -107,12 +107,12 @@ exports.getLobby = async (req, res) => {
     sections[_index].section_id = await cryptr.encrypt(sections[_index].section_id)
   }
   if(!sections.length) sections = []
-  information_set = {common: {occupation: occupation, sections: sections}}
-  res.render('lobby', { information_set, title: 'Lobby' })
+  data_set = {common: {occupation: occupation, sections: sections}}
+  res.render('lobby', { data_set, title: 'Lobby' })
 }
 
 exports.getPlayground = async (req, res) => {
-  let information_set = {}
+  let data_set = {}
   if (!req.query.pid) res.redirect('/dashboard')
   const user_role = req.query.user_role
   var section_id = req.query.section_id
@@ -130,15 +130,15 @@ exports.getPlayground = async (req, res) => {
     partner_obj = await User
     .findOne({ _id: project.creator_id})
   }
-  information_set = {common: {project: project, section: section}}
+  data_set = {common: {project: project, section: section}}
 
   // console.log('programming_style, ', project.programming_style)
   if (project.programming_style == 'Interactive') {
-    res.render('playground_interactive', { information_set, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_interactive', { data_set, title: `${project.title} - Playground`, messages, partner_obj})
   } else if(project.programming_style == 'Co-located') {
-    res.render('playground_co_located', { information_set, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_co_located', { data_set, title: `${project.title} - Playground`, messages, partner_obj})
   } else if(project.programming_style == 'Remote') {
-    res.render('playground_remote', { information_set, title: `${project.title} - Playground`, messages, partner_obj})
+    res.render('playground_remote', { data_set, title: `${project.title} - Playground`, messages, partner_obj})
   }
 }
 
@@ -167,8 +167,8 @@ exports.getHistory = async (req, res) => {
   const histories = await History
     .find({ pid: req.query.pid})
 
-  information_set = {common: {}}
-  res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, information_set, title: 'History' })
+  data_set = {common: {}}
+  res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, data_set, title: 'History' })
 }
 
 exports.getAboutUs = (req, res) => {
@@ -181,7 +181,7 @@ exports.getFeature = (req, res) => {
 
 exports.getProfile = async (req, res) => {
   const username = req.user.username;
-  let information_set = {}
+  let data_set = {}
   let pid = [];
 
   const projects = await Project
@@ -191,9 +191,9 @@ exports.getProfile = async (req, res) => {
     pid.push(projects[_index].pid)
   }
 
-  information_set = {common: {username: username, pid: pid}}
+  data_set = {common: {username: username, pid: pid}}
 
-  res.render('profile', { information_set, title: username + " Progress"})
+  res.render('profile', { data_set, title: username + " Progress"})
 }
 
 exports.getProfileByTeacher = async (req, res) => {
@@ -218,9 +218,9 @@ exports.getProfileByTeacher = async (req, res) => {
     pid.push(projects[_index].pid)
   }
 
-  information_set = {common: {username: username, pid: pid}}
+  data_set = {common: {username: username, pid: pid}}
 
-  res.render('profile', { information_set, title: username + " Progress"})
+  res.render('profile', { data_set, title: username + " Progress"})
 }
 
 exports.getNotifications = async (req, res) => {
@@ -302,7 +302,7 @@ exports.updateSection = async (req, res) => {
 }
 
 exports.getSection = async (req, res) => {
-  let information_set = {}
+  let data_set = {}
   let section_id = parseInt(cryptr.decrypt(req.query.section_id))
   let occupation = req.user.info.occupation;
   let select_student_by_section_id = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
@@ -344,9 +344,9 @@ exports.getSection = async (req, res) => {
   if(occupation == 'teacher') {
     occupation = 0
 
-    information_set = {common: {occupation: occupation, section: section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
+    data_set = {common: {occupation: occupation, section: section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
 
-    res.render('classroom', { information_set, title: section.course_name })
+    res.render('classroom', { data_set, title: section.course_name })
     // pack_student = {students: students, students_strgify: JSON.stringify(students)}
     // pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
     //
@@ -376,9 +376,9 @@ exports.getSection = async (req, res) => {
 
     projects_in_section.reverse()
 
-    information_set = {common: {occupation: occupation, section: section, projects: projects_in_section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {projects: JSON.stringify(projects_in_section), assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
+    data_set = {common: {occupation: occupation, section: section, projects: projects_in_section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {projects: JSON.stringify(projects_in_section), assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
 
-    res.render('classroom', { information_set, title: section.course_name })
+    res.render('classroom', { data_set, title: section.course_name })
     // pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
     // pack_student = {students: students, students_strgify: JSON.stringify(students)}
     // pack_assignment = {assignments: assignments, assignments_strgify: JSON.stringify(assignments)}
@@ -1087,7 +1087,7 @@ exports.createPairingRecord = async (req, res) => {
       }
     }
 
-    let data_for_weeks_dropdown_function = {assignments: JSON.stringify(assignments), username: req.user.info.username, img: req.user.info.img, weeks: weeks}
+    let data_for_weeks_dropdown_function = {assignments: JSON.stringify(assignments), username: req.user.info.username, img: req.user.img, weeks: weeks}
 
     res.send({res_status: res_status, pairing_sessions: JSON.stringify(pairing_sessions), section_id: cryptr.encrypt(section_id), data_for_weeks_dropdown_function: JSON.stringify(data_for_weeks_dropdown_function)})
 
@@ -1167,7 +1167,7 @@ exports.getStudentsFromSection = async (req, res) => {
 exports.createAssignment = async (req, res) => {
   //console.log('section_id: ' + parseInt(req.body.section_id) + ', title: ' + req.body.title + ', description: ' + req.body.description + ', input_specification: ' + req.body.input_specification + ', output_specification: ' + req.body.output_specification + ', sample_input: ' + req.body.sample_input + ', sample_output: ' + req.body.sample_output)
   let section_id = parseInt(cryptr.decrypt(req.body.section_id))
-  let information_set = {}
+  let data_set = {}
   var section = {}
   section.section_id = cryptr.encrypt(section_id)
   const title = (req.body.title).replace(/\s/g, "\\n")
@@ -1192,17 +1192,56 @@ exports.createAssignment = async (req, res) => {
     assignment.sample_input = sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.programming_style = programming_style
-    information_set = {common: {assignment: assignment, section: section}}
-    res.render('assignment', {information_set, title: title})
+    data_set = {common: {assignment: assignment, section: section}}
+    res.render('assignment', {data_set, title: title})
   } else {
     res.redirect('/classroom?section_id=' + section_id)
   }
 }
 
 exports.deleteAssignment = async (req, res) => {
-  var delete_assignment = 'DELETE FROM assignment WHERE assignment_id = ' + cryptr.decrypt(req.body.assignment_id);
-  var res_status = await con.delete_assignment(delete_assignment)
-  res.send({status: res_status})
+  let assignment_is_selected = req.body.assignment_is_selected
+  let max_length = assignment_is_selected.length
+  let count = 0
+  for (_index in assignment_is_selected) {
+    let delete_assignment = 'DELETE FROM assignment WHERE assignment_id = ' + cryptr.decrypt(assignment_is_selected[_index].assignment_id);
+    let res_status = await con.delete_assignment(delete_assignment)
+
+    if(res_status === 'delete this assignment complete.') {
+      count++
+    }
+  }
+
+  if(count === max_length) {
+    let section_id = cryptr.decrypt(assignment_is_selected[0].section_id)
+    let select_pairing_session_by_section_id = 'SELECT * FROM pairing_session AS ps WHERE ps.section_id = ' + section_id + ' ORDER BY ps.pairing_session_id DESC';
+    let pairing_sessions = await con.select_pairing_session(select_pairing_session_by_section_id)
+
+    let select_assignment_by_section_id = 'SELECT * FROM assignment WHERE section_id = ' + section_id
+    let assignments =  await con.select_assignment(select_assignment_by_section_id);
+
+    let weeks = [];
+    if(!assignments.length) {
+      assignments = []
+    } else if (assignments.length) {
+      for (_index in assignments) {
+        assignments[_index].assignment_id = cryptr.encrypt(assignments[_index].assignment_id)
+        assignments[_index].section_id = cryptr.encrypt(assignments[_index].section_id)
+        assignments[_index].title = assignments[_index].title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+        assignments[_index].description = assignments[_index].description.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
+        weeks.indexOf(assignments[_index].week) == -1 ? weeks.push(assignments[_index].week) : null;
+      }
+    }
+
+    !pairing_sessions.length ? pairing_sessions = [{pairing_session_id: -1, status: -1}] : pairing_sessions = pairing_sessions[0]
+
+    console.log('Completed: count, ', count, ', max_length, ', max_length)
+    data_set = {common: {status: 'Delete all of these assignment successfully.', username: req.user.username, img: req.user.img, weeks: weeks, pairing_session_id: pairing_sessions.pairing_session_id}, json: {assignments: JSON.stringify(assignments)}}
+    res.send({data_set: data_set})
+    return
+  }
+  console.log('Failured: count, ', count, ', max_length, ', max_length)
+  res.send({data_set: {common: {status: 'Found error while is be processing!'}}})
 }
 
 exports.updateAssignment = async (req, res) => {
@@ -1230,7 +1269,7 @@ exports.getAssignment = async (req, res) => {
   const select_assignment_by_assignment_id = 'SELECT * FROM assignment WHERE assignment_id = ' + cryptr.decrypt(req.query.assignment_id)
   let assignment = await con.select_assignment(select_assignment_by_assignment_id)
   let title = 'Assignment'
-  let information_set = {}
+  let data_set = {}
   let section = {}
   section.section_id = section_id
 
@@ -1245,8 +1284,8 @@ exports.getAssignment = async (req, res) => {
     assignment.sample_input = assignment.sample_input.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
     assignment.sample_output = assignment.sample_output.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ")
   }
-  information_set = {common: {assignment: assignment, section: section}}
-  res.render('assignment', {information_set, title: title})
+  data_set = {common: {assignment: assignment, section: section}}
+  res.render('assignment', {data_set, title: title})
 }
 
 exports.assignAssignment = async (req, res) => {
@@ -1271,6 +1310,7 @@ exports.assignAssignment = async (req, res) => {
   }
 
   const pairing_session_id = req.body.pairing_session_id;
+  console.log('assignAssignment: pairing_sesion_id, ', pairing_session_id)
   const swaptime = '1';
   const language = '0';
   const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairing_session_id

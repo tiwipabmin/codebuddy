@@ -8,7 +8,7 @@ mixin pairStudent()
       input#active_filter(type='hidden', value='')
       button.ui.active.button#alphabetical_filter(style="font-size:7px;", value='A-Z') A-Z
       button.ui.button#avg_score_filter(style="font-size:7px;", value='1-100') 1-100
-      button.ui.right.floated.button#change_pair(onclick='on_click_change_pair('+information_set.common.pairing_sessions[0].pairing_session_id+', \"'+information_set.common.section.section_id+'\")') Change pair
+      button.ui.right.floated.button#change_pair(onclick='on_click_change_pair('+data_set.common.pairing_sessions[0].pairing_session_id+', \"'+data_set.common.section.section_id+'\")') Change pair
       .ui.fluid.container.segment.student-list-container.box
         .ui.middle.aligned.list.student-container
           .ui.segment

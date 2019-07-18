@@ -254,8 +254,8 @@ block content
               button#new.ui.button.approve.green.joinClassroom(style='float: right;') Join Classroom
       br
       .ui.devided.items
-        if information_set.common.sections.length > 0
-          each section in information_set.common.sections
+        if data_set.common.sections.length > 0
+          each section in data_set.common.sections
             if user.info.occupation === 'teacher'
                     .item(id=`${section.section_id}`, style='padding-top:2px; padding-bottom:5px;')
                         .content

@@ -41,9 +41,9 @@ block script
           showThirdContainer()
         });
         $('.settings-menu').click(function () {
-          var day = '!{information_set.common.section.day}'
-          var time_start = '!{information_set.common.section.time_start}'
-          var time_end = '!{information_set.common.section.time_end}'
+          var day = '!{data_set.common.section.day}'
+          var time_start = '!{data_set.common.section.time_start}'
+          var time_end = '!{data_set.common.section.time_end}'
           var time_start_hh = time_start[0] + time_start[1]
           var time_start_mm = time_start[3] + time_start[4]
           var time_start_ap = time_start[5] + time_start[6]
@@ -198,9 +198,9 @@ block script
       }
 
 block content
-    input#pairing_session_id(type='hidden', value=information_set.common.pairing_sessions[0].pairing_session_id)
-    input#section_id(type='hidden', value=`${information_set.common.section.section_id}`)
-    +pairStudent(user, information_set.common.students, information_set.common.pairing_sessions, information_set.common.section)
+    input#pairing_session_id(type='hidden', value=data_set.common.pairing_sessions[0].pairing_session_id)
+    input#section_id(type='hidden', value=`${data_set.common.section.section_id}`)
+    +pairStudent(user, data_set.common.students, data_set.common.pairing_sessions, data_set.common.section)
 
     .ui.small.modal#alert-modal
       i.close.icon
@@ -262,19 +262,19 @@ block content
           .field
             label Class Name :
             |
-            input(type='text', name='course_name', placeholder='Your class name', value=`${information_set.common.section.course_name}`)
+            input(type='text', name='course_name', placeholder='Your class name', value=`${data_set.common.section.course_name}`)
           .ui.grid
             .two.column.row
               .column
                 .field
                   label Section :
                   |
-                  input(type='text', name='section', placeholder='Your section', maxlength='3', value=`${information_set.common.section.section}`)
+                  input(type='text', name='section', placeholder='Your section', maxlength='3', value=`${data_set.common.section.section}`)
               .column
                 .field
                   label Room :
                   |
-                  input(type='text', name='room', placeholder='Your room', maxlength='4', value=`${information_set.common.section.room}`)
+                  input(type='text', name='room', placeholder='Your room', maxlength='4', value=`${data_set.common.section.room}`)
           .ui.grid
             .four.wide.column
               .field
@@ -358,8 +358,8 @@ block content
                 select.ui.dropdown.timeEndAp(name='time_end_ap')
                   option(value='am.')  am.
                   option(value='pm.')  pm.
-          input(type='hidden', name='course_id', value=`${information_set.common.section.course_id}`)
-          input(type='hidden', name='section_id', value=`${information_set.common.section.section_id}`)
+          input(type='hidden', name='course_id', value=`${data_set.common.section.course_id}`)
+          input(type='hidden', name='section_id', value=`${data_set.common.section.section_id}`)
           .ui.basic.center.aligned.segment
             .actions
               button.ui.button.approve.green(type='submit') Update
@@ -422,7 +422,7 @@ block content
                   label Sample Output :
                   |
                   textarea(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;')
-          input(type='hidden', name='section_id', value=`${information_set.common.section.section_id}`)
+          input(type='hidden', name='section_id', value=`${data_set.common.section.section_id}`)
           .ui.basic.center.aligned.segment
             .actions
               button.ui.button.approve.green(type='submit') Create
@@ -444,48 +444,49 @@ block content
                 div
                   .ui.selection.dropdown#weeks(style='float: right;')
                     i.dropdown.icon
-                    if information_set.common.weeks.length > 0
+                    if data_set.common.weeks.length > 0
                       .default.text Select week
                     else
                       .default.text No week
                     .menu#menu_week(name='status')
-                      if information_set.common.weeks.length > 0
+                      if data_set.common.weeks.length > 0
                         if user.info.occupation === 'teacher'
-                          .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${information_set.json.assignments}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${information_set.common.pairing_sessions[0].pairing_session_id}`+', 0)') All
+                          .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.assignments}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 0)') All
                         else
-                          .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${information_set.json.projects}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${information_set.common.pairing_sessions[0].pairing_session_id}`+', 1)') All
-                      each week in information_set.common.weeks
+                          .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.projects}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 1)') All
+                      each week in data_set.common.weeks
                         if user.info.occupation === 'teacher'
-                          .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${information_set.json.assignments}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${information_set.common.pairing_sessions[0].pairing_session_id}`+', 0)') !{week}
+                          .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.assignments}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 0)') !{week}
                         else
-                          .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${information_set.json.projects}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${information_set.common.pairing_sessions[0].pairing_session_id}`+', 1)') !{week}
+                          .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.projects}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 1)') !{week}
                   script(type='text/javascript').
                     $('#weeks').dropdown();
-                  if user.info.occupation === 'teacher'
-                    button.ui.button.approve.blue(style='float: right;' onClick='checkbox_event('+`${information_set.json.assignments}`+', \"-1week\", 0)') Clear Checkbox
-                    button.ui.button.approve.blue(style='float: right;' onClick='checkbox_event('+`${information_set.json.assignments}`+', \"-1week\", 1)') Check All of Box
-                    button.ui.button.approve.red(style='float: right;') Delete
-                    button.ui.button.approve.yellow#assign_button(style='float: right;' onclick='on_click_assign_button([], {}, '+`${information_set.common.pairing_sessions[0].pairing_session_id}`+')') Assign
-                    button.ui.button.approve.green.newAssignment(style='float: right;') Create
             if user.info.occupation === 'teacher'
+              .ui.secondary.pointing.menu#uspm
+                a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') CRUD
+                a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
+                a.item.uspm#other(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Other
+              .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
+                button.ui.button.approve.green.newAssignment Create
+                button.ui.button.approve.red#delete_assignment_button Delete
+              .ui.segment.uspm#action_checkbox_segment(style='display: none')
+                button.ui.button.approve.blue#clear_checkbox(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 0)') Clear Checkbox
+                button.ui.button.approve.blue#check_all_of_box(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 1)') Check All of Box
+              .ui.segment.uspm#other_segment(style='display: none')
+                button.ui.button.approve.yellow#assign_button Assign
               .ui.section.divider#divider_in_first_container
-              if information_set.common.assignments.length > 0
+              if data_set.common.assignments.length > 0
                 script(type='text/javascript').
                   $(document).ready(function() {
-                    on_click_weeks_dropdown('-1week', !{information_set.json.assignments}, `!{user.username}`, `!{user.img}`, `!{information_set.common.pairing_sessions[0].pairing_session_id}`, 0)
+                    on_click_weeks_dropdown('-1week', !{data_set.json.assignments}, `!{user.username}`, `!{user.img}`, `!{data_set.common.pairing_sessions[0].pairing_session_id}`, 0)
                   })
-              //- .ui.top.attached.tabular.menu
-              //-   a.item.active(data-tab="one") 1
-              //-   a.item(data-tab="two") 2
-              //- .ui.bottom.attached.tab.segment.active(data-tab="one")
-              //- .ui.bottom.attached.tab.segment(data-tab="two")
               else
-                p.text-center No assignment.
+                p.text-center#no_assignment No assignment.
             else
-              if information_set.common.projects.length > 0
+              if data_set.common.projects.length > 0
                 script(type='text/javascript').
                   $(document).ready(function() {
-                    on_click_weeks_dropdown('-1week', !{information_set.json.projects}, `!{user.username}`, `!{user.img}`, `!{information_set.common.pairing_sessions[0].pairing_session_id}`, 1)
+                    on_click_weeks_dropdown('-1week', !{data_set.json.projects}, `!{user.username}`, `!{user.img}`, `!{data_set.common.pairing_sessions[0].pairing_session_id}`, 1)
                   })
               else
                 p.text-center No project.  
@@ -495,9 +496,9 @@ block content
             .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_second_container(style='padding-top:20px; margin-bottom:20px;')
               .column
                 h1.ui.header#headerContainer Student
-            if information_set.common.students.length > 0
+            if data_set.common.students.length > 0
               script(type='text/javascript').
-                set_item_pagination_in_second_container(!{information_set.json.students}, "!{information_set.common.section.section_id}", "!{user.info.occupation}")
+                set_item_pagination_in_second_container(!{data_set.json.students}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
                 on_click_page_number_in_second_container(1)
             else
               p.text-center No student.  
@@ -515,19 +516,19 @@ block content
               .right.column
                 if user.info.occupation === 'teacher'
                   a.right
-                    button.ui.button.approve.green#newPairingSession(style='float: right;', onclick='onClickCreateSession('+information_set.common.pairing_sessions[0].pairing_session_id+', \''+information_set.common.section.section_id+'\', '+information_set.common.pairing_sessions[0].status+')', value=`${information_set.common.pairing_sessions[0].status}`) Create Session
+                    button.ui.button.approve.green#newPairingSession(style='float: right;', onclick='onClickCreateSession('+data_set.common.pairing_sessions[0].pairing_session_id+', \''+data_set.common.section.section_id+'\', '+data_set.common.pairing_sessions[0].status+')', value=`${data_set.common.pairing_sessions[0].status}`) Create Session
             if user.info.occupation === 'teacher'
-              if information_set.common.pairing_sessions.length > 0 && information_set.common.pairing_sessions[0].status >= 0
+              if data_set.common.pairing_sessions.length > 0 && data_set.common.pairing_sessions[0].status >= 0
                 script(type='text/javascript').
-                  set_item_pagination_in_third_container(!{information_set.json.pairing_sessions}, "!{information_set.common.section.section_id}", "!{user.info.occupation}")
+                  set_item_pagination_in_third_container(!{data_set.json.pairing_sessions}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
                   on_click_page_number_in_third_container(1)
                   $('.ui.pointing.dropdown').dropdown();
               else
                 p.text-center#no_session No session.
             else
-              if information_set.common.assignments.length > 0
+              if data_set.common.assignments.length > 0
                 script(type='text/javascript').
-                  set_item_pagination_in_third_container(!{information_set.json.assignments}, "!{information_set.common.section.section_id}", "!{user.info.occupation}")
+                  set_item_pagination_in_third_container(!{data_set.json.assignments}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
                   on_click_page_number_in_third_container(1)
               else
                 p.text-center No assignment.
