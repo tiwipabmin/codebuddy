@@ -218,9 +218,9 @@ exports.getProfileByTeacher = async (req, res) => {
     pid.push(projects[_index].pid)
   }
 
-  information_set = {common: {}}
+  information_set = {common: {username: username, pid: pid}}
 
-  res.render('profile', { username, pid , information_set, title: username + " Progress"})
+  res.render('profile', { information_set, title: username + " Progress"})
 }
 
 exports.getNotifications = async (req, res) => {
