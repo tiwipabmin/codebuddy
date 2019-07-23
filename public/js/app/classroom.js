@@ -32,7 +32,7 @@ function on_click_ui_purpose_tab (index, purpose, student_id, pairing_session_id
   $('.ui-purpose').removeClass('teal inverted')
   $('#ui-purpose-'+index).addClass('teal inverted')
   let parameters = { student_id: student_id, pairing_session_id: pairing_session_id, username: username, avg_score: avg_score, section_id: section_id, purpose: purpose, partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)};
-  $.get( 'classroom/searchStudentByPurpose',parameters, function(data) {
+  $.get( '/classroom/searchStudentByPurpose',parameters, function(data) {
       $(".user-purpose-list").empty();
       let student_id = data.student_id
       let pairing_session_id = data.pairing_session_id
@@ -275,6 +275,26 @@ function on_click_confirm_button(parameters){
         })
       }
     })
+  } else if (message == 'Are you sure you want to disable assignments on this week?'){
+    $('#global_loader').attr({
+      'style': 'display: block; position: fixed;'
+    })
+    $.ajax({
+      url: '/classroom/disableAssignment',
+      type: 'put',
+      data: parameters,
+      success: function (res) {
+        let status = res.status
+        if(status == 'Disable assignments successfully.') {
+          alert(status)
+        } else {
+          alert(status)
+        }
+        $('#global_loader').attr({
+          'style': 'display: none; position: fixed;'
+        })
+      }
+    })
   }
 
   $('#confirm-message').attr('value', 'Something message.')
@@ -283,7 +303,7 @@ function on_click_confirm_button(parameters){
 function searchStudent(id, student_id, section_id, pairing_session_id, username, partner_keys, pairing_objective){
   //console.log('section_id: ' + section_id)
   var parameters = { search: $(id).val(), student_id: student_id, section_id: section_id, pairing_session_id: pairing_session_id, username: username, partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)};
-  $.get( 'classroom/searchStudent',parameters, function(data) {
+  $.get( '/classroom/searchStudent',parameters, function(data) {
     const student_id = data.student_id
     const students = data.students
     const purpose = data.purpose
@@ -386,7 +406,7 @@ function onClickAddPartnerButton(first_param, second_param, third_param, section
 function showStudentList(command, partner_keys, pairing_objective, pairing_session_id, section_id){
   let parameter = { partner_keys: JSON.stringify(partner_keys), pairing_objective:  JSON.stringify(pairing_objective), section_id: section_id, pairing_session_id: pairing_session_id, command: command};
   // var parameter = { partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), section_id: section_id, pairing_session_id: pairing_session_id, command: command};
-  $.get('classroom/getStudentsFromSection',parameter, function(data) {
+  $.get('/classroom/getStudentsFromSection',parameter, function(data) {
     var count = 0
     const student_objects = data.student_objects
     const partner_keys = data.partner_keys
@@ -570,6 +590,29 @@ function onClickDeleteAssignment(assignment_of_week) {
     $('#confirm-modal').modal('show');
   }
 
+}
+
+function on_click_disable_assignment_button() {
+  $('#assignment_week').empty()
+  $.get('/classroom/getAssignmentWeek', {}, function(res) {
+    let weeks = JSON.parse(res.weeks)
+    weeks.forEach(function (e){
+      $('#assignment_week').append('<option value=\''+e+'\'>'+e+'</option>')
+    })
+    if(!weeks.length) {
+      $('#assignment_week').append('<option value=\'0\'>Don\'t have enable assignment.</option>')
+    }
+    $('#disable_assignment_modal').modal('show')
+  })
+}
+
+function on_click_confirm_disable_assignment_button() {
+  parameters = JSON.stringify({week: $('#assignment_week').val()})
+  $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
+  $('#confirm-header').text('Disable Assignment')
+  $('#confirm-message').attr('value', 'Are you sure you want to disable assignments on this week?')
+  $('#confirm-message').text('Are you sure you want to disable assignments on this week?')
+  $('#confirm-modal').modal('show')
 }
 
 function on_click_remove_student_button(enrollment_id, first_name, last_name) {

@@ -344,7 +344,7 @@ exports.getSection = async (req, res) => {
   if(occupation == 'teacher') {
     occupation = 0
 
-    data_set = {common: {occupation: occupation, section: section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
+    data_set = {common: {occupation: occupation, section: section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions), weeks: JSON.stringify(weeks)}}
 
     res.render('classroom', { data_set, title: section.course_name })
     // pack_student = {students: students, students_strgify: JSON.stringify(students)}
@@ -669,6 +669,30 @@ exports.getPairing = async (req, res) => {
   console.log('partner_keys, ', partner_keys)
 
   res.send({status: "Pull information successfully", pairing_session_id: pairing_session_id, section_id: cryptr.encrypt(section_id), partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)})
+}
+
+exports.getAssignmentWeek = async (req, res) => {
+  let project = await Project.find({
+    available_project: true
+  })
+  let weeks = []
+  project.forEach(function (e){
+    weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+  })
+  res.send({weeks: JSON.stringify(weeks)})
+}
+
+exports.disableAssignment = async (req, res) => {
+  let week = parseInt(req.body.week)
+  let project = await Project.updateMany(
+    {week: week},
+    {$set: {"available_project": false}}
+  )
+  if(!week) {
+    res.send({status: "Don\'t have enable assignment."})
+    return
+  }
+  res.send({status: "Disable assignments successfully."})
 }
 
 exports.updatePairing = async (req, res) => {

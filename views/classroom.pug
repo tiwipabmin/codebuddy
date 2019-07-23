@@ -220,6 +220,20 @@ block content
           .actions
             button.ui.button.approve.green#confirm-button(type='submit') Confirm
             .ui.button.approve.red#cancel-button(data-value='cancel' onclick='on_click_cancel_button()') Cancel
+            
+    .ui.small.modal#disable_assignment_modal
+      i.close.icon
+      .header ปิดการใช้งานแบบฝึกหัด
+      .content
+        .ui.center.aligned.grid
+          .column
+            p Weeks:  
+            select.ui.dropdown#assignment_week(name='assignment_weeks')
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green#confirm_disable_assignment(type='submit' onclick='on_click_confirm_disable_assignment_button()') Confirm
+            button.ui.button.approve.red#cancel_disable_assignment(data-value='cancel') Cancel
+          
 
     .ui.small.modal#assignment-end-time-modal
       i.close.icon
@@ -239,7 +253,7 @@ block content
                     b(color='black') /
                 select.ui.dropdown#day_a(name='day')
             .column(style='text-align:center;')
-              b ชช:นน:วว
+              b ช:น:ว
               <br>
               .ui.labeled.input
                 select.ui.dropdown#endTimeHh_a(name='end_time_hh')
@@ -467,13 +481,14 @@ block content
                 a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
                 a.item.uspm#other(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Other
               .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
-                button.ui.button.approve.green.newAssignment Create
-                button.ui.button.approve.red#delete_assignment_button Delete
+                button.ui.button.approve.blue.newAssignment Create
+                button.ui.button.approve.blue#delete_assignment_button Delete
               .ui.segment.uspm#action_checkbox_segment(style='display: none')
                 button.ui.button.approve.blue#clear_checkbox(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 0)') Clear Checkbox
                 button.ui.button.approve.blue#check_all_of_box(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 1)') Check All of Box
               .ui.segment.uspm#other_segment(style='display: none')
-                button.ui.button.approve.yellow#assign_button Assign
+                button.ui.button.approve.blue#assign_button Assign
+                button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
               .ui.section.divider#divider_in_first_container
               if data_set.common.assignments.length > 0
                 script(type='text/javascript').
