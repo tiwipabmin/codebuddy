@@ -280,12 +280,32 @@ function on_click_confirm_button(parameters){
       'style': 'display: block; position: fixed;'
     })
     $.ajax({
-      url: '/classroom/disableAssignment',
+      url: '/classroom/manageAssignment',
       type: 'put',
       data: parameters,
       success: function (res) {
         let status = res.status
         if(status == 'Disable assignments successfully.') {
+          alert(status)
+        } else {
+          alert(status)
+        }
+        $('#global_loader').attr({
+          'style': 'display: none; position: fixed;'
+        })
+      }
+    })
+  } else if (message == 'Are you sure you want to enable assignments on this week?') {
+    $('#global_loader').attr({
+      'style': 'display: block; position: fixed;'
+    })
+    $.ajax({
+      url: '/classroom/manageAssignment',
+      type: 'put',
+      data: parameters,
+      success: function (res) {
+        let status = res.status
+        if(status == 'Enable assignments successfully.') {
           alert(status)
         } else {
           alert(status)
@@ -311,7 +331,6 @@ function searchStudent(id, student_id, section_id, pairing_session_id, username,
     const pairing_session_id = data.pairing_session_id
     const partner_keys = JSON.parse(data.partner_keys)
     const pairing_objective = JSON.parse(data.pairing_objective)
-    // const pairing_objective = JSON.parse($('#pairing_objective').attr('value'))
     $(".user-list").empty();
     if (students.length > 0) {
       students.forEach(function(student) {
@@ -353,8 +372,6 @@ function onClickAddPartnerButton(first_param, second_param, third_param, section
       let partner_id = second_param
       let purpose = third_param
 
-      // let partner_keys = JSON.parse($('#partner_keys').attr('value'))
-      // let pairing_objective = JSON.parse($('#pairing_objective').attr('value'))
       let key;
       let addSamePartner = false
 
@@ -391,8 +408,6 @@ function onClickAddPartnerButton(first_param, second_param, third_param, section
 
       pairing_objective[student_id] = purpose
       pairing_objective[partner_id] = purpose
-      // $('#partner_keys').attr('value', JSON.stringify(partner_keys))
-      // $('#pairing_objective').attr('value', JSON.stringify(pairing_objective))
       $('#confirm-header').text('Student pairing')
       $('#confirm-message').text('Are you sure you want to cancel pairing?')
       $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
@@ -414,7 +429,6 @@ function showStudentList(command, partner_keys, pairing_objective, pairing_sessi
     const pairing_session_status = data.pairing_session_status
     const command = data.command
     let addPartnerButton = "";
-    // $('#student_objects').attr('value', JSON.stringify(student_objects))
 
     var completed_filter = false
     var hasElementMoving = false
@@ -463,10 +477,7 @@ function showStudentList(command, partner_keys, pairing_objective, pairing_sessi
     if(!count) {
       $('.student-container').append("<div class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><font>No student.</font></div><div class='column'><font>No student.</font></div></div><div class='ui vertical divider'> - </div></div>")
     } else {
-      // $('#partner_keys').attr('value', JSON.stringify(partner_keys))
-      // $('#pairing_objective').attr('value', JSON.stringify(pairing_objective))
       parameters = {pairing_session_id: pairing_session_id, section_id: section_id, partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)}
-      // console.log('parameters, ', parameters)
       $('#confirm-pairing').attr('onclick', 'on_click_confirm_pairing_button('+JSON.stringify(parameters)+')')
       $('#alphabetical_filter').attr('onclick', 'onClickAlphabeticalFilterButton('+JSON.stringify(student_objects)+')')
       $('#avg_score_filter').attr('onclick', 'onClickAvgScoreFilterButton('+JSON.stringify(student_objects)+')')
@@ -481,8 +492,6 @@ function showStudentList(command, partner_keys, pairing_objective, pairing_sessi
       } else if(active_filter == '100-1') {
         sort_avg_score_100_to_1(student_objects, completed_filter, hasElementMoving)
       }
-      //console.log('pairing_objective : ', data.pairing_objective)
-      //console.log('partner_keys : ', data.partner_keys)
     }
     $('#student_list_modal').modal('show');
   })
@@ -522,9 +531,6 @@ function pairingOrViewingisHided(command){
 }
 
 function onClickViewPairingRecord(pairing_session_id, section_id) {
-  // $('#partner_keys').attr('value', '{}')
-  // $('#pairing_objective').attr('value', '{}')
-  //console.log('pairing_session_id : ' + pairing_session_id)
   pairingOrViewingisHided('view')
   showStudentList('view', {}, {}, pairing_session_id, section_id)
 }
@@ -592,27 +598,68 @@ function onClickDeleteAssignment(assignment_of_week) {
 
 }
 
-function on_click_disable_assignment_button() {
-  $('#assignment_week').empty()
-  $.get('/classroom/getAssignmentWeek', {}, function(res) {
+function on_click_enable_assignment_button() {
+  $('#dropdown_amd').empty()
+  $('#dropdown_amd').append('<input id=\'week_input_amd\' type=\'hidden\'></input>')
+  $('#dropdown_amd').append('<i class=\'dropdown icon\'></i>')
+  $('#dropdown_amd').append('<div class=\'default text\'>Week</div>')
+  $('#dropdown_amd').append('<div id=\'week_amd\' class=\'menu\'></div>')
+  $.get('/classroom/getAssignmentWeek', {action: 'enable'}, function(res) {
     let weeks = JSON.parse(res.weeks)
-    weeks.forEach(function (e){
-      $('#assignment_week').append('<option value=\''+e+'\'>'+e+'</option>')
-    })
     if(!weeks.length) {
-      $('#assignment_week').append('<option value=\'0\'>Don\'t have enable assignment.</option>')
+      $('#week_amd').append('<div class=\'item\' id=\'0_week_in_dam\' data-value=\'0\'>Don\'t have to enable assignment.</div>')
+    } else if (weeks.length) {
+      $('#week_amd').append('<div class=\'item\' id=\'0_week_in_dam\' data-value=\'0\'>All</div>')
     }
-    $('#disable_assignment_modal').modal('show')
+    weeks.forEach(function (e){
+      $('#week_amd').append('<div class=\'item\' id=\''+e+'_week_in_dam\' data-value=\''+e+'\'>'+e+'</div>')
+    })
+    $('#confirm_assignment_management').attr('onclick', 'on_click_confirm_assignment_management_button(\'enable\')')
+    $('#header_amd').text('เปิดการใช้งานแบบฝึกหัด')
+    $('#assignment_management_modal').modal('show')
+    $('#dropdown_amd').dropdown();
   })
 }
 
-function on_click_confirm_disable_assignment_button() {
-  parameters = JSON.stringify({week: $('#assignment_week').val()})
-  $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
-  $('#confirm-header').text('Disable Assignment')
-  $('#confirm-message').attr('value', 'Are you sure you want to disable assignments on this week?')
-  $('#confirm-message').text('Are you sure you want to disable assignments on this week?')
-  $('#confirm-modal').modal('show')
+function on_click_disable_assignment_button() {
+  $('#dropdown_amd').empty()
+  $('#dropdown_amd').append('<input id=\'week_input_amd\' type=\'hidden\'></input>')
+  $('#dropdown_amd').append('<i class=\'dropdown icon\'></i>')
+  $('#dropdown_amd').append('<div class=\'default text\'>Week</div>')
+  $('#dropdown_amd').append('<div id=\'week_amd\' class=\'menu\'></div>')
+  $.get('/classroom/getAssignmentWeek', {action: 'disable'}, function(res) {
+    let weeks = JSON.parse(res.weeks)
+    if(!weeks.length) {
+      $('#week_amd').append('<div class=\'item\' id=\'-1_week_in_dam\' data-value=\'-1\'>Don\'t have to enable assignment.</div>')
+    } else if (weeks.length) {
+      $('#week_amd').append('<div class=\'item\' id=\'0_week_in_dam\' data-value=\'0\'>All</div>')
+    }
+    weeks.forEach(function (e){
+      $('#week_amd').append('<div class=\'item\' id=\''+e+'_week_in_dam\' data-value=\''+e+'\'>'+e+'</div>')
+    })
+    $('#header_amd').text('ปิดการใช้งานแบบฝึกหัด')
+    $('#confirm_assignment_management').attr('onclick', 'on_click_confirm_assignment_management_button(\'disable\')')
+    $('#assignment_management_modal').modal('show')
+    $('#dropdown_amd').dropdown();
+  })
+}
+
+function on_click_confirm_assignment_management_button(action) {
+  if(action == 'enable') {
+    parameters = JSON.stringify({week: $('#week_input_amd').val(), action: 'enable'})
+    $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
+    $('#confirm-header').text('Disable Assignment')
+    $('#confirm-message').attr('value', 'Are you sure you want to disable assignments on this week?')
+    $('#confirm-message').text('Are you sure you want to disable assignments on this week?')
+    $('#confirm-modal').modal('show')
+  } else if (action == 'disable') {
+    parameters = JSON.stringify({week: $('#week_input_amd').val(), action: 'disable'})
+    $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
+    $('#confirm-header').text('Enable Assignment')
+    $('#confirm-message').attr('value', 'Are you sure you want to enable assignments on this week?')
+    $('#confirm-message').text('Are you sure you want to enable assignments on this week?')
+    $('#confirm-modal').modal('show')
+  }
 }
 
 function on_click_remove_student_button(enrollment_id, first_name, last_name) {
@@ -698,7 +745,6 @@ function create_weeks_dropdown(id, pairing_session_id, data_set) {
 
 function on_click_weeks_dropdown(id, assignment_set, username, img, pairing_session_id, opt) {
   console.log('pairing_session_id, ', pairing_session_id)
-  // $('#first_container_segment').append('<div class=\'ui active centered inline loader\'></div>')
   assignment_set = assignment_set
   let res_obj = get_items_of_week(assignment_set, 5, id)
   let assignment_of_week_ = res_obj.items_of_week

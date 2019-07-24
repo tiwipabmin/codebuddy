@@ -672,27 +672,64 @@ exports.getPairing = async (req, res) => {
 }
 
 exports.getAssignmentWeek = async (req, res) => {
-  let project = await Project.find({
-    available_project: true
-  })
+  let action = req.query.action
   let weeks = []
-  project.forEach(function (e){
-    weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
-  })
+  if(action == 'enable') {
+    let project = await Project.find({
+      available_project: false
+    })
+    project.forEach(function (e){
+      weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+    })
+  } else if (action == 'disable') {
+    let project = await Project.find({
+      available_project: true
+    })
+    project.forEach(function (e){
+      weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+    })
+  }
   res.send({weeks: JSON.stringify(weeks)})
 }
 
-exports.disableAssignment = async (req, res) => {
+exports.manageAssignment = async (req, res) => {
+  let action = req.body.action
   let week = parseInt(req.body.week)
-  let project = await Project.updateMany(
-    {week: week},
-    {$set: {"available_project": false}}
-  )
-  if(!week) {
+  if(week < 0) {
     res.send({status: "Don\'t have enable assignment."})
     return
   }
-  res.send({status: "Disable assignments successfully."})
+  if (action == 'enable') {
+    if(!week) {
+      let project = await Project.updateMany(
+        {available_project: false},
+        {$set: {"available_project": true}}
+      )
+    } else if (week) {
+      let project = await Project.updateMany(
+        {week: week},
+        {$set: {"available_project": true}}
+      )
+    }
+
+    res.send({status: "Enable assignments successfully."})
+    return
+  } else if (action == 'disable') {
+    if(!week) {
+      let project = await Project.updateMany(
+        {available_project: true},
+        {$set: {"available_project": false}}
+      )
+    } else if (week) {
+      let project = await Project.updateMany(
+        {week: week},
+        {$set: {"available_project": false}}
+      )
+    }
+    
+    res.send({status: "Disable assignments successfully."})
+    return
+  }
 }
 
 exports.updatePairing = async (req, res) => {

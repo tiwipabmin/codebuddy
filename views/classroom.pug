@@ -221,18 +221,21 @@ block content
             button.ui.button.approve.green#confirm-button(type='submit') Confirm
             .ui.button.approve.red#cancel-button(data-value='cancel' onclick='on_click_cancel_button()') Cancel
             
-    .ui.small.modal#disable_assignment_modal
+    .ui.small.modal#assignment_management_modal
       i.close.icon
-      .header ปิดการใช้งานแบบฝึกหัด
+      .header#header_amd ปิดการใช้งานแบบฝึกหัด
       .content
         .ui.center.aligned.grid
           .column
-            p Weeks:  
-            select.ui.dropdown#assignment_week(name='assignment_weeks')
+            .ui.selection.dropdown#dropdown_amd
+              input(id='week_input_amd' type='hidden')
+              i.dropdown.icon
+              .default.text Week
+              .menu#week_amd
         .ui.basic.center.aligned.segment
           .actions
-            button.ui.button.approve.green#confirm_disable_assignment(type='submit' onclick='on_click_confirm_disable_assignment_button()') Confirm
-            button.ui.button.approve.red#cancel_disable_assignment(data-value='cancel') Cancel
+            button.ui.button.approve.green#confirm_assignment_management(type='submit') Confirm
+            button.ui.button.approve.red#cancel_assignment_management(data-value='cancel') Cancel
           
 
     .ui.small.modal#assignment-end-time-modal
@@ -489,6 +492,7 @@ block content
               .ui.segment.uspm#other_segment(style='display: none')
                 button.ui.button.approve.blue#assign_button Assign
                 button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
+                button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_assignment_button()') Enable Assignment
               .ui.section.divider#divider_in_first_container
               if data_set.common.assignments.length > 0
                 script(type='text/javascript').

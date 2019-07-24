@@ -26,7 +26,7 @@ router.get('/getAssignmentWeek', auth.isSignedIn, catchErrors(webController.getA
 router.put('/updatePairingSession', auth.isSignedIn, catchErrors(webController.updatePairingSession))
 router.put('/resetPair', auth.isSignedIn, catchErrors(webController.resetPair))
 router.put('/updatePairing', auth.isSignedIn, catchErrors(webController.updatePairing))
-router.put('/disableAssignment', auth.isSignedIn, catchErrors(webController.disableAssignment))
+router.put('/manageAssignment', auth.isSignedIn, catchErrors(webController.manageAssignment))
 router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
 router.post('/assignAssignment', auth.isSignedIn, catchErrors(webController.assignAssignment))
