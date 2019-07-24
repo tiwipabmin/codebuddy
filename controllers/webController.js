@@ -167,7 +167,7 @@ exports.getHistory = async (req, res) => {
   const histories = await History
     .find({ pid: req.query.pid})
 
-  data_set = {common: {}}
+  data_set = {common: {section_id: req.query.section_id}}
   res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, data_set, title: 'History' })
 }
 
@@ -726,7 +726,7 @@ exports.manageAssignment = async (req, res) => {
         {$set: {"available_project": false}}
       )
     }
-    
+
     res.send({status: "Disable assignments successfully."})
     return
   }

@@ -440,6 +440,9 @@ function runCode() {
  * Submit code
  */
 function submitCode() {
+  $('#global_loader').attr({
+    'style': 'display: block; position: fixed;'
+  })
   socket.emit('submit code', {
     mode: 'button submit',
     uid: uid,
@@ -481,9 +484,6 @@ function sendActiveTab(tab) {
  * Show score dialog
  */
 socket.on('show score', (payload) => {
-  console.log(payload)
-  $('#showScore-modal').modal('hide')
-  $('#showScore-modal').modal('show')
   $('p#show-point').text("Your score is "+parseFloat(payload.score).toFixed(2)+" points.");
   if (uid == payload.uid) {
     $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points");
@@ -492,10 +492,10 @@ socket.on('show score', (payload) => {
   .modal({
     closable  : true,
     onApprove : function() {
-
     }
   })
   .modal('show')
+  $('#global_loader').attr('style', 'display: none')
 })
 
 /**

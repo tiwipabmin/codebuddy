@@ -237,7 +237,7 @@ block content
           .ui.grid
             .sixteen.wide.column
               p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") score : 0
-              a.ui.label(style='margin-left:10px;' href='/history?pid='+data_set.common.project.pid+'&curUser='+curUser) view history
+              a.ui.label(style='margin-left:10px;' href='/history?pid='+data_set.common.project.pid+'&curUser='+curUser+'&section_id='+data_set.common.section.section_id) view history
               button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()' data-tooltip="Verify" data-inverted="")
                 i.unhide.icon
               button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
