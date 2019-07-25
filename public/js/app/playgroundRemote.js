@@ -30,12 +30,22 @@ $(document).ready(function(){
       //     action: 'do not switch role'
       //   })
       // },
+      onDeny    : function(){
+        $('#switch_role_modal').modal('hide')
+      },
       onApprove : function() {
         socket.emit('switch role', {
+          user: user,
           action: 'switch role'
         })
       }
     })
+
+  $('#reject_into_project').modal({
+    closable  : false,
+    onApprove    : function(){
+    }
+  })
 })
 
 /**
@@ -87,7 +97,7 @@ getActiveTab('main');
 
 function setEditor(fileName){
   if(!(fileName in editor)) {
-    editor[fileName] = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
+    let cm = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
       lineNumbers: true,
       mode: {
         name: 'python',
@@ -101,6 +111,12 @@ function setEditor(fileName){
       indentUnit: 4,
       matchBrackets: true
     })
+    cm.addKeyMap({
+      "Alt-R": function(cm) { runCode() },
+      "Alt-S": function(cm) { pauseRunCode() },
+      "Alt-V": function(cm) { submitCode() }
+    })
+    editor[fileName] = cm
   }
 }
 
@@ -240,16 +256,29 @@ socket.on('role selection', () => {
  * If there's no one select the role, then first user that come to the project must choose one
  */
 socket.on('confirm to switch role', (payload) => {
-  if (user === payload.projectRoles.roles.reviewer) {
-    $('#ok_button_srm').attr('style', 'visibility:hidden;')
-    $('#switch_role_modal').modal({closable  : false}).modal('show')
-  } else if(user === payload.projectRoles.roles.coder) {
-    $('#ok_button_srm').attr('style', 'visibility:visible;')
-    $('#switch_role_modal').modal({closable  : false}).modal('show')
+  $('#close_button_srm').attr('style', 'display:none;')
+  $('#ok_button_srm').attr('style', 'display:none;')
+  if(payload.status === 'disconnect') {
+    $('#header_srm').text('เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ')
+    $('#ok_button_srm').attr('style', 'display:block;')
+    $('#switch_role_modal').modal('show')
+  } else if (user === payload.projectRoles.roles.reviewer && payload.projectRoles.count == 2) {
+    $('#header_srm').text('ถึงเวลาที่คุณเป็น \"Coder\" แล้วครับ/ค่ะ')
+    $('#switch_role_modal').modal('show')
+  } else if(user === payload.projectRoles.roles.coder && payload.projectRoles.count == 2) {
+    $('#header_srm').text('ถึงเวลาที่คุณเป็น \"Reviewer\" แล้วครับ/ค่ะ')
+    $('#ok_button_srm').attr('style', 'display:block;')
+    $('#switch_role_modal').modal('show')
+  } else if (payload.projectRoles.count == 1){
+    socket.emit('switch role', {
+      user: user,
+      action: 'switch role'
+    })
   }
 })
 
 socket.on('countdown', (payload) => {
+  // socket.emit('wait pair', {time: 5000})
   if(payload.minutes == '0' && payload.seconds <= 15){
     $(".countdown").html(`<span style="color: red;"> ${pad(payload.minutes)} : ${pad(payload.seconds)}</span> <span style="font-size:12px;">mins</span>`)
     $(".auto-swap-warning").html(`<div class="ui circular labels" style="margin-top: 10px;"><a class="ui label">Auto swaping role in ${payload.seconds} secs</a></div>`)
@@ -262,6 +291,10 @@ socket.on('countdown', (payload) => {
   })
 })
 
+// socket.on('reject into project', () => {
+//   $('#reject_into_project').modal('show')
+// })
+
 socket.on('role updated', (payload) => {
   if (user === payload.projectRoles.roles.reviewer) {
     roles.user = 'reviewer'
@@ -270,7 +303,7 @@ socket.on('role updated', (payload) => {
   } else if(user === payload.projectRoles.roles.coder) {
     roles.user = 'coder'
     roles.partner = 'reviewer'
-    $('#switch_role_modal').modal({closable  : true}).modal('hide')
+    $('#close_button_srm').attr('style', 'display:block;')
     console.log('previous, reviewer')
     projectFiles.forEach(setOptionFileShowCursor)
   }else{
@@ -355,7 +388,7 @@ setInterval(() => {
 }, 3000)
 
 socket.on('update status', (payload) => {
-  if (payload.status) {
+  if (payload.status && payload.projectRoles.count == 2) {
     $(".user.status").html(`<strong><em><i class='green circle icon'></i></em></strong>`)
   } else {
     $(".user.status").html(`<strong><em><i class='grey circle icon'></i></em></strong>`)
@@ -519,8 +552,12 @@ socket.on('show score', (payload) => {
   if (uid == payload.uid) {
     $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points");
   }
-  $('#showScore-modal').modal('show')
-  $('#global_loader').attr('style', 'display: none')
+  $('#showScore-modal').modal({
+    closable: false,
+    onDeny: function (){
+      $('#global_loader').attr('style', 'display: none')
+    }
+  }).modal('show')
 })
 
 /**

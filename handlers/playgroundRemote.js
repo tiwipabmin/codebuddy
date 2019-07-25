@@ -64,13 +64,14 @@ module.exports = (io, client, redis, projects) => {
       // Checking if this project hasn't have any roles assigned.
       if (!projects[projectId]) {
         winston.info(`created new projects['${projectId}']`)
+        let user_partner = {}
         projects[projectId] = {
           roles: {
             coder: '',
             reviewer: '',
             reviews: []
           },
-          count: 1
+          count: 1,
         }
         winston.info(projects[projectId].count)
         client.emit('role selection')
@@ -85,6 +86,7 @@ module.exports = (io, client, redis, projects) => {
 
           winston.info(projects[projectId].count)
           client.emit('role updated', { projectRoles: projects[projectId], project: res})
+          io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 1})
         })
       }
 
@@ -111,6 +113,9 @@ module.exports = (io, client, redis, projects) => {
       if (projects[projectId].count === 0) {
         delete projects[projectId]
         clearInterval(timerId)
+      } else {
+        io.in(projectId).emit('confirm to switch role', {projectRoles: projects[projectId], status: 'disconnect'})
+        io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 0})
       }
       client.leave(projectId)
       winston.info('Client disconnected')
@@ -310,6 +315,12 @@ module.exports = (io, client, redis, projects) => {
     })
   })
 
+  // client.on('wait pair', (payload) => {
+  //   setTimeout(function (){
+  //     client.emit('reject into project')
+  //   }, payload.time)
+  // })
+
   client.on('switch role', (payload) => {
     if(payload.action === undefined) {
       payload.action = 'switch role'
@@ -498,7 +509,7 @@ module.exports = (io, client, redis, projects) => {
    * @param {Object} payload user status from client-side
    */
   client.on('user status', (payload) => {
-    client.to(projectId).emit('update status', payload)
+    // client.to(projectId).emit('update status', payload)
   })
 
   var detectInput = 'empty'
@@ -967,9 +978,9 @@ module.exports = (io, client, redis, projects) => {
           }
           io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
           if (minutes <= 0 && seconds <= 0) {
-              clearInterval(timerId)
-              io.in(projectId).emit('confirm to switch role', {projectRoles: projects[projectId]})
-              // switchRole()
+            io.in(projectId).emit('confirm to switch role', {projectRoles: projects[projectId], status: 'connect'})
+            clearInterval(timerId)
+            // switchRole()
           }
         });
       }
@@ -1003,13 +1014,19 @@ module.exports = (io, client, redis, projects) => {
       winston.info(projects[projectId].count)
       client.emit('role selection')
     } else if (payload.action === 'switch role'){
-      const temp = projects[projectId].roles.coder
-      projects[projectId].roles.coder = projects[projectId].roles.reviewer
-      projects[projectId].roles.reviewer = temp
-      Project.findOne({ pid: projectId}, function (err, res) {
-        if (err) return handleError(err);
-        io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
-      })
+      if (projects[projectId].count == 2 || (projects[projectId].roles.reviewer === payload.user && projects[projectId].count == 1)) {
+        const temp = projects[projectId].roles.coder
+        projects[projectId].roles.coder = projects[projectId].roles.reviewer
+        projects[projectId].roles.reviewer = temp
+        Project.findOne({ pid: projectId}, function (err, res) {
+          if (err) return handleError(err);
+          io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
+        })
+      }
+      // else {
+      //   clearInterval(timerId)
+      //   io.in(projectId).emit('countdown', {minutes: 0, seconds: 0})
+      // }
     }
   }
 

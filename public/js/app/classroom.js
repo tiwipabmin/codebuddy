@@ -860,7 +860,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
               item.append(content)
             } else {
               item = $('<div class=\'item\' style=\'padding-top:10px;\'></div>')
-              div_a = $('<a class=\'ui tiny image\' href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\'></a>')
+              div_a = $('<a class=\'ui tiny image\' href=\'/project?pid='+project.pid+'&user_role=collaborator&section_id='+section_id+'\'></a>')
               img1 = $('<img src=\'/images/yellow-folder.png\', style=\'position: absolute;\'/>')
               img2 = $('<img class=\'img-owner ui avatar image\' src=\''+img+'\', style=\'width: 30px;height: 30px; top: 20px;\'/>')
               img3 = $('<img class=\'img-partner ui avatar image\' src=\'/images/user_img_4.jpg\', style=\'width:30px; height:30px; top:-10px;\'/>')
