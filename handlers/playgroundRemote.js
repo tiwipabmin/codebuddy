@@ -310,8 +310,20 @@ module.exports = (io, client, redis, projects) => {
     })
   })
 
-  client.on('switch role', () => {
-    switchRole()
+  client.on('switch role', (payload) => {
+    if(payload.action === undefined) {
+      payload.action = 'switch role'
+    }
+    console.log('switch role, ', payload.action)
+    switchRole(payload)
+  })
+
+  client.on('do not switch role', (payload) => {
+    if(payload.action === undefined) {
+      payload.action = 'switch role'
+    }
+    console.log('do not switch role, ', payload.action)
+    switchRole(payload)
   })
 
   /**
@@ -956,7 +968,8 @@ module.exports = (io, client, redis, projects) => {
           io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
           if (minutes <= 0 && seconds <= 0) {
               clearInterval(timerId)
-              switchRole()
+              io.in(projectId).emit('confirm to switch role', {projectRoles: projects[projectId]})
+              // switchRole()
           }
         });
       }
@@ -971,7 +984,8 @@ module.exports = (io, client, redis, projects) => {
       redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
   }
 
-  function switchRole() {
+  function switchRole(payload) {
+    console.log('function switchRole(), ', payload.action)
     countdownTimer()
     console.log("project_id" + projectId);
     console.log(projects[projectId]);
@@ -988,7 +1002,7 @@ module.exports = (io, client, redis, projects) => {
       }
       winston.info(projects[projectId].count)
       client.emit('role selection')
-    } else {
+    } else if (payload.action === 'switch role'){
       const temp = projects[projectId].roles.coder
       projects[projectId].roles.coder = projects[projectId].roles.reviewer
       projects[projectId].roles.reviewer = temp

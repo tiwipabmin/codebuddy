@@ -14,6 +14,20 @@ block content
         'style': 'display: block; position: fixed;'
       })
       
+    //- confirm to switch role
+    .ui.basic.modal#switch_role_modal
+      .ui.icon.header
+        i.users.icon
+        |     ถึงเวลาสลับบทบาทแล้วครับ/ค่ะ
+      .content
+        .actions
+          center
+            .ui.green.massive.inverted.positive.button#ok_button_srm
+              i.check.icon
+              |       ตกลง
+            //- .ui.red.massive.inverted.negative.button
+            //-   i.x.icon
+            //-   |       ยังไม่สลับ
     //- select role modal
     .ui.basic.modal#selectRole-modal
       .ui.icon.header

@@ -1,3 +1,43 @@
+$(document).ready(function(){
+  $('#selectRole-modal')
+    .modal({
+      closable  : false,
+      onDeny    : function(){
+        socket.emit('role selected', {
+          select: 0,
+          partner
+        })
+        $('#global_loader').attr({
+          'style': 'display: block; position: fixed;'
+        })
+      },
+      onApprove : function() {
+        socket.emit('role selected', {
+          select: 1,
+          partner
+        })
+        $('#global_loader').attr({
+          'style': 'display: block; position: fixed;'
+        })
+      }
+    })
+
+  $('#switch_role_modal')
+    .modal({
+      closable  : false,
+      // onDeny    : function(){
+      //   socket.emit('do not switch role', {
+      //     action: 'do not switch role'
+      //   })
+      // },
+      onApprove : function() {
+        socket.emit('switch role', {
+          action: 'switch role'
+        })
+      }
+    })
+})
+
 /**
  * Dependencies declaration
  */
@@ -192,32 +232,21 @@ socket.on('update tab', (payload) => {
  * If there's no one select the role, then first user that come to the project must choose one
  */
 socket.on('role selection', () => {
-  $('#selectRole-modal')
-    .modal({
-      closable  : false,
-      onDeny    : function(){
-        console.log('select : reviewer')
-        socket.emit('role selected', {
-          select: 0,
-          partner
-        })
-        $('#global_loader').attr({
-          'style': 'display: block; position: fixed;'
-        })
-      },
-      onApprove : function() {
-        console.log('select : coder')
-        socket.emit('role selected', {
-          select: 1,
-          partner
-        })
-        $('#global_loader').attr({
-          'style': 'display: block; position: fixed;'
-        })
-      }
-    })
-    .modal('show')
-    $('#global_loader').attr('style', 'display: none')
+  $('#selectRole-modal').modal('show')
+  $('#global_loader').attr('style', 'display: none')
+})
+
+/**
+ * If there's no one select the role, then first user that come to the project must choose one
+ */
+socket.on('confirm to switch role', (payload) => {
+  if (user === payload.projectRoles.roles.reviewer) {
+    $('#ok_button_srm').attr('style', 'visibility:hidden;')
+    $('#switch_role_modal').modal({closable  : false}).modal('show')
+  } else if(user === payload.projectRoles.roles.coder) {
+    $('#ok_button_srm').attr('style', 'visibility:visible;')
+    $('#switch_role_modal').modal({closable  : false}).modal('show')
+  }
 })
 
 socket.on('countdown', (payload) => {
@@ -241,6 +270,8 @@ socket.on('role updated', (payload) => {
   } else if(user === payload.projectRoles.roles.coder) {
     roles.user = 'coder'
     roles.partner = 'reviewer'
+    $('#switch_role_modal').modal({closable  : true}).modal('hide')
+    console.log('previous, reviewer')
     projectFiles.forEach(setOptionFileShowCursor)
   }else{
     if(user === payload.project.creator) {
@@ -488,13 +519,7 @@ socket.on('show score', (payload) => {
   if (uid == payload.uid) {
     $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points");
   }
-  $('#showScore-modal')
-  .modal({
-    closable  : true,
-    onApprove : function() {
-    }
-  })
-  .modal('show')
+  $('#showScore-modal').modal('show')
   $('#global_loader').attr('style', 'display: none')
 })
 
@@ -768,7 +793,10 @@ $('.ui.mute.toggle.button')
   });
 
 function switchRole() {
-  socket.emit('switch role')
+  socket.emit('switch role', {
+    user: user,
+    action: 'switch role'
+  })
 }
 
 function updateScroll(){
