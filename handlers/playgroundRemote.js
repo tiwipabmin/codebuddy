@@ -16,7 +16,7 @@ module.exports = (io, client, redis, projects) => {
   // recieve project id from client and stored in projectId
   let projectId = ''
   let curUser = ''
-  let timerId = ''
+  let timerId = {}
   var comments = []
   var index = null
   let pythonProcess
@@ -64,7 +64,8 @@ module.exports = (io, client, redis, projects) => {
       // Checking if this project hasn't have any roles assigned.
       if (!projects[projectId]) {
         winston.info(`created new projects['${projectId}']`)
-        let user_partner = {}
+        let active_user = {}
+        active_user[curUser] = 1
         projects[projectId] = {
           roles: {
             coder: '',
@@ -72,22 +73,22 @@ module.exports = (io, client, redis, projects) => {
             reviews: []
           },
           count: 1,
+          active_user: active_user
         }
+        console.log('projects[projectId], ', projects[projectId])
         winston.info(projects[projectId].count)
         client.emit('role selection')
       } else {
-        await Project.findOne({ pid: projectId}, async function (err, res) {
-          if (err) return handleError(err);
+        if (projects[projectId].reject === 1) {
           projects[projectId].count += 1
-
-          // Increase users' pairing count
-          await Score.update({ pid: projectId, uid: project.creator_id }, { $inc: { 'participation.pairing': 1 } })
-          await Score.update({ pid: projectId, uid: project.collaborator_id }, { $inc: { 'participation.pairing': 1 } })
-
-          winston.info(projects[projectId].count)
-          client.emit('role updated', { projectRoles: projects[projectId], project: res})
-          io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 1})
-        })
+          client.emit('reject to join project')
+        } else if(projects[projectId].active_user[curUser] === undefined) {
+          partner(project)
+        } else {
+          projects[projectId].count += 1
+          projects[projectId].reject = 1
+          io.in(projectId).emit('reject to join project')
+        }
       }
 
       client.emit('init state', {
@@ -102,6 +103,26 @@ module.exports = (io, client, redis, projects) => {
     }
   })
 
+  async function partner(project){
+    projects[projectId].active_user[curUser] = 1
+    await Project.findOne({ pid: projectId}, async function (err, res) {
+      if (err) return handleError(err);
+      projects[projectId].count += 1
+
+      // Increase users' pairing count
+      await Score.update({ pid: projectId, uid: project.creator_id }, { $inc: { 'participation.pairing': 1 } })
+      await Score.update({ pid: projectId, uid: project.collaborator_id }, { $inc: { 'participation.pairing': 1 } })
+
+      winston.info(projects[projectId].count)
+      client.emit('role updated', { projectRoles: projects[projectId], project: res})
+      io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 1})
+    })
+  }
+
+  client.on('clear interval', () => {
+    clearInterval(timerId[curUser])
+  })
+
   /**
    * `disconnect` event fired when user exit from playground page
    * by exit means: reload page, close page/browser, session lost
@@ -111,12 +132,19 @@ module.exports = (io, client, redis, projects) => {
       projects[projectId].count -= 1
       winston.info(`user left project ${projectId} now has ${projects[projectId].count} user(s) online`)
       if (projects[projectId].count === 0) {
+        if(projects[projectId].reject === 1) {
+          delete projects[projectId].reject
+        } else {
+          io.in(projectId).emit('clear interval')
+        }
         delete projects[projectId]
-        clearInterval(timerId)
-      } else {
+      } else if (projects[projectId].reject === undefined){
+        io.in(projectId).emit('clear interval')
+        delete projects[projectId]
         io.in(projectId).emit('confirm to switch role', {projectRoles: projects[projectId], status: 'disconnect'})
         io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 0})
       }
+      delete projects[projectId].active_user[curUser]
       client.leave(projectId)
       winston.info('Client disconnected')
     } catch (error) {
@@ -978,8 +1006,8 @@ module.exports = (io, client, redis, projects) => {
           }
           io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
           if (minutes <= 0 && seconds <= 0) {
+            io.in(projectId).emit('clear interval')
             io.in(projectId).emit('confirm to switch role', {projectRoles: projects[projectId], status: 'connect'})
-            clearInterval(timerId)
             // switchRole()
           }
         });
@@ -991,7 +1019,7 @@ module.exports = (io, client, redis, projects) => {
               return swaptime = parseInt(project.swaptime) * 60 * 1000
           }
       });
-      timerId = setInterval(intervalFunc, 1000);
+      timerId[curUser] = setInterval(intervalFunc, 1000);
       redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
   }
 
@@ -1023,10 +1051,6 @@ module.exports = (io, client, redis, projects) => {
           io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
         })
       }
-      // else {
-      //   clearInterval(timerId)
-      //   io.in(projectId).emit('countdown', {minutes: 0, seconds: 0})
-      // }
     }
   }
 

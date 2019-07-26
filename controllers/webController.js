@@ -666,8 +666,6 @@ exports.getPairing = async (req, res) => {
     }
   }
 
-  console.log('partner_keys, ', partner_keys)
-
   res.send({status: "Pull information successfully", pairing_session_id: pairing_session_id, section_id: cryptr.encrypt(section_id), partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)})
 }
 

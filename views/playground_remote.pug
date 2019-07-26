@@ -27,17 +27,17 @@ block content
               i.check.icon
               |       ตกลง
     //- reject into project
-    .ui.basic.modal#reject_into_project
-      .ui.icon.header#header_rip คุณถูกปฏิเสธให้เข้าสู่หน้าเขียนโปรแกรม
+    .ui.basic.modal#reject_to_join_project
+      .ui.icon.header#header_rip เกิดข้อผิดพลาดกรุณาออกจากหน้านี้
       .content
         .actions
           center
-            .ui.green.massive.inverted.positive.button#ok_button_rip
+            a.ui.green.massive.inverted.positive.button(href='/classroom?section_id='+`${data_set.common.section.section_id}`)#ok_button_rip
               i.check.icon
               |       ตกลง
     //- select role modal
     .ui.basic.modal#selectRole-modal
-      .ui.icon.header
+      .ui.icon.header#header_serm
         i.users.icon
         |     Please Select Your Role
       .content

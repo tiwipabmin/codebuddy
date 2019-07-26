@@ -8,6 +8,7 @@ block script
     link(rel='stylesheet' href='/css/main.css')
     script(type='text/javascript').
       $(document).ready(function () {
+        $('#global_loader').attr('style', 'display: none')
         $('#settings-modal').modal({
           closable: false,
           transition: 'fade up',

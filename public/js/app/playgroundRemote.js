@@ -41,9 +41,12 @@ $(document).ready(function(){
       }
     })
 
-  $('#reject_into_project').modal({
+  $('#reject_to_join_project').modal({
     closable  : false,
-    onApprove    : function(){
+    onApprove : function () {
+      $('#global_loader').attr({
+        'style': 'display: block; position: fixed;'
+      })
     }
   })
 })
@@ -259,9 +262,15 @@ socket.on('confirm to switch role', (payload) => {
   $('#close_button_srm').attr('style', 'display:none;')
   $('#ok_button_srm').attr('style', 'display:none;')
   if(payload.status === 'disconnect') {
-    $('#header_srm').text('เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ')
-    $('#ok_button_srm').attr('style', 'display:block;')
-    $('#switch_role_modal').modal('show')
+    $('#global_loader').attr({
+      'style': 'display: block; position: fixed;'
+    })
+    $('#header_serm').empty()
+    $('#header_serm').text('เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ')
+    socket.emit('join project', {
+      pid: getParameterByName('pid'),
+      username: user
+    })
   } else if (user === payload.projectRoles.roles.reviewer && payload.projectRoles.count == 2) {
     $('#header_srm').text('ถึงเวลาที่คุณเป็น \"Coder\" แล้วครับ/ค่ะ')
     $('#switch_role_modal').modal('show')
@@ -286,14 +295,17 @@ socket.on('countdown', (payload) => {
     $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
     $(".auto-swap-warning").html(``)
   }
-  $('#global_loader').attr({
-    'style': 'display: none; position: fixed;'
-  })
+  $('#global_loader').attr('style', 'display: none')
 })
 
-// socket.on('reject into project', () => {
-//   $('#reject_into_project').modal('show')
-// })
+socket.on('reject to join project', () => {
+  socket.emit('clear interval')
+  $('#reject_to_join_project').modal('show')
+})
+
+socket.on('clear interval', ()=>{
+  socket.emit('clear interval')
+})
 
 socket.on('role updated', (payload) => {
   if (user === payload.projectRoles.roles.reviewer) {
@@ -713,6 +725,7 @@ $(document)
     updateScroll();
   });
 
+//- is just jQuery short-hand for $(function () {...})
 $(function(){
 
   var acc = 0;
