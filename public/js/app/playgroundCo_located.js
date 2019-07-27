@@ -129,6 +129,10 @@ socket.on('init state', (payload) => {
   // webrtc.emit('readyToCall')
 })
 
+socket.on('reject to join project', () => {
+  $('#reject_to_join_project').modal('show')
+})
+
 /**
  * After user join the project, user will recieve initiate review to hilight in local editor
  */
@@ -192,67 +196,68 @@ socket.on('update tab', (payload) => {
  * If there's no one select the role, then first user that come to the project must choose one
  */
 socket.on('role selection', () => {
-  $('#selectRole-modal')
-    .modal({
-      closable  : false,
-      onDeny    : function(){
-        console.log('select : reviewer')
-        socket.emit('role selected', {
-          select: 0,
-          partner
-        })
-        $('#global_loader').attr({
-          'style': 'display: block; position: fixed;'
-        })
-      },
-      onApprove : function() {
-        console.log('select : coder')
-        socket.emit('role selected', {
-          select: 1,
-          partner
-        })
-        $('#global_loader').attr({
-          'style': 'display: block; position: fixed;'
-        })
-      }
-    })
-    .modal('show')
-    $('#global_loader').attr({
-      'style': 'display: none; position: fixed;'
-    })
-})
-
-socket.on('countdown', (payload) => {
-  if(payload.minutes == '0' && payload.seconds <= 15){
-    $(".countdown").html(`<span style="color: red;"> ${pad(payload.minutes)} : ${pad(payload.seconds)}</span> <span style="font-size:12px;">mins</span>`)
-    $(".auto-swap-warning").html(`<div class="ui circular labels" style="margin-top: 10px;"><a class="ui label">Auto swaping role in ${payload.seconds} secs</a></div>`)
-  } else {
-    $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
-    $(".auto-swap-warning").html(``)
-  }
-  $('#global_loader').attr({
-    'style': 'display: none; position: fixed;'
+  socket.emit('role selected', {
+    select: 0,
+    partner
   })
+  $('#global_loader').attr('style', 'display: none')
+  // $('#selectRole-modal')
+  //   .modal({
+  //     closable  : false,
+  //     onDeny    : function(){
+  //       console.log('select : reviewer')
+  //       socket.emit('role selected', {
+  //         select: 0,
+  //         partner
+  //       })
+  //       $('#global_loader').attr({
+  //         'style': 'display: block; position: fixed;'
+  //       })
+  //     },
+  //     onApprove : function() {
+  //       console.log('select : coder')
+  //       socket.emit('role selected', {
+  //         select: 1,
+  //         partner
+  //       })
+  //       $('#global_loader').attr({
+  //         'style': 'display: block; position: fixed;'
+  //       })
+  //     }
+  //   })
 })
 
-socket.on('role updated', (payload) => {
-  if (user === payload.projectRoles.roles.reviewer) {
-    roles.user = 'reviewer'
-    roles.partner = 'coder'
-    projectFiles.forEach(setOptionFileNoCursor)
-  } else if(user === payload.projectRoles.roles.coder) {
-    roles.user = 'coder'
-    roles.partner = 'reviewer'
-    projectFiles.forEach(setOptionFileShowCursor)
-  }else{
-    if(user === payload.project.creator) {
-      roles.user = 'coder'
-      roles.partner = 'reviewer'
-    } else {
-      roles.user = 'reviewer'
-      roles.partner = 'coder'
-    }
-  }
+// socket.on('countdown', (payload) => {
+//   if(payload.minutes == '0' && payload.seconds <= 15){
+//     $(".countdown").html(`<span style="color: red;"> ${pad(payload.minutes)} : ${pad(payload.seconds)}</span> <span style="font-size:12px;">mins</span>`)
+//     $(".auto-swap-warning").html(`<div class="ui circular labels" style="margin-top: 10px;"><a class="ui label">Auto swaping role in ${payload.seconds} secs</a></div>`)
+//   } else {
+//     $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
+//     $(".auto-swap-warning").html(``)
+//   }
+//   $('#global_loader').attr({
+//     'style': 'display: none; position: fixed;'
+//   })
+// })
+
+// socket.on('role updated', (payload) => {
+//   if (user === payload.projectRoles.roles.reviewer) {
+//     roles.user = 'reviewer'
+//     roles.partner = 'coder'
+//     projectFiles.forEach(setOptionFileNoCursor)
+//   } else if(user === payload.projectRoles.roles.coder) {
+//     roles.user = 'coder'
+//     roles.partner = 'reviewer'
+//     projectFiles.forEach(setOptionFileShowCursor)
+//   }else{
+//     if(user === payload.project.creator) {
+//       roles.user = 'coder'
+//       roles.partner = 'reviewer'
+//     } else {
+//       roles.user = 'reviewer'
+//       roles.partner = 'coder'
+//     }
+//   }
 
   function setOptionFileNoCursor(fileName) {
     editor[fileName].setOption('readOnly', 'nocursor')

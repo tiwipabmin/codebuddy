@@ -74,17 +74,18 @@ module.exports = (io, client, redis, projects) => {
         winston.info(projects[projectId].count)
         client.emit('role selection')
       } else {
-        Project.findOne({ pid: projectId}, async function (err, res) {
-          if (err) return handleError(err);
-          projects[projectId].count += 1
-
-          // Increase users' pairing count
-          await Score.update({ pid: projectId, uid: project.creator_id }, { $inc: { 'participation.pairing': 1 } })
-          await Score.update({ pid: projectId, uid: project.collaborator_id }, { $inc: { 'participation.pairing': 1 } })
-
-          winston.info(projects[projectId].count)
-          client.emit('role updated', { projectRoles: projects[projectId], project: res})
-        })
+        client.emit('reject to join project')
+        // Project.findOne({ pid: projectId}, async function (err, res) {
+        //   if (err) return handleError(err);
+        //   projects[projectId].count += 1
+        //
+        //   // Increase users' pairing count
+        //   await Score.update({ pid: projectId, uid: project.creator_id }, { $inc: { 'participation.pairing': 1 } })
+        //   await Score.update({ pid: projectId, uid: project.collaborator_id }, { $inc: { 'participation.pairing': 1 } })
+        //
+        //   winston.info(projects[projectId].count)
+        //   client.emit('role updated', { projectRoles: projects[projectId], project: res})
+        // })
       }
 
       client.emit('init state', {
@@ -937,65 +938,65 @@ module.exports = (io, client, redis, projects) => {
     client.emit('download file', projectId )
    })
 
-  function countdownTimer() {
-      function intervalFunc() {
-        redis.hgetall(`project:${projectId}`, function (err, obj) {
-          var start = new Date(parseInt(obj.startTime))
-          let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
-          let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
-          // console.log(seconds + "secound")
-          flag = 0
-          if (seconds == 0 && flag != 1) {
-            flag = 1
-            io.in(projectId).emit('auto update score')
-          } else {
-            flag = 0
-          }
-          io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
-          if (minutes <= 0 && seconds <= 0) {
-              clearInterval(timerId)
-              switchRole()
-          }
-        });
-      }
-      var query  = Project.where({ pid: projectId });
-      let swaptime = query.findOne(function (err, project) {
-          if (err) return 300000;
-          if (project) {
-              return swaptime = parseInt(project.swaptime) * 60 * 1000
-          }
-      });
-      let timerId = setInterval(intervalFunc, 1000);
-      redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
-  }
+  // function countdownTimer() {
+  //     function intervalFunc() {
+  //       redis.hgetall(`project:${projectId}`, function (err, obj) {
+  //         var start = new Date(parseInt(obj.startTime))
+  //         let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
+  //         let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
+  //         // console.log(seconds + "secound")
+  //         flag = 0
+  //         if (seconds == 0 && flag != 1) {
+  //           flag = 1
+  //           io.in(projectId).emit('auto update score')
+  //         } else {
+  //           flag = 0
+  //         }
+  //         io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
+  //         if (minutes <= 0 && seconds <= 0) {
+  //             clearInterval(timerId)
+  //             switchRole()
+  //         }
+  //       });
+  //     }
+  //     var query  = Project.where({ pid: projectId });
+  //     let swaptime = query.findOne(function (err, project) {
+  //         if (err) return 300000;
+  //         if (project) {
+  //             return swaptime = parseInt(project.swaptime) * 60 * 1000
+  //         }
+  //     });
+  //     let timerId = setInterval(intervalFunc, 1000);
+  //     redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
+  // }
 
-  function switchRole() {
-    countdownTimer()
-    console.log("project_id" + projectId);
-    console.log(projects[projectId]);
-    // Checking if this project hasn't have any roles assigned.
-    if (!projects[projectId]) {
-      winston.info(`created new projects['${projectId}'] - fix bug version`)
-      projects[projectId] = {
-        roles: {
-          coder: '',
-          reviewer: '',
-          reviews: []
-        },
-        count: 1
-      }
-      winston.info(projects[projectId].count)
-      client.emit('role selection')
-    } else {
-      const temp = projects[projectId].roles.coder
-      projects[projectId].roles.coder = projects[projectId].roles.reviewer
-      projects[projectId].roles.reviewer = temp
-      Project.findOne({ pid: projectId}, function (err, res) {
-        if (err) return handleError(err);
-        io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
-      })
-    }
-  }
+  // function switchRole() {
+  //   countdownTimer()
+  //   console.log("project_id" + projectId);
+  //   console.log(projects[projectId]);
+  //   // Checking if this project hasn't have any roles assigned.
+  //   if (!projects[projectId]) {
+  //     winston.info(`created new projects['${projectId}'] - fix bug version`)
+  //     projects[projectId] = {
+  //       roles: {
+  //         coder: '',
+  //         reviewer: '',
+  //         reviews: []
+  //       },
+  //       count: 1
+  //     }
+  //     winston.info(projects[projectId].count)
+  //     client.emit('role selection')
+  //   } else {
+  //     const temp = projects[projectId].roles.coder
+  //     projects[projectId].roles.coder = projects[projectId].roles.reviewer
+  //     projects[projectId].roles.reviewer = temp
+  //     Project.findOne({ pid: projectId}, function (err, res) {
+  //       if (err) return handleError(err);
+  //       io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
+  //     })
+  //   }
+  // }
 
   function saveComment(payload) {
     const commentModel = {

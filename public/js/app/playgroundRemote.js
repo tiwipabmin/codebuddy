@@ -36,7 +36,8 @@ $(document).ready(function(){
       onApprove : function() {
         socket.emit('switch role', {
           user: user,
-          action: 'switch role'
+          action: 'switch role',
+          status: $('#ok_button_srm').attr('value')
         })
       }
     })
@@ -265,23 +266,35 @@ socket.on('confirm to switch role', (payload) => {
     $('#global_loader').attr({
       'style': 'display: block; position: fixed;'
     })
+    // $('#header_srm').text('เพื่อนของคุณออกจากหน้าเขียนโปรแกรมตอนนี้คุณเป็น \"Coder\" แล้วครับ/ค่ะ')
     $('#header_serm').empty()
     $('#header_serm').text('เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ')
+    $('#reviewer_button').attr('style', 'display:none;')
     socket.emit('join project', {
       pid: getParameterByName('pid'),
       username: user
     })
+    // $('#ok_button_srm').attr({
+    //   style: 'display:block;',
+    //   value: payload.status
+    // })
+    // $('#switch_role_modal').modal('show')
   } else if (user === payload.projectRoles.roles.reviewer && payload.projectRoles.count == 2) {
     $('#header_srm').text('ถึงเวลาที่คุณเป็น \"Coder\" แล้วครับ/ค่ะ')
     $('#switch_role_modal').modal('show')
   } else if(user === payload.projectRoles.roles.coder && payload.projectRoles.count == 2) {
     $('#header_srm').text('ถึงเวลาที่คุณเป็น \"Reviewer\" แล้วครับ/ค่ะ')
-    $('#ok_button_srm').attr('style', 'display:block;')
+    $('#ok_button_srm').attr({
+      style: 'display:block;',
+      value: payload.status
+    })
     $('#switch_role_modal').modal('show')
   } else if (payload.projectRoles.count == 1){
+    console.log('payload.projectRoles.count, ', payload.projectRoles.count)
     socket.emit('switch role', {
       user: user,
-      action: 'switch role'
+      action: 'switch role',
+      status: 'disconnect'
     })
   }
 })

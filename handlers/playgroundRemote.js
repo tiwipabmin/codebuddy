@@ -83,7 +83,7 @@ module.exports = (io, client, redis, projects) => {
           projects[projectId].count += 1
           client.emit('reject to join project')
         } else if(projects[projectId].active_user[curUser] === undefined) {
-          console.log('projects[projectId].active_user[curUser] === undefined')
+          // console.log('projects[projectId].active_user[curUser] === undefined')
           partner(project)
         } else {
           projects[projectId].count += 1
@@ -121,7 +121,7 @@ module.exports = (io, client, redis, projects) => {
   }
 
   client.on('clear interval', () => {
-    clearInterval(timerId[curUser])
+    clearInterval(timerId['codebuddy'])
   })
 
   /**
@@ -137,11 +137,16 @@ module.exports = (io, client, redis, projects) => {
           delete projects[projectId].reject
         } else {
           io.in(projectId).emit('clear interval')
+          clearInterval(timerId['codebuddy'])
         }
         delete projects[projectId]
       } else if (projects[projectId].reject === undefined){
-        console.log('reject === undefined')
+        /*
+         * In case some user has no timerId
+         */
         io.in(projectId).emit('clear interval')
+        clearInterval(timerId['codebuddy'])
+        // delete projects[projectId].active_user[curUser]
         delete projects[projectId]
         io.in(projectId).emit('confirm to switch role', {projectRoles: projects[projectId], status: 'disconnect'})
         io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 0})
@@ -354,7 +359,7 @@ module.exports = (io, client, redis, projects) => {
     if(payload.action === undefined) {
       payload.action = 'switch role'
     }
-    console.log('switch role, ', payload.action)
+    clearInterval(timerId['codebuddy'])
     switchRole(payload)
   })
 
@@ -1020,7 +1025,8 @@ module.exports = (io, client, redis, projects) => {
               return swaptime = parseInt(project.swaptime) * 60 * 1000
           }
       });
-      timerId[curUser] = setInterval(intervalFunc, 1000);
+      timerId['codebuddy'] = setInterval(intervalFunc, 1000);
+      console.log('setInterval(intervalFunc, 1000);')
       redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
   }
 
@@ -1053,6 +1059,38 @@ module.exports = (io, client, redis, projects) => {
         })
       }
     }
+
+    // else if (payload.action === 'switch role') {
+    //   if (payload.status === 'connect' && projects[projectId].count == 2) {
+    //     const temp = projects[projectId].roles.coder
+    //     projects[projectId].roles.coder = projects[projectId].roles.reviewer
+    //     projects[projectId].roles.reviewer = temp
+    //     Project.findOne({ pid: projectId}, function (err, res) {
+    //       if (err) return handleError(err);
+    //       io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
+    //     })
+    //   } else if (payload.status === 'disconnect' && projects[projectId].roles.reviewer === payload.user) {
+    //     const temp = projects[projectId].roles.coder
+    //     projects[projectId].roles.coder = projects[projectId].roles.reviewer
+    //     projects[projectId].roles.reviewer = temp
+    //     Project.findOne({ pid: projectId}, function (err, res) {
+    //       if (err) return handleError(err);
+    //       io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
+    //     })
+    //   }
+    // }
+
+    // else if (payload.action === 'switch role'){
+    //   if (projects[projectId].count == 2 || (projects[projectId].roles.reviewer === payload.user && projects[projectId].count == 1)) {
+    //     const temp = projects[projectId].roles.coder
+    //     projects[projectId].roles.coder = projects[projectId].roles.reviewer
+    //     projects[projectId].roles.reviewer = temp
+    //     Project.findOne({ pid: projectId}, function (err, res) {
+    //       if (err) return handleError(err);
+    //       io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
+    //     })
+    //   }
+    // }
   }
 
   function saveComment(payload) {
