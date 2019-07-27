@@ -83,6 +83,7 @@ module.exports = (io, client, redis, projects) => {
           projects[projectId].count += 1
           client.emit('reject to join project')
         } else if(projects[projectId].active_user[curUser] === undefined) {
+          console.log('projects[projectId].active_user[curUser] === undefined')
           partner(project)
         } else {
           projects[projectId].count += 1
@@ -139,12 +140,12 @@ module.exports = (io, client, redis, projects) => {
         }
         delete projects[projectId]
       } else if (projects[projectId].reject === undefined){
+        console.log('reject === undefined')
         io.in(projectId).emit('clear interval')
         delete projects[projectId]
         io.in(projectId).emit('confirm to switch role', {projectRoles: projects[projectId], status: 'disconnect'})
         io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 0})
       }
-      delete projects[projectId].active_user[curUser]
       client.leave(projectId)
       winston.info('Client disconnected')
     } catch (error) {

@@ -303,7 +303,7 @@ socket.on('reject to join project', () => {
   $('#reject_to_join_project').modal('show')
 })
 
-socket.on('clear interval', ()=>{
+socket.on('clear interval', () => {
   socket.emit('clear interval')
 })
 
