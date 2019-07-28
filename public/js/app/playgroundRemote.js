@@ -7,17 +7,11 @@ $(document).ready(function(){
           select: 0,
           partner
         })
-        $('#global_loader').attr({
-          'style': 'display: block; position: fixed;'
-        })
       },
       onApprove : function() {
         socket.emit('role selected', {
           select: 1,
           partner
-        })
-        $('#global_loader').attr({
-          'style': 'display: block; position: fixed;'
         })
       }
     })
@@ -308,7 +302,6 @@ socket.on('countdown', (payload) => {
     $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
     $(".auto-swap-warning").html(``)
   }
-  $('#global_loader').attr('style', 'display: none')
 })
 
 socket.on('reject to join project', () => {

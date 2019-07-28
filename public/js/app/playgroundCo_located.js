@@ -9,14 +9,14 @@ const roles = {
 var comments = []
 var code = null
 
-var webrtc = new SimpleWebRTC({
-  // the id/element dom element that will hold "our" video
-  localVideoEl: 'localVideo',
-  // the id/element dom element that will hold remote videos
-  remoteVideosEl: 'remoteVideo',
-  // immediately ask for camera access
-  autoRequestMedia: true
-});
+// var webrtc = new SimpleWebRTC({
+//   // the id/element dom element that will hold "our" video
+//   localVideoEl: 'localVideo',
+//   // the id/element dom element that will hold remote videos
+//   remoteVideosEl: 'remoteVideo',
+//   // immediately ask for camera access
+//   autoRequestMedia: true
+// });
 
 /**
  * get query parameter from URL
@@ -47,7 +47,7 @@ getActiveTab('main');
 
 function setEditor(fileName){
   if(!(fileName in editor)) {
-    editor[fileName] = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
+    let cm = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
       lineNumbers: true,
       mode: {
         name: 'python',
@@ -61,6 +61,12 @@ function setEditor(fileName){
       indentUnit: 4,
       matchBrackets: true
     })
+    cm.addKeyMap({
+      "Alt-R": function(cm) { runCode() },
+      "Alt-S": function(cm) { pauseRunCode() },
+      "Alt-V": function(cm) { submitCode() }
+    })
+    editor[fileName] = cm
   }
 }
 
@@ -97,11 +103,11 @@ socket.emit('join project', {
   username: user
 })
 
-webrtc.on('readyToCall', function () {
-  // you can name it anything
-  webrtc.createRoom(getParameterByName('pid'));
-  webrtc.joinRoom(getParameterByName('pid'));
-});
+// webrtc.on('readyToCall', function () {
+//   // you can name it anything
+//   webrtc.createRoom(getParameterByName('pid'));
+//   webrtc.joinRoom(getParameterByName('pid'));
+// });
 
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
@@ -259,17 +265,17 @@ socket.on('role selection', () => {
 //     }
 //   }
 
-  function setOptionFileNoCursor(fileName) {
-    editor[fileName].setOption('readOnly', 'nocursor')
-  }
-  function setOptionFileShowCursor(fileName) {
-    editor[fileName].setOption('readOnly', false)
-  }
-
-  $(".partner-role-label").text(`${roles.partner}`)
-  $(".user-role-label").text(`${roles.user}`)
+  // function setOptionFileNoCursor(fileName) {
+  //   editor[fileName].setOption('readOnly', 'nocursor')
+  // }
+  // function setOptionFileShowCursor(fileName) {
+  //   editor[fileName].setOption('readOnly', false)
+  // }
+  //
+  // $(".partner-role-label").text(`${roles.partner}`)
+  // $(".user-role-label").text(`${roles.user}`)
   // startCountdown()
-})
+// })
 
 // socket.on('show reviewer active time', (payload) => {
 //   if(roles.user === 'coder' && payload.counts >= 0) {
@@ -447,6 +453,9 @@ function runCode() {
  * Submit code
  */
 function submitCode() {
+  $('#global_loader').attr({
+    'style': 'display: block; position: fixed;'
+  })
   socket.emit('submit code', {
     mode: 'button submit',
     uid: uid,
@@ -488,18 +497,14 @@ function sendActiveTab(tab) {
  * Show score dialog
  */
 socket.on('show score', (payload) => {
-  console.log(payload)
-  $('#showScore-modal').modal('hide')
-  $('#showScore-modal').modal('show')
   $('p#show-point').text("Your score is "+parseFloat(payload.score).toFixed(2)+" points.");
   if (uid == payload.uid) {
     $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points");
   }
-  $('#showScore-modal')
-  .modal({
-    closable  : true,
-    onApprove : function() {
-
+  $('#showScore-modal').modal({
+    closable  : false,
+    onDeny : function() {
+      $('#global_loader').attr('style', 'display: none')
     }
   })
   .modal('show')
@@ -590,36 +595,36 @@ socket.on('term update', (payload) => {
 //   }
 // })
 //
-// socket.on('download file', (payload) => {
-//   var projectId = payload
-//   var a = document.createElement("a");
-//   document.body.appendChild(a);
-//   a.style = "display: none";
-//   a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
-//   a.download = projectId+'.zip'
-//   a.click();
-//   document.body.removeChild(a);
-// })
+socket.on('download file', (payload) => {
+  var projectId = payload
+  var a = document.createElement("a");
+  document.body.appendChild(a);
+  a.style = "display: none";
+  a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
+  a.download = projectId+'.zip'
+  a.click();
+  document.body.removeChild(a);
+})
 
 /**
  * WebRTC TEST MUTING
  */
-function muteEvent(b) {
-  if ($(b).hasClass("active")) {
-    webrtc.mute();
-  }
-  else {
-    webrtc.unmute();
-  }
-}
-function videoEvent(b) {
-  if ($(b).hasClass("active")) {
-    webrtc.pauseVideo();
-  }
-  else {
-    webrtc.resumeVideo();
-  }
-}
+// function muteEvent(b) {
+//   if ($(b).hasClass("active")) {
+//     webrtc.mute();
+//   }
+//   else {
+//     webrtc.unmute();
+//   }
+// }
+// function videoEvent(b) {
+//   if ($(b).hasClass("active")) {
+//     webrtc.pauseVideo();
+//   }
+//   else {
+//     webrtc.resumeVideo();
+//   }
+// }
 // attach ready event -- Video Toggle
 $(document)
   .ready(function () {
@@ -637,32 +642,22 @@ $(document)
           active: '<i class="unmute icon"/>'
         }
       });
-    // $('#inputMessage').keydown(function() {
-    //   socket.emit('is typing', {
-    //     uid: uid,
-    //     text: `${user} is typing...`
-    //   })
-    // });
-    // $('#inputMessage').keyup(function() {
-    //   socket.emit('is typing', {
-    //     uid: uid,
-    //     text: ''
-    //   })
-    // });
-    $('#inputMessage').change(function() {
-      if($('#inputMessage').val() != "") {
-        console.log("is typing")
-        socket.emit('is typing', {
-              uid: uid,
-              text: `${user} is typing...`
-            })
-      } else {
-        socket.emit('is typing', {
-              uid: uid,
-              text: ''
-            })
-      }
-    });
+      // $('#inputMessage').keydown(function() {
+      //   socket.emit('is typing', {
+      //     uid: uid,
+      //     text: `${user} is typing...`
+      //   })
+      //   clearTimeout(parseInt($('#inputMessage').attr('data-timeId')))
+      // });
+      // $('#inputMessage').keyup(function() {
+      //   let timeId = setTimeout(function(){
+      //     socket.emit('is typing', {
+      //         uid: uid,
+      //         text: ''
+      //     })
+      //   }, 5000)
+      //   $('#inputMessage').attr('data-timeId', timeId)
+      // });
     $('#inputMessage').keydown(function(e) {
       if (e.keyCode == 13) {
         sendMessage()
@@ -671,108 +666,47 @@ $(document)
     console.log("is typing : " + $('#inputMessage').val())
     updateScroll();
   });
-$(document)
-.ready(function () {
-  if($('#inputMessage').val() != "") {
-    console.log("is typing")
-    socket.emit('is typing', {
-          uid: uid,
-          text: `${user} is typing...`
-        })
-  } else {
-    socket.emit('is typing', {
-          uid: uid,
-          text: ''
-        })
-  }
-});
 
+//- is just jQuery short-hand for $(function () {...})
 $(function(){
 
-  console.log("is typing : " + $('#inputMessage').val())
-  if($('#inputMessage').val() != "") {
-    console.log("is typing")
-    socket.emit('is typing', {
-          uid: uid,
-          text: `${user} is typing...`
-        })
-  } else {
-    socket.emit('is typing', {
-          uid: uid,
-          text: ''
-        })
-  }
-
-  var acc = 0;
-  var session_flag = 0;
+  // var acc = 0;
+  // var session_flag = 0;
   // send active time
-  setInterval(function(){
-    const counts = $('#counts_min_sec').attr('data-count');
-    const min = $('#counts_min_sec').attr('data-min');
-    const sec = $('#counts_min_sec').attr('data-sec');
-    if(roles.user === "reviewer" && counts !== undefined && session_flag === 0) {
-      session_flag = 1;
-      acc = counts;
-    }else if(roles.user === "coder" && session_flag === 1){
-      session_flag = 0;
-    } else if(roles.user === "reviewer" && counts >= 0 && session_flag === 1) {
-      socket.emit('reviewer active time', {
-        counts: counts,
-        mins : pad(parseInt((counts-acc)/60)),
-        secs: pad((counts-acc)%60)
-      })
-    }
-  }, 1000);
+  // setInterval(function(){
+  //   const counts = $('#counts_min_sec').attr('data-count');
+  //   const min = $('#counts_min_sec').attr('data-min');
+  //   const sec = $('#counts_min_sec').attr('data-sec');
+  //   if(roles.user === "reviewer" && counts !== undefined && session_flag === 0) {
+  //     session_flag = 1;
+  //     acc = counts;
+  //   }else if(roles.user === "coder" && session_flag === 1){
+  //     session_flag = 0;
+  //   } else if(roles.user === "reviewer" && counts >= 0 && session_flag === 1) {
+  //     socket.emit('reviewer active time', {
+  //       counts: counts,
+  //       mins : pad(parseInt((counts-acc)/60)),
+  //       secs: pad((counts-acc)%60)
+  //     })
+  //   }
+  // }, 1000);
 
   var lastSavedTime = 0
 
-  setInterval(function() {
-    const counts = $('#counts_min_sec').attr('data-count');
-    let add = counts - lastSavedTime
-
-    if (counts !== undefined && add > 0) {
-      socket.emit('save active time',{
-        uid: uid,
-        time: add
-      })
-
-      lastSavedTime = counts
-    }
-  }, 10000)
+  // setInterval(function() {
+  //   const counts = $('#counts_min_sec').attr('data-count');
+  //   let add = counts - lastSavedTime
+  //
+  //   if (counts !== undefined && add > 0) {
+  //     socket.emit('save active time',{
+  //       uid: uid,
+  //       time: add
+  //     })
+  //
+  //     lastSavedTime = counts
+  //   }
+  // }, 10000)
 });
-
-console.log("is typing : " + $('#inputMessage').val())
-if($('#inputMessage').val() != "") {
-  console.log("is typing")
-  socket.emit('is typing', {
-        uid: uid,
-        text: `${user} is typing...`
-      })
-} else {
-  socket.emit('is typing', {
-        uid: uid,
-        text: ''
-      })
-}
-
-$('.ui.video.toggle.button')
-  .on('click', handler.activate);
-$('.ui.video.toggle.button')
-  .state({
-    text: {
-      inactive: '<i class="pause circle icon"/>',
-      active: '<i class="play video icon"/>'
-    }
-  });
-$('.ui.mute.toggle.button')
-  .on('click', handler.activate);
-$('.ui.mute.toggle.button')
-  .state({
-    text: {
-      inactive: '<i class="mute icon"/>',
-      active: '<i class="unmute icon"/>'
-    }
-  });
 
 function switchRole() {
   socket.emit('switch role')
@@ -786,34 +720,34 @@ function updateScroll(){
 function pad ( val ) { return val > 9 ? val : "0" + val; }
 
 //add file tab
-function addFile(){
-  $('#filename-modal').modal('show')
-  $('.filename').val('')
-
-  //disable create button when input is empty
-  $('#createBtn').prop('disabled', true);
-  $('.filename').keyup(function() {
-    var disable = false;
-    var isExists = false;
-    var fileName = $('.filename').val()
-    isExists = projectFiles.indexOf(fileName)
-
-    $('.filename').each(function() {
-      if ($(this).val() == "" || isExists!=-1 || (!fileName.match(/^[0-9a-zA-Z\.]*$/)) || fileName.indexOf('.') !== -1) {
-        disable = true;
-        if(isExists!=-1){
-          $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">This File name already exists.</p>')
-        }
-        if(!fileName.match(/^[0-9a-zA-Z\.]*$/) || fileName.indexOf('.') !== -1){
-          $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">Filename should not have special characters.</p>')
-        }
-      }else{
-        $('.file.name.exists.warning').html('')
-      }
-    });
-    $('#createBtn').prop('disabled', disable);
-  });
-}
+// function addFile(){
+//   $('#filename-modal').modal('show')
+//   $('.filename').val('')
+//
+//   //disable create button when input is empty
+//   $('#createBtn').prop('disabled', true);
+//   $('.filename').keyup(function() {
+//     var disable = false;
+//     var isExists = false;
+//     var fileName = $('.filename').val()
+//     isExists = projectFiles.indexOf(fileName)
+//
+//     $('.filename').each(function() {
+//       if ($(this).val() == "" || isExists!=-1 || (!fileName.match(/^[0-9a-zA-Z\.]*$/)) || fileName.indexOf('.') !== -1) {
+//         disable = true;
+//         if(isExists!=-1){
+//           $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">This File name already exists.</p>')
+//         }
+//         if(!fileName.match(/^[0-9a-zA-Z\.]*$/) || fileName.indexOf('.') !== -1){
+//           $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">Filename should not have special characters.</p>')
+//         }
+//       }else{
+//         $('.file.name.exists.warning').html('')
+//       }
+//     });
+//     $('#createBtn').prop('disabled', disable);
+//   });
+// }
 
 function getActiveTab(fileName){
   var isNewTab = true

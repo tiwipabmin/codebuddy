@@ -74,6 +74,7 @@ module.exports = (io, client, redis, projects) => {
         winston.info(projects[projectId].count)
         client.emit('role selection')
       } else {
+        projects[projectId].count += 1
         client.emit('reject to join project')
         // Project.findOne({ pid: projectId}, async function (err, res) {
         //   if (err) return handleError(err);

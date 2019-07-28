@@ -6,7 +6,7 @@ const startTimer = function (duration, display, changeRoleBtn) {
   let { diff, minutes, seconds } = 0
 
   function timer() {
-    // get the number of seconds that have elapsed since 
+    // get the number of seconds that have elapsed since
     // startTimer() was called
     diff = duration - (((Date.now() - start) / 1000) | 0)
     // does the same job as parseInt truncates the float
@@ -54,7 +54,7 @@ window.onload = function() {
   //     // context.translate(canvas.width, 0);
   //     context.clearRect(0, 0, canvas.width, canvas.height);
   //     event.data.forEach(function(rect) {
-        
+
   //       // context.strokeStyle = '#a64ceb'; canvas.width-rect.x-rect.width
   //       context.strokeStyle = '#ffffff';
   //       context.strokeRect(rect.x+120, rect.y, rect.width, rect.height);
@@ -62,7 +62,7 @@ window.onload = function() {
   //       context.fillStyle = "#fff";
   //       // context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
   //       // context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
-        
+
   //       if(flag == 0){
   //         flag = 1;
   //         counts++;
@@ -72,11 +72,11 @@ window.onload = function() {
   //         document.getElementById("counts").innerHTML=counts;
   //         $(this).stop()
   //       }
-  
+
   //       // document.getElementById('my_timer').innerHTML = count
   //     });
   //   }, 1000);
- 
+
   // });
 
   var trackingTimer = setInterval(trackerTimer, 1000);
@@ -100,8 +100,8 @@ window.onload = function() {
           }
         });
         flag = 1;
-    });  
-  }  
+    });
+  }
 
   // var gui = new dat.GUI();
   // gui.add(tracker, 'edgesDensity', 0.1, 0.5).step(0.01);
@@ -122,7 +122,7 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 		  var $childCheckbox  = $(this).closest('.checkbox').siblings('.list').find('.checkbox');
 		  $childCheckbox.checkbox('uncheck');
 		}
-	  })  
+	  })
 	$('.list .child.checkbox').checkbox({
 		// Fire on load to set parent value
 		fireOnInit : true,
@@ -156,13 +156,13 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 		  }
 		}
   })
-  
-  $(document).ready(function(){ 
-    $('.chat').hide(); 
-    $('#live-chat header').on('click', function() { 
-      $('.chat').slideToggle(300, 'swing'); 
-      $(".chat-history").animate({ scrollTop: $('.message-list').height() }, "fast"); 
-      $("#angle-up").toggleClass("rotate"); 
-    }); 
-   
+
+  $(document).ready(function(){
+    $('.chat').hide();
+    $('#live-chat header').on('click', function() {
+      $('.chat').slideToggle(300, 'swing');
+      $(".chat-history").animate({ scrollTop: $('.message-list').height() }, "fast");
+      $("#angle-up").toggleClass("rotate");
+    });
+
   });
