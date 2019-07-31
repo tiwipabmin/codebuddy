@@ -1031,10 +1031,7 @@ module.exports = (io, client, redis, projects) => {
   }
 
   function switchRole(payload) {
-    console.log('function switchRole(), ', payload.action)
     countdownTimer()
-    console.log("project_id" + projectId);
-    console.log(projects[projectId]);
     // Checking if this project hasn't have any roles assigned.
     if (!projects[projectId]) {
       winston.info(`created new projects['${projectId}'] - fix bug version`)

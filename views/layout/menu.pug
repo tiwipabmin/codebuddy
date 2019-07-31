@@ -8,15 +8,15 @@
             i.grid.layout.icon
           //  |  Dashboard
           a.item(href='/lobby')
-            i.coffee.icon
+            i.home.icon
             |  Lobby
           if (data_set.common.section)
             a.item(href='/classroom?section_id='+data_set.common.section.section_id)
-              i.grid.layout.icon
+              i.laptop.layout.icon
               |  Classroom
-          a.item(href='/notifications')
-            i.Alarm.icon
-            |  Notifications
+          //- a.item(href='/notifications')
+          //-   i.Alarm.icon
+          //-   |  Notifications
             //- .ui.red.horizontal.label 1
           .ui.simple.dropdown.right.item
               //- i.user.icon

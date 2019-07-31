@@ -28,6 +28,7 @@ module.exports = (io, client, redis, projects) => {
    * after that socket will fire `init state` with editor code to initiate local editor
    */
   client.on('join project', async (payload) => {
+    console.log('Join Project')
     try {
       projectId = payload.pid
       curUser = payload.username
@@ -768,7 +769,10 @@ module.exports = (io, client, redis, projects) => {
           if (err);
           if (project) {
             if (project.creator_id != null && project.collaborator_id != null) {
-              const users = [project.creator_id, project.collaborator_id]
+              let users = [project.creator_id]
+              if (project.programming_style !== 'Individual') {
+                users = [project.creator_id, project.collaborator_id]
+              }
               users.forEach(function (element) {
                 const scoreModel = {
                   pid: projectId,
@@ -785,6 +789,7 @@ module.exports = (io, client, redis, projects) => {
                 }
                 Score.where({pid: projectId, uid: element}).findOne(function (err, oldScore) {
                   if (err) throw err
+                  console.log('oldScore, ', oldScore)
                   if (!oldScore) {
                     new Score(scoreModel, (err) => {
                       if (err) throw err
@@ -806,6 +811,7 @@ module.exports = (io, client, redis, projects) => {
                         }
                         if (results) {
                           // sum = 0;
+                          console.log('results, ', results)
                           results.forEach(function (result) {
                             // start update
                             User.update({

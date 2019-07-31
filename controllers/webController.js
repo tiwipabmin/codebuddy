@@ -123,12 +123,14 @@ exports.getPlayground = async (req, res) => {
   const messages = await Message
       .find({ pid: req.query.pid})
       .sort({ createdAt: 1 })
-  if ('creator' == user_role){
+  if ('creator' == user_role && project.programming_style !== 'Individual') {
     partner_obj = await User
     .findOne({ _id: project.collaborator_id})
-  } else {
+  } else if ('collaborator' == user_role && project.programming_style !== 'Individual'){
     partner_obj = await User
     .findOne({ _id: project.creator_id})
+  } else {
+    partner_obj = null
   }
   data_set = {common: {project: project, section: section}}
 
@@ -139,6 +141,8 @@ exports.getPlayground = async (req, res) => {
     res.render('playground_co_located', { data_set, title: `${project.title} - Playground`, messages, partner_obj})
   } else if(project.programming_style == 'Remote') {
     res.render('playground_remote', { data_set, title: `${project.title} - Playground`, messages, partner_obj})
+  } else if(project.programming_style == 'Individual') {
+    res.render('playgroundIndividual', { data_set, title: `${project.title} - Playground`, messages, partner_obj})
   }
 }
 
@@ -1348,13 +1352,27 @@ exports.getAssignment = async (req, res) => {
 }
 
 exports.assignAssignment = async (req, res) => {
-  const select_enrollment_by_section_id = 'SELECT * FROM enrollment WHERE section_id = ' + cryptr.decrypt(req.body.assignment_set[0].section_id)
-  const enrollments = await con.select_enrollment(select_enrollment_by_section_id);
-  const assignment_set = req.body.assignment_set
-  for(_index in assignment_set) {
-    assignment_set[_index].assignment_id = cryptr.decrypt(assignment_set[_index].assignment_id)
+  const selectEnrollmentBySectionId = 'SELECT * FROM enrollment WHERE section_id = ' + cryptr.decrypt(req.body.assignment_set[0].section_id)
+  const enrollments = await con.select_enrollment(selectEnrollmentBySectionId);
+  const assignmentSet = req.body.assignment_set
+  let isThereIndividualPro = false
+  let isTherePairPro = false
+  for(_index in assignmentSet) {
+    assignmentSet[_index].assignment_id = cryptr.decrypt(assignmentSet[_index].assignment_id)
+    if (assignmentSet[_index].programming_style === 'Individual') {
+      isThereIndividualPro = true
+    } else if (assignmentSet[_index].programming_style === 'Remote' || assignmentSet[_index].programming_style === 'Co-located') {
+      isTherePairPro = true
+    }
+
+    if(isThereIndividualPro && isTherePairPro) {
+      res.send({res_status: 'Do not allow to assign assignment that have different programming style by once time!'})
+      return
+    }
   }
-  var count = 0;
+  console.log('isThereIndividualPro, ', isThereIndividualPro)
+  console.log('isTherePairPro, ', isTherePairPro)
+  let count = 0;
   //check student pairing
   for (_index in enrollments) {
     if(enrollments[_index].partner_id != null) {
@@ -1363,90 +1381,129 @@ exports.assignAssignment = async (req, res) => {
     }
   }
 
-  if(!count){
+  if(!count && !isThereIndividualPro){
     res.send({res_status: 'Please pair all students before assign the assignment!'})
     return
   }
 
-  const pairing_session_id = req.body.pairing_session_id;
-  console.log('assignAssignment: pairing_sesion_id, ', pairing_session_id)
+  const pairingSessionId = req.body.pairing_session_id;
   const swaptime = '1';
   const language = '0';
-  const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairing_session_id
+  const selectStudent = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = ' + pairingSessionId
   var students = await con.select_student(selectStudent);
   var creator = 'username';
   var collaborator = 'username';
-  var student_objects = {}
+  var cloneStudents = {}
   var project = new Project();
   let programming_style = 'Remote';
-  let simulation_objects = {};
+  let clonePartnerKeys = {};
   let assignment_id = 1;
-  let partner_keys_objects = {}
+  let partnerKeys = {}
   let assignment_of_each_pair = {}
-  let assignment_set_objects = {}
+  let cloneAssignmentSet = {}
   let end_time = req.body.end_time
 
-  const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
-  let pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
-  let time_start = pairing_session[0].time_start
-  time_start = time_start.split(' ')
-  time_start = time_start[0]
+  const selectPairingSessionByPairingSessionId = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairingSessionId
+  let pairingSession = await con.select_pairing_session(selectPairingSessionByPairingSessionId)
+  let timeStart = pairingSession[0].time_start
+  timeStart = timeStart.split(' ')
+  timeStart = timeStart[0]
 
   for(_index in students) {
-    student_objects[students[_index].enrollment_id] = students[_index]
+    cloneStudents[students[_index].enrollment_id] = students[_index]
   }
 
-  for(_index in assignment_set) {
-    assignment_set_objects[assignment_set[_index].assignment_id] = assignment_set[_index]
+  for(_index in assignmentSet) {
+    cloneAssignmentSet[assignmentSet[_index].assignment_id] = assignmentSet[_index]
   }
 
-  simulation_objects = Object.assign({}, student_objects)
-  for(key in simulation_objects) {
-    if(simulation_objects[key].role == 'host') {
-      partner_keys_objects[key] = simulation_objects[key].partner_id
+  clonePartnerKeys = Object.assign({}, cloneStudents)
+  for(key in clonePartnerKeys) {
+    if(clonePartnerKeys[key].role == 'host') {
+      partnerKeys[key] = clonePartnerKeys[key].partner_id
       assignment_of_each_pair[key] = []
     } else {
-      partner_keys_objects[simulation_objects[key].partner_id] = key
-      assignment_of_each_pair[simulation_objects[key].partner_id] = []
+      partnerKeys[clonePartnerKeys[key].partner_id] = key
+      assignment_of_each_pair[clonePartnerKeys[key].partner_id] = []
     }
 
-    delete simulation_objects[simulation_objects[key].partner_id]
-    delete simulation_objects[key]
+    delete clonePartnerKeys[clonePartnerKeys[key].partner_id]
+    delete clonePartnerKeys[key]
   }
 
-  let search_project = {};
+  let findProject = {};
 
   count = 0
-  for(_index in assignment_set){
-    for(var key in partner_keys_objects){
-      search_project = await Project.findOne({
-        $or: [{
-          assignment_id: assignment_set[_index].assignment_id,
-          creator: student_objects[key].username,
-          collaborator: student_objects[partner_keys_objects[key]].username,
-          createdAt: {$gt: new Date(time_start)}
-        }, {
-          assignment_id: assignment_set[_index].assignment_id,
-          creator: student_objects[key].username,
-          collaborator: student_objects[partner_keys_objects[key]].username,
-          createdAt: {$lt: new Date(time_start)}
-        }, {
-          assignment_id: assignment_set[_index].assignment_id,
-          creator: student_objects[partner_keys_objects[key]].username,
-          collaborator: student_objects[key].username,
-          createdAt: {$gt: new Date(time_start)}
-        }, {
-          assignment_id: assignment_set[_index].assignment_id,
-          creator: student_objects[partner_keys_objects[key]].username,
-          collaborator: student_objects[key].username,
-          createdAt: {$lt: new Date(time_start)}
-        }]
-      })
-      if(search_project == null) {
-        count++
-        assignment_of_each_pair[key].push(assignment_set[_index].assignment_id)
+  if (!isThereIndividualPro && isTherePairPro) {
+    /*
+     * assignment is a remote pair-programming or conventional pair-programming.
+     */
+    for(_index in assignmentSet){
+      for(let key in partnerKeys){
+        findProject = await Project.findOne({
+          $or: [{
+            assignment_id: assignmentSet[_index].assignment_id,
+            creator: cloneStudents[key].username,
+            collaborator: cloneStudents[partnerKeys[key]].username,
+            createdAt: {$gt: new Date(timeStart)}
+          }, {
+            assignment_id: assignmentSet[_index].assignment_id,
+            creator: cloneStudents[key].username,
+            collaborator: cloneStudents[partnerKeys[key]].username,
+            createdAt: {$lt: new Date(timeStart)}
+          }, {
+            assignment_id: assignmentSet[_index].assignment_id,
+            creator: cloneStudents[partnerKeys[key]].username,
+            collaborator: cloneStudents[key].username,
+            createdAt: {$gt: new Date(timeStart)}
+          }, {
+            assignment_id: assignmentSet[_index].assignment_id,
+            creator: cloneStudents[partnerKeys[key]].username,
+            collaborator: cloneStudents[key].username,
+            createdAt: {$lt: new Date(timeStart)}
+          }]
+        })
+        if(findProject == null) {
+          count++
+          assignment_of_each_pair[key].push(assignmentSet[_index].assignment_id)
+        }
       }
     }
+  } else if (isThereIndividualPro && !isTherePairPro){
+    /*
+     * assignment is a individual pair-programming.
+     */
+    for(_index in assignmentSet){
+      for(let key in partnerKeys){
+        console.log('partnerKeys, ', key)
+        findProject = await Project.findOne({
+          $or: [{
+            assignment_id: assignmentSet[_index].assignment_id,
+            creator: cloneStudents[key].username,
+            createdAt: {$gt: new Date(timeStart)}
+          }, {
+            assignment_id: assignmentSet[_index].assignment_id,
+            creator: cloneStudents[key].username,
+            createdAt: {$lt: new Date(timeStart)}
+          }, {
+            assignment_id: assignmentSet[_index].assignment_id,
+            creator: cloneStudents[partnerKeys[key]].username,
+            createdAt: {$gt: new Date(timeStart)}
+          }, {
+            assignment_id: assignmentSet[_index].assignment_id,
+            creator: cloneStudents[partnerKeys[key]].username,
+            createdAt: {$lt: new Date(timeStart)}
+          }]
+        })
+        if(findProject == null) {
+          count++
+          assignment_of_each_pair[key].push(assignmentSet[_index].assignment_id)
+        }
+      }
+    }
+  } else {
+    res.send({res_status: 'Error!'})
+    return
   }
 
   let date_time = new Date()
@@ -1459,37 +1516,47 @@ exports.assignAssignment = async (req, res) => {
   let start_time = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + 'T' + slice_date_time[3] + 'Z'
 
   let time_left = moment(new Date(end_time)).diff(moment(new Date(start_time)))
-  console.log('time_left, ', time_left, ', start_time, ', start_time, ', end_time, ', end_time)
+  // console.log('time_left, ', time_left, ', start_time, ', start_time, ', end_time, ', end_time)
   if(time_left < 0) {
     res.send({res_status: 'Please, set end time again!'})
     return
   }
 
-  let timeout_handles = []
+  let timeoutHandles = []
   // Assign each assignment to the all of student
   for (key in assignment_of_each_pair) {
     for (_index in assignment_of_each_pair[key]) {
       assignment_id = assignment_of_each_pair[key][_index]
 
       project = new Project()
-      project.title = assignment_set_objects[assignment_id].title;
-      project.description = assignment_set_objects[assignment_id].description;
-      project.programming_style = assignment_set_objects[assignment_id].programming_style;
+      project.title = cloneAssignmentSet[assignment_id].title;
+      project.description = cloneAssignmentSet[assignment_id].description;
+      project.programming_style = cloneAssignmentSet[assignment_id].programming_style;
       project.language = language;
       project.swaptime = swaptime;
       project.status = '';
-      project.week = assignment_set_objects[assignment_id].week
+      project.week = cloneAssignmentSet[assignment_id].week
       project.end_time = new Date(end_time)
       project.available_project = true
       project.createdAt = start_time
 
-      creator = student_objects[key].username
-      collaborator = student_objects[partner_keys_objects[key]].username
+      if (!isThereIndividualPro && isTherePairPro) {
+        creator = cloneStudents[key].username
+        collaborator = cloneStudents[partnerKeys[key]].username
+      } else if (isThereIndividualPro && !isTherePairPro) {
+        creator = cloneStudents[key].username
+        collaborator = 'examiner@codebuddy'
+      } else {
+        res.send({res_status: 'Error!'})
+        return
+      }
+
       project.creator = creator;
       project.collaborator = collaborator;
       creator = await User.findOne({ username: creator})
       collaborator = await User.findOne({ username: collaborator})
-      if (collaborator != null) {
+
+      if (collaborator != null && !isThereIndividualPro && isTherePairPro) {
         project = await (project).save()
         Project.update({
           _id: project._id
@@ -1503,7 +1570,7 @@ exports.assignAssignment = async (req, res) => {
           if (err) throw err
         })
 
-        timeout_handles.push(project._id)
+        timeoutHandles.push(project._id)
 
         // Insert score records
         const uids = [creator._id, collaborator._id]
@@ -1524,31 +1591,63 @@ exports.assignAssignment = async (req, res) => {
           new Score(scoreModel).save()
         })
 
-        //create directory
-        var dir1 = './public/project_files';
-        var dir2 = './public/project_files/'+project.pid;
-        if (!fs.existsSync(dir1)){
-          fs.mkdirSync(dir1);
-        }
-        if (!fs.existsSync(dir2)){
-          fs.mkdirSync(dir2);
-        }
-        fs.open('./public/project_files/'+project.pid+'/main.py', 'w', function (err, file) {
-          if (err) throw err;
-          console.log('file '+project.pid+'.py is created');
+      } else if (collaborator === null && isThereIndividualPro && !isTherePairPro) {
+        console.log('creator_id, ', creator._id)
+        project = await (project).save()
+        Project.update({
+          _id: project._id
+          }, {
+          $set: {
+            creator_id: creator._id,
+            collaborator_id: 'examiner@codebuddy',
+            assignment_id: assignment_id
+          }
+        }, (err) => {
+          if (err) throw err
         })
 
+        timeoutHandles.push(project._id)
+
+        // Insert score records
+        const scoreModel = {
+          pid: project.pid,
+          uid: creator._id,
+          score: 0,
+          time: 0,
+          lines_of_code: 0,
+          error_count: 0,
+          participation: {
+            enter: 0,
+            pairing: 0
+          },
+          createdAt: Date.now()
+        }
+        new Score(scoreModel).save()
       } else {
         console.log('error', "Can't find @" + collaborator)
       }
+
+      //create directory
+      var dir1 = './public/project_files';
+      var dir2 = './public/project_files/'+project.pid;
+      if (!fs.existsSync(dir1)){
+        fs.mkdirSync(dir1);
+      }
+      if (!fs.existsSync(dir2)){
+        fs.mkdirSync(dir2);
+      }
+      fs.open('./public/project_files/'+project.pid+'/main.py', 'w', function (err, file) {
+        if (err) throw err;
+        console.log('file '+project.pid+'.py is created');
+      })
     }
   }
 
   setTimeout(async function(){
     console.log('setTimeout started!!!!!!!!!!!!!!!!!')
-    for (_index in timeout_handles) {
+    for (_index in timeoutHandles) {
       await Project.update({
-        _id: timeout_handles[_index]
+        _id: timeoutHandles[_index]
       }, {
         $set: {
           available_project: false

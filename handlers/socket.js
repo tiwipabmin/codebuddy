@@ -21,6 +21,8 @@ module.exports = (server) => {
         require('./playgroundCo_located.js')(io, client, redis, projects)
       } else if(payload.programming_style == 'Remote') {
         require('./playgroundRemote.js')(io, client, redis, projects)
+      } else if(payload.programming_style == 'Individual') {
+        require('./playgroundIndividual.js')(io, client, redis, projects)
       }
     })
   })

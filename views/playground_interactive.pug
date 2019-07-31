@@ -89,13 +89,13 @@ block content
               div.ui.relaxed.items
                 div.item
                   div
-                    a.ui.tiny.image.circular
+                    div.ui.tiny.image.circular
                       img(src=user.img)
                     p.user-role-label.text-center
                   div.content.padding-10
                     p.header #{user.info.firstname}   #{user.info.lastname} <b> (@#{user.username}) </b>
                     div.description
-                      a.ui.teal.circular.label#user-point-label score : 0
+                      label.ui.teal.circular.label#user-point-label average score : 0
         .four.wide.column
           center
             h1.ui.header= data_set.common.project.title
@@ -119,14 +119,14 @@ block content
               div.ui.relaxed.items
                 div.item
                   div
-                    a.ui.tiny.image.circular
+                    div.ui.tiny.image.circular
                       img(src=partner_img)
                     p.partner-role-label.text-center
                   div.content.padding-10
                     p.header #{partner_obj.info.firstname}   #{partner_obj.info.lastname} <b> (@#{partner_obj.username}) </b>
                       span.user.status
                     div.description
-                      a.ui.teal.circular.label#partner-point-label score : 0
+                      label.ui.teal.circular.label#partner-point-label average score : 0
       .ui.divider
       br
       .ui.grid
@@ -237,7 +237,7 @@ block content
         .twelve.wide.column.right
           .ui.grid
             .sixteen.wide.column
-              p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") score : 0
+              p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") project score : 0
               a.ui.label(style='margin-left:10px;' href='/history?pid='+data_set.common.project.pid+'&curUser='+curUser) view history
               button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()' data-tooltip="Verify" data-inverted="")
                 i.unhide.icon

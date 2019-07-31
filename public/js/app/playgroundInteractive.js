@@ -588,11 +588,11 @@ socket.on('auto update score', (payload) => {
  */
 socket.on('show auto update score', (payload) => {
   console.log(payload)
-  $('p#project-score-point').text("score : " + parseFloat(payload.score));
+  $('p#project-score-point').text("project score : " + parseFloat(payload.score));
   if (uid == payload.uid) {
-    $('#user-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2));
+    $('#user-point-label').text('average score: ' + parseFloat(payload.avgScore).toFixed(2));
   } else {
-    $('#partner-point-label').text('score: ' + parseFloat(payload.avgScore).toFixed(2));
+    $('#partner-point-label').text('average score: ' + parseFloat(payload.avgScore).toFixed(2));
   }
 
 })
@@ -784,7 +784,7 @@ $(function(){
         uid: uid,
         time: add
       })
-      
+
       lastSavedTime = counts
     }
   }, 10000)

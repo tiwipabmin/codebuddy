@@ -537,10 +537,7 @@ socket.on('show auto update score', (payload) => {
   $('p#project-score-point').text("project score : " + parseFloat(payload.score));
   if (uid == payload.uid) {
     $('#user-point-label').text('average score: ' + parseFloat(payload.avgScore).toFixed(2));
-  } else {
-    $('#partner-point-label').text('average score: ' + parseFloat(payload.avgScore).toFixed(2));
   }
-
 })
 
 /**
@@ -548,11 +545,11 @@ socket.on('show auto update score', (payload) => {
  */
 socket.on('show partner active tab', (payload) => {
   if(payload.uid !== uid){
-    $('#'+partnerTab+'-file-icon').replaceWith('<div id="'+partnerTab+'-file-icon"/>');
+    // $('#'+partnerTab+'-file-icon').replaceWith('<div id="'+partnerTab+'-file-icon"/>');
 
     //set new partner actice tab
     partnerTab = payload.activeTab
-    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>');
+    //$('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>');
   }
 })
 
