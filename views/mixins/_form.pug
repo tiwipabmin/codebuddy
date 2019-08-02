@@ -67,16 +67,17 @@ mixin registerForm(user)
         |  
         button.ui.button(type='submit' onclick='validat()') Register
 
-mixin signinForm(user)
-  form.ui.large.form(action='/signin' method='POST')
+mixin signinForm()
+  form.ui.form.signInForm(action='/signin' method='POST')
     .field
       .ui.left.icon.input
         i.user.icon
         |  
-        input(type='text' name='email' placeholder='Username' required)
+        input(type='text' name='email' placeholder='Username')
     .field
       .ui.left.icon.input
         i.lock.icon
         |  
-        input(type='password' name='password' placeholder='Password' required)
+        input(type='password' name='password' placeholder='Password')
     button.ui.fluid.large.yellow.submit.button(type='submit' style='font-color:black !important;') Sign In
+    .ui.error.message

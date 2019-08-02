@@ -80,24 +80,22 @@ function config(passport) {
     try {
       const redis = new Redis()
       const user = await User.findOne({ $or: [{ email }, { username: email }]})
-      // var user_id;
       if (!user) {
         return done(null, false, { message: 'Username or Email is not exist'})
-      } else if (user.active) {
-        return done(null, false, { message: 'Account is active!'})
       }
-      var verifyPassword = await user.verifyPassword(password)
-      if (verifyPassword) {
-        // const res_status = await User.update({
-        //   $or: [{ email }, { username: email }]
-        // }, {
-        //   $set: {
-        //     active: true
-        //   }
-        // }, (err) => {
-        //   if (err) throw err
-        // })
-        console.log('user, user , verifyPassword, ', verifyPassword, ', active, ', user.active)
+      let verifyPassword = await user.verifyPassword(password)
+      if (verifyPassword !== null) {
+        const systemAccessTime = user.systemAccessTime + 1
+        const resStatus = await User.updateOne({
+          $or: [{ email }, { username: email }]
+        }, {
+          $set: {
+            systemAccessTime: systemAccessTime
+          }
+        }, (err) => {
+          if (err) throw err
+        })
+        console.log('user, user , verifyPassword, ', verifyPassword, ', username, ', user.username, ', resStatus, ', resStatus)
         return done(null, user)
       } else {
         return done(null, false, { message: 'Wrong password' })

@@ -835,13 +835,13 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
             $('#items_first_container'+pagination[_index_p]).append(item)
             break;
           default:
-            let section_id = $('#section_id').attr('value')
+            let project = items_of_week[_index_i]
+            let section_id = project.section_id
             let div_a = null
             let img1 = null
             let img2 = null
             let img3 = null
             let eleven_wide_column = null
-            let project = items_of_week[_index_i]
             if(project.creator == username) {
               item = $('<div class=\'item\' style=\'padding-top:10px; padding-bottom:10px;\'></div>')
               div_a = $('<a href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\' class=\'ui tiny image\' ></a>')

@@ -1,0 +1,388 @@
+mixin alertModal()
+  .ui.small.modal#alert-modal
+    i.close.icon
+    .header#alert-header Alert!
+    .content
+      p#alert-message Something content
+      .ui.basic.center.aligned.segment
+        .actions
+          button.ui.button.cancel.green(data-value='cancel') OK
+
+mixin confirmModal()
+  .ui.small.modal#confirm-modal
+    .header#confirm-header Alert!
+    .content
+      input#inp_cm(type='hidden')
+      p#confirm-message Something message.
+      .ui.basic.center.aligned.segment
+        .actions
+          button.ui.button.approve.green#confirm-button(type='submit') Confirm
+          .ui.button.approve.red#cancel-button(data-value='cancel' onclick='on_click_cancel_button()') Cancel
+
+mixin assignmentManagementModal()
+  .ui.small.modal#assignment_management_modal
+    i.close.icon
+    .header#header_amd ปิดการใช้งานแบบฝึกหัด
+    .content
+      .ui.center.aligned.grid
+        .column
+          .ui.selection.dropdown#dropdown_amd
+            input(id='week_input_amd' type='hidden')
+            i.dropdown.icon
+            .default.text Week
+            .menu#week_amd
+      .ui.basic.center.aligned.segment
+        .actions
+          button.ui.button.approve.green#confirm_assignment_management(type='submit') Confirm
+          button.ui.button.approve.red#cancel_assignment_management(data-value='cancel') Cancel
+      
+mixin assignmentEndTimeModal()
+  .ui.small.modal#assignment-end-time-modal
+    i.close.icon
+    .header ตั้งค่าเวลาสิ้นสุดแบบฝึกหัด
+    .content
+      .ui.grid
+        .two.column.row
+          .column(style='text-align:center;')
+            b ปปปป/ดด/วว
+            <br>
+            .ui.labeled.input
+              select.ui.dropdown#year_a(name='year')
+                .ui.label
+                  b(color='black') /
+              select.ui.dropdown#month_a(name='month')
+                .ui.label
+                  b(color='black') /
+              select.ui.dropdown#day_a(name='day')
+          .column(style='text-align:center;')
+            b ช:น:ว
+            <br>
+            .ui.labeled.input
+              select.ui.dropdown#endTimeHh_a(name='end_time_hh')
+              .ui.label
+                b(color='black') :
+              select.ui.dropdown#endTimeMm_a(name='end_time_mm')
+              .ui.label
+                b(color='black') :
+              select.ui.dropdown#endTimeSs_a(name='end_time_ss')
+      .ui.basic.center.aligned.segment
+        .actions
+          button.ui.button.approve.green#assign_now(type='submit') Assign now!
+          .ui.button.cancel.red(data-value='cancel') Cancel 
+
+mixin settingsModal()
+  .ui.small.modal#settings-modal
+    i.close.icon
+    .header Settings Classroom
+    .content
+      form.ui.form.updateSection.segment(action='/classroom/updateSection', method='POST')
+        .field
+          label Class Name :
+          |
+          input(type='text', name='course_name', placeholder='Your class name', value=`${data_set.common.section.course_name}`)
+        .ui.grid
+          .two.column.row
+            .column
+              .field
+                label Section :
+                |
+                input(type='text', name='section', placeholder='Your section', maxlength='3', value=`${data_set.common.section.section}`)
+            .column
+              .field
+                label Room :
+                |
+                input(type='text', name='room', placeholder='Your room', maxlength='4', value=`${data_set.common.section.room}`)
+        .ui.grid
+          .four.wide.column
+            .field
+              label Day  :
+              select.ui.dropdown.day(name='day')
+                 option(value='Mon.') Monday
+                 option(value='Tue.') Tuesday
+                 option(value='Wed.') Wednesday
+                 option(value='Thu.') Thursday
+                 option(value='Fri.') Friday
+                 option(value='Sat.') Saturday
+                 option(value='Sun.') Sunday
+          .six.wide.column(style='text-align:center;')
+            b Time start
+            .ui.labeled.input
+              select.ui.dropdown.timeStartHh(name='time_start_hh')
+                option(value='00')  00
+                option(value='01')  01
+                option(value='02')  02
+                option(value='03')  03
+                option(value='04')  04
+                option(value='05')  05
+                option(value='06')  06
+                option(value='07')  07
+                option(value='08')  08
+                option(value='09')  09
+                option(value='10')  10
+                option(value='11')  11
+                option(value='12')  12
+              .ui.label
+                b(color='black') :
+              select.ui.dropdown.timeStartMm(name='time_start_mm')
+                option(value='00')  00
+                option(value='05')  05
+                option(value='10')  10
+                option(value='15')  15
+                option(value='20')  20
+                option(value='25')  25
+                option(value='30')  30
+                option(value='35')  35
+                option(value='40')  40
+                option(value='45')  45
+                option(value='50')  50
+                option(value='55')  55
+              select.ui.dropdown.timeStartAp(name='time_start_ap')
+                option(value='am.')  am.
+                option(value='pm.')  pm.
+          .six.wide.column(style='text-align:center;')
+            b Time end
+            <br>
+            .ui.labeled.input
+              select.ui.dropdown.timeEndHh(name='time_end_hh')
+                option(value='00')  00
+                option(value='01')  01
+                option(value='02')  02
+                option(value='03')  03
+                option(value='04')  04
+                option(value='05')  05
+                option(value='06')  06
+                option(value='07')  07
+                option(value='08')  08
+                option(value='09')  09
+                option(value='10')  10
+                option(value='11')  11
+                option(value='12')  12
+              .ui.label
+                b(color='black') :
+              select.ui.dropdown.timeEndMm(name='time_end_mm')
+                option(value='00')  00
+                option(value='05')  05
+                option(value='10')  10
+                option(value='15')  15
+                option(value='20')  20
+                option(value='25')  25
+                option(value='30')  30
+                option(value='35')  35
+                option(value='40')  40
+                option(value='45')  45
+                option(value='50')  50
+                option(value='55')  55
+              select.ui.dropdown.timeEndAp(name='time_end_ap')
+                option(value='am.')  am.
+                option(value='pm.')  pm.
+        input(type='hidden', name='course_id', value=`${data_set.common.section.course_id}`)
+        input(type='hidden', name='section_id', value=`${data_set.common.section.section_id}`)
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green(type='submit') Update
+            .ui.button.cancel.red(data-value='cancel') Cancel
+        .ui.error.message
+
+mixin assignmentModal()
+  .ui.small.modal#assignment-modal
+    i.close.icon
+    .header Assignment
+    .content
+      form.ui.form.createAssignment.segment(action='/assignment', method='POST')
+        .inline.fields
+          label Programming Style :
+          .field
+            .ui.radio.checkbox
+              input(type='radio' name='programming_style' value='Co-located' checked='checked')
+              |  
+              label Conventional Pair-Programming
+          .field
+            .ui.radio.checkbox
+              input(type='radio' name='programming_style' value='Remote')
+              |  
+              label Remote Pair-Programming
+          .field
+            .ui.radio.checkbox
+              input(type='radio' name='programming_style' value='Individual')
+              |  
+              label Individual Programming
+        .ui.grid
+          .thirteen.wide.column
+            .field
+              label Title :
+              |
+              input(type='text', name='title', placeholder='Your title')
+          .three.wide.column
+            .field
+              label Week :
+              |
+              input(type='text', name='week', placeholder='Week', maxlength='3')
+        .field
+          label Description :
+          |
+          textarea(type='text', name='description', placeholder='Some content...', style='resize:none;')
+        .ui.grid
+          .two.column.row
+            .column
+              .field
+                label Input specification :
+                |
+                textarea(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;')
+            .column
+              .field
+                label Output specification :
+                |
+                textarea(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;')
+        .ui.grid
+          .two.column.row
+            .column
+              .field
+                label Sample Input :
+                |
+                textarea(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;')
+            .column
+              .field
+                label Sample Output :
+                |
+                textarea(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;')
+        input(type='hidden', name='section_id', value=`${data_set.common.section.section_id}`)
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green(type='submit') Create
+            .ui.button.cancel.red(data-value='cancel') Cancel
+        .ui.error.message
+          
+mixin newClassroomModal()
+  .ui.small.modal#newClassroom-modal
+    i.close.icon
+    .header Create New Classroom
+    .content
+      form.ui.form.segment(action='/classroom', method='POST')
+        .field
+          label Class Name :
+          |
+          input(type='text', name='course_name', placeholder='Your class name')
+        .ui.grid
+          .two.column.row
+            .column
+              .field
+                label Section :
+                |
+                input(type='text', name='section', placeholder='Your section', maxlength='3')
+            .column
+              .field
+                label Room :
+                |
+                input(type='text', name='room', placeholder='Your room', maxlength='4')
+        .ui.grid
+          .four.wide.column
+            .field
+              |
+              label Day  :
+              select.ui.dropdown.day(name='day')
+                option(value='Mon.') Monday
+                option(value='Tue.') Tuesday
+                option(value='Wed.') Wednesday
+                option(value='Thu.') Thursday
+                option(value='Fri.') Friday
+                option(value='Sat.') Saturday
+                option(value='Sun.') Sunday
+          .six.wide.column(style='text-align:center;')
+            b Time start
+            .ui.labeled.input
+              select.ui.dropdown.timeStartHh(name='time_start_hh')
+                option(value='01')  01
+                option(value='02')  02
+                option(value='03')  03
+                option(value='04')  04
+                option(value='05')  05
+                option(value='06')  06
+                option(value='07')  07
+                option(value='08')  08
+                option(value='09')  09
+                option(value='10')  10
+                option(value='11')  11
+                option(value='12')  12
+              .ui.label
+                b(color='black') :
+              select.ui.dropdown.timeStartMm(name='time_start_mm')
+                option(value='00')  00
+                option(value='05')  05
+                option(value='10')  10
+                option(value='15')  15
+                option(value='20')  20
+                option(value='25')  25
+                option(value='30')  30
+                option(value='35')  35
+                option(value='40')  40
+                option(value='45')  45
+                option(value='50')  50
+                option(value='55')  55
+              select.ui.dropdown.timeStartAp(name='time_start_ap')
+                option(value='am.')  am.
+                option(value='pm.')  pm.
+          .six.wide.column(style='text-align:center;')
+            b Time end
+            .ui.labeled.input
+              select.ui.dropdown.timeEndHh(name='time_end_hh')
+                option(value='01')  01
+                option(value='02')  02
+                option(value='03')  03
+                option(value='04')  04
+                option(value='05')  05
+                option(value='06')  06
+                option(value='07')  07
+                option(value='08')  08
+                option(value='09')  09
+                option(value='10')  10
+                option(value='11')  11
+                option(value='12')  12
+              .ui.label
+                b(color='black') :
+              select.ui.dropdown.timeEndMm(name='time_end_mm')
+                option(value='00')  00
+                option(value='05')  05
+                option(value='10')  10
+                option(value='15')  15
+                option(value='20')  20
+                option(value='25')  25
+                option(value='30')  30
+                option(value='35')  35
+                option(value='40')  40
+                option(value='45')  45
+                option(value='50')  50
+                option(value='55')  55
+              select.ui.dropdown.timeEndAp(name='time_end_ap')
+                option(value='am.')  am.
+                option(value='pm.')  pm.
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green(type='submit') Create
+            .ui.button.cancel.red(data-value='cancel') Cancel
+        .ui.error.message
+
+mixin joinClassroomModal()
+  .ui.mini.modal#joinClassroom-modal
+      i.close.icon
+      .header Join Classroom
+      .content
+          form.ui.form(action='/classroom/joinClass', method='POST')
+              .field
+                  |
+                  input(type='text', name='class_code', placeholder='Classroom code', maxlength='9')
+              .ui.basic.center.aligned.segment
+                  .actions
+                      button.ui.button.approve.green(type='submit') Join
+                      .ui.button.approve.red(data-value='cancel') Cancel
+
+mixin confirmDeleteSection()
+  .ui.small.modal#confirmDeleteSection
+    i.close.icon
+    .header Delete Section
+    .content
+      p#messageConfirm Are you sure to delete the section from the system?
+      input.section_id(type='hidden', name='section_id')
+      .ui.basic.center.aligned.segment
+        .actions
+          button.ui.button.approve.green.yesIamSure(onclick='onClickYes()') Yes
+          .ui.button.cancel.red.noIamNotSure No
