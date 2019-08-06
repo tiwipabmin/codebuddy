@@ -386,3 +386,55 @@ mixin confirmDeleteSection()
         .actions
           button.ui.button.approve.green.yesIamSure(onclick='onClickYes()') Yes
           .ui.button.cancel.red.noIamNotSure No
+          
+mixin pairingSettingsModal()
+  .ui.small.modal#pairingSettingsModal
+    .header Auto pairing
+    .content
+      .ui.segment
+        .ui.two.column.very.relaxed.grid
+          .column#traditionalPairingPrinciple
+              p(style='text-align:center;') Traditional Pairing Principle
+              .ui.column.grid
+                .column
+                  .field
+                    .ui.radio.checkbox
+                      input#expertWithExpert(type='radio' name='pairingPrinciple' value='expertWithExpert' checked)
+                      |  
+                      label Expert - Expert
+                  .field
+                    .ui.radio.checkbox
+                      input#expertWithNovice(type='radio' name='pairingPrinciple' value='expertWithNovice')
+                      |  
+                      label Expert - Novice
+                  .field
+                    .ui.radio.checkbox
+                      input#noviceWithNovice(type='radio' name='pairingPrinciple' value='noviceWithNovice')
+                      |  
+                      label Novice - Novice
+          .column#newPairingPrinciple
+            p(style='text-align:center;') New Pairing Principle
+            .ui.column.grid
+              .column
+                .field
+                  .ui.radio.checkbox
+                    input#qualityOriented(type='radio' name='pairingPrinciple' value='qualityOriented')
+                    |  
+                    label Quality Oriented
+                .field
+                  .ui.radio.checkbox
+                    input#teachingAndLearning(type='radio' name='pairingPrinciple' value='teachingAndLearning')
+                    |  
+                    label Teaching &amp; Learning
+                .field
+                  .ui.radio.checkbox
+                    input#mutualLearning(type='radio' name='pairingPrinciple' value='mutualLearning')
+                    |  
+                    label Mutual Improvement
+        .ui.vertical.divider
+          p And
+      .ui.basic.center.aligned.segment
+        .actions
+          .ui.approve.green.button#startAutoPairingBtn(onclick='onClickStartAutoPairingBtn(null, null, null, null, null, null)') Start
+          .ui.deny.red.button#cancelAutoPairingBtn Cancel
+      

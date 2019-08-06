@@ -5,7 +5,7 @@ window.onload = function() {
 
     $.get('/lobby/getProgress', parameters, function(data) {
 
-        document.getElementById("userInfo").innerHTML = data.fullname+'<br>(@'+data.username+')'
+        document.getElementById("userInfo").innerHTML = 'Subject ID: '+data.subjectId+'<br>'+data.fullname+'<br>(@'+data.username+')'
         document.getElementById("projectsNum").innerHTML = data.projectTitles.length
         document.getElementById("totalActiveTimeNum").innerHTML = parseInt(data['user-time'])+' mins'
         document.getElementById("avgScoreNum").innerHTML = data['user-score'].toFixed(2)
@@ -244,7 +244,7 @@ window.onload = function() {
                                 if (Math.floor(label) === label) {
                                     return label;
                                 }
-           
+
                             },
                         },
                         scaleLabel: {

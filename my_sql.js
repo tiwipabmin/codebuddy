@@ -216,6 +216,15 @@ exports.update_pairing_session = (query) => {
   })
 }
 
+exports.insertStudent = (query, values) => {
+  return new Promise(function(resolve, reject){
+    con.query(query, [values], function (err, res) {
+      if(err) reject('Insert Failed!')
+      else resolve(res.insertId)
+    })
+  })
+}
+
 exports.select_student = (query) => {
   return new Promise(function(resolve, reject){
     con.query(query, function(err, res){

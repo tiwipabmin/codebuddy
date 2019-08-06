@@ -60,7 +60,10 @@ const userSchema = mongoose.Schema({
   },
   systemAccessTime: {
     type: Number,
-    default: 0
+    default: 1
+  },
+  subjectId: {
+    type: Number
   }
 })
 

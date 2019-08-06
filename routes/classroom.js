@@ -23,6 +23,7 @@ router.get('/getStudentsFromSection', auth.isSignedIn, catchErrors(webController
 router.get('/searchStudent', auth.isSignedIn, catchErrors(webController.searchStudent))
 router.get('/getPairing', auth.isSignedIn, catchErrors(webController.getPairing))
 router.get('/getAssignmentWeek', auth.isSignedIn, catchErrors(webController.getAssignmentWeek))
+router.get('/startAutoPairingByPurpose', auth.isSignedIn, catchErrors(webController.startAutoPairingByPurpose))
 router.put('/updatePairingSession', auth.isSignedIn, catchErrors(webController.updatePairingSession))
 router.put('/resetPair', auth.isSignedIn, catchErrors(webController.resetPair))
 router.put('/updatePairing', auth.isSignedIn, catchErrors(webController.updatePairing))

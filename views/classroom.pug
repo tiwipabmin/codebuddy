@@ -8,194 +8,15 @@ block script
     link(rel='stylesheet' href='/css/main.css')
     script(type='text/javascript').
       $(document).ready(function () {
-        $('#global_loader').attr('style', 'display: none')
-        $('#settings-modal').modal({
-          closable: false,
-          transition: 'fade up',
-          onApprove : function() {
-            //$('.ui.form').submit();
-            return false;
-          },
-        })
-        $('#assignment-modal').modal({
-          closable: false,
-          transition: 'fade up',
-          onApprove : function() {
-            //$('.ui.form').submit();
-            return false;
-          },
-        })
-        $('#alert-modal').modal({
-          closable: false,
-          transition: 'fade up',
-        })
-        $('.newProject').click(function () {
-          $('#newProject-modal').modal('show');
-        });
-        $('.first_container_menu').click(function () {
-          showFirstContainer()
-        });
-        $('.second_container_menu').click(function () {
-          showSecondContainer()
-        });
-        $('.third_container_menu').click(function () {
-          showThirdContainer()
-        });
-        $('.settings-menu').click(function () {
-          var day = '!{data_set.common.section.day}'
-          var time_start = '!{data_set.common.section.time_start}'
-          var time_end = '!{data_set.common.section.time_end}'
-          var time_start_hh = time_start[0] + time_start[1]
-          var time_start_mm = time_start[3] + time_start[4]
-          var time_start_ap = time_start[5] + time_start[6]
-          var time_end_hh = time_end[0] + time_end[1]
-          var time_end_mm = time_end[3] + time_end[4]
-          var time_end_ap = time_end[5] + time_end[6]
-          $('.day option[value=\'' + day + '\']').attr('selected', 'selected');
-          $('.timeStartHh option[value=' + time_start_hh + ']').attr('selected', 'selected');
-          $('.timeStartMm option[value=' + time_start_mm + ']').attr('selected', 'selected');
-          $('.timeStartAp option[value=' + time_start_ap + ']').attr('selected', 'selected');
-          $('.timeEndHh option[value=' + time_end_hh + ']').attr('selected', 'selected');
-          $('.timeEndMm option[value=' + time_end_mm + ']').attr('selected', 'selected');
-          $('.timeEndAp option[value=' + time_end_ap + ']').attr('selected', 'selected');
-          $('.ui.form').trigger('reset');
-          $('.ui.form .field.error').removeClass('error');
-          $('.ui.form.error').removeClass('error');
-          $('#settings-modal').modal('show');
-        });
-        $('.ui.form.updateSection').form({
-          fields: {
-            course_name: {
-              identifier: 'course_name',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your course name'
-                }
-              ]
-            },
-            section: {
-              identifier: 'section',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your section'
-                },
-                {
-                  type : 'regExp[[0-9]]',
-                  prompt : 'This section is not valid!'
-                }
-              ]
-            },
-            room: {
-              identifier: 'room',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your room'
-                }
-              ]
-            }
-          },
-          onSuccess : function() {
-            $('#newClassroom-modal').modal('hide');
-          },
-        })
-        $('.newAssignment').click(function (){
-          $('#assignment-modal').modal('show')
-        })
-        $('.ui.form.createAssignment').form({
-          fields: {
-            title: {
-              identifier: 'title',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your title'
-                }
-              ]
-            },
-            week: {
-              identifier: 'week',
-              rules: [
-                {
-                  type   : 'integer[1...100]',
-                  prompt : 'Please enter an integer value'
-                }
-              ]
-            },
-            description: {
-              identifier: 'description',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your description'
-                }
-              ]
-            },
-            input_specification: {
-              identifier: 'input_specification',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your input specification'
-                }
-              ]
-            },
-            output_specification: {
-              identifier: 'output_specification',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your output specification'
-                }
-              ]
-            },
-            sample_input: {
-              identifier: 'sample_input',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your sample input'
-                }
-              ]
-            },
-            sample_output: {
-              identifier: 'sample_output',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your sample output'
-                }
-              ]
-            }
-          },
-          onSuccess : function() {
-            $('#assignment-modal').modal('hide');
-          },
-        })
+        setClassroomDetail('!{data_set.common.section.day}', '!{data_set.common.section.time_start}', '!{data_set.common.section.time_end}')
       });
-      function showFirstContainer() {
-        $('#first_container').show();
-        $('#second_container').hide();
-        $('#third_container').hide();
-      }
-      function showSecondContainer(){
-        $('#first_container').hide();
-        $('#second_container').show();
-        $('#third_container').hide();
-      }
-      function showThirdContainer(){
-        $('#first_container').hide();
-        $('#second_container').hide();
-        $('#third_container').show();
-      }
+      
     style.
       @media (min-height: 200px) {
-      .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-      position: absolute;
-      width: 100%;
-      }
+        .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+          position: absolute;
+          width: 100%;
+        }
       }
 
 block content
@@ -207,6 +28,7 @@ block content
       +assignmentEndTimeModal()
       +settingsModal()
       +assignmentModal()
+      +pairingSettingsModal()
       
     .ui.raised.very.padded.container
       .ui.centered.grid(style='padding-top:20px;')

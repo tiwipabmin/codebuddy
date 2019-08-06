@@ -69,6 +69,7 @@ exports.getDashboard = async (req, res) => {
 }
 
 exports.getLobby = async (req, res) => {
+  console.log('Subject Id, ', req.user.subjectId)
   const projects = await Project
     .find({ $and : [
         {status: {$ne : "pending"} },
@@ -351,31 +352,37 @@ exports.getSection = async (req, res) => {
     data_set = {common: {occupation: occupation, section: section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions), weeks: JSON.stringify(weeks)}}
 
     res.render('classroom', { data_set, title: section.course_name })
-    // pack_student = {students: students, students_strgify: JSON.stringify(students)}
-    // pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
-    //
-    // res.render('classroom', { section, assignments, assignment_set, pack_student, pack_pairing_session, pairing_times, weeks, title: section.course_name })
   } else {
     occupation = 1
     weeks = []
     let projects_in_section = []
     let clone_assignments = Object.assign({}, assignments)
     assignments = []
-    const projects = await Project
+    let projects = await Project
       .find({ $and : [
           {status: {$ne : "pending"}},
           {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]}
         ]
       })
       .sort({ createdAt: -1 })
+
+    //projects change data type from array to object
+    let cloneProjects = {}
+    projects.forEach(function(project){
+      cloneProjects[project.assignment_id] = project
+    })
+
     for (i in clone_assignments) {
-      projects.forEach(function(project){
-        if(project.assignment_id == cryptr.decrypt(clone_assignments[i].assignment_id) && project.available_project) {
-          projects_in_section.push(project)
+      let checkProjectFromAssignmentId = cloneProjects[cryptr.decrypt(clone_assignments[i].assignment_id)]
+      if(checkProjectFromAssignmentId !== undefined) {
+        let element = Object.assign({}, checkProjectFromAssignmentId)
+        if (element._doc.available_project) {
+          element._doc.section_id = clone_assignments[i].section_id
+          projects_in_section.push(element._doc)
           assignments.push(clone_assignments[i])
-          weeks.indexOf(project.week) == -1 ? weeks.push(project.week) : null;
+          weeks.indexOf(element._doc.week) == -1 ? weeks.push(element._doc.week) : null;
         }
-      });
+      }
     }
 
     projects_in_section.reverse()
@@ -383,23 +390,19 @@ exports.getSection = async (req, res) => {
     data_set = {common: {occupation: occupation, section: section, projects: projects_in_section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {projects: JSON.stringify(projects_in_section), assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
 
     res.render('classroom', { data_set, title: section.course_name })
-    // pack_pairing_session = {pairing_sessions: pairing_sessions, pairing_sessions_strgify: JSON.stringify(pairing_sessions)}
-    // pack_student = {students: students, students_strgify: JSON.stringify(students)}
-    // pack_assignment = {assignments: assignments, assignments_strgify: JSON.stringify(assignments)}
-
-    // res.render('classroom', { section, pack_assignment, pack_student, projects_in_section, pack_pairing_session, assignment_set, weeks, title: section.course_name })
   }
 }
 
 exports.removeStudent = async (req, res) => {
-  //console.log('student_id : ' + req.body.enrollment_id)
-  var select_pairing_record_by_enrollment_id = 'SELECT * FROM pairing_record WHERE enrollment_id = ' + req.body.enrollment_id;
-  var pairing_record = await con.select_pairing_record(select_pairing_record_by_enrollment_id);
+  let enrollment_id = req.body.enrollment_id
+  let select_pairing_record_by_enrollment_id = 'SELECT * FROM pairing_record WHERE enrollment_id = ' + enrollment_id;
+  let pairing_record = await con.select_pairing_record(select_pairing_record_by_enrollment_id);
   if(!pairing_record.length) {
-    var remove_enrollment_by_enrollment_id = 'DELETE FROM enrollment WHERE enrollment_id = ' + req.body.enrollment_id;
-    var status = await con.remove_student(remove_enrollment_by_enrollment_id);
+    let remove_enrollment_by_enrollment_id = 'DELETE FROM enrollment WHERE enrollment_id = ' + enrollment_id;
+    let status = await con.remove_student(remove_enrollment_by_enrollment_id);
     let temp = {}
     temp['status'] = status
+    temp['enrollment_id'] = enrollment_id
     res.json(temp).status(200)
   } else {
     let temp = {}
@@ -698,7 +701,11 @@ exports.manageAssignment = async (req, res) => {
   let action = req.body.action
   let week = parseInt(req.body.week)
   if(week < 0) {
-    res.send({status: "Don\'t have enable assignment."})
+    if(action == 'enable') {
+      res.send({status: "No disable assignment."})
+    } else if (action == 'disable') {
+      res.send({status: "Not yet assigned assignment."})
+    }
     return
   }
   if (action == 'enable') {
@@ -1034,6 +1041,161 @@ exports.updatePairing = async (req, res) => {
   res.send({status: "Update pairing successfully"})
 }
 
+exports.startAutoPairingByPurpose = async (req, res) => {
+  // let diffScore = req.query.diffScore
+  let pairingPurpose = req.query.pairingPurpose
+  let command = req.query.command
+  let partnerKeys = {}
+  let pairingObjectives = {}
+  let pairingSessionId = req.query.pairingSessionId
+  let sectionId = req.query.sectionId
+
+  let selectStudentsBySectionId = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + cryptr.decrypt(sectionId) + ' ORDER BY st.first_name ASC';
+  let getStudents = await con.select_student(selectStudentsBySectionId)
+
+  let students = {}
+
+  let eachStudentScores = {}
+  let allOfScores = []
+
+  let previousPartnersOfEachStudents = {}
+  let numberAllOfStudent = 0
+  /*
+   * "-1" means student have not partner
+   */
+  for (let index in getStudents) {
+    let enrollmentId = getStudents[index].enrollment_id
+    let username = getStudents[index].username
+    partnerKeys[enrollmentId] = -1
+    pairingObjectives[enrollmentId] = -1
+    students[enrollmentId] = username
+
+    let selectPairingRecordByEnrollmentId = 'select partner_id from pairing_record where enrollment_id = ' + enrollmentId
+    let getPairingRecord = await con.select_pairing_record(selectPairingRecordByEnrollmentId)
+
+    // previous partner of each student
+    let previousPartner = []
+    for (let index in getPairingRecord) {
+      if (previousPartner.indexOf(getPairingRecord[index].partner_id) < 0) {
+        previousPartner.push(getPairingRecord[index].partner_id)
+      }
+    }
+    previousPartnersOfEachStudents[enrollmentId] = previousPartner
+    numberAllOfStudent++
+
+    // avg score of each student
+    let user = await User.findOne({
+      username: username
+    })
+    eachStudentScores[enrollmentId] = user.avgScore
+    allOfScores.push(user.avgScore)
+  }
+  numberAllOfStudent = Math.floor(numberAllOfStudent/2)
+  allOfScores.sort(function(a, b){return b-a})
+  console.log('partnerKeys, ', partnerKeys)
+  console.log('students, ', students)
+  console.log('previousPartnersOfEachStudents, ', previousPartnersOfEachStudents)
+  console.log('allOfScores, ', allOfScores)
+  console.log('eachStudentScores, ', eachStudentScores)
+
+  let expert = {}
+  let novice = {}
+  // half of student is assigned to expert by score is identifier, score is sorted from higher to lower
+  for (let index = 0; index < numberAllOfStudent; index++) {
+    for (let enrollmentId in students) {
+      if (eachStudentScores[enrollmentId] === allOfScores[index]) {
+        expert[enrollmentId] = allOfScores[index]
+        delete students[enrollmentId]
+      }
+    }
+  }
+  console.log('expert, ', expert)
+
+  let numberOfNoviceRemaining = 0
+  for (let enrollmentId in students) {
+    novice[enrollmentId] = eachStudentScores[enrollmentId]
+    numberOfNoviceRemaining++
+  }
+  console.log('novice, ', novice)
+  let resStatus = 'Start Auto Pairing By Purpose Successfully!., ' + pairingPurpose
+
+  let isCompletedPairing = false
+  let timerId = setTimeout(function (resStatus, isCompletedPairing, timerId){
+    resStatus = 'Out of time, Please start new auto pairing!'
+    isCompletedPairing = true
+    clearInterval(timerId)
+  }, 1000, resStatus, isCompletedPairing, timerId)
+
+  let count = null
+  for (let enrollmentIdEx in expert) {
+    count = 0
+    for (let enrollmentIdNo in novice) {
+      /*
+       * enrollmentIdEx has paired enrollmentIdNo
+       */
+      if (previousPartnersOfEachStudents[enrollmentIdEx].indexOf(enrollmentIdNo) > 0) {
+        count++
+      }
+    }
+
+    if (count === previousPartnersOfEachStudents[enrollmentIdEx].length && count) {
+      res.send({resStatus: 'Some student has paired all friend.'})
+      return
+    }
+  }
+
+  let cloneExperts = null
+  let cloneNovices = null
+  do {
+
+    cloneExperts = Object.assign({}, expert)
+    cloneNovices = Object.assign({}, novice)
+
+    /*
+     * "-1" means student have not partner
+     */
+    for (let key in partnerKeys) {
+      if (partnerKeys[key] != -1) {
+        partnerKeys[partnerKeys[key]] = -1
+        partnerKeys[key] = -1
+      }
+    }
+
+    for (let enrollmentIdEx in cloneExperts) {
+      count = 0
+      for (let enrollmentIdNo in cloneNovices) {
+        /*
+         * enrollmentIdEx has never paired with enrollmentIdNo
+         */
+        if (previousPartnersOfEachStudents[enrollmentIdEx].indexOf(enrollmentIdNo) < 0) {
+          /*
+           * Both of student must have at least 10 different scores.
+           */
+          if (eachStudentScores[enrollmentIdEx] - eachStudentScores[enrollmentIdNo] > 10) {
+            partnerKeys[enrollmentIdEx] = enrollmentIdNo
+            delete cloneNovices[enrollmentIdNo]
+            numberOfNoviceRemaining--
+            break
+          } else {
+            /*
+             * The difference in score is small.
+             */
+            count++
+          }
+        }
+      }
+
+      // Not have suitable partner.
+      if(count === numberOfNoviceRemaining) {
+        console.log('The difference in score is small., ', count, numberAllOfStudent)
+        isCompletedPairing = true
+      }
+    }
+  } while (!isCompletedPairing)
+
+  res.send({resStatus: resStatus})
+}
+
 exports.createPairingRecord = async (req, res) => {
   const partner_keys = JSON.parse(req.body.partner_keys)
   const pairing_objective = JSON.parse(req.body.pairing_objective)
@@ -1223,7 +1385,7 @@ exports.getStudentsFromSection = async (req, res) => {
     student_objects[students[_index].enrollment_id] = students[_index]
   }
   if(!pairing_session.length) pairing_session = [{status: -1}]
-  console.log('partner_keys, ', partner_keys)
+  // console.log('partner_keys, ', partner_keys)
   res.send({student_objects: student_objects, partner_keys: partner_keys, pairing_objective: pairing_objective, command: command, pairing_session_status: pairing_session[0].status})
 }
 
@@ -1355,6 +1517,7 @@ exports.assignAssignment = async (req, res) => {
   const selectEnrollmentBySectionId = 'SELECT * FROM enrollment WHERE section_id = ' + cryptr.decrypt(req.body.assignment_set[0].section_id)
   const enrollments = await con.select_enrollment(selectEnrollmentBySectionId);
   const assignmentSet = req.body.assignment_set
+  console.log('assignmentSet, ', assignmentSet)
   let isThereIndividualPro = false
   let isTherePairPro = false
   for(_index in assignmentSet) {
@@ -1401,7 +1564,7 @@ exports.assignAssignment = async (req, res) => {
   let partnerKeys = {}
   let assignment_of_each_pair = {}
   let cloneAssignmentSet = {}
-  let end_time = req.body.end_time
+  // let end_time = req.body.end_time
 
   const selectPairingSessionByPairingSessionId = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairingSessionId
   let pairingSession = await con.select_pairing_session(selectPairingSessionByPairingSessionId)
@@ -1515,14 +1678,14 @@ exports.assignAssignment = async (req, res) => {
   num_month === undefined ? num_month = '13' : null;
   let start_time = slice_date_time[2] + '-' + num_month + '-' + slice_date_time[1] + 'T' + slice_date_time[3] + 'Z'
 
-  let time_left = moment(new Date(end_time)).diff(moment(new Date(start_time)))
+  // let time_left = moment(new Date(end_time)).diff(moment(new Date(start_time)))
   // console.log('time_left, ', time_left, ', start_time, ', start_time, ', end_time, ', end_time)
-  if(time_left < 0) {
-    res.send({res_status: 'Please, set end time again!'})
-    return
-  }
+  // if(time_left < 0) {
+  //   res.send({res_status: 'Please, set end time again!'})
+  //   return
+  // }
 
-  let timeoutHandles = []
+  // let timeoutHandles = []
   // Assign each assignment to the all of student
   for (key in assignment_of_each_pair) {
     for (_index in assignment_of_each_pair[key]) {
@@ -1536,7 +1699,7 @@ exports.assignAssignment = async (req, res) => {
       project.swaptime = swaptime;
       project.status = '';
       project.week = cloneAssignmentSet[assignment_id].week
-      project.end_time = new Date(end_time)
+      // project.end_time = new Date(end_time)
       project.available_project = true
       project.createdAt = start_time
 
@@ -1570,7 +1733,7 @@ exports.assignAssignment = async (req, res) => {
           if (err) throw err
         })
 
-        timeoutHandles.push(project._id)
+        // timeoutHandles.push(project._id)
 
         // Insert score records
         const uids = [creator._id, collaborator._id]
@@ -1606,7 +1769,7 @@ exports.assignAssignment = async (req, res) => {
           if (err) throw err
         })
 
-        timeoutHandles.push(project._id)
+        // timeoutHandles.push(project._id)
 
         // Insert score records
         const scoreModel = {
@@ -1643,18 +1806,18 @@ exports.assignAssignment = async (req, res) => {
     }
   }
 
-  setTimeout(async function(){
-    console.log('setTimeout started!!!!!!!!!!!!!!!!!')
-    for (_index in timeoutHandles) {
-      await Project.update({
-        _id: timeoutHandles[_index]
-      }, {
-        $set: {
-          available_project: false
-        }
-      })
-    }
-  }, time_left)
+  // setTimeout(async function(){
+  //   console.log('setTimeout started!!!!!!!!!!!!!!!!!')
+  //   for (_index in timeoutHandles) {
+  //     await Project.update({
+  //       _id: timeoutHandles[_index]
+  //     }, {
+  //       $set: {
+  //         available_project: false
+  //       }
+  //     })
+  //   }
+  // }, time_left)
 
 
   if(!count) {
@@ -1745,6 +1908,7 @@ exports.getProgress = async (req, res) => {
   }
 
   data['fullname'] = user.info.firstname + ' ' + user.info.lastname;
+  data['subjectId'] = user.subjectId
   data['username'] = user.username;
   data['user-score'] = user.avgScore;
   data['user-time'] = parseFloat(user.totalTime/60);

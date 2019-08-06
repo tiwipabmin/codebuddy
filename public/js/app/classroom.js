@@ -1,4 +1,149 @@
 $(document).ready(function() {
+    $('#global_loader').attr('style', 'display: none')
+    $('#settings-modal').modal({
+      closable: false,
+      transition: 'fade up',
+      onApprove : function() {
+        //$('.ui.form').submit();
+        return false;
+      },
+    })
+    $('#assignment-modal').modal({
+      closable: false,
+      transition: 'fade up',
+      onApprove : function() {
+        //$('.ui.form').submit();
+        return false;
+      },
+    })
+    $('#alert-modal').modal({
+      closable: false,
+      transition: 'fade up',
+    })
+    $('.newProject').click(function () {
+      $('#newProject-modal').modal('show');
+    });
+    $('.first_container_menu').click(function () {
+      showFirstContainer()
+    });
+    $('.second_container_menu').click(function () {
+      showSecondContainer()
+    });
+    $('.third_container_menu').click(function () {
+      showThirdContainer()
+    });
+    $('.ui.form.updateSection').form({
+      fields: {
+        course_name: {
+          identifier: 'course_name',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your course name'
+            }
+          ]
+        },
+        section: {
+          identifier: 'section',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your section'
+            },
+            {
+              type : 'regExp[[0-9]]',
+              prompt : 'This section is not valid!'
+            }
+          ]
+        },
+        room: {
+          identifier: 'room',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your room'
+            }
+          ]
+        }
+      },
+      onSuccess : function() {
+        $('#newClassroom-modal').modal('hide');
+      },
+    })
+    $('.newAssignment').click(function (){
+      $('#assignment-modal').modal('show')
+    })
+    $('.ui.form.createAssignment').form({
+      fields: {
+        title: {
+          identifier: 'title',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your title'
+            }
+          ]
+        },
+        week: {
+          identifier: 'week',
+          rules: [
+            {
+              type   : 'integer[1...100]',
+              prompt : 'Please enter an integer value'
+            }
+          ]
+        },
+        description: {
+          identifier: 'description',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your description'
+            }
+          ]
+        },
+        input_specification: {
+          identifier: 'input_specification',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your input specification'
+            }
+          ]
+        },
+        output_specification: {
+          identifier: 'output_specification',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your output specification'
+            }
+          ]
+        },
+        sample_input: {
+          identifier: 'sample_input',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your sample input'
+            }
+          ]
+        },
+        sample_output: {
+          identifier: 'sample_output',
+          rules: [
+            {
+              type   : 'empty',
+              prompt : 'Please enter your sample output'
+            }
+          ]
+        }
+      },
+      onSuccess : function() {
+        $('#assignment-modal').modal('hide');
+      },
+    })
+
     pairingOrViewingisHided('pair')
     // $('#resetPair-button').click(function(){
     //   parameters = {partner_id: 'NULL', section_id: $('#section_id').attr('value')}
@@ -22,11 +167,55 @@ $(document).ready(function() {
     $('#partner_selection_modal').modal({
       closable: false,
     });
+    $('#pairingSettingsModal').modal({
+      closable: false,
+    })
     $('#back-to-student-list-modal').click(function () {
+      $('#student_list_modal').modal('show');
+    })
+    $('#cancelAutoPairingBtn').click(function (){
       $('#student_list_modal').modal('show');
     })
     $('.menu .item').tab();
 })
+
+function showFirstContainer() {
+  $('#first_container').show();
+  $('#second_container').hide();
+  $('#third_container').hide();
+}
+function showSecondContainer(){
+  $('#first_container').hide();
+  $('#second_container').show();
+  $('#third_container').hide();
+}
+function showThirdContainer(){
+  $('#first_container').hide();
+  $('#second_container').hide();
+  $('#third_container').show();
+}
+
+function setClassroomDetail(day, startTime, endTime) {
+  $('.settings-menu').click(function () {
+    let startTimeHh = startTime[0] + startTime[1]
+    let startTimeMm = startTime[3] + startTime[4]
+    let startTimeAp = startTime[5] + startTime[6]
+    let endTimeHh = endTime[0] + endTime[1]
+    let endTimeMm = endTime[3] + endTime[4]
+    let endTimeAp = endTime[5] + endTime[6]
+    $('.day option[value=\'' + day + '\']').attr('selected', 'selected');
+    $('.timeStartHh option[value=' + startTimeHh + ']').attr('selected', 'selected');
+    $('.timeStartMm option[value=' + startTimeMm + ']').attr('selected', 'selected');
+    $('.timeStartAp option[value=' + startTimeAp + ']').attr('selected', 'selected');
+    $('.timeEndHh option[value=' + endTimeHh + ']').attr('selected', 'selected');
+    $('.timeEndMm option[value=' + endTimeMm + ']').attr('selected', 'selected');
+    $('.timeEndAp option[value=' + endTimeAp + ']').attr('selected', 'selected');
+    $('.ui.form').trigger('reset');
+    $('.ui.form .field.error').removeClass('error');
+    $('.ui.form.error').removeClass('error');
+    $('#settings-modal').modal('show');
+  });
+}
 
 function on_click_ui_purpose_tab (index, purpose, student_id, pairing_session_id, username, avg_score, section_id, partner_keys, pairing_objective) {
   $('.ui-purpose').removeClass('teal inverted')
@@ -67,6 +256,7 @@ function on_click_confirm_pairing_button(parameters) {
 function on_click_cancel_pairing_button() {
   const message = $('#confirm-message').attr('value');
   if(message == 'Are you sure you want to cancel pairing?'){
+    $('#confirm-button').attr('onclick', 'on_click_confirm_button({})')
     $('#confirm-modal').modal('show');
   } else {
     $('#alphabetical_filter').attr('class', 'ui button')
@@ -79,6 +269,8 @@ function on_click_cancel_pairing_button() {
 
     $('#active_filter').attr('value', '')
     $('#confirm-pairing').attr('value', 'create')
+
+    $('#autoPairing').hide()
   }
 }
 
@@ -133,6 +325,7 @@ function on_click_confirm_button(parameters){
       $('#global_loader').attr({
         'style': 'display: block; position: fixed;'
       })
+      $('#autoPairing').hide()
       parameters = {partner_keys: JSON.parse(parameters.partner_keys), cloning_partner_keys: JSON.parse($('#cloning_partner_keys').attr('value')), pairing_objective: JSON.parse(parameters.pairing_objective), cloning_pairing_objective: JSON.parse($('#cloning_pairing_objective').attr('value')), pairing_session_id: parameters.pairing_session_id, section_id: parameters.section_id}
       $.ajax({
         url: '/classroom/updatePairing',
@@ -146,17 +339,21 @@ function on_click_confirm_button(parameters){
             $('#cloning_partner_keys').attr('value', {})
             $('#pairing_objective').attr('value', {})
             pairingOrViewingisHided('view')
+            $('#confirm-pairing').attr('value', 'create')
             alert(status)
           } else if(status == 'Please pair all students!'){
             alert(status)
+            $('#confirm-header').text('Student pairing')
+            $('#confirm-message').text('Are you sure you want to cancel pairing?')
+            $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
             $('#student_list_modal').modal('show');
           } else {
+            $('#confirm-pairing').attr('value', 'create')
             alert(status)
           }
           $('#global_loader').attr({
             'style': 'display: none; position: fixed;'
           })
-          $('#confirm-pairing').attr('value', 'create')
         }
       })
     } else {
@@ -175,6 +372,8 @@ function on_click_confirm_button(parameters){
 
     $('#active_filter').attr('value', '')
     $('#confirm-pairing').attr('value', 'create')
+
+    $('#autoPairing').hide()
 
   } else if(message == 'Are you sure you want to complete this pairing session?'){
     $('#global_loader').attr({
@@ -233,7 +432,8 @@ function on_click_confirm_button(parameters){
       data: parameters,
       success: function (res) {
         if(res.status == 'Remove the student from the classroom complete.') {
-          $('#' + enrollment_id).remove()
+          $('#' + res.enrollment_id).remove()
+          alert(res.status)
         } else {
           alert(res.status)
         }
@@ -315,6 +515,12 @@ function on_click_confirm_button(parameters){
         })
       }
     })
+  } else if (message == 'Are you sure you want to start auto pairing?') {
+    console.log('parameters, ', parameters)
+    $.get('/classroom/startAutoPairingByPurpose', parameters, function (res) {
+      alert(res.resStatus)
+      $('#student_list_modal').modal('show')
+    })
   }
 
   $('#confirm-message').attr('value', 'Something message.')
@@ -323,7 +529,7 @@ function on_click_confirm_button(parameters){
 function searchStudent(id, student_id, section_id, pairing_session_id, username, partner_keys, pairing_objective){
   //console.log('section_id: ' + section_id)
   var parameters = { search: $(id).val(), student_id: student_id, section_id: section_id, pairing_session_id: pairing_session_id, username: username, partner_keys: JSON.stringify(partner_keys), pairing_objective: JSON.stringify(pairing_objective)};
-  $.get( '/classroom/searchStudent',parameters, function(data) {
+  $.get( '/classroom/searchStudent', parameters, function(data) {
     const student_id = data.student_id
     const students = data.students
     const purpose = data.purpose
@@ -412,7 +618,6 @@ function onClickAddPartnerButton(first_param, second_param, third_param, section
       $('#confirm-message').text('Are you sure you want to cancel pairing?')
       $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
       $('#cancel-pairing').attr('onclick', 'on_click_cancel_pairing_button()')
-      //console.log('partner_keys: ', partner_keys ,', pairing_objective_'+student_id+' : ' + pairing_objective[student_id] +', pairing_objective_'+partner_id+' : ' + pairing_objective[partner_id])
       showStudentList('pair', partner_keys, pairing_objective, pairing_session_id, section_id)
       break;
   }
@@ -420,7 +625,6 @@ function onClickAddPartnerButton(first_param, second_param, third_param, section
 
 function showStudentList(command, partner_keys, pairing_objective, pairing_session_id, section_id){
   let parameter = { partner_keys: JSON.stringify(partner_keys), pairing_objective:  JSON.stringify(pairing_objective), section_id: section_id, pairing_session_id: pairing_session_id, command: command};
-  // var parameter = { partner_keys: $('#partner_keys').attr('value'), pairing_objective: $('#pairing_objective').attr('value'), section_id: section_id, pairing_session_id: pairing_session_id, command: command};
   $.get('/classroom/getStudentsFromSection',parameter, function(data) {
     var count = 0
     const student_objects = data.student_objects
@@ -438,6 +642,7 @@ function showStudentList(command, partner_keys, pairing_objective, pairing_sessi
         $('#change_pair').show()
       } else {
         $('#change_pair').hide()
+        $('#autoPairing').show()
       }
 
     } else if(command == 'view') {
@@ -460,11 +665,11 @@ function showStudentList(command, partner_keys, pairing_objective, pairing_sessi
           addPartnerButton = "<div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton("+ student_objects[key].enrollment_id + "," + student_objects[key].avg_score + ",\"" + student_objects[key].username.toString() + "\",\""+section_id+"\","+pairing_session_id+", "+JSON.stringify(partner_keys)+", "+JSON.stringify(pairing_objective)+",1)'>Add</div>"
         }
         var pairing_objective_str = pairing_objective[key];
-        if(pairing_objective_str == 'quality') {
+        if(pairing_objective_str == 'quality' || pairing_objective_str == 'expertWithExpert') {
           pairing_objective_str = "<i class='line chart icon'></i>"
-        } else if(pairing_objective_str == 'experience') {
+        } else if(pairing_objective_str == 'experience' || pairing_objective_str == 'noviceWithNovice') {
           pairing_objective_str = "<i class='line idea icon'></i>"
-        } else if(pairing_objective_str == 'train') {
+        } else if(pairing_objective_str == 'train' || pairing_objective_str == 'expertWithNovice') {
           pairing_objective_str = "<i class='line student icon'></i>"
         } else {
           pairing_objective_str = "<i class='search icon'></i>"
@@ -552,14 +757,20 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
   })
   console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
   if(assignment_is_selected.length) {
-    set_year(2019, 2020, 'year_a', 'dropdown')
-    set_month(1, 13, 'month_a', 'dropdown')
-    set_day(1, 32, 'day_a', 'dropdown')
-    set_hour(0, 24, 'endTimeHh_a', 'dropdown')
-    set_minute(0, 60, 'endTimeMm_a', 'dropdown')
-    set_second(0, 60, 'endTimeSs_a', 'dropdown')
-    $('#assign_now').attr('onclick', 'on_click_assign_now_button('+JSON.stringify(assignment_is_selected)+', '+pairing_session_id+')')
-    $('#assignment-end-time-modal').modal('show');
+    let parameters = JSON.stringify({assignment_set: assignment_is_selected, pairing_session_id: pairing_session_id})
+    $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
+    $('#confirm-header').text('Assign assignment')
+    $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
+    $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
+    $('#confirm-modal').modal('show');
+    // set_year(2019, 2020, 'year_a', 'dropdown')
+    // set_month(1, 13, 'month_a', 'dropdown')
+    // set_day(1, 32, 'day_a', 'dropdown')
+    // set_hour(0, 24, 'endTimeHh_a', 'dropdown')
+    // set_minute(0, 60, 'endTimeMm_a', 'dropdown')
+    // set_second(0, 60, 'endTimeSs_a', 'dropdown')
+    // $('#assign_now').attr('onclick', 'on_click_assign_now_button('+JSON.stringify(assignment_is_selected)+', '+pairing_session_id+')')
+    // $('#assignment-end-time-modal').modal('show');
   } else {
     $('#alert-header').text('Select assignment')
     $('#alert-message').text('Please!!!, select an assignment before click the \"Assign\" button.')
@@ -567,15 +778,15 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
   }
 }
 
-function on_click_assign_now_button(assignment_set, pairing_session_id) {
-  let end_time = $('#year_a').val() + '-' + $('#month_a').val() + '-' + $('#day_a').val() + 'T' + $('#endTimeHh_a').val() + ':' + $('#endTimeMm_a').val() + ':' + $('#endTimeSs_a').val() + 'Z'
-  let parameters = JSON.stringify({assignment_set: assignment_set, pairing_session_id: pairing_session_id, end_time: end_time})
-  $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
-  $('#confirm-header').text('Assign assignment')
-  $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
-  $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
-  $('#confirm-modal').modal('show');
-}
+// function on_click_assign_now_button(assignment_set, pairing_session_id) {
+//   let end_time = $('#year_a').val() + '-' + $('#month_a').val() + '-' + $('#day_a').val() + 'T' + $('#endTimeHh_a').val() + ':' + $('#endTimeMm_a').val() + ':' + $('#endTimeSs_a').val() + 'Z'
+//   let parameters = JSON.stringify({assignment_set: assignment_set, pairing_session_id: pairing_session_id, end_time: end_time})
+//   $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
+//   $('#confirm-header').text('Assign assignment')
+//   $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
+//   $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
+//   $('#confirm-modal').modal('show');
+// }
 
 function onClickDeleteAssignment(assignment_of_week) {
   let assignment_is_selected = []
@@ -607,7 +818,7 @@ function on_click_enable_assignment_button() {
   $.get('/classroom/getAssignmentWeek', {action: 'enable'}, function(res) {
     let weeks = JSON.parse(res.weeks)
     if(!weeks.length) {
-      $('#week_amd').append('<div class=\'item\' id=\'0_week_in_dam\' data-value=\'0\'>Don\'t have to enable assignment.</div>')
+      $('#week_amd').append('<div class=\'item\' id=\'-1_week_in_dam\' data-value=\'-1\'>No disable assignment.</div>')
     } else if (weeks.length) {
       $('#week_amd').append('<div class=\'item\' id=\'0_week_in_dam\' data-value=\'0\'>All</div>')
     }
@@ -615,7 +826,7 @@ function on_click_enable_assignment_button() {
       $('#week_amd').append('<div class=\'item\' id=\''+e+'_week_in_dam\' data-value=\''+e+'\'>'+e+'</div>')
     })
     $('#confirm_assignment_management').attr('onclick', 'on_click_confirm_assignment_management_button(\'enable\')')
-    $('#header_amd').text('เปิดการใช้งานแบบฝึกหัด')
+    $('#header_amd').text('Enable Assignment')
     $('#assignment_management_modal').modal('show')
     $('#dropdown_amd').dropdown();
   })
@@ -630,14 +841,14 @@ function on_click_disable_assignment_button() {
   $.get('/classroom/getAssignmentWeek', {action: 'disable'}, function(res) {
     let weeks = JSON.parse(res.weeks)
     if(!weeks.length) {
-      $('#week_amd').append('<div class=\'item\' id=\'-1_week_in_dam\' data-value=\'-1\'>Don\'t have to enable assignment.</div>')
+      $('#week_amd').append('<div class=\'item\' id=\'-1_week_in_dam\' data-value=\'-1\'>Not yet assigned assignment.</div>')
     } else if (weeks.length) {
       $('#week_amd').append('<div class=\'item\' id=\'0_week_in_dam\' data-value=\'0\'>All</div>')
     }
     weeks.forEach(function (e){
       $('#week_amd').append('<div class=\'item\' id=\''+e+'_week_in_dam\' data-value=\''+e+'\'>'+e+'</div>')
     })
-    $('#header_amd').text('ปิดการใช้งานแบบฝึกหัด')
+    $('#header_amd').text('Disable Assignment')
     $('#confirm_assignment_management').attr('onclick', 'on_click_confirm_assignment_management_button(\'disable\')')
     $('#assignment_management_modal').modal('show')
     $('#dropdown_amd').dropdown();
@@ -664,6 +875,7 @@ function on_click_confirm_assignment_management_button(action) {
 
 function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   parameters = JSON.stringify({enrollment_id: enrollment_id})
+  console.log('enrollment_id, ', enrollment_id)
   $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
   $('#confirm-header').text('Remove Student')
   $('#confirm-message').attr('value', 'Are you sure you want to remove the student from this classroom?')
@@ -749,6 +961,7 @@ function on_click_weeks_dropdown(id, assignment_set, username, img, pairing_sess
   let res_obj = get_items_of_week(assignment_set, 5, id)
   let assignment_of_week_ = res_obj.items_of_week
   let pagination = res_obj.pagination
+  console.log('assignment_of_week_, ', assignment_of_week_)
 
   set_item_pagination_in_first_container(pagination, assignment_of_week_, username, img, id, opt)
 
@@ -1018,6 +1231,7 @@ function set_item_pagination_in_third_container(objects, section_id, occupation)
             eleven_wide_column = $('<div class=\'eleven wide column\'></div>')
             five_wide_column = $('<div class=\'five wide column\'></div>')
             if(pairing_session.status == 0) {
+              console.log('pairing_session.status, ', pairing_session.status)
               tag_b = $('<b style=\'font-size:1.5em;\'><header style=\'color:#5D5D5D;\'> Session : '+(pairing_times - _index_o)+' </header></b>')
               description = $('<p><b style=\'color:#5D5D5D\'> Start at : </b><font style=\'color:#5D5D5D\'>'+pairing_session.time_start+'</font><br><b style=\'color:#5D5D5D\'> End at : </b><font style=\'color:#5D5D5D\'>'+pairing_session.time_end+'</font></p>')
               button = $('<div class=\'ui right floated alignedvertical animated button\' onclick=\'onClickViewPairingRecord('+pairing_session.pairing_session_id+', \"'+section_id+'\")\'><div class=\'hidden content\' style=\'color:#5D5D5D;\'> View </div><div class=\'visible content\'><i class=\'eye icon\'/></div></div>')
@@ -1076,7 +1290,8 @@ function on_click_change_pair(pairing_session_id, section_id) {
   let parameters = {pairing_session_id: pairing_session_id, section_id: section_id}
   $.get('/classroom/getPairing', parameters, function(data) {
     if(data.status == 'Pull information successfully'){
-      // $('#partner_keys').attr('value', data.partner_keys)
+      // $('#autoPairing').attr('onclick', 'onClickAutoPairingBtn(\"pair\", '+JSON.stringify(data.partner_keys)+', '+JSON.stringify(data.pairing_objective)+', '+data.pairing_session_id+', \"'+data.section_id+'\")')
+      $('#autoPairing').show()
       $('#cloning_partner_keys').attr('value', data.partner_keys)
       $('#cloning_pairing_objective').attr('value', data.pairing_objective)
       $('#confirm-pairing').attr('value', 'change')
@@ -1090,6 +1305,34 @@ function on_click_change_pair(pairing_session_id, section_id) {
       alert(data.status)
     }
   })
+}
+
+function onClickAutoPairingBtn(command, pairingSessionId, sectionId) {
+  $('#expertWithExpert').attr('onclick', 'onClickPairingPurposeRadioBtn(\"expertWithExpert\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#expertWithNovice').attr('onclick', 'onClickPairingPurposeRadioBtn(\"expertWithNovice\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#noviceWithNovice').attr('onclick', 'onClickPairingPurposeRadioBtn(\"noviceWithNovice\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#qualityOriented').attr('onclick', 'onClickPairingPurposeRadioBtn(\"quality\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#mutualLearning').attr('onclick', 'onClickPairingPurposeRadioBtn(\"experience\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#teachingAndLearning').attr('onclick', 'onClickPairingPurposeRadioBtn(\"train\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#pairingSettingsModal').modal('show');
+}
+
+function onClickStartAutoPairingBtn(pairingPurpose, command, pairingSessionId, sectionId) {
+  if (pairingPurpose) {
+    parameters = {pairingPurpose: pairingPurpose, command: command, pairingSessionId: pairingSessionId, sectionId: sectionId}
+    $('#confirm-button').attr('onclick', 'on_click_confirm_button('+JSON.stringify(parameters)+')')
+    $('#confirm-header').text('Start Auto Pairing')
+    $('#confirm-message').text('Are you sure you want to start auto pairing?')
+    $('#confirm-message').attr('value', 'Are you sure you want to start auto pairing?')
+    $('#confirm-modal').modal('show')
+  } else {
+    alert('Please select a pairing purpose choice before click the \"Start\" button.')
+    $('#student_list_modal').modal('show')
+  }
+}
+
+function onClickPairingPurposeRadioBtn(pairingPurpose, command, pairingSessionId, sectionId) {
+  $('#startAutoPairingBtn').attr('onclick', 'onClickStartAutoPairingBtn(\"'+pairingPurpose+'\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
 }
 
 function onClickAlphabeticalFilterButton(student_objects){

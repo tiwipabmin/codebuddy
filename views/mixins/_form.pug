@@ -1,6 +1,6 @@
 mixin registerForm(user)
   p Fill in the form below to get access
-      form.ui.form(action='/register' method='POST')
+      form.ui.form#registerForm(action='/register' method='POST')
         h4.ui.dividing.header Access information
         .required.field
           label Username
@@ -9,7 +9,7 @@ mixin registerForm(user)
         .required.field
           label Password
           |  
-          input(type='password' name='password' required)
+          input(type='password' name='password' placeholder='Password' required)
         .required.field
           label E-mail
           |  
@@ -35,13 +35,6 @@ mixin registerForm(user)
               input(type='radio' name='occupation' value='teacher')
               |  
               label Teacher
-        //- .field
-        //-   label Occupation
-        //-   |
-        //-   select.ui.dropdown.day(name='occupation')
-        //-     option(value='student') Student
-        //-     option(value='teacher') Teacher
-          //- input(type='text' name='occupation' placeholder='occupation')
         .required.field
           label Gender
           .field
@@ -54,16 +47,17 @@ mixin registerForm(user)
               input(type='radio' name='gender' value='female')
               |  
               label Female
-        textarea(rows='5')
-          | This software is a work developed by Ms.Tharathip Malaimarn and Ms.Pawarisa 
-          | Thong-ngoen from King Mongkut's Institute of Technology Ladkrabang under the provision of Asst.Prof. Teerapong Leelanupab (Ph.D.) under An Enhanced Remote Software Development Environment for Pair-Programming with Code Review and Quality Analysis , which has been supported by the National Electronics and Computer Technology Center (NECTEC), in order to encourage pupils and students to learn and practice their skills in developing software. Therefore, the intellectual property of this software shall belong to the developer and the developer gives NECTEC a permission to distribute this software as an “as is ” and non-modified software for a temporary and non-exclusive use without remuneration to anyone for his or her own purpose or academic purpose, which are not commercial purposes. In this connection, NECTEC shall not be responsible to the user for taking care, maintaining, training or developing the efficiency of this software. Moreover, NECTEC shall not be liable for any error, software efficiency and damages in connection with or arising out of the use of the software.”
-
-      
-        .required.field
-          .ui.checkbox
-            input(type='checkbox' name="agree" tabindex='0' required)
-            |  
-            label I agree to the Terms and Conditions 
+        .ui.divider
+        //- textarea(rows='5')
+        //-   | This software is a work developed by Ms.Tharathip Malaimarn and Ms.Pawarisa 
+        //-   | Thong-ngoen from King Mongkut's Institute of Technology Ladkrabang under the provision of Asst.Prof. Teerapong Leelanupab (Ph.D.) under An Enhanced Remote Software Development Environment for Pair-Programming with Code Review and Quality Analysis , which has been supported by the National Electronics and Computer Technology Center (NECTEC), in order to encourage pupils and students to learn and practice their skills in developing software. Therefore, the intellectual property of this software shall belong to the developer and the developer gives NECTEC a permission to distribute this software as an “as is ” and non-modified software for a temporary and non-exclusive use without remuneration to anyone for his or her own purpose or academic purpose, which are not commercial purposes. In this connection, NECTEC shall not be responsible to the user for taking care, maintaining, training or developing the efficiency of this software. Moreover, NECTEC shall not be liable for any error, software efficiency and damages in connection with or arising out of the use of the software.”
+        //- 
+        //- 
+        //- .required.field
+        //-   .ui.checkbox
+        //-     input(type='checkbox' name="agree" tabindex='0' required)
+        //-     |  
+        //-     label I agree to the Terms and Conditions 
         |  
         button.ui.button(type='submit' onclick='validat()') Register
 

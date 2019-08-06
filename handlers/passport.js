@@ -16,6 +16,7 @@ function config(passport) {
    * @param {Function} done callback function
    */
   passport.serializeUser((user, done) => {
+    // console.log('serializeUser, ', user)
     done(null, user.id)
   })
 
@@ -45,28 +46,32 @@ function config(passport) {
     if (await User.findOne({ $or: [{ email }, { username: req.body.username }] })) {
       return done(null, false, { message: 'Username or Email is already exist' })
     }
-    // saves user to database
-    const user = await new User({
-      username: req.body.username,
-      email: req.body.email,
-      password: req.body.password,
-      img: '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg',
-      info: {
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        occupation: req.body.occupation,
-        gender: req.body.gender
-      }
-    }).save()
-
-    var occupation = req.body.occupation
-    var insertQuery = "INSERT INTO " + occupation + " (username, first_name, last_name, email, gender) VALUES ?";
-    var values = [[req.body.username, req.body.firstname, req.body.lastname, email, req.body.gender]]
-    con.connect.query(insertQuery, [values], function(err, rows){
-          if(err) console.log("Insert into " + occupation + " err : " + err);
-          console.log("Insert into " + occupation + " successful!")
-    });
-    return done(null, user)
+    let username = req.body.username
+    let firstname = req.body.firstname.trim()
+    let lastname = req.body.lastname.trim()
+    let occupation = req.body.occupation
+    let gender = req.body.gender
+    let insertStudent = "INSERT INTO " + occupation + " (username, first_name, last_name, email, gender) VALUES ?";
+    let values = [[username, firstname, lastname, email, gender]]
+    let subjectId = await con.insertStudent(insertStudent, values)
+    if(subjectId != 'Insert Failed!') {
+      // saves user to database
+      let user = await new User({
+        username: username,
+        email: email,
+        password: password,
+        img: '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg',
+        info: {
+          firstname: firstname,
+          lastname: lastname,
+          occupation: occupation,
+          gender: gender
+        },
+        subjectId: subjectId
+      }).save()
+      return done(null, user)
+    }
+    return done(null, false, { message: 'Error, please register again.' })
   }))
 
   /**
@@ -84,7 +89,7 @@ function config(passport) {
         return done(null, false, { message: 'Username or Email is not exist'})
       }
       let verifyPassword = await user.verifyPassword(password)
-      if (verifyPassword !== null) {
+      if (verifyPassword) {
         const systemAccessTime = user.systemAccessTime + 1
         const resStatus = await User.updateOne({
           $or: [{ email }, { username: email }]

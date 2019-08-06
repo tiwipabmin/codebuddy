@@ -7,8 +7,10 @@ mixin detailSection()
             b(style='font-size:1.2em;')
               header= data_set.common.section.course_name
             .description
-              p   Section !{data_set.common.section.section} Room !{data_set.common.section.room}
+              p   Section : !{data_set.common.section.section} Room : !{data_set.common.section.room}
               p   !{data_set.common.section.day} !{data_set.common.section.time_start} - !{data_set.common.section.time_end}
+              if user.info.occupation === 'teacher'
+                p   Classcode : !{data_set.common.section.class_code}
       .ui.segment
         .ui.items
           .item
