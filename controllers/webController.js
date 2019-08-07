@@ -156,23 +156,26 @@ exports.getHistory = async (req, res) => {
   var creator = project.creator
   var collaborator = project.collaborator
   var curUser = req.query.curUser
+  let userRole = null
 
   if(curUser==creator){
     var curUser_obj = await User
     .findOne({ username: curUser})
     var partner_obj = await User
       .findOne({ username: collaborator})
+    userRole = 'creator'
   }else{
     var curUser_obj = await User
     .findOne({ username: curUser})
     var partner_obj = await User
       .findOne({ username: creator})
+    userRole = 'collaborator'
   }
 
   const histories = await History
     .find({ pid: req.query.pid})
 
-  data_set = {common: {section_id: req.query.section_id}}
+  data_set = {common: {section_id: req.query.section_id, userRole: userRole}}
   res.render('history', { histories, code, project, curUser_obj, partner_obj, creator, data_set, title: 'History' })
 }
 

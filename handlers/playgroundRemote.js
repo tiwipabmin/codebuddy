@@ -65,7 +65,13 @@ module.exports = (io, client, redis, projects) => {
       if (!projects[projectId]) {
         winston.info(`created new projects['${projectId}']`)
         let active_user = {}
+        let partner = null
         active_user[curUser] = 1
+        if(curUser === project.creator) {
+          partner = project.collaborator
+        } else {
+          partner = project.creator
+        }
         projects[projectId] = {
           roles: {
             coder: '',
@@ -77,7 +83,7 @@ module.exports = (io, client, redis, projects) => {
         }
         console.log('projects[projectId], ', projects[projectId])
         winston.info(projects[projectId].count)
-        client.emit('role selection')
+        client.emit('role selection', {partner: partner})
       } else {
         if (projects[projectId].reject === 1) {
           projects[projectId].count += 1

@@ -1,21 +1,4 @@
 $(document).ready(function(){
-  $('#selectRole-modal')
-    .modal({
-      closable  : false,
-      onDeny    : function(){
-        socket.emit('role selected', {
-          select: 0,
-          partner
-        })
-      },
-      onApprove : function() {
-        socket.emit('role selected', {
-          select: 1,
-          partner
-        })
-      }
-    })
-
   $('#switch_role_modal')
     .modal({
       closable  : false,
@@ -245,7 +228,23 @@ socket.on('update tab', (payload) => {
 /**
  * If there's no one select the role, then first user that come to the project must choose one
  */
-socket.on('role selection', () => {
+socket.on('role selection', (payload) => {
+  $('#selectRole-modal')
+    .modal({
+      closable  : false,
+      onDeny    : function(){
+        socket.emit('role selected', {
+          select: 0,
+          partner: payload.partner
+        })
+      },
+      onApprove : function() {
+        socket.emit('role selected', {
+          select: 1,
+          partner: payload.partner
+        })
+      }
+    })
   $('#selectRole-modal').modal('show')
   $('#global_loader').attr('style', 'display: none')
 })
@@ -314,15 +313,17 @@ socket.on('clear interval', () => {
 })
 
 socket.on('role updated', (payload) => {
+  console.log('projectRoles, ', payload.projectRoles)
   if (user === payload.projectRoles.roles.reviewer) {
     roles.user = 'reviewer'
     roles.partner = 'coder'
+    $('#global_loader').attr('style', 'display: none')
     projectFiles.forEach(setOptionFileNoCursor)
   } else if(user === payload.projectRoles.roles.coder) {
     roles.user = 'coder'
     roles.partner = 'reviewer'
+    $('#global_loader').attr('style', 'display: none')
     $('#close_button_srm').attr('style', 'display:block;')
-    console.log('previous, reviewer')
     projectFiles.forEach(setOptionFileShowCursor)
   }else{
     if(user === payload.project.creator) {
@@ -408,7 +409,7 @@ setInterval(() => {
 socket.on('update status', (payload) => {
   if (payload.status && payload.projectRoles.count == 2) {
     $(".user.status").html(`<strong><em><i class='green circle icon'></i></em></strong>`)
-    $('#global_loader').attr('style', 'display: none')
+    // $('#global_loader').attr('style', 'display: none')
   } else {
     $(".user.status").html(`<strong><em><i class='grey circle icon'></i></em></strong>`)
   }

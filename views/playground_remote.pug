@@ -137,7 +137,7 @@ block content
               //- - if partner_obj is null
               - let partner_img = partner_obj === null ? '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg' : partner_obj.img
               - while (partner_img == user.img) {partner_img = '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg'}
-              - let partner = user.username === data_set.common.project.creator ? data_set.common.project.collaborator : data_set.common.project.creator
+              //- - let partner = user.username === data_set.common.project.creator ? data_set.common.project.creator : data_set.common.project.collaborator
               - let curUser = user.username === data_set.common.project.creator ? data_set.common.project.creator : data_set.common.project.collaborator
         .six.wide.column
           .ui.grid    
