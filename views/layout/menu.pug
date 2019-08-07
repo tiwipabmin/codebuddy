@@ -10,6 +10,10 @@
           a.item(href='/lobby')
             i.home.icon
             |  Lobby
+          if (user.info.occupation === 'teacher' && data_set.common.dataService)
+            a.item(href='/dataService')
+              i.database.icon
+              |  Data Service
           if (data_set.common.section)
             a.item(href='/classroom?section_id='+data_set.common.section.section_id)
               i.laptop.layout.icon

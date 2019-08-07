@@ -69,7 +69,6 @@ exports.getDashboard = async (req, res) => {
 }
 
 exports.getLobby = async (req, res) => {
-  console.log('Subject Id, ', req.user.subjectId)
   const projects = await Project
     .find({ $and : [
         {status: {$ne : "pending"} },
@@ -108,8 +107,13 @@ exports.getLobby = async (req, res) => {
     sections[_index].section_id = await cryptr.encrypt(sections[_index].section_id)
   }
   if(!sections.length) sections = []
-  data_set = {common: {occupation: occupation, sections: sections}}
+  data_set = {common: {occupation: occupation, sections: sections, dataService: 'dataService'}}
   res.render('lobby', { data_set, title: 'Lobby' })
+}
+
+exports.getCounter = async (req, res) => {
+  data_set = {common: {dataService: 'dataService'}}
+  res.render('counter')
 }
 
 exports.getPlayground = async (req, res) => {

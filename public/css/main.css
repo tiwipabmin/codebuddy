@@ -38,6 +38,39 @@ a:active {
 
 .assignment_is_selected:hover {cursor: pointer;}
 
+table.gridtable {
+  margin:0 auto;
+  width: 95%;
+  overflow:auto;
+  font-family: helvetica,arial,sans-serif;
+  font-size: 14px;
+  color:#333333;
+  border-width: 1px;
+  border-color: #666666;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+table.gridtable th {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+  background-color: #F6B4A5
+}
+
+table.gridtable td {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+}
+
+.incorrect {
+  background-color: red;
+  color: white;
+}
+
 .curve-box {
     /* overflow-wrap: break-word;
     word-wrap: break-word;

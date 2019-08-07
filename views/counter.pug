@@ -1,0 +1,112 @@
+extends layout/layout.pug
+
+block script
+    script(src='/js/app/counter.js')
+    script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
+    script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+    link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+    link(rel='stylesheet' href='/css/main.css')
+
+    style.
+      @media (min-height: 200px) {
+        .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+          position: absolute;
+          width: 100%;
+        }
+      }
+
+block content
+
+  .ui.fluid.container.segment
+    //- .ui.top.attached.tabular.menu
+    //-   a.item.active(data-tab="purpose") Select by purpose
+    //-   a.item(data-tab="search") Search partner
+    //- .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
+    //- .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="search")
+    .ui.pointing.secondary.menu
+      .item.active(data-tab="export")
+        | Export
+      .item(data-tab="import")
+        | Import
+    .ui.tab.active.segment(data-tab="export")
+      .ui.grid
+        .two.wide.column
+          .ui.vertical.attached.tabular.menu
+            a.item.active#userTab(data-tab="user")
+              | User
+            a.item#projectTab(data-tab="project")
+              | Project
+            a.item#scoreTab(data-tab="score")
+              | Score
+            a.item#historyTab(data-tab="history")
+              | History
+            a.item#commentTab(data-tab="comment")
+              | Comment
+            a.item#messageTab(data-tab="message")
+              | Message
+        .twelve.wide.column
+          .ui.vertical.attached.tab.active(data-tab="user")
+            .ui.segment#userSegment
+              | user
+          .ui.vertical.attached.tab(data-tab="project")
+            .ui.segment#projectSegment
+              | project
+          .ui.vertical.attached.tab(data-tab="score")
+            .ui.segment#scoreSegment
+              | score
+          .ui.vertical.attached.tab(data-tab="history")
+            .ui.segment#historySegment
+              | history
+          .ui.vertical.attached.tab(data-tab="comment")
+            .ui.segment#commentSegment
+              | comment
+          .ui.vertical.attached.tab(data-tab="message")
+            .ui.segment#messageSegment
+              | message
+        .two.wide.column
+          .ui.segment
+            .ui.grid
+              .row
+                .column
+                  p(style='text-align:center;')
+                    b BUTTON
+              .row
+                .column
+                  div(align='center')
+                    .ui.green.button
+                      | Export
+    .ui.tab.segment(data-tab="import")
+      .ui.grid
+        .two.wide.column
+          .ui.vertical.attached.tabular.menu
+            a.item.active#totalScoreTab(data-tab="totalScore")
+              | Total Score
+            a.item#rawScoreTab(data-tab="rawScore")
+              | Raw Score
+        .eleven.wide.column
+          .ui.vertical.attached.tab.active(data-tab="totalScore")
+            .ui.segment#totalScoreImportationSegment
+              table.gridtable#totalScoreTable
+                thead
+                  tr.tableHeader
+                    th Username
+                    th Name
+                    th Problem Score
+                    th Quiz Score
+                    th Total
+          .ui.vertical.attached.tab(data-tab="rawScore")
+            .ui.segment#rawScoreImportationSegment
+              | Raw score importation segment
+        .three.wide.column
+          .ui.segment
+            .ui.grid
+              .row
+                .column
+                  p(style='text-align:center;')
+                    b BUTTON
+              .row
+                .column
+                  input#inputFile(type='file')
+                  input#viewFile(type='button', value='Import File')
+                  .ui.blue.button#saveTotalScores
+                    | Save Total Scores

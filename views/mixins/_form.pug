@@ -4,6 +4,7 @@ mixin registerForm(user)
         h4.ui.dividing.header Access information
         .required.field
           label Username
+          em(style='font-size:12px; opacity:0.5;') e.g., it62606064 
           |  
           input(type='text' name='username' placeholder='Username' required)
         .required.field
@@ -17,10 +18,12 @@ mixin registerForm(user)
         h4.ui.dividing.header Personal information
         .required.field
           label First Name
+          em(style='font-size:12px; opacity:0.5;') e.g., James 
           |  
           input(type='text' name='firstname' placeholder='First Name' required)
         .required.field
           label Last Name
+          em(style='font-size:12px; opacity:0.5;') e.g., Moriarty 
           |  
           input(type='text' name='lastname' placeholder='Last Name' required)
         .required.field

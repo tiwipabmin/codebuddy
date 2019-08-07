@@ -71,12 +71,16 @@ exports.validateRegister = (req, res, next) => {
   req.checkBody('firstname')
   .notEmpty()
   .withMessage('Please enter your First Name!')
+  .isAlpha()
+  .withMessage('This firstname is not valid!')
   let firstname = req.body.firstname
   let isValidFirstname = validateName(firstname)
 
   req.checkBody('lastname')
   .notEmpty()
   .withMessage('Please enter your Last Name!')
+  .isAlpha()
+  .withMessage('This lastname is not valid!')
   let lastname = req.body.lastname
   let isValidLastname = validateName(lastname)
 
@@ -87,14 +91,14 @@ exports.validateRegister = (req, res, next) => {
     if(errors === false) {
       errors = []
     }
-    errors.push({msg: 'This firstname is not valid!'})
+    errors.push({msg: 'This firstname must not have special literal!'})
   }
 
   if (!isValidLastname) {
     if(errors === false) {
       errors = []
     }
-    errors.push({msg: 'This lastname is not valid!'})
+    errors.push({msg: 'This lastname must not have special literal!'})
   }
   if (errors) {
     req.flash('error', errors.map(err => err.msg))
