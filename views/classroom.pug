@@ -66,17 +66,17 @@ block content
               .ui.secondary.pointing.menu#uspm
                 a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') CRUD
                 a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
-                a.item.uspm#other(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Other
+                a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Manage Assignment
               .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
                 button.ui.button.approve.blue.newAssignment Create
                 button.ui.button.approve.blue#delete_assignment_button Delete
               .ui.segment.uspm#action_checkbox_segment(style='display: none')
-                button.ui.button.approve.blue#clear_checkbox(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 0)') Clear Checkbox
                 button.ui.button.approve.blue#check_all_of_box(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 1)') Check All of Box
-              .ui.segment.uspm#other_segment(style='display: none')
+                button.ui.button.approve.blue#clear_checkbox(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 0)') Clear Checkbox
+              .ui.segment.uspm#manageAssignment_segment(style='display: none')
                 button.ui.button.approve.blue#assign_button Assign
-                button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
                 button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_assignment_button()') Enable Assignment
+                button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
               .ui.section.divider#divider_in_first_container
               if data_set.common.assignments.length > 0
                 script(type='text/javascript').

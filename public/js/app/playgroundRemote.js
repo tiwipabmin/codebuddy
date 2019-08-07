@@ -408,6 +408,7 @@ setInterval(() => {
 socket.on('update status', (payload) => {
   if (payload.status && payload.projectRoles.count == 2) {
     $(".user.status").html(`<strong><em><i class='green circle icon'></i></em></strong>`)
+    $('#global_loader').attr('style', 'display: none')
   } else {
     $(".user.status").html(`<strong><em><i class='grey circle icon'></i></em></strong>`)
   }

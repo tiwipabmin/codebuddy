@@ -1074,13 +1074,13 @@ exports.startAutoPairingByPurpose = async (req, res) => {
     let getPairingRecord = await con.select_pairing_record(selectPairingRecordByEnrollmentId)
 
     // previous partner of each student
-    let previousPartner = []
+    let previousPartners = []
     for (let index in getPairingRecord) {
-      if (previousPartner.indexOf(getPairingRecord[index].partner_id) < 0) {
-        previousPartner.push(getPairingRecord[index].partner_id)
+      if (previousPartners.indexOf(getPairingRecord[index].partner_id) < 0) {
+        previousPartners.push(getPairingRecord[index].partner_id)
       }
     }
-    previousPartnersOfEachStudents[enrollmentId] = previousPartner
+    previousPartnersOfEachStudents[enrollmentId] = previousPartners
     numberAllOfStudent++
 
     // avg score of each student
@@ -1177,17 +1177,14 @@ exports.startAutoPairingByPurpose = async (req, res) => {
             numberOfNoviceRemaining--
             break
           } else {
-            /*
-             * The difference in score is small.
-             */
             count++
           }
         }
       }
 
-      // Not have suitable partner.
+      // Has not suitable partner.
       if(count === numberOfNoviceRemaining) {
-        console.log('The difference in score is small., ', count, numberAllOfStudent)
+        console.log('Score difference is less than 10 points., ', count, numberAllOfStudent)
         isCompletedPairing = true
       }
     }
@@ -1517,24 +1514,31 @@ exports.assignAssignment = async (req, res) => {
   const selectEnrollmentBySectionId = 'SELECT * FROM enrollment WHERE section_id = ' + cryptr.decrypt(req.body.assignment_set[0].section_id)
   const enrollments = await con.select_enrollment(selectEnrollmentBySectionId);
   const assignmentSet = req.body.assignment_set
-  console.log('assignmentSet, ', assignmentSet)
-  let isThereIndividualPro = false
-  let isTherePairPro = false
+  // let isThereIndividualPro = false
+  // let isTherePairPro = false
+  let proStyles = []
   for(_index in assignmentSet) {
     assignmentSet[_index].assignment_id = cryptr.decrypt(assignmentSet[_index].assignment_id)
-    if (assignmentSet[_index].programming_style === 'Individual') {
-      isThereIndividualPro = true
-    } else if (assignmentSet[_index].programming_style === 'Remote' || assignmentSet[_index].programming_style === 'Co-located') {
-      isTherePairPro = true
+    let programmingStyle = assignmentSet[_index].programming_style
+    if (proStyles.indexOf(programmingStyle)) {
+      proStyles.push(programmingStyle)
+      if (proStyles.length > 1) {
+        res.send({res_status: 'Do not allow to assign assignment that have different programming type by once time!'})
+        return
+      }
     }
+    // if (assignmentSet[_index].programming_style === 'Individual') {
+    //   isThereIndividualPro = true
+    // } else if (assignmentSet[_index].programming_style === 'Remote' || assignmentSet[_index].programming_style === 'Co-located') {
+    //   isTherePairPro = true
+    // }
 
-    if(isThereIndividualPro && isTherePairPro) {
-      res.send({res_status: 'Do not allow to assign assignment that have different programming style by once time!'})
-      return
-    }
+    // if(isThereIndividualPro && isTherePairPro) {
+    //   res.send({res_status: 'Do not allow to assign assignment that have different programming style by once time!'})
+    //   return
+    // }
   }
-  console.log('isThereIndividualPro, ', isThereIndividualPro)
-  console.log('isTherePairPro, ', isTherePairPro)
+  console.log('proStyles, ', proStyles)
   let count = 0;
   //check student pairing
   for (_index in enrollments) {
@@ -1544,7 +1548,7 @@ exports.assignAssignment = async (req, res) => {
     }
   }
 
-  if(!count && !isThereIndividualPro){
+  if(!count){
     res.send({res_status: 'Please pair all students before assign the assignment!'})
     return
   }
@@ -1597,12 +1601,13 @@ exports.assignAssignment = async (req, res) => {
   let findProject = {};
 
   count = 0
-  if (!isThereIndividualPro && isTherePairPro) {
-    /*
-     * assignment is a remote pair-programming or conventional pair-programming.
-     */
-    for(_index in assignmentSet){
-      for(let key in partnerKeys){
+  let proStyle = proStyles[0]
+  for(_index in assignmentSet){
+    for(let key in partnerKeys){
+      if (proStyle === 'Remote' || proStyle === 'Co-located') {
+        /*
+         * assignment is a remote pair-programming or conventional pair-programming.
+         */
         findProject = await Project.findOne({
           $or: [{
             assignment_id: assignmentSet[_index].assignment_id,
@@ -1630,14 +1635,10 @@ exports.assignAssignment = async (req, res) => {
           count++
           assignment_of_each_pair[key].push(assignmentSet[_index].assignment_id)
         }
-      }
-    }
-  } else if (isThereIndividualPro && !isTherePairPro){
-    /*
-     * assignment is a individual pair-programming.
-     */
-    for(_index in assignmentSet){
-      for(let key in partnerKeys){
+      } else if (proStyle === 'Individual'){
+        /*
+         * assignment is a individual pair-programming.
+         */
         console.log('partnerKeys, ', key)
         findProject = await Project.findOne({
           $or: [{
@@ -1662,12 +1663,83 @@ exports.assignAssignment = async (req, res) => {
           count++
           assignment_of_each_pair[key].push(assignmentSet[_index].assignment_id)
         }
+      } else {
+        res.send({res_status: 'Error!'})
+        return
       }
     }
-  } else {
-    res.send({res_status: 'Error!'})
-    return
   }
+  // if (!isThereIndividualPro && isTherePairPro) {
+  //   /*
+  //    * assignment is a remote pair-programming or conventional pair-programming.
+  //    */
+  //   for(_index in assignmentSet){
+  //     for(let key in partnerKeys){
+  //       findProject = await Project.findOne({
+  //         $or: [{
+  //           assignment_id: assignmentSet[_index].assignment_id,
+  //           creator: cloneStudents[key].username,
+  //           collaborator: cloneStudents[partnerKeys[key]].username,
+  //           createdAt: {$gt: new Date(timeStart)}
+  //         }, {
+  //           assignment_id: assignmentSet[_index].assignment_id,
+  //           creator: cloneStudents[key].username,
+  //           collaborator: cloneStudents[partnerKeys[key]].username,
+  //           createdAt: {$lt: new Date(timeStart)}
+  //         }, {
+  //           assignment_id: assignmentSet[_index].assignment_id,
+  //           creator: cloneStudents[partnerKeys[key]].username,
+  //           collaborator: cloneStudents[key].username,
+  //           createdAt: {$gt: new Date(timeStart)}
+  //         }, {
+  //           assignment_id: assignmentSet[_index].assignment_id,
+  //           creator: cloneStudents[partnerKeys[key]].username,
+  //           collaborator: cloneStudents[key].username,
+  //           createdAt: {$lt: new Date(timeStart)}
+  //         }]
+  //       })
+  //       if(findProject == null) {
+  //         count++
+  //         assignment_of_each_pair[key].push(assignmentSet[_index].assignment_id)
+  //       }
+  //     }
+  //   }
+  // } else if (isThereIndividualPro && !isTherePairPro){
+  //   /*
+  //    * assignment is a individual pair-programming.
+  //    */
+  //   for(_index in assignmentSet){
+  //     for(let key in partnerKeys){
+  //       console.log('partnerKeys, ', key)
+  //       findProject = await Project.findOne({
+  //         $or: [{
+  //           assignment_id: assignmentSet[_index].assignment_id,
+  //           creator: cloneStudents[key].username,
+  //           createdAt: {$gt: new Date(timeStart)}
+  //         }, {
+  //           assignment_id: assignmentSet[_index].assignment_id,
+  //           creator: cloneStudents[key].username,
+  //           createdAt: {$lt: new Date(timeStart)}
+  //         }, {
+  //           assignment_id: assignmentSet[_index].assignment_id,
+  //           creator: cloneStudents[partnerKeys[key]].username,
+  //           createdAt: {$gt: new Date(timeStart)}
+  //         }, {
+  //           assignment_id: assignmentSet[_index].assignment_id,
+  //           creator: cloneStudents[partnerKeys[key]].username,
+  //           createdAt: {$lt: new Date(timeStart)}
+  //         }]
+  //       })
+  //       if(findProject == null) {
+  //         count++
+  //         assignment_of_each_pair[key].push(assignmentSet[_index].assignment_id)
+  //       }
+  //     }
+  //   }
+  // } else {
+  //   res.send({res_status: 'Error!'})
+  //   return
+  // }
 
   let date_time = new Date()
   let str_date_time = date_time.toString()
@@ -1703,10 +1775,10 @@ exports.assignAssignment = async (req, res) => {
       project.available_project = true
       project.createdAt = start_time
 
-      if (!isThereIndividualPro && isTherePairPro) {
+      if (proStyle === 'Remote' || proStyle === 'Co-located') {
         creator = cloneStudents[key].username
         collaborator = cloneStudents[partnerKeys[key]].username
-      } else if (isThereIndividualPro && !isTherePairPro) {
+      } else if (proStyle === 'Individual') {
         creator = cloneStudents[key].username
         collaborator = 'examiner@codebuddy'
       } else {
@@ -1719,7 +1791,7 @@ exports.assignAssignment = async (req, res) => {
       creator = await User.findOne({ username: creator})
       collaborator = await User.findOne({ username: collaborator})
 
-      if (collaborator != null && !isThereIndividualPro && isTherePairPro) {
+      if (collaborator != null && (proStyle === 'Remote' || proStyle === 'Co-located')) {
         project = await (project).save()
         Project.update({
           _id: project._id
@@ -1754,7 +1826,7 @@ exports.assignAssignment = async (req, res) => {
           new Score(scoreModel).save()
         })
 
-      } else if (collaborator === null && isThereIndividualPro && !isTherePairPro) {
+      } else if (collaborator === null && proStyle === 'Individual') {
         console.log('creator_id, ', creator._id)
         project = await (project).save()
         Project.update({
