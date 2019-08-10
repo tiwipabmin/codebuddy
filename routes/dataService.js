@@ -16,6 +16,7 @@ const router = express.Router()
  * @method {POST} handle import new data form on `counter.pug` page
  */
 router.get('/', auth.isSignedIn, catchErrors(webController.getCounter))
+router.put('/updateTotalScoreAllStudent', auth.isSignedIn, catchErrors(webController.updateTotalScoreAllStudent))
 
 /**
  * Expose `router`

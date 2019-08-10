@@ -16,7 +16,8 @@ block script
       }
 
 block content
-
+  
+  input#previousData(type='hidden', value='[]')
   .ui.fluid.container.segment
     //- .ui.top.attached.tabular.menu
     //-   a.item.active(data-tab="purpose") Select by purpose
@@ -108,5 +109,5 @@ block content
                 .column
                   input#inputFile(type='file')
                   input#viewFile(type='button', value='Import File')
-                  .ui.blue.button#saveTotalScores
-                    | Save Total Scores
+                  .ui.blue.button#updateTotalScores
+                    | Update Total Scores

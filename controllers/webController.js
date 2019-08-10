@@ -1048,6 +1048,24 @@ exports.updatePairing = async (req, res) => {
   res.send({status: "Update pairing successfully"})
 }
 
+exports.updateTotalScoreAllStudent = async (req, res) => {
+  let totalScores = req.body.totalScores
+  let updateAvgScores = {}
+  for (let username in totalScores) {
+    updateAvgScores[username] = User.updateOne({
+      username: username
+    }, {
+      $set: {avgScore: parseFloat(totalScores[username])}
+    }, function (err, data) {
+      if (err) console.log(err);
+      if (data) console.log(data)
+    })
+    // console.log(username + ', ', updateAvgScores)
+    // console.log('totalScores, ', totalScores[username], ', typeof, ', typeof(totalScores[username]))
+  }
+  res.send({status: 'Update avgScore complete!'})
+}
+
 exports.startAutoPairingByPurpose = async (req, res) => {
   // let diffScore = req.query.diffScore
   let pairingPurpose = req.query.pairingPurpose
