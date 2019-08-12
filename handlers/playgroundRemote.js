@@ -46,7 +46,7 @@ module.exports = (io, client, redis, projects) => {
           description: allcomment[i].description})
       }
 
-      Project.update({
+      Project.updateOne({
         pid: projectId
       }, {
         $set: {
@@ -59,7 +59,7 @@ module.exports = (io, client, redis, projects) => {
       // Increase user's enter count
       const user = await User.findOne({ username: curUser })
       const project = await Project.findOne({ pid: projectId })
-      await Score.update({ pid: projectId, uid: user._id }, { $inc: { 'participation.enter': 1 } })
+      await Score.updateOne({ pid: projectId, uid: user._id }, { $inc: { 'participation.enter': 1 } })
 
       // Checking if this project hasn't have any roles assigned.
       if (!projects[projectId]) {
@@ -117,8 +117,8 @@ module.exports = (io, client, redis, projects) => {
       projects[projectId].count += 1
 
       // Increase users' pairing count
-      await Score.update({ pid: projectId, uid: project.creator_id }, { $inc: { 'participation.pairing': 1 } })
-      await Score.update({ pid: projectId, uid: project.collaborator_id }, { $inc: { 'participation.pairing': 1 } })
+      await Score.updateOne({ pid: projectId, uid: project.creator_id }, { $inc: { 'participation.pairing': 1 } })
+      await Score.updateOne({ pid: projectId, uid: project.collaborator_id }, { $inc: { 'participation.pairing': 1 } })
 
       winston.info(projects[projectId].count)
       client.emit('role updated', { projectRoles: projects[projectId], project: res})
@@ -188,7 +188,7 @@ module.exports = (io, client, redis, projects) => {
           }).remove().exec()
           comments.splice(index,1)
         } else {
-          Comment.update({
+          Comment.updateOne({
             file: payload.file,
             pid: projectId,
             line: payload.line
@@ -242,7 +242,7 @@ module.exports = (io, client, redis, projects) => {
     if (isEnter) {
       for (var i in comments) {
         if ((comments[i].line > enterline) && (comments[i].file == fileName)) {
-          Comment.update({
+          Comment.updateOne({
             file: fileName,
             pid: projectId,
             description: comments[i].description
@@ -261,7 +261,7 @@ module.exports = (io, client, redis, projects) => {
     if (isDelete) {
       for (var i in comments) {
         if ((comments[i].line > parseInt(enterline)-1) && (comments[i].file == fileName)) {
-          Comment.update({
+          Comment.updateOne({
             file: fileName,
             pid: projectId,
             description: comments[i].description
@@ -283,7 +283,7 @@ module.exports = (io, client, redis, projects) => {
    */
   client.on('create file', (payload) => {
     //save file name to mongoDB
-    Project.update({
+    Project.updateOne({
       pid: projectId
     }, {
       $push: {
@@ -308,7 +308,7 @@ module.exports = (io, client, redis, projects) => {
    */
   client.on('delete file', async (payload) => {
     //delete file in mongoDB
-    Project.update({
+    Project.updateOne({
       pid: projectId
     }, {
       $pull: {
@@ -441,9 +441,10 @@ module.exports = (io, client, redis, projects) => {
               if (err) return handleError(err);
               var textInLine = res
               console.log(res)
+              let histories = {}
               for (var i=0; i<textInLine.length; i++) {
-                console.log(textInLine[i])
-                History.update({
+                // console.log(textInLine[i])
+                histories[i] = History.updateOne({
                   pid: projectId,
                   file: fileName,
                   line: textInLine[i].line,
@@ -486,9 +487,9 @@ module.exports = (io, client, redis, projects) => {
             if (err) return handleError(err);
             var textInLine = res
             console.log(res)
-
+            let histories = {}
             for (var i=0; i<textInLine.length; i++) {
-              History.update({
+              histories[i] = History.updateOne({
                 pid: projectId,
                 file: fileName,
                 line: textInLine[i].line,
@@ -510,9 +511,9 @@ module.exports = (io, client, redis, projects) => {
             if (err) return handleError(err);
             var textInLine = res
             console.log(res)
-
+            let histories = {}
             for (var i=0; i<textInLine.length; i++) {
-              History.update({
+              histories[i] = History.updateOne({
                 pid: projectId,
                 file: fileName,
                 line: textInLine[i].line,
@@ -580,7 +581,7 @@ module.exports = (io, client, redis, projects) => {
         Score.where({ pid: projectId, uid: payload.uid}).findOne(function (err, score) {
           if (err);
           if (score) {
-            Score.update({
+            Score.updateOne({
               pid: projectId,
               uid: payload.uid
             }, {
@@ -696,7 +697,7 @@ module.exports = (io, client, redis, projects) => {
       uid: payload.uid
     })
 
-    await Score.update({
+    await Score.updateOne({
       pid: projectId,
       uid: payload.uid
     }, {
@@ -709,7 +710,7 @@ module.exports = (io, client, redis, projects) => {
       _id: payload.uid
     })
 
-    await User.update({
+    await User.updateOne({
       _id: payload.uid
     }, {
       $set: {
@@ -729,7 +730,7 @@ module.exports = (io, client, redis, projects) => {
       Score.where({ pid: projectId, uid: payload.uid}).findOne(function (err, score) {
         if (err);
         if (score) {
-          Score.update({
+          Score.updateOne({
             pid: projectId,
             uid: payload.uid
           }, {
@@ -871,7 +872,7 @@ module.exports = (io, client, redis, projects) => {
                           // sum = 0;
                           results.forEach(function (result) {
                             // start update
-                            User.update({
+                            User.updateOne({
                               _id: element
                             }, {
                               $set: {
@@ -901,7 +902,7 @@ module.exports = (io, client, redis, projects) => {
                     // end recalculate score
                   }
                   if (oldScore) {
-                    Score.update({
+                    Score.updateOne({
                       pid: projectId,
                       uid: element
                     }, {
@@ -929,7 +930,7 @@ module.exports = (io, client, redis, projects) => {
                               // sum = 0;
                               results.forEach(function (result) {
                                 // start update
-                                User.update({
+                                User.updateOne({
                                   _id: element
                                 }, {
                                   $set: {
@@ -1180,9 +1181,10 @@ module.exports = (io, client, redis, projects) => {
       if (err) return handleError(err);
       var textInLine = res
       console.log(res)
+      let histories = {}
       for (var i=0; i<textInLine.length; i++) {
         console.log(textInLine[i])
-        History.update({
+        histories[i] = History.updateOne({
           pid: projectId,
           file: fileName,
           line: textInLine[i].line,

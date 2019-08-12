@@ -391,7 +391,10 @@ mixin pairingSettingsModal()
   .ui.small.modal#pairingSettingsModal
     .header Auto pairing
     .content
-      .ui.segment
+      .ui.top.attached.tabular.menu
+        a.item.active(data-tab="purpose") Auto by purpose
+        a.item(data-tab="scoreDiff") Auto by score difference
+      .ui.bottom.attached.tab.segment.active(data-tab="purpose" onclick='onClickAutoPairingTab()')
         .ui.two.column.very.relaxed.grid
           .column#traditionalPairingPrinciple
               p(style='text-align:center;') Traditional Pairing Principle
@@ -433,6 +436,11 @@ mixin pairingSettingsModal()
                     label Mutual Improvement
         .ui.vertical.divider
           p And
+      .ui.bottom.attached.tab.segment(data-tab="scoreDiff" onclick='onClickAutoPairingTab()')
+        .field
+          label
+          | Score difference :
+          input#scoreDiffField(type='text' name='scoreDiffField')
       .ui.basic.center.aligned.segment
         .actions
           .ui.approve.green.button#startAutoPairingBtn(onclick='onClickStartAutoPairingBtn(null, null, null, null, null, null)') Start

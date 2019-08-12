@@ -517,10 +517,29 @@ function on_click_confirm_button(parameters){
     })
   } else if (message == 'Are you sure you want to start auto pairing?') {
     console.log('parameters, ', parameters)
-    $.get('/classroom/startAutoPairingByPurpose', parameters, function (res) {
-      alert(res.resStatus)
-      $('#student_list_modal').modal('show')
-    })
+    if (parameters.scoreDiff !== undefined) {
+      $.get('/classroom/startAutoPairingByScoreDiff', parameters, function (res) {
+        if (res.resStatus === 'Start Auto Pairing By Score Diff Successfully!') {
+          $('#confirm-header').text('Student pairing')
+          $('#confirm-message').text('Are you sure you want to cancel pairing?')
+          $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
+          $('#cancel-pairing').attr('onclick', 'on_click_cancel_pairing_button()')
+          showStudentList('pair', JSON.parse(res.partnerKeys), JSON.parse(res.pairingObjectives), res.pairingSessionId, res.sectionId)
+          $('#student_list_modal').modal('show')
+        } else {
+          alert(res.resStatus)
+        }
+      })
+    } else {
+      $.get('/classroom/startAutoPairingByPurpose', parameters, function (res) {
+        // $('#confirm-header').text('Student pairing')
+        // $('#confirm-message').text('Are you sure you want to cancel pairing?')
+        // $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
+        // $('#cancel-pairing').attr('onclick', 'on_click_cancel_pairing_button()')
+        $('#student_list_modal').modal('show')
+        alert(res.resStatus)
+      })
+    }
   }
 
   $('#confirm-message').attr('value', 'Something message.')
@@ -671,6 +690,8 @@ function showStudentList(command, partner_keys, pairing_objective, pairing_sessi
           pairing_objective_str = "<i class='line idea icon'></i>"
         } else if(pairing_objective_str == 'train' || pairing_objective_str == 'expertWithNovice') {
           pairing_objective_str = "<i class='line student icon'></i>"
+        } else if (pairing_objective_str == 'scoreDiff') {
+          pairing_objective_str = "<i class='superscript icon'></i>"
         } else {
           pairing_objective_str = "<i class='search icon'></i>"
         }
@@ -1308,31 +1329,48 @@ function on_click_change_pair(pairing_session_id, section_id) {
 }
 
 function onClickAutoPairingBtn(command, pairingSessionId, sectionId) {
-  $('#expertWithExpert').attr('onclick', 'onClickPairingPurposeRadioBtn(\"expertWithExpert\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
-  $('#expertWithNovice').attr('onclick', 'onClickPairingPurposeRadioBtn(\"expertWithNovice\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
-  $('#noviceWithNovice').attr('onclick', 'onClickPairingPurposeRadioBtn(\"noviceWithNovice\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
-  $('#qualityOriented').attr('onclick', 'onClickPairingPurposeRadioBtn(\"quality\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
-  $('#mutualLearning').attr('onclick', 'onClickPairingPurposeRadioBtn(\"experience\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
-  $('#teachingAndLearning').attr('onclick', 'onClickPairingPurposeRadioBtn(\"train\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#startAutoPairingBtn').attr('onclick', 'onClickStartAutoPairingBtn(null, null, null, null, null, null)')
+  $('#expertWithExpert').attr('onclick', 'onClickPairingPurposeRadioBtn(\"expertWithExpert\", \"purpose\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#expertWithNovice').attr('onclick', 'onClickPairingPurposeRadioBtn(\"expertWithNovice\", \"purpose\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#noviceWithNovice').attr('onclick', 'onClickPairingPurposeRadioBtn(\"noviceWithNovice\", \"purpose\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#qualityOriented').attr('onclick', 'onClickPairingPurposeRadioBtn(\"quality\", \"purpose\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#mutualLearning').attr('onclick', 'onClickPairingPurposeRadioBtn(\"experience\", \"purpose\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#teachingAndLearning').attr('onclick', 'onClickPairingPurposeRadioBtn(\"train\", \"purpose\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+  $('#scoreDiffField').attr('onkeyup', 'onTypingScoreDiffField(\"scoreDiff\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
   $('#pairingSettingsModal').modal('show');
 }
 
-function onClickStartAutoPairingBtn(pairingPurpose, command, pairingSessionId, sectionId) {
-  if (pairingPurpose) {
-    parameters = {pairingPurpose: pairingPurpose, command: command, pairingSessionId: pairingSessionId, sectionId: sectionId}
-    $('#confirm-button').attr('onclick', 'on_click_confirm_button('+JSON.stringify(parameters)+')')
+function onClickStartAutoPairingBtn(purposeOrScoreDiff, autoPairingCommand, command, pairingSessionId, sectionId) {
+  if (autoPairingCommand === 'scoreDiff') {
+    parameters = {scoreDiff: purposeOrScoreDiff, command: command, pairingSessionId: pairingSessionId, sectionId: sectionId}
     $('#confirm-header').text('Start Auto Pairing')
     $('#confirm-message').text('Are you sure you want to start auto pairing?')
     $('#confirm-message').attr('value', 'Are you sure you want to start auto pairing?')
+    $('#confirm-button').attr('onclick', 'on_click_confirm_button('+JSON.stringify(parameters)+')')
     $('#confirm-modal').modal('show')
-  } else {
-    alert('Please select a pairing purpose choice before click the \"Start\" button.')
+  } else if (autoPairingCommand === 'purpose') {
+    parameters = {purposePairing: purposeOrScoreDiff, command: command, pairingSessionId: pairingSessionId, sectionId: sectionId}
+    $('#confirm-header').text('Start Auto Pairing')
+    $('#confirm-message').text('Are you sure you want to start auto pairing?')
+    $('#confirm-message').attr('value', 'Are you sure you want to start auto pairing?')
+    $('#confirm-button').attr('onclick', 'on_click_confirm_button('+JSON.stringify(parameters)+')')
+    $('#confirm-modal').modal('show')
+  }else {
+    alert('Please select a pairing purpose choice or enter number of score difference\nbefore click the \"Start\" button.')
     $('#student_list_modal').modal('show')
   }
 }
 
-function onClickPairingPurposeRadioBtn(pairingPurpose, command, pairingSessionId, sectionId) {
-  $('#startAutoPairingBtn').attr('onclick', 'onClickStartAutoPairingBtn(\"'+pairingPurpose+'\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+function onClickPairingPurposeRadioBtn(pairingPurpose, autoPairingCommand, command, pairingSessionId, sectionId) {
+  $('#startAutoPairingBtn').attr('onclick', 'onClickStartAutoPairingBtn(\"'+pairingPurpose+'\", \"'+autoPairingCommand+'\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+}
+
+function onTypingScoreDiffField (autoPairingCommand, command, pairingSessionId, sectionId) {
+  $('#startAutoPairingBtn').attr('onclick', 'onClickStartAutoPairingBtn(\"'+$('#scoreDiffField').val()+'\", \"'+autoPairingCommand+'\", \"'+command+'\", '+pairingSessionId+', \"'+sectionId+'\")')
+}
+
+function onClickAutoPairingTab () {
+  $('#startAutoPairingBtn').attr('onclick', 'onClickStartAutoPairingBtn(null, null, null, null, null, null)')
 }
 
 function onClickAlphabeticalFilterButton(student_objects){

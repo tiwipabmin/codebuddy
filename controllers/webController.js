@@ -1066,6 +1066,107 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
   res.send({status: 'Update avgScore complete!'})
 }
 
+exports.startAutoPairingByScoreDiff = async (req, res) => {
+  let scoreDiff = parseInt(req.query.scoreDiff)
+  let resStatus = 'Start Auto Pairing By Score Diff Successfully!'
+  console.log('scoreDiff, ', scoreDiff)
+  if (scoreDiff || scoreDiff === 0) {
+
+  } else {
+    res.send({resStatus: 'This score difference is not valid!'})
+    return
+  }
+  let command = req.query.command
+  let partnerKeys = {}
+  let pairingObjectives = {}
+  let pairingSessionId = req.query.pairingSessionId
+  let sectionId = req.query.sectionId
+
+  let selectStudentsBySectionId = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + cryptr.decrypt(sectionId) + ' ORDER BY st.first_name ASC';
+  let getStudents = await con.select_student(selectStudentsBySectionId)
+
+  let students = {}
+
+  let eachStudentScores = {}
+  let allOfScores = []
+
+  let previousPartnersOfEachStudents = {}
+  let numberAllOfStudent = 0
+  /*
+   * "-1" means student have not partner
+   */
+  for (let index in getStudents) {
+    let enrollmentId = getStudents[index].enrollment_id
+    let username = getStudents[index].username
+    partnerKeys[enrollmentId] = -1
+    pairingObjectives[enrollmentId] = 'scoreDiff'
+    students[enrollmentId] = username
+
+    let selectPairingRecordByEnrollmentId = 'select partner_id from pairing_record where enrollment_id = ' + enrollmentId
+    let getPairingRecord = await con.select_pairing_record(selectPairingRecordByEnrollmentId)
+
+    // previous partner of each student
+    let previousPartners = []
+    for (let index in getPairingRecord) {
+      if (previousPartners.indexOf(getPairingRecord[index].partner_id) < 0) {
+        previousPartners.push(getPairingRecord[index].partner_id)
+      }
+    }
+    previousPartnersOfEachStudents[enrollmentId] = previousPartners
+    numberAllOfStudent++
+
+    // avg score of each student
+    let user = await User.findOne({
+      username: username
+    })
+    eachStudentScores[enrollmentId] = user.avgScore
+    allOfScores.push(user.avgScore)
+  }
+  if (numberAllOfStudent % 1 === 0) {
+    numberAllOfStudent = Math.floor(numberAllOfStudent/2)
+  } else {
+    res.send({resStatus: 'Number of student is not even!'})
+    return
+  }
+  allOfScores.sort(function(a, b){return b-a})
+
+  let randomKey = function (obj) {
+    let keys = Object.keys(obj)
+    return keys[keys.length * Math.random() << 0];
+  }
+
+  for (let enrollmentIdSd in students) {
+
+    let previousRandSd = {}
+    let numberOfStudents = Object.keys(students).length
+    let numberOfPreviousRandSds = Object.keys(previousRandSd).length
+    while (numberOfStudents !== numberOfPreviousRandSds) {
+      let enrollmentIdPn = randomKey(students)
+      let result = eachStudentScores[enrollmentIdSd] - eachStudentScores[enrollmentIdPn]
+      if (((result < scoreDiff && result >= 0) || (result > -scoreDiff && result <= 0)) && enrollmentIdSd != enrollmentIdPn && previousPartnersOfEachStudents[enrollmentIdSd].indexOf(parseInt(enrollmentIdPn)) < 0) {
+        partnerKeys[enrollmentIdSd] = enrollmentIdPn
+        delete partnerKeys[enrollmentIdPn]
+        delete students[enrollmentIdSd]
+        delete students[enrollmentIdPn]
+        break
+      } else if (enrollmentIdSd != enrollmentIdPn) {
+        previousRandSd[enrollmentIdPn] = eachStudentScores[enrollmentIdPn]
+      }
+
+      /*
+       * not excluding enrllmentIdSd
+       */
+      numberOfStudents = Object.keys(students).length - 1
+
+      numberOfPreviousRandSds = Object.keys(previousRandSd).length
+    }
+  }
+
+  console.log('partnerKeys, ', partnerKeys)
+
+  res.send({resStatus: resStatus, partnerKeys: JSON.stringify(partnerKeys), pairingObjectives: JSON.stringify(pairingObjectives), pairingSessionId: pairingSessionId, sectionId: sectionId})
+}
+
 exports.startAutoPairingByPurpose = async (req, res) => {
   // let diffScore = req.query.diffScore
   let pairingPurpose = req.query.pairingPurpose
@@ -1818,7 +1919,7 @@ exports.assignAssignment = async (req, res) => {
 
       if (collaborator != null && (proStyle === 'Remote' || proStyle === 'Co-located')) {
         project = await (project).save()
-        Project.update({
+        await Project.updateOne({
           _id: project._id
           }, {
           $set: {
@@ -1854,7 +1955,7 @@ exports.assignAssignment = async (req, res) => {
       } else if (collaborator === null && proStyle === 'Individual') {
         console.log('creator_id, ', creator._id)
         project = await (project).save()
-        Project.update({
+        await Project.updateOne({
           _id: project._id
           }, {
           $set: {
