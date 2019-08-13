@@ -1060,7 +1060,7 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
       if (err) console.log(err);
       if (data) console.log(data)
     })
-    // console.log(username + ', ', updateAvgScores)
+    console.log(username + ', ', updateAvgScores)
     // console.log('totalScores, ', totalScores[username], ', typeof, ', typeof(totalScores[username]))
   }
   res.send({status: 'Update avgScore complete!'})
@@ -1122,12 +1122,12 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
     eachStudentScores[enrollmentId] = user.avgScore
     allOfScores.push(user.avgScore)
   }
-  if (numberAllOfStudent % 1 === 0) {
-    numberAllOfStudent = Math.floor(numberAllOfStudent/2)
-  } else {
-    res.send({resStatus: 'Number of student is not even!'})
-    return
-  }
+  // if (numberAllOfStudent % 2 === 0) {
+  //   numberAllOfStudent = Math.floor(numberAllOfStudent/2)
+  // } else {
+  //   res.send({resStatus: 'Number of student is not even!'})
+  //   return
+  // }
   allOfScores.sort(function(a, b){return b-a})
 
   let randomKey = function (obj) {
@@ -1140,10 +1140,11 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
     let previousRandSd = {}
     let numberOfStudents = Object.keys(students).length
     let numberOfPreviousRandSds = Object.keys(previousRandSd).length
+
     while (numberOfStudents !== numberOfPreviousRandSds) {
       let enrollmentIdPn = randomKey(students)
       let result = eachStudentScores[enrollmentIdSd] - eachStudentScores[enrollmentIdPn]
-      if (((result < scoreDiff && result >= 0) || (result > -scoreDiff && result <= 0)) && enrollmentIdSd != enrollmentIdPn && previousPartnersOfEachStudents[enrollmentIdSd].indexOf(parseInt(enrollmentIdPn)) < 0) {
+      if (((result <= scoreDiff && result >= 0) || (result >= -scoreDiff && result <= 0)) && enrollmentIdSd != enrollmentIdPn && previousPartnersOfEachStudents[enrollmentIdSd].indexOf(parseInt(enrollmentIdPn)) < 0) {
         partnerKeys[enrollmentIdSd] = enrollmentIdPn
         delete partnerKeys[enrollmentIdPn]
         delete students[enrollmentIdSd]
