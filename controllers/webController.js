@@ -1052,15 +1052,32 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
   let totalScores = req.body.totalScores
   let updateAvgScores = {}
   for (let username in totalScores) {
-    updateAvgScores[username] = User.updateOne({
+    if (totalScores[username] === '') {
+      console.log('null, ', totalScores[username])
+      res.send({status: 'The total score is null!'})
+      return
+    } else {
+      console.log('not null, ', totalScores[username])
+    }
+  }
+  for (let username in totalScores) {
+    updateAvgScores[username] = User.findOne({
       username: username
-    }, {
-      $set: {avgScore: parseFloat(totalScores[username])}
     }, function (err, data) {
-      if (err) console.log(err);
-      if (data) console.log(data)
+      if (err) console.log('updateTotalScores err, ', err)
+      else if(data) {
+        console.log('updateTotalScores get data, ', data)
+        User.updateOne({
+          username: username
+        }, {
+          $set: {avgScore: parseFloat(totalScores[username])}
+        }, function (err, data) {
+          if (err) console.log(err);
+          if (data) console.log(data)
+        })
+      }
     })
-    console.log(username + ', ', updateAvgScores)
+    // console.log(username + ', ', updateAvgScores)
     // console.log('totalScores, ', totalScores[username], ', typeof, ', typeof(totalScores[username]))
   }
   res.send({status: 'Update avgScore complete!'})

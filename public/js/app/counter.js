@@ -7,6 +7,12 @@ $(document).ready(function () {
     $('#totalScoreTable').empty()
     rdr.onload = function(e) {
       let theRows = e.target.result.split('\n')
+      console.log('theRows, ', theRows)
+      for (let columns in theRows) {
+        console.log('before, ', theRows[columns])
+        theRows[columns] = theRows[columns].replace(/"/g, '')
+        console.log('after, ', theRows[columns])
+      }
       let totalScores = {}
       let colCount = 0
       for (let row in theRows) {
