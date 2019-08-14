@@ -1,0 +1,23 @@
+extends layout/layout.pug
+
+block script
+    //- script(src='/js/app/dashboard.js')
+    script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+    script(src='/jquery-timepicker/jquery.timepicker.min.js')
+    link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+    link(rel='stylesheet', href='/jquery-timepicker/jquery.timepicker.css')
+    link(rel='stylesheet' href='/css/main.css')
+
+
+    style.
+      @media (min-height: 200px) {
+      .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+      position: absolute;
+      width: 100%;
+      }
+      }
+
+block content
+    h1
+      p(align='center')
+        a(href='' + data_set.common.link download="main.py") Download File Now!

@@ -14,6 +14,16 @@ block content
         'style': 'display: block; position: fixed;'
       })
       
+    .ui.small.modal#downloadFileModal
+      .header Link Download File
+      .content
+        h1
+          p(align='center')
+            a#linkDownloadFile Go to download file page    
+      .ui.basic.center.aligned.segment 
+        .actions
+          button.ui.button.approve.green(data-value='cancel') OK 
+      
     //- confirm to switch role
     .ui.basic.modal#switch_role_modal
       .ui.icon.header#header_srm ถึงเวลาสลับบทบาทแล้วครับ/ค่ะ
@@ -370,7 +380,6 @@ block content
       $(document).ready(function(){
           $('.demo.menu .item').tab({history:false});
           $('.file.menu .item').tab({history:false});
-
       });
     script(src='/codemirror/lib/codemirror.js')
     script(src='/codemirror/mode/python/python.js')

@@ -388,7 +388,7 @@ function on_click_confirm_button(parameters){
         let pairing_session = JSON.parse(data.pairing_sessions)
         let section_id = data.section_id
         if(status == 'Update completed.') {
-          console.log('pairing_session, ', pairing_session)
+          // console.log('pairing_session, ', pairing_session)
           set_item_pagination_in_third_container(pairing_session, section_id, "teacher")
           on_click_page_number_in_third_container(1)
           $('#newPairingSession').attr('value', 0);
@@ -516,7 +516,7 @@ function on_click_confirm_button(parameters){
       }
     })
   } else if (message == 'Are you sure you want to start auto pairing?') {
-    console.log('parameters, ', parameters)
+    // console.log('parameters, ', parameters)
     if (parameters.scoreDiff !== undefined) {
       $.get('/classroom/startAutoPairingByScoreDiff', parameters, function (res) {
         if (res.resStatus === 'Start Auto Pairing By Score Diff Successfully!') {
@@ -776,7 +776,7 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
   assignment_of_week.forEach(function(e){
     $('#'+e.assignment_id+'_is_selected').is(':checked') == true ? assignment_is_selected.push(e) : null
   })
-  console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
+  // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
   if(assignment_is_selected.length) {
     let parameters = JSON.stringify({assignment_set: assignment_is_selected, pairing_session_id: pairing_session_id})
     $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
@@ -814,7 +814,7 @@ function onClickDeleteAssignment(assignment_of_week) {
   assignment_of_week.forEach(function(e){
     $('#'+e.assignment_id+'_is_selected').is(':checked') == true ? assignment_is_selected.push(e) : null
   })
-  console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
+  // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
   if(!assignment_is_selected.length) {
     $('#alert-header').text('Select assignment')
     $('#alert-message').text('Please!!!, select an assignment before click the \"Delete\" button.')
@@ -896,7 +896,7 @@ function on_click_confirm_assignment_management_button(action) {
 
 function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   parameters = JSON.stringify({enrollment_id: enrollment_id})
-  console.log('enrollment_id, ', enrollment_id)
+  // console.log('enrollment_id, ', enrollment_id)
   $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
   $('#confirm-header').text('Remove Student')
   $('#confirm-message').attr('value', 'Are you sure you want to remove the student from this classroom?')
@@ -951,7 +951,7 @@ function checkbox_event(assignment_set, id, opt) {
 }
 
 function on_click_button_in_uspm(id) {
-  console.log('element_id_in_uspm, ', id)
+  // console.log('element_id_in_uspm, ', id)
   $('.item.active.uspm').attr({
     class: 'item uspm'
   })
@@ -977,12 +977,12 @@ function create_weeks_dropdown(id, pairing_session_id, data_set) {
 }
 
 function on_click_weeks_dropdown(id, assignment_set, username, img, pairing_session_id, opt) {
-  console.log('pairing_session_id, ', pairing_session_id)
+  // console.log('pairing_session_id, ', pairing_session_id)
   assignment_set = assignment_set
   let res_obj = get_items_of_week(assignment_set, 5, id)
   let assignment_of_week_ = res_obj.items_of_week
   let pagination = res_obj.pagination
-  console.log('assignment_of_week_, ', assignment_of_week_)
+  // console.log('assignment_of_week_, ', assignment_of_week_)
 
   set_item_pagination_in_first_container(pagination, assignment_of_week_, username, img, id, opt)
 
@@ -1252,7 +1252,7 @@ function set_item_pagination_in_third_container(objects, section_id, occupation)
             eleven_wide_column = $('<div class=\'eleven wide column\'></div>')
             five_wide_column = $('<div class=\'five wide column\'></div>')
             if(pairing_session.status == 0) {
-              console.log('pairing_session.status, ', pairing_session.status)
+              // console.log('pairing_session.status, ', pairing_session.status)
               tag_b = $('<b style=\'font-size:1.5em;\'><header style=\'color:#5D5D5D;\'> Session : '+(pairing_times - _index_o)+' </header></b>')
               description = $('<p><b style=\'color:#5D5D5D\'> Start at : </b><font style=\'color:#5D5D5D\'>'+pairing_session.time_start+'</font><br><b style=\'color:#5D5D5D\'> End at : </b><font style=\'color:#5D5D5D\'>'+pairing_session.time_end+'</font></p>')
               button = $('<div class=\'ui right floated alignedvertical animated button\' onclick=\'onClickViewPairingRecord('+pairing_session.pairing_session_id+', \"'+section_id+'\")\'><div class=\'hidden content\' style=\'color:#5D5D5D;\'> View </div><div class=\'visible content\'><i class=\'eye icon\'/></div></div>')

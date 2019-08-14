@@ -14,6 +14,16 @@ block content
         'style': 'display: block; position: fixed;'
       })
       
+    .ui.small.modal#downloadFileModal
+      .header Link Download File
+      .content
+        h1
+          p(align='center')
+            a#linkDownloadFile Go to download file page    
+      .ui.basic.center.aligned.segment 
+        .actions
+          button.ui.button.approve.green(data-value='cancel') OK 
+      
     //- reject into project
     .ui.basic.modal#reject_to_join_project
       .ui.icon.header#header_rip เกิดข้อผิดพลาดกรุณาออกจากหน้านี้
@@ -367,6 +377,6 @@ block content
     script(src='/xterm/addons/fit/fit.js')
     script(src='/js/static/countdown.min.js')
     script(src='/js/app/playgroundCo_located.js')
-    //- script(src='/js/app/main.js')
+    script(src='/js/app/main.js')
     script(src='/trackingjs/build/tracking-min.js')
     script(src='/trackingjs/build/data/face-min.js')

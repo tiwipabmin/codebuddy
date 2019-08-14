@@ -3,7 +3,9 @@ const mongoose = require('mongoose')
 const moment = require('moment')
 const fs = require('fs');
 const archiver = require('archiver');
-const nodepty = require('node-pty')
+const nodepty = require('node-pty');
+const Cryptr = require('cryptr');
+const cryptr = new Cryptr('codebuddy');
 
 const Project = mongoose.model('Project')
 const Message = mongoose.model('Message')
@@ -553,10 +555,13 @@ module.exports = (io, client, redis, projects) => {
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
    */
-   client.on('term accept input', (payload) => {
+   client.on('typing input on term', (payload) => {
      var inputTerm = payload.inputTerm
      detectInput = inputTerm
-     pythonProcess.write(inputTerm + '\r')
+     console.log('pythonProcess, ', pythonProcess)
+     if (pythonProcess !== undefined) {
+       pythonProcess.write(inputTerm + '\r')
+     }
    })
 
   /**
@@ -917,7 +922,8 @@ module.exports = (io, client, redis, projects) => {
 
   client.on('export file', (payload) => {
     var fileNameList = payload.fileNameList
-    console.log(payload)
+    let fileNameListLength = Object.keys(fileNameList).length
+    console.log('payload, ', payload, ', fileNameListLength, ', fileNameListLength)
     var code = payload.code
 
     for (var i in fileNameList) {
@@ -926,23 +932,26 @@ module.exports = (io, client, redis, projects) => {
       })
     }
 
-
-    var output = fs.createWriteStream('./public/project_files/'+projectId+'/'+projectId+'.zip');
-    var archive = archiver('zip', {
-        gzip: true,
-        zlib: { level: 9 } // Sets the compression level.
-    });
-    archive.on('error', function (err) {
-      throw err;
-    });
-    // pipe archive data to the output file
-    archive.pipe(output);
-    // append files
-    fileNameList.forEach(function (fileName) {
-      archive.file('./public/project_files/'+projectId+'/'+fileName+'.py', {name: fileName+'.py'});
-    })
-    archive.finalize();
-    client.emit('download file', projectId )
+    let noticeMsg = 'One file'
+    if (fileNameListLength > 1) {
+      let noticeMsg = 'Many file'
+      var output = fs.createWriteStream('./public/project_files/'+projectId+'/'+projectId+'.zip');
+      var archive = archiver('zip', {
+          gzip: true,
+          zlib: { level: 9 } // Sets the compression level.
+      });
+      archive.on('error', function (err) {
+        throw err;
+      });
+      // pipe archive data to the output file
+      archive.pipe(output);
+      // append files
+      fileNameList.forEach(function (fileName) {
+        archive.file('./public/project_files/'+projectId+'/'+fileName+'.py', {name: fileName+'.py'});
+      })
+      archive.finalize();
+    }
+    client.emit('download file', {projectId: projectId, fileNameListLength: fileNameListLength, link: cryptr.encrypt('../project_files/'+projectId+'/main.py')})
    })
 
   // function countdownTimer() {

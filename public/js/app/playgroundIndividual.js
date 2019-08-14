@@ -97,7 +97,7 @@ function changeTheme() {
 /**
  * User join the project
  */
-socket.emit('load playground', { programming_style: 'Co-located' })
+socket.emit('load playground', { programming_style: 'Individual' })
 socket.emit('join project', {
   pid: getParameterByName('pid'),
   username: user
@@ -392,7 +392,7 @@ term.open(document.getElementById('xterm-container'), false)
 term._initialized = true;
 
 var shellprompt = '\033[1;3;31m$ \033[0m';
-var inputTerm = 'empty'
+var inputTerm = 'input@codebuddy'
 
 term.prompt = function () {
   term.write('\r\n' + shellprompt);
@@ -404,13 +404,13 @@ term.on('key', function (key, ev) {
   );
 
   if (ev.keyCode == 13) {
-    if(inputTerm !== 'empty') {
+    if(inputTerm !== 'input@codebuddy') {
       inputTerm = inputTerm.slice(inputTerm.indexOf('y') + 1, inputTerm.length)
-      socket.emit('term accept input', {
+      socket.emit('typing input on term', {
         inputTerm: inputTerm
       })
-      console.log('inputTerm, ', inputTerm)
-      inputTerm = 'empty'
+      // console.log('inputTerm, ', inputTerm)
+      inputTerm = 'input@codebuddy'
     }
     term.prompt();
   } else if (ev.keyCode == 8) {
@@ -533,7 +533,7 @@ socket.on('auto update score', (payload) => {
  * Auto update score
  */
 socket.on('show auto update score', (payload) => {
-  console.log(payload)
+  // console.log(payload)
   $('p#project-score-point').text("project score : " + parseFloat(payload.score));
   if (uid == payload.uid) {
     $('#user-point-label').text('average score: ' + parseFloat(payload.avgScore).toFixed(2));
@@ -593,14 +593,20 @@ socket.on('term update', (payload) => {
 // })
 //
 socket.on('download file', (payload) => {
-  var projectId = payload
-  var a = document.createElement("a");
-  document.body.appendChild(a);
-  a.style = "display: none";
-  a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
-  a.download = projectId+'.zip'
-  a.click();
-  document.body.removeChild(a);
+  var fileNameListLength = payload.fileNameListLength
+  var projectId = payload.projectId
+  if(fileNameListLength === 1) {
+    $('#linkDownloadFile').attr('href', '/api/downloadFile?link='+payload.link)
+    $('#downloadFileModal').modal('show')
+  } else {
+    let a = document.createElement("a");
+    a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
+    a.download
+    document.body.appendChild(a);
+    a.style = "display: none";
+    a.click();
+    document.body.removeChild(a);
+  }
 })
 
 /**
@@ -660,7 +666,7 @@ $(document)
         sendMessage()
       }
     });
-    console.log("is typing : " + $('#inputMessage').val())
+    // console.log("is typing : " + $('#inputMessage').val())
     updateScroll();
   });
 
@@ -831,16 +837,21 @@ function deleteFile(fileName){
 }
 
 function onClickExport(){
-  var filenameList = []
+  let fileNameList = []
   $('[name="checkbox-file"]').each( function (){
     if($(this).prop('checked') == true){
-        filenameList.push($(this).val())
+        fileNameList.push($(this).val())
     }
   })
-  socket.emit('export file', {
-    fileNameList: filenameList,
-    code: getAllFileEditor()
-  })
+  if (fileNameList.length) {
+    socket.emit('export file', {
+      fileNameList: fileNameList,
+      code: getAllFileEditor()
+    })
+  } else {
+    // console.log('Please, selected file before click \"Export\" button.')
+    alert('Please, selected file before click \"Export\" button.')
+  }
   // exportSingleFile(fileName, text)
 }
 
@@ -858,7 +869,7 @@ function setOnChangeEditer(fileName) {
 
     //check when enter new line
     if(text==44){
-      console.log('enter '+enterline)
+      // console.log('enter '+enterline)
         for(var i in comments){
           if((comments[i].line > enterline) && (comments[i].file==fileName)){
             isEnter = true
