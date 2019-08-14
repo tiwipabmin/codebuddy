@@ -563,7 +563,7 @@ exports.searchStudent = async (req, res) => {
   const section_id = parseInt(cryptr.decrypt(req.query.section_id))
   const pairing_session_id = req.query.pairing_session_id
   const username = req.query.username
-  const select_student_by_section_id_and_literal = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\' OR s.last_name LIKE \'%' + search + '%\')'
+  const select_student_by_section_id_and_literal = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\' OR s.last_name LIKE \'%' + search + '%\' OR s.username LIKE \'%' + search + '%\')'
   const students = await con.select_student(select_student_by_section_id_and_literal)
   var new_students = []
   var user;
