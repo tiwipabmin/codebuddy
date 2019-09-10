@@ -1,16 +1,18 @@
 const mysql = require('mysql')
 const shortid = require('shortid')
+const winston = require('winston')
+const chalk = require('chalk')
 
 const con = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "codebuddy",
+  password: "",
   database: "classroom_management_system"
 })
 
 con.connect(function(err){
-  if (err) throw err;
-  console.log("Connected!")
+  if (err) winston.error(`[%s] ${err.message}`, chalk.red('✗'))
+  winston.info('[%s] Connect to MySql server successfully', chalk.green('✓'))
 })
 
 function makeClassCode(){

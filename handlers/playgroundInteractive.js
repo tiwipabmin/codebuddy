@@ -583,7 +583,7 @@ module.exports = (io, client, redis, projects) => {
   })
 
   function spawnPython(){
-    pythonProcess = childprocess.spawn('python3', ['-i'], {})
+    pythonProcess = childprocess.spawn('python', ['-i'], {})
     isSpawnText = true
   }
 

@@ -206,6 +206,11 @@ mixin assignmentModal()
               input(type='radio' name='programming_style' value='Individual')
               |  
               label Individual Programming
+          .field
+            .ui.radio.checkbox
+              input(type='radio' name='programming_style' value='Interactive')
+              |  
+              label Interactive Programming
         .ui.grid
           .thirteen.wide.column
             .field
@@ -437,10 +442,10 @@ mixin pairingSettingsModal()
         .ui.vertical.divider
           p And
       .ui.bottom.attached.tab.segment(data-tab="scoreDiff" onclick='onClickAutoPairingTab()')
-        .field
-          label
-          | Score difference :
-          input#scoreDiffField(type='text' name='scoreDiffField')
+        label
+        | Score difference : 
+        .ui.input
+          input#scoreDiffField(type='text' name='scoreDiffField' placeholder='100')
       .ui.basic.center.aligned.segment
         .actions
           .ui.approve.green.button#startAutoPairingBtn(onclick='onClickStartAutoPairingBtn(null, null, null, null, null, null)') Start

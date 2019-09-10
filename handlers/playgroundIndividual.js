@@ -93,6 +93,7 @@ module.exports = (io, client, redis, projects) => {
       }
 
       client.emit('init state', {
+        console.log('init state', projectId)
         editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
       })
 

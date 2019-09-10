@@ -1739,7 +1739,7 @@ exports.assignAssignment = async (req, res) => {
   }
 
   tempStudents = Object.assign({}, cloneStudents)
-  if (proStyle === 'Remote' || proStyle === 'Co-located') {
+  if (proStyle === 'Remote' || proStyle === 'Co-located' || proStyle === 'Interactive') {
     for(key in tempStudents) {
       if(tempStudents[key].role == 'host') {
         partnerKeys[key] = tempStudents[key].partner_id
@@ -1767,7 +1767,7 @@ exports.assignAssignment = async (req, res) => {
   let count = 0
   for(let _index in assignmentSet){
     for(let key in partnerKeys){
-      if (proStyle === 'Remote' || proStyle === 'Co-located') {
+      if (proStyle === 'Remote' || proStyle === 'Co-located' || proStyle === 'Interactive') {
         /*
          * assignment is a remote pair-programming or conventional pair-programming.
          */
@@ -1862,7 +1862,7 @@ exports.assignAssignment = async (req, res) => {
 
       creator = cloneStudents[key].username
       console.log('creator, ', creator)
-      if (proStyle === 'Remote' || proStyle === 'Co-located') {
+      if (proStyle === 'Remote' || proStyle === 'Co-located' || proStyle === 'Interactive') {
         collaborator = cloneStudents[partnerKeys[key]].username
       } else if (proStyle !== 'Individual') {
         res.send({res_status: 'Error!'})
@@ -1875,7 +1875,7 @@ exports.assignAssignment = async (req, res) => {
 
       let isCreatePro = false
       if (creator != null) {
-        if (proStyle === 'Remote' || proStyle === 'Co-located') {
+        if (proStyle === 'Remote' || proStyle === 'Co-located' || proStyle === 'Interactive') {
           collaborator = await User.findOne({ username: collaborator})
 
           if (collaborator != null) {
