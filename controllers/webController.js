@@ -96,18 +96,26 @@ exports.getLobby = async (req, res) => {
   let sections = [];
   if(occupation == 'teacher') {
     occupation = 0
-    select_section_by_class_code = 'SELECT * FROM section AS s JOIN course AS c ON s.course_id = c.course_id JOIN teacher AS t ON c.teacher_id = t.teacher_id AND t.email = \'' + req.user.email + '\''
+    select_section_by_class_code = 'SELECT * FROM section AS s JOIN course AS c ON s.course_id = '+'\
+    c.course_id JOIN teacher AS t ON c.teacher_id = t.teacher_id AND t.email = \'' + req.user.email + '\''
     sections = await con.getSection(select_section_by_class_code)
   } else {
     occupation = 1
-    select_section_by_class_code = 'SELECT * FROM course AS c JOIN section AS s ON c.course_id = s.course_id JOIN enrollment AS e ON s.section_id = e.section_id JOIN student AS st ON e.student_id = st.student_id AND st.email = \'' + req.user.email + '\''
+    select_section_by_class_code = 'SELECT * FROM course AS c JOIN section AS s ON c.course_id = '+'\
+    s.course_id JOIN enrollment AS e ON s.section_id = e.section_id JOIN student AS st ON e.student_id = st.student_id AND st.email = \'' + req.user.email + '\''
     sections = await con.getSection(select_section_by_class_code)
   }
   for(_index in sections) {
     sections[_index].section_id = await cryptr.encrypt(sections[_index].section_id)
   }
   if(!sections.length) sections = []
-  data_set = {common: {occupation: occupation, sections: sections, dataService: 'dataService'}}
+  data_set = {
+    common: {
+      occupation: occupation,
+      sections: sections,
+      dataService: 'dataService'
+      }
+    }
   res.render('lobby', { data_set, title: 'Lobby' })
 }
 
@@ -748,18 +756,17 @@ exports.manageAssignment = async (req, res) => {
 }
 
 exports.updatePairing = async (req, res) => {
-  //console.log('cloning_partner_keys, ', req.body.cloning_partner_keys, ', partner_keys, ', req.body.partner_keys)
   let partner_keys = req.body.partner_keys
-  let cloning_partner_keys = req.body.cloning_partner_keys
-  let cloning_pairing_objective = req.body.cloning_pairing_objective
+  let partnerKeyClones = req.body.cloning_partner_keys
+  let pairingObjectiveClones = req.body.cloning_pairing_objective
   let pairing_objective = req.body.pairing_objective
   let pairing_session_id = req.body.pairing_session_id
   let section_id = parseInt(cryptr.decrypt(req.body.section_id))
-  let only_changed_partner_keys = {}
+  let changePartnerKeys = {}
   let count = 0
 
   /*
-  ** if there aren't student pairing, server will send message which 'Please, pair all student!'
+  ** if there aren't student pairing, server will send message which 'Please, pair all student!'.
   */
   for(key in partner_keys) {
     if(parseInt(partner_keys[key]) < 0) {
@@ -767,17 +774,23 @@ exports.updatePairing = async (req, res) => {
       return
     }
 
-    if (cloning_partner_keys[key] === undefined) {
+    /*
+     * if students join to the classroom after the teacher matched students, students don't have a partner.
+     */
+    if (partnerKeyClones[key] === undefined) {
       count++
-      only_changed_partner_keys[key] = partner_keys[key]
-    } else if (cloning_partner_keys[key] != partner_keys[key]){
+      changePartnerKeys[key] = partner_keys[key]
+    } else if (partnerKeyClones[key] != partner_keys[key]){
       count++
-      only_changed_partner_keys[key] = partner_keys[key]
+      changePartnerKeys[key] = partner_keys[key]
     }
 
-    if(cloning_pairing_objective[key] != pairing_objective[key]) {
+    /*
+     * if pairing objective changes new objective, old pair changes new partner.
+     */
+    if(pairingObjectiveClones[key] != pairing_objective[key]) {
       count++
-      only_changed_partner_keys[key] = partner_keys[key]
+      changePartnerKeys[key] = partner_keys[key]
     }
   }
 
@@ -786,174 +799,188 @@ exports.updatePairing = async (req, res) => {
     return
   }
 
-  const select_pairing_session_by_pairing_session_id = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
-  let pairing_session = await con.select_pairing_session(select_pairing_session_by_pairing_session_id)
-  let time_start = pairing_session[0].time_start
-  time_start = time_start.split(' ')
-  time_start = time_start[0]
+  const pairingSessionQuery = 'SELECT * FROM pairing_session WHERE pairing_session_id = ' + pairing_session_id
+  let resPairingSession = await con.select_pairing_session(pairingSessionQuery)
+  let timeStart = resPairingSession[0].time_start
+  timeStart = timeStart.split(' ')
+  timeStart = timeStart[0]
 
-  const select_student_by_section_id = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
-  const students = await con.select_student(select_student_by_section_id)
+  let studentQuery = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id ='+'\
+   e.student_id AND e.section_id = ' + section_id + ' ORDER BY st.first_name ASC';
+  let resStudents = await con.select_student(studentQuery)
 
-  const select_pairing_record_by_pairing_session_id = 'SELECT * FROM pairing_record WHERE pairing_session_id = ' + pairing_session_id;
-  let pairing_record = await con.select_pairing_record(select_pairing_record_by_pairing_session_id)
+  let pairingRecordQuery = 'SELECT * FROM pairing_record WHERE pairing_session_id = ' + pairing_session_id;
+  let resPairingRecord = await con.select_pairing_record(pairingRecordQuery)
 
-  let pairing_record_objects = {}
-  for(_index in pairing_record) {
-    pairing_record_objects[pairing_record[_index].enrollment_id] = pairing_record[_index].role
+  let pairingRecordRoles = {}
+  for(_index in resPairingRecord) {
+    pairingRecordRoles[resPairingRecord[_index].enrollment_id] = resPairingRecord[_index].role
   }
 
-  let student_objects = {}
+  let newStudents = {}
 
-  for(_index in students) {
-    student_objects[students[_index].enrollment_id] = {
-      username: students[_index].username,
-      role: pairing_record_objects[students[_index].enrollment_id]
+  for(_index in resStudents) {
+    newStudents[resStudents[_index].enrollment_id] = {
+      username: resStudents[_index].username,
+      role: pairingRecordRoles[resStudents[_index].enrollment_id]
     }
   }
 
-  let status = ''
-  let project_array = []
+  let resProject = []
+  let projects = []
   count = 0
-  let out_loop = false
-  for(var key in only_changed_partner_keys) {
-    if(student_objects[key].role == 'host') {
-      status = await Project.find({
+  for(let key in changePartnerKeys) {
+    /*
+     * Old pair changes a new partner.
+     */
+    if(newStudents[key].role == 'host') {
+      resProject = await Project.find({
         $or: [{
-          creator: student_objects[key].username,
-          createdAt: {$gt: new Date(time_start)}
+          creator: newStudents[key].username,
+          createdAt: {$gt: new Date(timeStart)}
         }, {
-          creator: student_objects[key].username,
-          createdAt: {$eq: new Date(time_start)}
+          creator: newStudents[key].username,
+          createdAt: {$eq: new Date(timeStart)}
         }]
       })
-    } else if (student_objects[key].role == 'partner') {
-      status = await Project.find({
+    } else if (newStudents[key].role == 'partner') {
+      resProject = await Project.find({
         $or: [{
-          collaborator: student_objects[key].username,
-          createdAt: {$gt: new Date(time_start)}
+          collaborator: newStudents[key].username,
+          createdAt: {$gt: new Date(timeStart)}
         }, {
-          collaborator: student_objects[key].username,
-          createdAt: {$eq: new Date(time_start)}
+          collaborator: newStudents[key].username,
+          createdAt: {$eq: new Date(timeStart)}
         }]
       })
     }
-    //console.log('Project1, ', status, ', username, ', student_objects[key].username, ', role, ', student_objects[key].role)
-    out_loop = false
-    for(_index_s in status){
-      for(_index_p in project_array) {
-        if(project_array[_index_p].indexOf(status[_index_s].pid) != -1) {
-          out_loop = true
+    //console.log('Project1, ', resProject, ', username, ', newStudents[key].username, ', role, ', newStudents[key].role)
+
+    /*
+     * if projects don't has pid, projects save pid
+     */
+    let outLoop = false
+    console.log('resProject, ', resProject)
+    resProject.length != 0 ? true : resProject = []
+    for(let indexResPro in resProject){
+      console.log('resProject, ', resProject)
+      for(let indexPro in projects) {
+        console.log('resProject[indexResPro].pid, ', resProject[indexResPro].pid)
+        if(projects[indexPro].indexOf(resProject[indexResPro].pid) != -1) {
+          outLoop = true
           break
         }
       }
 
-      if(out_loop){
+      if(outLoop){
         break
       }
     }
 
-    if(!out_loop) {
-      project_array.push([])
-      status.forEach(function(e){
-        project_array[count].push(e.pid)
+    if(!outLoop) {
+      projects.push([])
+      resProject.forEach(function(e){
+        projects[count].push(e.pid)
       })
       count++
     }
 
-    if(student_objects[only_changed_partner_keys[key]].role == 'host') {
-      status = await Project.find({
+    if(newStudents[changePartnerKeys[key]].role == 'host') {
+      resProject = await Project.find({
         $or: [{
-          creator: student_objects[only_changed_partner_keys[key]].username,
-          createdAt: {$gt: new Date(time_start)}
+          creator: newStudents[changePartnerKeys[key]].username,
+          createdAt: {$gt: new Date(timeStart)}
         }, {
-          creator: student_objects[only_changed_partner_keys[key]].username,
-          createdAt: {$eq: new Date(time_start)}
+          creator: newStudents[changePartnerKeys[key]].username,
+          createdAt: {$eq: new Date(timeStart)}
         }]
       })
-    } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
-      status = await Project.find({
+    } else if (newStudents[changePartnerKeys[key]].role == 'partner') {
+      resProject = await Project.find({
         $or: [{
-          collaborator: student_objects[only_changed_partner_keys[key]].username,
-          createdAt: {$gt: new Date(time_start)}
+          collaborator: newStudents[changePartnerKeys[key]].username,
+          createdAt: {$gt: new Date(timeStart)}
         }, {
-          collaborator: student_objects[only_changed_partner_keys[key]].username,
-          createdAt: {$eq: new Date(time_start)}
+          collaborator: newStudents[changePartnerKeys[key]].username,
+          createdAt: {$eq: new Date(timeStart)}
         }]
       })
     }
-    //console.log('Project2, ', status, ', username, ', student_objects[only_changed_partner_keys[key]].username, ', role, ', student_objects[only_changed_partner_keys[key]].role)
-    out_loop = false
-    for(_index_s in status){
-      for(_index_p in project_array) {
-        if(project_array[_index_p].indexOf(status[_index_s].pid) != -1) {
-          out_loop = true
+    //console.log('Project2, ', resProject, ', username, ', newStudents[changePartnerKeys[key]].username, ', role, ', newStudents[changePartnerKeys[key]].role)
+    outLoop = false
+    resProject.length != 0 ? true : resProject = []
+    for(let indexResPro in resProject){
+      for(let indexPro in projects) {
+        if(projects[indexPro].indexOf(resProject[indexResPro].pid) != -1) {
+          outLoop = true
           break
         }
       }
 
-      if(out_loop){
+      if(outLoop){
         break
       }
     }
 
-    if(!out_loop) {
-      project_array.push([])
-      status.forEach(function(e){
-        project_array[count].push(e.pid)
+    if(!outLoop) {
+      projects.push([])
+      resProject.forEach(function(e){
+        projects[count].push(e.pid)
       })
       count++
     }
   }
 
-  for(_index_o in project_array) {
-    for(_index_i in project_array[_index_o]) {
+  for(_index_o in projects) {
+    for(_index_i in projects[_index_o]) {
       status = await History.deleteMany({
-        pid: project_array[_index_o][_index_i]
+        pid: projects[_index_o][_index_i]
       })
       status = await  Score.deleteMany({
-        pid: project_array[_index_o][_index_i]
+        pid: projects[_index_o][_index_i]
       })
       status = await  Message.deleteMany({
-        pid: project_array[_index_o][_index_i]
+        pid: projects[_index_o][_index_i]
       })
     }
   }
 
-  //delete many project in one week
-  for (var key in only_changed_partner_keys) {
-    if(student_objects[key].role == 'host') {
+  /*
+   * delete many project in one week
+   */
+  for (var key in changePartnerKeys) {
+    if(newStudents[key].role == 'host') {
       status = await Project.deleteMany({
-        creator: student_objects[key].username,
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$eq: new Date(time_start)}}]
+        creator: newStudents[key].username,
+        $or: [{createdAt: {$gt: new Date(timeStart)}}, {createdAt: {$eq: new Date(timeStart)}}]
       })
-    } else if (student_objects[key].role == 'partner') {
+    } else if (newStudents[key].role == 'partner') {
       status = await Project.deleteMany({
-        collaborator: student_objects[key].username,
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$eq: new Date(time_start)}}]
+        collaborator: newStudents[key].username,
+        $or: [{createdAt: {$gt: new Date(timeStart)}}, {createdAt: {$eq: new Date(timeStart)}}]
       })
     }
 
-    if(student_objects[only_changed_partner_keys[key]].role == 'host') {
+    if(newStudents[changePartnerKeys[key]].role == 'host') {
       status = await Project.deleteMany({
-        creator: student_objects[only_changed_partner_keys[key]].username,
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$eq: new Date(time_start)}}]
+        creator: newStudents[changePartnerKeys[key]].username,
+        $or: [{createdAt: {$gt: new Date(timeStart)}}, {createdAt: {$eq: new Date(timeStart)}}]
       })
-    } else if (student_objects[only_changed_partner_keys[key]].role == 'partner') {
+    } else if (newStudents[changePartnerKeys[key]].role == 'partner') {
       status = await Project.deleteMany({
-        collaborator: student_objects[only_changed_partner_keys[key]].username,
-        $or: [{createdAt: {$gt: new Date(time_start)}}, {createdAt: {$eq: new Date(time_start)}}]
+        collaborator: newStudents[changePartnerKeys[key]].username,
+        $or: [{createdAt: {$gt: new Date(timeStart)}}, {createdAt: {$eq: new Date(timeStart)}}]
       })
     }
   }
 
   let sumScore = []
   // sumScore
-  for (var key in only_changed_partner_keys) {
-    let uid = [key, only_changed_partner_keys[key]]
+  for (var key in changePartnerKeys) {
+    let uid = [key, changePartnerKeys[key]]
     for(_index in uid) {
       await User.findOne({
-        username: student_objects[uid[_index]].username
+        username: newStudents[uid[_index]].username
       }, async function (err, element){
         if(err) {
           console.log(err)
@@ -1010,40 +1037,41 @@ exports.updatePairing = async (req, res) => {
     }
   }
 
-  let delete_pairing_record_by_enrollment_id_and_pairing_session_id = ''
-  let insert_pairing_record = ''
-  let update_enrollment_by_enrollment_id = ''
-  let pairing_record_values = []
-  let enrollment = ''
-  for (var key in only_changed_partner_keys) {
-    delete_pairing_record_by_enrollment_id_and_pairing_session_id = 'DELETE FROM pairing_record WHERE enrollment_id = ' + parseInt(key) + ' AND pairing_session_id = ' + pairing_session_id;
-    pairing_record = await con.select_pairing_record(delete_pairing_record_by_enrollment_id_and_pairing_session_id)
+  let enrollmentQuery = ''
+  let resEnrollment = ''
+  let pairingRecordValues = []
+  console.log('changePartnerKeys, ', changePartnerKeys)
+  for (let key in changePartnerKeys) {
+    pairingRecordQuery = 'DELETE FROM pairing_record WHERE enrollment_id = ' + parseInt(key) + '\
+     AND pairing_session_id = ' + pairing_session_id;
+    resPairingRecord = await con.select_pairing_record(pairingRecordQuery)
 
     // console.log('Delete completed, ', key)
-    update_enrollment_by_enrollment_id = 'UPDATE enrollment SET partner_id = ' + parseInt(only_changed_partner_keys[key]) + ' WHERE enrollment_id = ' + key
-    enrollment = await con.update_enrollment(update_enrollment_by_enrollment_id);
+    enrollmentQuery = 'UPDATE enrollment SET partner_id = ' + parseInt(changePartnerKeys[key]) + ' WHERE enrollment_id = ' + key
+    resEnrollment = await con.update_enrollment(enrollmentQuery);
 
     // console.log('Update completed, ', key)
-    insert_pairing_record = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
-    pairing_record_values = [[parseInt(key), pairing_session_id, parseInt(only_changed_partner_keys[key]), pairing_objective[key], 'host']]
-    pairing_record = await con.insert_pairing_record(insert_pairing_record, pairing_record_values)
+    pairingRecordQuery = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
+    pairingRecordValues = [[parseInt(key), pairing_session_id, parseInt(changePartnerKeys[key]), pairing_objective[key], 'host']]
+    resPairingRecord = await con.insert_pairing_record(pairingRecordQuery, pairingRecordValues)
     // console.log('Create completed, ', key)
 
-    delete_pairing_record_by_enrollment_id_and_pairing_session_id = 'DELETE FROM pairing_record WHERE enrollment_id = ' + parseInt(only_changed_partner_keys[key]) + ' AND pairing_session_id = ' + pairing_session_id;
-    pairing_record = await con.select_pairing_record(delete_pairing_record_by_enrollment_id_and_pairing_session_id)
+    pairingRecordQuery = 'DELETE FROM pairing_record WHERE enrollment_id = ' + parseInt(changePartnerKeys[key]) + '\
+     AND pairing_session_id = ' + pairing_session_id;
+    resPairingRecord = await con.select_pairing_record(pairingRecordQuery)
 
-    // console.log('Delete completed, ', only_changed_partner_keys[key])
-    update_enrollment_by_enrollment_id = 'UPDATE enrollment SET partner_id = ' + key + ' WHERE enrollment_id = ' + only_changed_partner_keys[key]
-    enrollment = await con.update_enrollment(update_enrollment_by_enrollment_id);
+    // console.log('Delete completed, ', changePartnerKeys[key])
+    enrollmentQuery = 'UPDATE enrollment SET partner_id = ' + key + ' WHERE enrollment_id = ' + changePartnerKeys[key]
+    resEnrollment = await con.update_enrollment(enrollmentQuery);
 
-    // console.log('Update completed, ', only_changed_partner_keys[key])
-    insert_pairing_record = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
-    pairing_record_values = [[parseInt(only_changed_partner_keys[key]), pairing_session_id, parseInt(key), pairing_objective[only_changed_partner_keys[key]], 'partner']]
-    pairing_record = await con.insert_pairing_record(insert_pairing_record, pairing_record_values)
+    // console.log('Update completed, ', changePartnerKeys[key])
+    pairingRecordQuery = 'INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?'
+    pairingRecordValues = [[parseInt(changePartnerKeys[key]), pairing_session_id, parseInt(key), pairing_objective[changePartnerKeys[key]], 'partner']]
+    resPairingRecord = await con.insert_pairing_record(pairingRecordQuery, pairingRecordValues)
     // console.log('Create completed, ', key)
   }
 
-  //console.log('only_changed_partner_keys, ', only_changed_partner_keys, ', time_start, ', time_start, ', student_objects, ', student_objects)
+  //console.log('changePartnerKeys, ', changePartnerKeys, ', timeStart, ', timeStart, ', newStudents, ', newStudents)
   res.send({status: "Update pairing successfully"})
 }
 

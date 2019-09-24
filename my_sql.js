@@ -12,7 +12,7 @@ const con = mysql.createConnection({
 
 con.connect(function(err){
   if (err) winston.error(`[%s] ${err.message}`, chalk.red('✗'))
-  winston.info('[%s] Connect to MySql server successfully', chalk.green('✓'))
+  else winston.info('[%s] Connect to MySql server successfully', chalk.green('✓'))
 })
 
 function makeClassCode(){
