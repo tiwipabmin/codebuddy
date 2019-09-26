@@ -18,6 +18,15 @@ block script
       }
 
 block content
+    script(type='text/javascript').
+      $(document).ready(function(){
+        let a = document.createElement("a");
+        a.href = "!{data_set.common.link}"
+        a.download
+        document.body.appendChild(a);
+        a.style = "display: none";
+        a.click();
+        document.body.removeChild(a);
+      })
     h1
-      p(align='center')
-        a(href='' + data_set.common.link download="main.py") Download File Now!
+      p(align='center') Downloaded!

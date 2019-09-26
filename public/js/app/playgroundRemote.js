@@ -666,8 +666,15 @@ socket.on('download file', (payload) => {
   var fileNameListLength = payload.fileNameListLength
   var projectId = payload.projectId
   if(fileNameListLength === 1) {
-    $('#linkDownloadFile').attr('href', '/api/downloadFile?link='+payload.link)
-    $('#downloadFileModal').modal('show')
+    let a = document.createElement("a");
+    a.href = '/api/downloadFile?link='+payload.link
+    a.target = '_blank'
+    document.body.appendChild(a);
+    a.style = "display: none";
+    a.click();
+    document.body.removeChild(a);
+    // $('#linkDownloadFile').attr('href', '/api/downloadFile?link='+payload.link)
+    // $('#downloadFileModal').modal('show')
   } else {
     let a = document.createElement("a");
     a.href = '../project_files/'+projectId+'/'+projectId+'.zip'

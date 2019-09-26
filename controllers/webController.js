@@ -432,7 +432,7 @@ exports.getProjects = async (req, res) => {
       ]
     })
     .sort({ createdAt: -1 })
-    
+
   let projectClones = []
   for (let indexPro in projects) {
     for (let indexResPro in resProjects) {
