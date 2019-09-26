@@ -956,6 +956,12 @@ function onClickPartnerSelectionMethod(id) {
   $('div').find('.'+id).addClass('active')
 }
 
+function onClickAutoPairingSelectionMethod(id) {
+  $('.apsm').removeClass('active')
+  $('#'+id).addClass('active')
+  $('div').find('.'+id).addClass('active')
+}
+
 function on_click_button_in_uspm(id) {
   // console.log('element_id_in_uspm, ', id)
   $('.item.active.uspm').attr({
@@ -1148,34 +1154,11 @@ function monitorActiveProjects(projects) {
 function setMonitoringInterval(id, intervalTime, projects) {
   let intervalTimeId = {}
   intervalTimeId[id] = setInterval((projects) => {
-    // let compareDate = function compareDate(date1, date2) {
-    //   if (date1 > date2) return 1
-    //   else if (date1 === date2) return 0
-    //   else if (date1 < date2) return -1
-    //   else return 'An illegal date.'
-    // }
-
     let parameters = {projects: projects}
 
     $.get('/api/projects', parameters, function(data){
       let projects = data.projects
       monitorActiveProjects(projects)
-      // for (let indexPro in projects) {
-      //   let project = projects[indexPro]
-      //   if (compareDate(project.enable_time, project.disable_time) > 0) {
-      //     console.log('this Project is active.')
-      //     if($('#'+project.pid+'Project').find('.green').attr('class') === undefined) {
-      //       $('#'+project.pid+'Project').append('<i id=\'active'+project.pid+'Project\' class=\'green circle icon\'/>')
-      //     }
-      //   } else if (compareDate(project.enable_time, project.disable_time) < 0) {
-      //     console.log('Less')
-      //     $('#active'+project.pid+'Project').remove()
-      //   } else if (compareDate(project.enable_time, project.disable_time) === 0) {
-      //     console.log('Equal')
-      //     $('#active'+project.pid+'Project').remove()
-      //   }
-      //   console.log('Check CompareDate', compareDate(project.enable_time, project.disable_time))
-      // }
     })
   }, intervalTime, projects)
 }

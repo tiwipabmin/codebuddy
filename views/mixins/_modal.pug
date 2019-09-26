@@ -397,9 +397,9 @@ mixin pairingSettingsModal()
     .header Auto pairing
     .content
       .ui.top.attached.tabular.menu
-        a.item.active(data-tab="purpose") Auto by purpose
-        a.item(data-tab="scoreDiff") Auto by score difference
-      .ui.bottom.attached.tab.segment.active(data-tab="purpose" onclick='onClickAutoPairingTab()')
+        a.item.active.apsm#aPurpose(data-tab="purpose", onclick='onClickAutoPairingSelectionMethod('+`$(this).attr('id')`+')') Auto by purpose
+        a.item.apsm#aScoreDiff(data-tab="scoreDiff", onclick='onClickAutoPairingSelectionMethod('+`$(this).attr('id')`+')') Auto by score difference
+      .ui.bottom.attached.tab.segment.active.apsm.aPurpose(data-tab="purpose" onclick='onClickAutoPairingTab()')
         .ui.two.column.very.relaxed.grid
           .column#traditionalPairingPrinciple
               p(style='text-align:center;') Traditional Pairing Principle
@@ -408,7 +408,7 @@ mixin pairingSettingsModal()
                   .field
                     .ui.radio.checkbox
                       input#expertWithExpert(type='radio' name='pairingPrinciple' value='expertWithExpert' checked)
-                      |  
+                      |
                       label Expert - Expert
                   .field
                     .ui.radio.checkbox
@@ -441,7 +441,7 @@ mixin pairingSettingsModal()
                     label Mutual Improvement
         .ui.vertical.divider
           p And
-      .ui.bottom.attached.tab.segment(data-tab="scoreDiff" onclick='onClickAutoPairingTab()')
+      .ui.bottom.attached.tab.segment.apsm.aScoreDiff(data-tab="scoreDiff" onclick='onClickAutoPairingTab()')
         label
         | Score difference : 
         .ui.input
