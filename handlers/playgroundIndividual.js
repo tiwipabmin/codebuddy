@@ -52,7 +52,7 @@ module.exports = (io, client, redis, projects) => {
         pid: projectId
       }, {
         $set: {
-          active_time: Date.now()
+          enable_time: Date.now()
         }
       }, (err) => {
         if (err) throw err

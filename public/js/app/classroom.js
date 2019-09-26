@@ -176,7 +176,7 @@ $(document).ready(function() {
     $('#cancelAutoPairingBtn').click(function (){
       $('#student_list_modal').modal('show');
     })
-    $('.menu .item').tab();
+    $('.tabular.menu .item').tab();
 })
 
 function showFirstContainer() {
@@ -950,6 +950,12 @@ function checkbox_event(assignment_set, id, opt) {
   }
 }
 
+function onClickPartnerSelectionMethod(id) {
+  $('.psm').removeClass('active')
+  $('#'+id).addClass('active')
+  $('div').find('.'+id).addClass('active')
+}
+
 function on_click_button_in_uspm(id) {
   // console.log('element_id_in_uspm, ', id)
   $('.item.active.uspm').attr({
@@ -1084,7 +1090,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
               content = $('<div class=\'content\'></div>')
               grid = $('<div class=\'ui grid\'></div>')
               eleven_wide_column = $('<div class=\'eleven wide column\'><b style=\'font-size:1.2em;\'><a class=\'header\' href=\'/project?pid='+project.pid+'&user_role=creator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
-              description = $('<div class=\'description\'>'+project.description+'<br> Last updated '+moment(project.active_time).fromNow()+'</div>')
+              description = $('<div class=\'description\'><p>'+project.description+'</p><div id=\''+project.pid+'Project\' class=\'ui grid\'><div class=\'ten wide column\'><font id=\''+project.pid+'TextStatus\'>Last updated '+moment(project.enable_time).fromNow()+'</font></div></div></div>')
               div_a.append(img1)
               div_a.append(img2)
               content.append(grid)
@@ -1099,7 +1105,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
               img2 = $('<img class=\'img-owner ui avatar image\' src=\''+img+'\', style=\'width: 30px;height: 30px; top: 20px;\'/>')
               img3 = $('<img class=\'img-partner ui avatar image\' src=\'/images/user_img_4.jpg\', style=\'width:30px; height:30px; top:-10px;\'/>')
               content = $('<div class=\'content\'><b style=\'font-size:1.2em;\'><a href=\'/project?pid='+project.pid+'&user_role=collaborator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
-              description = $('<div class=\'description\' style=\'margin-top:0px;\'>'+project.description+'<br> Last updated '+moment(project.active_time).fromNow()+'</div>')
+              description = $('<div class=\'description\' style=\'margin-top:0px;\'><p>'+project.description+'</p><div id=\''+project.pid+'Project\'><p>Last updated '+moment(project.enable_time).fromNow()+'</p></div></div>')
               div_a.append(img1)
               div_a.append(img2)
               div_a.append(img3)
@@ -1112,6 +1118,66 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
       }
     }
   }
+}
+
+function compareDate(date1, date2) {
+   if (date1 > date2) return 1
+   else if (date1 === date2) return 0
+   else if (date1 < date2) return -1
+   else return 'An illegal date.'
+}
+
+function monitorActiveProjects(projects) {
+  for (let indexPro in projects) {
+    let project = projects[indexPro]
+    if (compareDate(project.enable_time, project.disable_time) > 0) {
+      if($('#'+project.pid+'Project').find('.green').attr('class') === undefined) {
+        $('#'+project.pid+'Project').prepend('<div id=\''+project.pid+'IconStatus\' class=\'one wide column\'><i class=\'green circle icon\'/></div>')
+        $('#'+project.pid+'TextStatus').text('Active now!')
+      }
+    } else if (compareDate(project.enable_time, project.disable_time) < 0) {
+      $('#'+project.pid+'IconStatus').remove()
+      $('#'+project.pid+'TextStatus').text('Last updated ' + moment(project.enable_time).fromNow())
+    } else if (compareDate(project.enable_time, project.disable_time) === 0) {
+      $('#'+project.pid+'IconStatus').remove()
+      $('#'+project.pid+'TextStatus').text('Last updated ' + moment(project.enable_time).fromNow())
+    }
+  }
+}
+
+function setMonitoringInterval(id, intervalTime, projects) {
+  let intervalTimeId = {}
+  intervalTimeId[id] = setInterval((projects) => {
+    // let compareDate = function compareDate(date1, date2) {
+    //   if (date1 > date2) return 1
+    //   else if (date1 === date2) return 0
+    //   else if (date1 < date2) return -1
+    //   else return 'An illegal date.'
+    // }
+
+    let parameters = {projects: projects}
+
+    $.get('/api/projects', parameters, function(data){
+      let projects = data.projects
+      monitorActiveProjects(projects)
+      // for (let indexPro in projects) {
+      //   let project = projects[indexPro]
+      //   if (compareDate(project.enable_time, project.disable_time) > 0) {
+      //     console.log('this Project is active.')
+      //     if($('#'+project.pid+'Project').find('.green').attr('class') === undefined) {
+      //       $('#'+project.pid+'Project').append('<i id=\'active'+project.pid+'Project\' class=\'green circle icon\'/>')
+      //     }
+      //   } else if (compareDate(project.enable_time, project.disable_time) < 0) {
+      //     console.log('Less')
+      //     $('#active'+project.pid+'Project').remove()
+      //   } else if (compareDate(project.enable_time, project.disable_time) === 0) {
+      //     console.log('Equal')
+      //     $('#active'+project.pid+'Project').remove()
+      //   }
+      //   console.log('Check CompareDate', compareDate(project.enable_time, project.disable_time))
+      // }
+    })
+  }, intervalTime, projects)
 }
 
 function on_click_page_number_in_second_container(page) {

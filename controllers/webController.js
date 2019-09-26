@@ -368,10 +368,7 @@ exports.getSection = async (req, res) => {
     res.render('classroom', { data_set, title: section.course_name })
   } else {
     occupation = 1
-    weeks = []
-    let projects_in_section = []
-    let clone_assignments = Object.assign({}, assignments)
-    assignments = []
+    let assignmentClones = Object.assign({}, assignments)
     let projects = await Project
       .find({ $and : [
           {status: {$ne : "pending"}},
@@ -381,30 +378,73 @@ exports.getSection = async (req, res) => {
       .sort({ createdAt: -1 })
 
     //projects change data type from array to object
-    let cloneProjects = {}
+    let projectClones = {}
     projects.forEach(function(project){
-      cloneProjects[project.assignment_id] = project
+      projectClones[project.assignment_id] = project
     })
 
-    for (i in clone_assignments) {
-      let checkProjectFromAssignmentId = cloneProjects[cryptr.decrypt(clone_assignments[i].assignment_id)]
+    projects = []
+    assignments = []
+    weeks = []
+    for (i in assignmentClones) {
+      let checkProjectFromAssignmentId = projectClones[cryptr.decrypt(assignmentClones[i].assignment_id)]
       if(checkProjectFromAssignmentId !== undefined) {
         let element = Object.assign({}, checkProjectFromAssignmentId)
         if (element._doc.available_project) {
-          element._doc.section_id = clone_assignments[i].section_id
-          projects_in_section.push(element._doc)
-          assignments.push(clone_assignments[i])
+          element._doc.section_id = assignmentClones[i].section_id
+          projects.push(element._doc)
+          assignments.push(assignmentClones[i])
           weeks.indexOf(element._doc.week) == -1 ? weeks.push(element._doc.week) : null;
         }
       }
     }
 
-    projects_in_section.reverse()
+    projects.reverse()
 
-    data_set = {common: {occupation: occupation, section: section, projects: projects_in_section, assignments: assignments, students: students, pairing_sessions: pairing_sessions, weeks: weeks}, json: {projects: JSON.stringify(projects_in_section), assignments : JSON.stringify(assignments), students: JSON.stringify(students), pairing_sessions: JSON.stringify(pairing_sessions)}}
+    data_set = {
+      common: {
+        occupation: occupation,
+        section: section,
+        projects: projects,
+        assignments: assignments,
+        students: students,
+        pairing_sessions: pairing_sessions,
+        weeks: weeks
+      },
+      json: {
+        projects: JSON.stringify(projects),
+        assignments: JSON.stringify(assignments),
+        students: JSON.stringify(students),
+        pairing_sessions: JSON.stringify(pairing_sessions)
+      }
+    }
 
     res.render('classroom', { data_set, title: section.course_name })
   }
+}
+
+exports.getProjects = async (req, res) => {
+  let projects = req.query.projects
+  let resProjects = await Project
+    .find({ $and : [
+        {status: {$ne : "pending"}},
+        {$or: [{ creator: req.user.username }, { collaborator: req.user.username }]}
+      ]
+    })
+    .sort({ createdAt: -1 })
+    
+  let projectClones = []
+  for (let indexPro in projects) {
+    for (let indexResPro in resProjects) {
+      if(projects[indexPro].pid === resProjects[indexResPro].pid) {
+        projectClones.push(resProjects[indexResPro])
+        resProjects.splice(indexResPro, 0)
+        break
+      }
+    }
+  }
+
+  res.send({projects: projectClones})
 }
 
 exports.removeStudent = async (req, res) => {
@@ -571,8 +611,11 @@ exports.searchStudent = async (req, res) => {
   const section_id = parseInt(cryptr.decrypt(req.query.section_id))
   const pairing_session_id = req.query.pairing_session_id
   const username = req.query.username
-  const select_student_by_section_id_and_literal = 'SELECT * FROM enrollment AS e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\' OR s.last_name LIKE \'%' + search + '%\' OR s.username LIKE \'%' + search + '%\')'
-  const students = await con.select_student(select_student_by_section_id_and_literal)
+  const studentQuery = 'SELECT * FROM enrollment AS\
+   e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = \
+   ' + section_id + ' AND (s.first_name LIKE \'%' + search + '%\'\
+    OR s.last_name LIKE \'%' + search + '%\' OR s.username LIKE \'%' + search + '%\')'
+  const students = await con.select_student(studentQuery)
   var new_students = []
   var user;
   for (_index in students) {
@@ -931,22 +974,22 @@ exports.updatePairing = async (req, res) => {
     }
   }
 
-  for(_index_o in projects) {
-    for(_index_i in projects[_index_o]) {
+  for(let indexMainPro in projects) {
+    for(let indexSubPro in projects[indexMainPro]) {
       status = await History.deleteMany({
-        pid: projects[_index_o][_index_i]
+        pid: projects[indexMainPro][indexSubPro]
       })
       status = await  Score.deleteMany({
-        pid: projects[_index_o][_index_i]
+        pid: projects[indexMainPro][indexSubPro]
       })
       status = await  Message.deleteMany({
-        pid: projects[_index_o][_index_i]
+        pid: projects[indexMainPro][indexSubPro]
       })
     }
   }
 
   /*
-   * delete many project in one week
+   * Delete many projects in one week.
    */
   for (var key in changePartnerKeys) {
     if(newStudents[key].role == 'host') {
@@ -974,9 +1017,12 @@ exports.updatePairing = async (req, res) => {
     }
   }
 
+
   let sumScore = []
-  // sumScore
-  for (var key in changePartnerKeys) {
+  /*
+   * Sum new scores.
+   */
+  for (let key in changePartnerKeys) {
     let uid = [key, changePartnerKeys[key]]
     for(_index in uid) {
       await User.findOne({

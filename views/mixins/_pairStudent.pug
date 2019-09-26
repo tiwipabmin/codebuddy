@@ -29,9 +29,9 @@ mixin pairStudent()
     .header Select partner
     .content
       .ui.top.attached.tabular.menu
-        a.item.active(data-tab="purpose") Select by purpose
-        a.item(data-tab="search") Search partner
-      .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
+        a.item.active.psm#purpose(data-tab="purpose", onclick='onClickPartnerSelectionMethod('+`$(this).attr('id')`+')') Select by purpose
+        a.item.psm#search(data-tab="search", onclick='onClickPartnerSelectionMethod('+`$(this).attr('id')`+')') Search partner
+      .ui.bottom.attached.tab.segment.active.psm.purpose(data-tab="purpose")
         a.ui.red.ribbon.label Recommended
         .ui.grid
           .six.wide.column
@@ -56,7 +56,7 @@ mixin pairStudent()
             .ui.segment.container.user-purpose.box
               .ui.middle.aligned.divided.list.user-purpose-list
                   li.ui.item Please select your purpose.
-      .ui.bottom.attached.tab.segment.purpose-tab(data-tab="search")
+      .ui.bottom.attached.tab.segment.psm.search(data-tab="search")
         .ui.grid
           .six.wide.column
             .ui.category.search

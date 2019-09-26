@@ -52,7 +52,7 @@ module.exports = (io, client, redis, projects) => {
         pid: projectId
       }, {
         $set: {
-          active_time: Date.now()
+          enable_time: Date.now()
         }
       }, (err) => {
         if (err) throw err
@@ -86,6 +86,8 @@ module.exports = (io, client, redis, projects) => {
         console.log('projects[projectId], ', projects[projectId])
         winston.info(projects[projectId].count)
         client.emit('role selection', {partner: partner})
+
+        initRemainder()
       } else {
         if (projects[projectId].reject === 1) {
           projects[projectId].count += 1
@@ -99,18 +101,18 @@ module.exports = (io, client, redis, projects) => {
           io.in(projectId).emit('reject to join project')
         }
       }
-
-      client.emit('init state', {
-        editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
-      })
-
-      io.in(projectId).emit('auto update score')
-
-      client.emit('init reviews', comments)
     } catch (error) {
       winston.info(`catching error: ${error}`)
     }
   })
+
+  async function initRemainder() {
+    client.emit('init state', {
+      editor: await redis.hget(`project:${projectId}`, 'editor', (err, ret) => ret)
+    })
+    io.in(projectId).emit('auto update score')
+    client.emit('init reviews', comments)
+  }
 
   async function partner(project){
     projects[projectId].active_user[curUser] = 1
@@ -125,6 +127,8 @@ module.exports = (io, client, redis, projects) => {
       winston.info(projects[projectId].count)
       client.emit('role updated', { projectRoles: projects[projectId], project: res})
       io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 1})
+
+      initRemainder()
     })
   }
 
@@ -160,6 +164,15 @@ module.exports = (io, client, redis, projects) => {
         io.in(projectId).emit('update status', { projectRoles: projects[projectId], status: 0})
       }
       client.leave(projectId)
+      Project.updateOne({
+        pid: projectId
+      }, {
+        $set: {
+          disable_time: Date.now()
+        }
+      }, (err) => {
+        if (err) throw err
+      })
       winston.info('Client disconnected')
     } catch (error) {
       winston.info(`catching error: ${error}`)
@@ -1009,7 +1022,9 @@ module.exports = (io, client, redis, projects) => {
       })
       archive.finalize();
     }
-    client.emit('download file', {projectId: projectId, fileNameListLength: fileNameListLength, link: cryptr.encrypt('../project_files/'+projectId+'/main.py')})
+    // let link = cryptr.encrypt('../project_files/'+projectId+'/main.py')
+    let link = '../project_files/'+projectId+'/main.py'
+    client.emit('download file', {projectId: projectId, fileNameListLength: fileNameListLength, link: cryptr.encrypt(link)})
    })
 
   function countdownTimer() {
@@ -1042,7 +1057,6 @@ module.exports = (io, client, redis, projects) => {
           }
       });
       timerId['codebuddy'] = setInterval(intervalFunc, 1000);
-      console.log('setInterval(intervalFunc, 1000);')
       redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
   }
 

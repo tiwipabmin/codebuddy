@@ -101,8 +101,10 @@ block content
                 h1.ui.header#headerContainer Student
             if data_set.common.students.length > 0
               script(type='text/javascript').
-                set_item_pagination_in_second_container(!{data_set.json.students}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
-                on_click_page_number_in_second_container(1)
+                $(document).ready(function() {
+                  set_item_pagination_in_second_container(!{data_set.json.students}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
+                  on_click_page_number_in_second_container(1)
+                })
             else
               p.text-center No student.  
                       
@@ -123,15 +125,23 @@ block content
             if user.info.occupation === 'teacher'
               if data_set.common.pairing_sessions.length > 0 && data_set.common.pairing_sessions[0].status >= 0
                 script(type='text/javascript').
-                  set_item_pagination_in_third_container(!{data_set.json.pairing_sessions}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
-                  on_click_page_number_in_third_container(1)
-                  $('.ui.pointing.dropdown').dropdown();
+                  $(document).ready(function() {
+                    set_item_pagination_in_third_container(!{data_set.json.pairing_sessions}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
+                    on_click_page_number_in_third_container(1)
+                    $('.ui.pointing.dropdown').dropdown();
+                  })
+                  
               else
                 p.text-center#no_session No session.
             else
               if data_set.common.assignments.length > 0
                 script(type='text/javascript').
-                  set_item_pagination_in_third_container(!{data_set.json.assignments}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
-                  on_click_page_number_in_third_container(1)
+                  $(document).ready(function() {
+                    set_item_pagination_in_third_container(!{data_set.json.assignments}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
+                    on_click_page_number_in_third_container(1)
+                    monitorActiveProjects(!{data_set.json.projects})
+                    clearInterval("!{user.username}")
+                    setMonitoringInterval("!{user.username}", 60000, !{data_set.json.projects})
+                  })
               else
                 p.text-center No assignment.
