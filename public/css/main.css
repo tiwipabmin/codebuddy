@@ -4,6 +4,10 @@
     overflow-y: scroll;
 } */
 
+body {
+    height: 130%;
+}
+
 .btn {
   border: none;
   background-color: inherit;
@@ -450,4 +454,8 @@ fieldset {
 
 .nowrap {
     white-space: nowrap ;
+}
+
+.footer-index {
+    z-index: 1;
 }
