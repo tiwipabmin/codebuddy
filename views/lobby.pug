@@ -104,10 +104,18 @@ block script
     style.
       @media (min-height: 200px) {
       .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-      position: absolute;
+      position: fixed;
+      margin-top: 20px;
+      bottom: 0;
       width: 100%;
       }
       }
+      @media (max-width: 768px) {
+      .ui.footer.form-page {
+        display: none;
+      }
+      }
+        
 
 block content
     if user.info.occupation === 'teacher'
