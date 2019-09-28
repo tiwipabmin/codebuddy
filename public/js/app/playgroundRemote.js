@@ -1,50 +1,49 @@
-$(document).ready(function(){
-  $('#switch_role_modal')
-    .modal({
-      closable  : false,
-      // onDeny    : function(){
-      //   socket.emit('do not switch role', {
-      //     action: 'do not switch role'
-      //   })
-      // },
-      onDeny    : function(){
-        $('#switch_role_modal').modal('hide')
-      },
-      onApprove : function() {
-        socket.emit('switch role', {
-          user: user,
-          action: 'switch role',
-          status: $('#ok_button_srm').attr('value')
-        })
-      }
-    })
-
-  $('#reject_to_join_project').modal({
-    closable  : false,
-    onApprove : function () {
-      $('#global_loader').attr({
-        'style': 'display: block; position: fixed;'
-      })
+$(document).ready(function() {
+  $("#switch_role_modal").modal({
+    closable: false,
+    // onDeny    : function(){
+    //   socket.emit('do not switch role', {
+    //     action: 'do not switch role'
+    //   })
+    // },
+    onDeny: function() {
+      $("#switch_role_modal").modal("hide");
+    },
+    onApprove: function() {
+      socket.emit("switch role", {
+        user: user,
+        action: "switch role",
+        status: $("#ok_button_srm").attr("value")
+      });
     }
-  })
-})
+  });
+
+  $("#reject_to_join_project").modal({
+    closable: false,
+    onApprove: function() {
+      $("#global_loader").attr({
+        style: "display: block; position: fixed;"
+      });
+    }
+  });
+});
 
 /**
  * Dependencies declaration
  */
-const socket = io()
+const socket = io();
 const roles = {
-  user: '',
-  partner: ''
-}
-var comments = []
-var code = null
+  user: "",
+  partner: ""
+};
+var comments = [];
+var code = null;
 
 var webrtc = new SimpleWebRTC({
   // the id/element dom element that will hold "our" video
-  localVideoEl: 'localVideo',
+  localVideoEl: "localVideo",
   // the id/element dom element that will hold remote videos
-  remoteVideosEl: 'remoteVideo',
+  remoteVideosEl: "remoteVideo",
   // immediately ask for camera access
   autoRequestMedia: true
 });
@@ -55,52 +54,60 @@ var webrtc = new SimpleWebRTC({
  * http://stackoverflow.com/a/901144/4181203
  */
 function getParameterByName(name) {
-  const url = window.location.href
-  const param = name.replace(/[\[\]]/g, '\\$&')
-  const regex = new RegExp('[?&]' + param + '(=([^&#]*)|&|#|$)')
-  const results = regex.exec(url)
+  const url = window.location.href;
+  const param = name.replace(/[\[\]]/g, "\\$&");
+  const regex = new RegExp("[?&]" + param + "(=([^&#]*)|&|#|$)");
+  const results = regex.exec(url);
 
-  if (!results) return null
-  if (!results[2]) return ''
-  return decodeURIComponent(results[2].replace(/\+/g, ' '))
+  if (!results) return null;
+  if (!results[2]) return "";
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
 /**
  * Initiate local editor
  */
-var projectFiles = JSON.parse(document.getElementById('projectFiles').value);
-var currentTab = 'main'
-var partnerTab = 'main';
+var projectFiles = JSON.parse(document.getElementById("projectFiles").value);
+var currentTab = "main";
+var partnerTab = "main";
 var isCloseTab = false;
 let editor = {};
 projectFiles.forEach(newEditorFacade);
-getActiveTab('main');
+getActiveTab("main");
 
-function setEditor(fileName){
-  if(!(fileName in editor)) {
-    let cm = CodeMirror.fromTextArea(document.getElementById(fileName+"text"), {
-      lineNumbers: true,
-      mode: {
-        name: 'python',
-        version: 3,
-        singleLineStringErrors: false,
-        styleActiveLine: true,
+function setEditor(fileName) {
+  if (!(fileName in editor)) {
+    let cm = CodeMirror.fromTextArea(
+      document.getElementById(fileName + "text"),
+      {
         lineNumbers: true,
-        lineWrapping: true
-      },
-      theme: 'material',
-      indentUnit: 4,
-      matchBrackets: true
-    })
+        mode: {
+          name: "python",
+          version: 3,
+          singleLineStringErrors: false,
+          styleActiveLine: true,
+          lineNumbers: true,
+          lineWrapping: true
+        },
+        theme: "material",
+        indentUnit: 4,
+        matchBrackets: true
+      }
+    );
     cm.addKeyMap({
-      "Alt-R": function(cm) { runCode() },
-      "Alt-S": function(cm) { pauseRunCode() },
-      "Alt-V": function(cm) { submitCode() }
-    })
-    editor[fileName] = cm
+      "Alt-R": function(cm) {
+        runCode();
+      },
+      "Alt-S": function(cm) {
+        pauseRunCode();
+      },
+      "Alt-V": function(cm) {
+        submitCode();
+      }
+    });
+    editor[fileName] = cm;
   }
 }
-
 
 /**
  * Code Mirror Change Theme
@@ -112,8 +119,7 @@ function changeTheme() {
     var theme = "default";
     projectFiles.forEach(setTheme);
     location.hash = "#" + theme;
-  }
-  else {
+  } else {
     var theme = "material";
     projectFiles.forEach(setTheme);
     location.hash = "#" + theme;
@@ -128,328 +134,416 @@ function changeTheme() {
 /**
  * User join the project
  */
-socket.emit('load playground', { programming_style: 'Remote' })
-socket.emit('join project', {
-  pid: getParameterByName('pid'),
+socket.emit("load playground", { programming_style: "Remote" });
+socket.emit("join project", {
+  pid: getParameterByName("pid"),
   username: user
-})
+});
 
-webrtc.on('readyToCall', function () {
+webrtc.on("readyToCall", function() {
   // you can name it anything
-  webrtc.createRoom(getParameterByName('pid'));
-  webrtc.joinRoom(getParameterByName('pid'));
+  webrtc.createRoom(getParameterByName("pid"));
+  webrtc.joinRoom(getParameterByName("pid"));
 });
 
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
  */
-socket.on('init state', (payload) => {
-  if(payload.editor != null) {
+socket.on("init state", payload => {
+  if (payload.editor != null) {
     var editorValues = JSON.parse(payload.editor);
     projectFiles.forEach(setEditorValue);
   } else {
-    editor['main'].setValue('');
+    editor["main"].setValue("");
   }
 
   function setEditorValue(fileName) {
-    if(editorValues!=null){
-      editor[fileName].setValue(editorValues[fileName])
+    if (editorValues != null) {
+      editor[fileName].setValue(editorValues[fileName]);
     }
   }
 
-  code = payload.editor
+  code = payload.editor;
   // webrtc.on('readyToCall', function () {
   //   // you can name it anything
   //   webrtc.createRoom(getParameterByName('pid'));
   //   webrtc.joinRoom(getParameterByName('pid'));
   // });
   // webrtc.emit('readyToCall')
-})
+});
 
 /**
  * After user join the project, user will recieve initiate review to hilight in local editor
  */
 
-socket.on('init reviews', (payload) => {
-  comments = payload
-  for(var i in comments){
-    editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
+socket.on("init reviews", payload => {
+  comments = payload;
+  for (var i in comments) {
+    editor[comments[i].file].addLineClass(
+      parseInt(comments[i].line) - 1,
+      "wrap",
+      "CodeMirror-activeline-background"
+    );
   }
-})
+});
 
 /**
  * Update tab when create or delete
  */
-socket.on('update tab', (payload) => {
-  var fileName = payload.fileName
-  var action = payload.action
-  if(action=='create'){
+socket.on("update tab", payload => {
+  var fileName = payload.fileName;
+  var action = payload.action;
+  if (action == "create") {
     var id = document.getElementById("file-tabs").childElementCount;
-    $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
-    $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
-    $('.menu .item').tab();
+    $(".add-file")
+      .closest("a")
+      .before(
+        '<a class="item" id="' +
+          fileName +
+          '" data-tab="' +
+          fileName +
+          '" onClick="getActiveTab(\'' +
+          fileName +
+          "')\">" +
+          fileName +
+          ".py <span onClick=\"closeTab('" +
+          fileName +
+          '\')"><i class="delete icon" id="close-tab-icon"></i></span></a>'
+      );
+    $(".tab-content").append(
+      '<div class="ui bottom attached tab segment" id="' +
+        fileName +
+        '-tab" data-tab="' +
+        fileName +
+        '"> <textarea class="show" id="' +
+        fileName +
+        'text"></textarea></div>'
+    );
+    $(".menu .item").tab();
 
     //setup file
     projectFiles.push(fileName);
     newEditorFacade(fileName);
-    var html = '<div class="item cursor-pointer" id="'+fileName+'-file" onClick=getActiveTab("'+fileName+'")><div id="'+fileName+'-file-icon"/><i class="file icon"/><div class="middle aligned content"><div class="header" id="'+fileName+'-header">'+fileName+'.py</div>'+
-                            '<div class="delete-file">'+
-                              '<span onClick=showDeleteFileModal("'+fileName+'")>'+
-                                '<i class="trash alternate outline icon" id="delete-icon"></i>'+
-                              '</span>'+
-                              '<div class="ui small modal" id="'+fileName+'-delete-file-modal">'+
-                                '<div class="header"> Delete File </div>'+
-                                '<div class="content">'+
-                                  '<p> Do you want to delete ' + fileName + '.py? </p>'+
-                                '</div>'+
-                                '<div class="actions">'+
-                                  '<button class="ui button approve green" onClick=deleteFile("'+fileName+'")> Delete </button>'+
-                                  '<div class="ui button approve red" data-value="cancel"> Cancel </div>'+
-                                '</div>'+
-                              '</div>'+
-                          '</div>'+
-                          '</div></div>'
-    $('#file-list').append(html);
-    $('#export-checklist').append('<div class="item export-file-item" id="'+fileName+'-export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="'+fileName+'"><label>'+fileName+'.py</label></div></div>');
-  } else{
+    var html =
+      '<div class="item cursor-pointer" id="' +
+      fileName +
+      '-file" onClick=getActiveTab("' +
+      fileName +
+      '")><div id="' +
+      fileName +
+      '-file-icon"/><i class="file icon"/><div class="middle aligned content"><div class="header" id="' +
+      fileName +
+      '-header">' +
+      fileName +
+      ".py</div>" +
+      '<div class="delete-file">' +
+      '<span onClick=showDeleteFileModal("' +
+      fileName +
+      '")>' +
+      '<i class="trash alternate outline icon" id="delete-icon"></i>' +
+      "</span>" +
+      '<div class="ui small modal" id="' +
+      fileName +
+      '-delete-file-modal">' +
+      '<div class="header"> Delete File </div>' +
+      '<div class="content">' +
+      "<p> Do you want to delete " +
+      fileName +
+      ".py? </p>" +
+      "</div>" +
+      '<div class="actions">' +
+      '<button class="ui button approve green" onClick=deleteFile("' +
+      fileName +
+      '")> Delete </button>' +
+      '<div class="ui button approve red" data-value="cancel"> Cancel </div>' +
+      "</div>" +
+      "</div>" +
+      "</div>" +
+      "</div></div>";
+    $("#file-list").append(html);
+    $("#export-checklist").append(
+      '<div class="item export-file-item" id="' +
+        fileName +
+        '-export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="' +
+        fileName +
+        '"><label>' +
+        fileName +
+        ".py</label></div></div>"
+    );
+  } else {
     var tab = document.getElementById(fileName);
     tab.remove();
-    var fileItem = document.getElementById(fileName+'-file');
+    var fileItem = document.getElementById(fileName + "-file");
     fileItem.remove();
-    var modal = document.getElementById(fileName+'-delete-file-modal');
+    var modal = document.getElementById(fileName + "-delete-file-modal");
     modal.remove();
-    var exportFileItem = document.getElementById(fileName+'-export-file-item');
+    var exportFileItem = document.getElementById(
+      fileName + "-export-file-item"
+    );
     exportFileItem.remove();
-    $(".file.menu").children('a').first().click();
+    $(".file.menu")
+      .children("a")
+      .first()
+      .click();
   }
-
-})
-
-/**
- * If there's no one select the role, then first user that come to the project must choose one
- */
-socket.on('role selection', (payload) => {
-  $('#selectRole-modal')
-    .modal({
-      closable  : false,
-      onDeny    : function(){
-        socket.emit('role selected', {
-          select: 0,
-          partner: payload.partner
-        })
-      },
-      onApprove : function() {
-        socket.emit('role selected', {
-          select: 1,
-          partner: payload.partner
-        })
-      }
-    })
-  $('#selectRole-modal').modal('show')
-  $('#global_loader').attr('style', 'display: none')
-})
+});
 
 /**
  * If there's no one select the role, then first user that come to the project must choose one
  */
-socket.on('confirm to switch role', (payload) => {
-  $('#close_button_srm').attr('style', 'display:none;')
-  $('#ok_button_srm').attr('style', 'display:none;')
-  if(payload.status === 'disconnect') {
-    $('#global_loader').attr({
-      'style': 'display: block; position: fixed;'
-    })
+socket.on("role selection", payload => {
+  $("#selectRole-modal").modal({
+    closable: false,
+    onDeny: function() {
+      socket.emit("role selected", {
+        select: 0,
+        partner: payload.partner
+      });
+    },
+    onApprove: function() {
+      socket.emit("role selected", {
+        select: 1,
+        partner: payload.partner
+      });
+    }
+  });
+  $("#selectRole-modal").modal("show");
+  $("#global_loader").attr("style", "display: none");
+});
+
+/**
+ * If there's no one select the role, then first user that come to the project must choose one
+ */
+socket.on("confirm to switch role", payload => {
+  $("#close_button_srm").attr("style", "display:none;");
+  $("#ok_button_srm").attr("style", "display:none;");
+  if (payload.status === "disconnect") {
+    $("#global_loader").attr({
+      style: "display: block; position: fixed;"
+    });
     // $('#header_srm').text('เพื่อนของคุณออกจากหน้าเขียนโปรแกรมตอนนี้คุณเป็น \"Coder\" แล้วครับ/ค่ะ')
-    $('#header_serm').empty()
-    $('#header_serm').text('เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ')
-    $('#reviewer_button').attr('style', 'display:none;')
-    socket.emit('join project', {
-      pid: getParameterByName('pid'),
+    $("#header_serm").empty();
+    $("#header_serm").text("เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ");
+    $("#reviewer_button").attr("style", "display:none;");
+    socket.emit("join project", {
+      pid: getParameterByName("pid"),
       username: user
-    })
+    });
     // $('#ok_button_srm').attr({
     //   style: 'display:block;',
     //   value: payload.status
     // })
     // $('#switch_role_modal').modal('show')
-  } else if (user === payload.projectRoles.roles.reviewer && payload.projectRoles.count == 2) {
-    $('#header_srm').text('ถึงเวลาที่คุณเป็น \"Coder\" แล้วครับ/ค่ะ')
-    $('#switch_role_modal').modal('show')
-  } else if(user === payload.projectRoles.roles.coder && payload.projectRoles.count == 2) {
-    $('#header_srm').text('ถึงเวลาที่คุณเป็น \"Reviewer\" แล้วครับ/ค่ะ')
-    $('#ok_button_srm').attr({
-      style: 'display:block;',
+  } else if (
+    user === payload.projectRoles.roles.reviewer &&
+    payload.projectRoles.count == 2
+  ) {
+    $("#header_srm").text('ถึงเวลาที่คุณเป็น "Coder" แล้วครับ/ค่ะ');
+    $("#switch_role_modal").modal("show");
+  } else if (
+    user === payload.projectRoles.roles.coder &&
+    payload.projectRoles.count == 2
+  ) {
+    $("#header_srm").text('ถึงเวลาที่คุณเป็น "Reviewer" แล้วครับ/ค่ะ');
+    $("#ok_button_srm").attr({
+      style: "display:block;",
       value: payload.status
-    })
-    $('#switch_role_modal').modal('show')
-  } else if (payload.projectRoles.count == 1){
+    });
+    $("#switch_role_modal").modal("show");
+  } else if (payload.projectRoles.count == 1) {
     // console.log('payload.projectRoles.count, ', payload.projectRoles.count)
-    socket.emit('switch role', {
+    socket.emit("switch role", {
       user: user,
-      action: 'switch role',
-      status: 'disconnect'
-    })
+      action: "switch role",
+      status: "disconnect"
+    });
   }
-})
+});
 
-socket.on('countdown', (payload) => {
+socket.on("countdown", payload => {
   // socket.emit('wait pair', {time: 5000})
-  if(payload.minutes == '0' && payload.seconds <= 15){
-    $(".countdown").html(`<span style="color: red;"> ${pad(payload.minutes)} : ${pad(payload.seconds)}</span> <span style="font-size:12px;">mins</span>`)
-    $(".auto-swap-warning").html(`<div class="ui circular labels" style="margin-top: 10px;"><a class="ui label">Auto swaping role in ${payload.seconds} secs</a></div>`)
+  if (payload.minutes == "0" && payload.seconds <= 15) {
+    $(".countdown").html(
+      `<span style="color: red;"> ${pad(payload.minutes)} : ${pad(
+        payload.seconds
+      )}</span> <span style="font-size:12px;">mins</span>`
+    );
+    $(".auto-swap-warning").html(
+      `<div class="ui circular labels" style="margin-top: 10px;"><a class="ui label">Auto swaping role in ${payload.seconds} secs</a></div>`
+    );
   } else {
-    $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
-    $(".auto-swap-warning").html(``)
+    $(".countdown").html(
+      `${pad(payload.minutes)} : ${pad(
+        payload.seconds
+      )} <span style="font-size:12px;">mins</span>`
+    );
+    $(".auto-swap-warning").html(``);
   }
-})
+});
 
-socket.on('reject to join project', () => {
-  socket.emit('clear interval')
-  $('#reject_to_join_project').modal('show')
-})
+socket.on("reject to join project", () => {
+  socket.emit("clear interval");
+  $("#reject_to_join_project").modal("show");
+});
 
-socket.on('clear interval', () => {
-  socket.emit('clear interval')
-})
+socket.on("clear interval", () => {
+  socket.emit("clear interval");
+});
 
-socket.on('role updated', (payload) => {
+socket.on("role updated", payload => {
   // console.log('projectRoles, ', payload.projectRoles)
   if (user === payload.projectRoles.roles.reviewer) {
-    roles.user = 'reviewer'
-    roles.partner = 'coder'
-    $('#global_loader').attr('style', 'display: none')
-    projectFiles.forEach(setOptionFileNoCursor)
-  } else if(user === payload.projectRoles.roles.coder) {
-    roles.user = 'coder'
-    roles.partner = 'reviewer'
-    $('#global_loader').attr('style', 'display: none')
-    $('#close_button_srm').attr('style', 'display:block;')
-    projectFiles.forEach(setOptionFileShowCursor)
-  }else{
-    if(user === payload.project.creator) {
-      roles.user = 'coder'
-      roles.partner = 'reviewer'
+    roles.user = "reviewer";
+    roles.partner = "coder";
+    $("#global_loader").attr("style", "display: none");
+    projectFiles.forEach(setOptionFileNoCursor);
+  } else if (user === payload.projectRoles.roles.coder) {
+    roles.user = "coder";
+    roles.partner = "reviewer";
+    $("#global_loader").attr("style", "display: none");
+    $("#close_button_srm").attr("style", "display:block;");
+    projectFiles.forEach(setOptionFileShowCursor);
+  } else {
+    if (user === payload.project.creator) {
+      roles.user = "coder";
+      roles.partner = "reviewer";
     } else {
-      roles.user = 'reviewer'
-      roles.partner = 'coder'
+      roles.user = "reviewer";
+      roles.partner = "coder";
     }
   }
 
   function setOptionFileNoCursor(fileName) {
-    editor[fileName].setOption('readOnly', 'nocursor')
+    editor[fileName].setOption("readOnly", "nocursor");
   }
   function setOptionFileShowCursor(fileName) {
-    editor[fileName].setOption('readOnly', false)
+    editor[fileName].setOption("readOnly", false);
   }
 
-  $(".partner-role-label").text(`${roles.partner}`)
-  $(".user-role-label").text(`${roles.user}`)
+  $(".partner-role-label").text(`${roles.partner}`);
+  $(".user-role-label").text(`${roles.user}`);
   // startCountdown()
-})
+});
 
-socket.on('show reviewer active time', (payload) => {
-  if(roles.user === 'coder' && payload.counts >= 0) {
-    $('#buddy_counts_min_sec').show();
-    $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs + " mins");
+socket.on("show reviewer active time", payload => {
+  if (roles.user === "coder" && payload.counts >= 0) {
+    $("#buddy_counts_min_sec").show();
+    $("#buddy_counts_min_sec").text(
+      "Reviewer active time: " + payload.mins + ":" + payload.secs + " mins"
+    );
   } else {
-    $('#buddy_counts_min_sec').hide();
+    $("#buddy_counts_min_sec").hide();
   }
-})
+});
 
 /**
  * If user exit or going elsewhere which can be caused this project window closed
  * `beforeunload` event will fired and sending client disconnection to the server
  */
-$(window).on('beforeunload', () => {
+$(window).on("beforeunload", () => {
   // storeActiveTime()
-  socket.emit('submit code', {
+  socket.emit("submit code", {
     mode: "auto",
     uid: uid,
     code: getAllFileEditor()
-  })
-  socket.disconnect()
-})
+  });
+  socket.disconnect();
+});
 
-$(window).bind('hashchange', function() {
+$(window).bind("hashchange", function() {
   // storeActiveTime()
-  socket.emit('submit code', {
+  socket.emit("submit code", {
     mode: "auto",
     uid: uid,
     code: getAllFileEditor()
-  })
- });
+  });
+});
 
 /**
  * Recieve new changes editor value from server and applied them to local editor
  */
-socket.on('editor update', (payload) => {
+socket.on("editor update", payload => {
   editor[payload.fileName].replaceRange(payload.text, payload.from, payload.to);
   setTimeout(function() {
     editor[payload.fileName].refresh();
   }, 1);
-})
+});
 
 /**
  * User status checking
  */
-let windowIsFocus
+let windowIsFocus;
 
-$(window).focus(() => {
-  windowIsFocus = true
-}).blur(() => {
-  windowIsFocus = false
-})
+$(window)
+  .focus(() => {
+    windowIsFocus = true;
+  })
+  .blur(() => {
+    windowIsFocus = false;
+  });
 
 setInterval(() => {
-  socket.emit('user status', {
+  socket.emit("user status", {
     status: windowIsFocus
-  })
-}, 3000)
+  });
+}, 3000);
 
-socket.on('update status', (payload) => {
+socket.on("update status", payload => {
   if (payload.status && payload.projectRoles.count == 2) {
-    $(".user.status").html(`<strong><em><i class='green circle icon'></i></em></strong>`)
+    $(".user.status").html(
+      `<strong><em><i class='green circle icon'></i></em></strong>`
+    );
     // $('#global_loader').attr('style', 'display: none')
   } else {
-    $(".user.status").html(`<strong><em><i class='grey circle icon'></i></em></strong>`)
+    $(".user.status").html(
+      `<strong><em><i class='grey circle icon'></i></em></strong>`
+    );
   }
-})
+});
 
 function submitReview() {
-  socket.emit('submit review', {
-    file: $('input.hidden.file.name').val(),
-    line: parseInt($('input.disabled.line.no').val()),
-    description: $('textarea.line.reviewer.description').val(),
-  })
-  $('textarea.line.description').val('')
+  socket.emit("submit review", {
+    file: $("input.hidden.file.name").val(),
+    line: parseInt($("input.disabled.line.no").val()),
+    description: $("textarea.line.reviewer.description").val()
+  });
+  $("textarea.line.description").val("");
 }
 
-socket.on('new review', (payload) => {
-  comments = payload
-  comments.map((comment) => {
-    editor[comment.file].addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
-  })
-})
+socket.on("new review", payload => {
+  comments = payload;
+  comments.map(comment => {
+    editor[comment.file].addLineClass(
+      parseInt(comment.line - 1),
+      "wrap",
+      "CodeMirror-activeline-background"
+    );
+  });
+});
 
 function deleteReview() {
-  socket.emit('delete review', {
-    file: $('input.hidden.file.name').val(),
-    line: $('input.disabled.line.no').val(),
-    description: $('textarea.line.reviewer.description').val(),
-  })
+  socket.emit("delete review", {
+    file: $("input.hidden.file.name").val(),
+    line: $("input.disabled.line.no").val(),
+    description: $("textarea.line.reviewer.description").val()
+  });
 }
 
-socket.on('update after delete review', (payload) =>{
-  comments = payload.comments
-  deleteline = payload.deleteline
-  editor[payload.file].removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
-})
+socket.on("update after delete review", payload => {
+  comments = payload.comments;
+  deleteline = payload.deleteline;
+  editor[payload.file].removeLineClass(
+    parseInt(deleteline - 1),
+    "wrap",
+    "CodeMirror-activeline-background"
+  );
+});
 
-socket.on('is typing', (payload) => {
+socket.on("is typing", payload => {
   if (uid != payload.uid) {
-    $('#show-is-typing').text(payload.text);
+    $("#show-is-typing").text(payload.text);
   }
-})
+});
 
 /**
  * Run code
@@ -458,37 +552,35 @@ const term = new Terminal({
   cols: 60,
   rows: 10,
   cursorBlink: true
-})
-term.open(document.getElementById('xterm-container'), false)
+});
+term.open(document.getElementById("xterm-container"), false);
 term._initialized = true;
 
-var shellprompt = '\033[1;3;31m$ \033[0m';
-var inputTerm = 'input@codebuddy'
+var shellprompt = "\033[1;3;31m$ \033[0m";
+var inputTerm = "input@codebuddy";
 
-term.prompt = function () {
-  term.write('\r\n' + shellprompt);
+term.prompt = function() {
+  term.write("\r\n" + shellprompt);
 };
-term.prompt()
-term.on('key', function (key, ev) {
-  var printable = (
-    !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey
-  );
+term.prompt();
+term.on("key", function(key, ev) {
+  var printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
 
   if (ev.keyCode == 13) {
-    if(inputTerm !== 'input@codebuddy') {
+    if (inputTerm !== "input@codebuddy") {
       // console.log('slice, ', inputTerm.slice(inputTerm.indexOf('y') + 1, inputTerm.length), ', not slice', inputTerm)
-      inputTerm = inputTerm.slice(inputTerm.indexOf('y') + 1, inputTerm.length)
-      socket.emit('typing input on term', {
+      inputTerm = inputTerm.slice(inputTerm.indexOf("y") + 1, inputTerm.length);
+      socket.emit("typing input on term", {
         inputTerm: inputTerm
-      })
+      });
       // console.log('inputTerm, ', inputTerm)
-      inputTerm = 'input@codebuddy'
+      inputTerm = "input@codebuddy";
     }
     term.prompt();
   } else if (ev.keyCode == 8) {
     // Do not delete the prompt
     if (term.x > 2) {
-      term.write('\b \b');
+      term.write("\b \b");
     }
   } else if (printable) {
     // console.log(`printable : ${key}`)
@@ -496,62 +588,62 @@ term.on('key', function (key, ev) {
   }
 });
 
-term.on('keypress', function (key) {
+term.on("keypress", function(key) {
   inputTerm += key;
-})
+});
 
 /**
  * Pause running code
  */
 function pauseRunCode() {
-  socket.emit('pause run code',{})
+  socket.emit("pause run code", {});
 }
 
 /**
  * Run code
  */
 function runCode() {
-  socket.emit('run code', {
+  socket.emit("run code", {
     uid: uid,
     code: getAllFileEditor()
-  })
-  socket.emit('save lines of code', {
+  });
+  socket.emit("save lines of code", {
     uid: uid
-  })
-  term.writeln('Running pytest.py...')
+  });
+  term.writeln("Running pytest.py...");
 }
 
 /**
  * Submit code
  */
 function submitCode() {
-  $('#global_loader').attr({
-    'style': 'display: block; position: fixed;'
-  })
-  socket.emit('submit code', {
-    mode: 'button submit',
+  $("#global_loader").attr({
+    style: "display: block; position: fixed;"
+  });
+  socket.emit("submit code", {
+    mode: "button submit",
     uid: uid,
     code: getAllFileEditor()
-  })
-  term.writeln('Scoring pytest.py...')
+  });
+  term.writeln("Scoring pytest.py...");
 }
 
 /**
  * Clear Terminal
  */
 function clearTerminal() {
-  term.clear()
+  term.clear();
 }
 
 /**
  * Send Message
  */
 function sendMessage() {
-  if (document.getElementById("inputMessage").value != '') {
-    socket.emit('send message', {
+  if (document.getElementById("inputMessage").value != "") {
+    socket.emit("send message", {
       uid: uid,
-      message:  document.getElementById("inputMessage").value
-    })
+      message: document.getElementById("inputMessage").value
+    });
   }
 }
 
@@ -559,116 +651,149 @@ function sendMessage() {
  * Send Active Tab
  */
 function sendActiveTab(tab) {
-  socket.emit('send active tab', {
+  socket.emit("send active tab", {
     uid: uid,
     activeTab: tab
-  })
+  });
 }
 
 /**
  * Show score dialog
  */
-socket.on('show score', (payload) => {
-  $('p#show-point').text("Your score is "+parseFloat(payload.score).toFixed(2)+" points.");
+socket.on("show score", payload => {
+  $("p#show-point").text(
+    "Your score is " + parseFloat(payload.score).toFixed(2) + " points."
+  );
   if (uid == payload.uid) {
-    $('p#show-avg-point').text("Average Score : "+parseFloat(payload.avgScore).toFixed(2)+" points");
+    $("p#show-avg-point").text(
+      "Average Score : " + parseFloat(payload.avgScore).toFixed(2) + " points"
+    );
   }
-  $('#showScore-modal').modal({
-    closable: false,
-    onDeny: function (){
-      $('#global_loader').attr('style', 'display: none')
-    }
-  }).modal('show')
-})
+  $("#showScore-modal")
+    .modal({
+      closable: false,
+      onDeny: function() {
+        $("#global_loader").attr("style", "display: none");
+      }
+    })
+    .modal("show");
+});
 
 /**
  * Auto update score
  */
-socket.on('pause run code', (payload) => {
-  term.writeln('Stop running pytest.py...')
-})
+socket.on("pause run code", payload => {
+  term.writeln("Stop running pytest.py...");
+});
 
 /**
  * Auto update score
  */
-socket.on('auto update score', (payload) => {
-  socket.emit('submit code', {
+socket.on("auto update score", payload => {
+  socket.emit("submit code", {
     mode: "auto",
     uid: uid,
     code: getAllFileEditor()
-  })
-  term.writeln('Scoring pytest.py...')
-})
+  });
+  term.writeln("Scoring pytest.py...");
+});
 
 /**
  * Auto update score
  */
-socket.on('show auto update score', (payload) => {
+socket.on("show auto update score", payload => {
   // console.log(payload)
-  $('p#project-score-point').text("project score : " + parseFloat(payload.score));
+  $("p#project-score-point").text(
+    "project score : " + parseFloat(payload.score)
+  );
   if (uid == payload.uid) {
-    $('#user-point-label').text('average score: ' + parseFloat(payload.avgScore).toFixed(2));
+    $("#user-point-label").text(
+      "average score: " + parseFloat(payload.avgScore).toFixed(2)
+    );
   } else {
-    $('#partner-point-label').text('average score: ' + parseFloat(payload.avgScore).toFixed(2));
+    $("#partner-point-label").text(
+      "average score: " + parseFloat(payload.avgScore).toFixed(2)
+    );
   }
-
-})
+});
 
 /**
  * Partner Active Tab
  */
-socket.on('show partner active tab', (payload) => {
-  if(payload.uid !== uid){
-    $('#'+partnerTab+'-file-icon').replaceWith('<div id="'+partnerTab+'-file-icon"/>');
+socket.on("show partner active tab", payload => {
+  if (payload.uid !== uid) {
+    $("#" + partnerTab + "-file-icon").replaceWith(
+      '<div id="' + partnerTab + '-file-icon"/>'
+    );
 
     //set new partner actice tab
-    partnerTab = payload.activeTab
-    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>');
+    partnerTab = payload.activeTab;
+    $("#" + partnerTab + "-file-icon").replaceWith(
+      '<img id="' +
+        partnerTab +
+        '-file-icon" class="ui avatar image partner-file-icon" src="' +
+        partner_img +
+        '" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>'
+    );
   }
-})
+});
 
 /**
  * set editor value into open tab
  */
-socket.on('set editor open tab', (payload) => {
-  var code = JSON.parse(payload.editor)
-  var fileName = payload.fileName
-  editor[fileName].setValue(code[fileName])
-  for(var i in comments){
-    editor[comments[i].file].addLineClass(parseInt(comments[i].line)-1, 'wrap', 'CodeMirror-activeline-background')
+socket.on("set editor open tab", payload => {
+  var code = JSON.parse(payload.editor);
+  var fileName = payload.fileName;
+  editor[fileName].setValue(code[fileName]);
+  for (var i in comments) {
+    editor[comments[i].file].addLineClass(
+      parseInt(comments[i].line) - 1,
+      "wrap",
+      "CodeMirror-activeline-background"
+    );
   }
-})
+});
 
-var lastInput = ''
-
-/**
- * Terminal socket
- */
-socket.on('term update', (payload) => {
-  term.writeln(payload)
-  term.prompt()
-})
+var lastInput = "";
 
 /**
  * Terminal socket
  */
-socket.on('update message', (payload) => {
-  updateScroll()
+socket.on("term update", payload => {
+  term.writeln(payload);
+  term.prompt();
+});
+
+/**
+ * Terminal socket
+ */
+socket.on("update message", payload => {
+  updateScroll();
   if (payload.user._id === uid) {
-    $(".message-list").append("<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>"+ payload.message.message +"</p></div></li>");
-    $("#inputMessage").val("")
+    $(".message-list").append(
+      "<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>" +
+        payload.message.message +
+        "</p></div></li>"
+    );
+    $("#inputMessage").val("");
   } else {
-    $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
+    $(".message-list").append(
+      "<li class='ui item'><a class='ui avatar image'><img src='" +
+        payload.user.img +
+        "'></a><div class='description curve-box'><p>" +
+        payload.message.message +
+        "</p></div></li>"
+    );
   }
-})
+});
 
-socket.on('download file', (payload) => {
-  var fileNameListLength = payload.fileNameListLength
-  var projectId = payload.projectId
-  if(fileNameListLength === 1) {
+socket.on("download file", payload => {
+  var fileNameListLength = payload.fileNameListLength;
+  var projectId = payload.projectId;
+  if (fileNameListLength === 1) {
     let a = document.createElement("a");
-    a.href = '/api/downloadFile?link='+payload.link
-    a.target = '_blank'
+    a.href = "/api/downloadFile?link=" + payload.link;
+    a.target = "_blank";
     document.body.appendChild(a);
     a.style = "display: none";
     a.click();
@@ -677,14 +802,14 @@ socket.on('download file', (payload) => {
     // $('#downloadFileModal').modal('show')
   } else {
     let a = document.createElement("a");
-    a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
-    a.download
+    a.href = "../project_files/" + projectId + "/" + projectId + ".zip";
+    a.download;
     document.body.appendChild(a);
     a.style = "display: none";
     a.click();
     document.body.removeChild(a);
   }
-})
+});
 
 /**
  * WebRTC TEST MUTING
@@ -692,100 +817,98 @@ socket.on('download file', (payload) => {
 function muteEvent(b) {
   if ($(b).hasClass("active")) {
     webrtc.mute();
-  }
-  else {
+  } else {
     webrtc.unmute();
   }
 }
 function videoEvent(b) {
   if ($(b).hasClass("active")) {
     webrtc.pauseVideo();
-  }
-  else {
+  } else {
     webrtc.resumeVideo();
   }
 }
 
 // attach ready event -- Video Toggle
-$(document)
-  .ready(function () {
-    $('.ui.video.toggle.button')
-      .state({
-        text: {
-          inactive: '<i class="pause circle icon"/>',
-          active: '<i class="play video icon"/>'
-        }
-      });
-    $('.ui.mute.toggle.button')
-      .state({
-        text: {
-          inactive: '<i class="mute icon"/>',
-          active: '<i class="unmute icon"/>'
-        }
-      });
-    $('#inputMessage').keydown(function() {
-      socket.emit('is typing', {
-        uid: uid,
-        text: `${user} is typing...`
-      })
-      clearTimeout(parseInt($('#inputMessage').attr('data-timeId')))
-    });
-    $('#inputMessage').keyup(function() {
-      let timeId = setTimeout(function(){
-        socket.emit('is typing', {
-            uid: uid,
-            text: ''
-        })
-      }, 5000)
-      $('#inputMessage').attr('data-timeId', timeId)
-    });
-    $('#inputMessage').keydown(function(e) {
-      if (e.keyCode == 13) {
-        sendMessage()
-      }
-    });
-    updateScroll();
+$(document).ready(function() {
+  $(".ui.video.toggle.button").state({
+    text: {
+      inactive: '<i class="pause circle icon"/>',
+      active: '<i class="play video icon"/>'
+    }
   });
+  $(".ui.mute.toggle.button").state({
+    text: {
+      inactive: '<i class="mute icon"/>',
+      active: '<i class="unmute icon"/>'
+    }
+  });
+  $("#inputMessage").keydown(function() {
+    socket.emit("is typing", {
+      uid: uid,
+      text: `${user} is typing...`
+    });
+    clearTimeout(parseInt($("#inputMessage").attr("data-timeId")));
+  });
+  $("#inputMessage").keyup(function() {
+    let timeId = setTimeout(function() {
+      socket.emit("is typing", {
+        uid: uid,
+        text: ""
+      });
+    }, 5000);
+    $("#inputMessage").attr("data-timeId", timeId);
+  });
+  $("#inputMessage").keydown(function(e) {
+    if (e.keyCode == 13) {
+      sendMessage();
+    }
+  });
+  updateScroll();
+});
 
 //- is just jQuery short-hand for $(function () {...})
-$(function(){
-
+$(function() {
   var acc = 0;
   var session_flag = 0;
   // send active time
-  setInterval(function(){
-    const counts = $('#counts_min_sec').attr('data-count');
-    const min = $('#counts_min_sec').attr('data-min');
-    const sec = $('#counts_min_sec').attr('data-sec');
-    if(roles.user === "reviewer" && counts !== undefined && session_flag === 0) {
+  setInterval(function() {
+    const counts = $("#counts_min_sec").attr("data-count");
+    const min = $("#counts_min_sec").attr("data-min");
+    const sec = $("#counts_min_sec").attr("data-sec");
+    if (
+      roles.user === "reviewer" &&
+      counts !== undefined &&
+      session_flag === 0
+    ) {
       session_flag = 1;
       acc = counts;
-    }else if(roles.user === "coder" && session_flag === 1){
+    } else if (roles.user === "coder" && session_flag === 1) {
       session_flag = 0;
-    } else if(roles.user === "reviewer" && counts >= 0 && session_flag === 1) {
-      socket.emit('reviewer active time', {
+    } else if (roles.user === "reviewer" && counts >= 0 && session_flag === 1) {
+      socket.emit("reviewer active time", {
         counts: counts,
-        mins : pad(parseInt((counts-acc)/60)),
-        secs: pad((counts-acc)%60)
-      })
+        mins: pad(parseInt((counts - acc) / 60)),
+        secs: pad((counts - acc) % 60)
+      });
     }
   }, 1000);
 
-  var lastSavedTime = 0
+  var lastSavedTime = 0;
 
   setInterval(function() {
-    const counts = $('#counts_min_sec').attr('data-count');
-    let add = counts - lastSavedTime
+    const counts = $("#counts_min_sec").attr("data-count");
+    let add = counts - lastSavedTime;
 
     if (counts !== undefined && add > 0) {
-      socket.emit('save active time',{
+      socket.emit("save active time", {
         uid: uid,
         time: add
-      })
+      });
 
-      lastSavedTime = counts
+      lastSavedTime = counts;
     }
-  }, 10000)
+  }, 10000);
 });
 
 // $('.ui.video.toggle.button')
@@ -794,148 +917,196 @@ $(function(){
 //   .on('click', handler.activate);
 
 function switchRole() {
-  socket.emit('switch role', {
+  socket.emit("switch role", {
     user: user,
-    action: 'switch role'
-  })
-}
-
-function updateScroll(){
-  // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
-  $(".chat-history").animate({ scrollTop: $('.message-list').height() }, "fast");
-}
-
-function pad ( val ) { return val > 9 ? val : "0" + val; }
-
-//add file tab
-function addFile(){
-  $('#filename-modal').modal('show')
-  $('.filename').val('')
-
-  //disable create button when input is empty
-  $('#createBtn').prop('disabled', true);
-  $('.filename').keyup(function() {
-    var disable = false;
-    var isExists = false;
-    var fileName = $('.filename').val()
-    isExists = projectFiles.indexOf(fileName)
-
-    $('.filename').each(function() {
-      if ($(this).val() == "" || isExists!=-1 || (!fileName.match(/^[0-9a-zA-Z\.]*$/)) || fileName.indexOf('.') !== -1) {
-        disable = true;
-        if(isExists!=-1){
-          $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">This File name already exists.</p>')
-        }
-        if(!fileName.match(/^[0-9a-zA-Z\.]*$/) || fileName.indexOf('.') !== -1){
-          $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">Filename should not have special characters.</p>')
-        }
-      }else{
-        $('.file.name.exists.warning').html('')
-      }
-    });
-    $('#createBtn').prop('disabled', disable);
+    action: "switch role"
   });
 }
 
-function getActiveTab(fileName){
-  var isNewTab = true
-  var openNewTab = ''
-  if(fileName!='main'){
+function updateScroll() {
+  // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
+  $(".chat-history").animate(
+    { scrollTop: $(".message-list").height() },
+    "fast"
+  );
+}
+
+function pad(val) {
+  return val > 9 ? val : "0" + val;
+}
+
+//add file tab
+function addFile() {
+  $("#filename-modal").modal("show");
+  $(".filename").val("");
+
+  //disable create button when input is empty
+  $("#createBtn").prop("disabled", true);
+  $(".filename").keyup(function() {
+    var disable = false;
+    var isExists = false;
+    var fileName = $(".filename").val();
+    isExists = projectFiles.indexOf(fileName);
+
+    $(".filename").each(function() {
+      if (
+        $(this).val() == "" ||
+        isExists != -1 ||
+        !fileName.match(/^[0-9a-zA-Z\.]*$/) ||
+        fileName.indexOf(".") !== -1
+      ) {
+        disable = true;
+        if (isExists != -1) {
+          $(".file.name.exists.warning").html(
+            '<p style="margin-left:95px; margin-top:5px; color: #db2828;">This File name already exists.</p>'
+          );
+        }
+        if (
+          !fileName.match(/^[0-9a-zA-Z\.]*$/) ||
+          fileName.indexOf(".") !== -1
+        ) {
+          $(".file.name.exists.warning").html(
+            '<p style="margin-left:95px; margin-top:5px; color: #db2828;">Filename should not have special characters.</p>'
+          );
+        }
+      } else {
+        $(".file.name.exists.warning").html("");
+      }
+    });
+    $("#createBtn").prop("disabled", disable);
+  });
+}
+
+function getActiveTab(fileName) {
+  var isNewTab = true;
+  var openNewTab = "";
+  if (fileName != "main") {
     var fileTab = document.getElementById("file-tabs").children;
-    for(var i=0; i<fileTab.length; i++){
-      if(fileName==fileTab[i].id){
-        isNewTab = false
+    for (var i = 0; i < fileTab.length; i++) {
+      if (fileName == fileTab[i].id) {
+        isNewTab = false;
       }
     }
     //open tab which is already closed
-    if(isNewTab&&(isCloseTab==false)){
-      openTab(fileName)
+    if (isNewTab && isCloseTab == false) {
+      openTab(fileName);
     }
   }
 
-  if(isCloseTab){currentTab='main'; fileName='main';}
+  if (isCloseTab) {
+    currentTab = "main";
+    fileName = "main";
+  }
   //old tab
-  $('#'+currentTab).removeClass('active');
-  $('#'+currentTab+'-tab').removeClass('active');
-  $('#'+currentTab+'-file').removeClass('file-active');
-  $('#'+currentTab+'-header').removeClass('file-active');
+  $("#" + currentTab).removeClass("active");
+  $("#" + currentTab + "-tab").removeClass("active");
+  $("#" + currentTab + "-file").removeClass("file-active");
+  $("#" + currentTab + "-header").removeClass("file-active");
 
   //new tab
-  $('#'+fileName).addClass('active');
-  $('#'+fileName+'-tab').addClass('active');
-  $('#'+fileName+'-file').addClass('file-active');
-  $('#'+fileName+'-header').addClass('file-active');
+  $("#" + fileName).addClass("active");
+  $("#" + fileName + "-tab").addClass("active");
+  $("#" + fileName + "-file").addClass("file-active");
+  $("#" + fileName + "-header").addClass("file-active");
 
-  currentTab = fileName
+  currentTab = fileName;
   setTimeout(function() {
     editor[fileName].refresh();
   }, 1);
-  sendActiveTab(currentTab)
-  isCloseTab = false
+  sendActiveTab(currentTab);
+  isCloseTab = false;
 }
 
-function closeTab(fileName){
+function closeTab(fileName) {
   var tab = document.getElementById(fileName);
   tab.remove();
-  var tabContent = document.getElementById(fileName+'-tab');
+  var tabContent = document.getElementById(fileName + "-tab");
   tabContent.remove();
-  delete editor[fileName]
-  $(".file.menu").children('a').first().click();
+  delete editor[fileName];
+  $(".file.menu")
+    .children("a")
+    .first()
+    .click();
   $("#main").click();
   isCloseTab = true;
   var fileTab = document.getElementById("file-tabs").children;
 }
 
 function openTab(fileName) {
-  $('.add-file').closest('a').before('<a class="item" id="'+fileName+'" data-tab="' + fileName + '" onClick="getActiveTab(\''+fileName+'\')">'+ fileName + '.py <span onClick="closeTab(\''+fileName+'\')"><i class="delete icon" id="close-tab-icon"></i></span></a>');
-  $('.tab-content').append('<div class="ui bottom attached tab segment" id="'+fileName+'-tab" data-tab="' + fileName + '"> <textarea class="show" id="'+fileName+'text"></textarea></div>');
-  $('.menu .item').tab();
-  newEditorFacade(fileName)
-  socket.emit('open tab', fileName)
+  $(".add-file")
+    .closest("a")
+    .before(
+      '<a class="item" id="' +
+        fileName +
+        '" data-tab="' +
+        fileName +
+        '" onClick="getActiveTab(\'' +
+        fileName +
+        "')\">" +
+        fileName +
+        ".py <span onClick=\"closeTab('" +
+        fileName +
+        '\')"><i class="delete icon" id="close-tab-icon"></i></span></a>'
+    );
+  $(".tab-content").append(
+    '<div class="ui bottom attached tab segment" id="' +
+      fileName +
+      '-tab" data-tab="' +
+      fileName +
+      '"> <textarea class="show" id="' +
+      fileName +
+      'text"></textarea></div>'
+  );
+  $(".menu .item").tab();
+  newEditorFacade(fileName);
+  socket.emit("open tab", fileName);
 }
 
-function createFile(){
-  var fileName =  $('.filename').val()
-  socket.emit('create file', fileName)
+function createFile() {
+  var fileName = $(".filename").val();
+  socket.emit("create file", fileName);
 }
 
-function exportSingleFile(fileName, text){
-  var element = document.createElement('a')
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', fileName+'.py');
-  element.style.display = 'none';
+function exportSingleFile(fileName, text) {
+  var element = document.createElement("a");
+  element.setAttribute(
+    "href",
+    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+  );
+  element.setAttribute("download", fileName + ".py");
+  element.style.display = "none";
   document.body.appendChild(element);
   element.click();
   document.body.removeChild(element);
 }
 
-function showExportModal(){
-  $('#export-modal').modal('show')
+function showExportModal() {
+  $("#export-modal").modal("show");
 }
 
-function showDeleteFileModal(fileName){
-  $('#'+fileName+'-delete-file-modal').modal('show')
+function showDeleteFileModal(fileName) {
+  $("#" + fileName + "-delete-file-modal").modal("show");
 }
 
-function deleteFile(fileName){
-  socket.emit('delete file', fileName)
+function deleteFile(fileName) {
+  socket.emit("delete file", fileName);
 }
 
-function onClickExport(){
-  let fileNameList = []
-  $('[name="checkbox-file"]').each( function (){
-    if($(this).prop('checked') == true){
-        fileNameList.push($(this).val())
+function onClickExport() {
+  let fileNameList = [];
+  $('[name="checkbox-file"]').each(function() {
+    if ($(this).prop("checked") == true) {
+      fileNameList.push($(this).val());
     }
-  })
+  });
   if (fileNameList.length) {
-    socket.emit('export file', {
+    socket.emit("export file", {
       fileNameList: fileNameList,
       code: getAllFileEditor()
-    })
+    });
   } else {
     // console.log('Please, selected file before click \"Export\" button.')
-    alert('Please, selected file before click \"Export\" button.')
+    alert('Please, selected file before click "Export" button.');
   }
   // exportSingleFile(fileName, text)
 }
@@ -944,48 +1115,47 @@ function setOnChangeEditer(fileName) {
   /**
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
-  editor[fileName].on('change', (ins, data) => {
-
-    var text = data.text.toString().charCodeAt(0)
-    var enterline = parseInt(data.to.line)+1
-    var remove = data.removed
-    var isEnter = false
-    var isDelete = false
+  editor[fileName].on("change", (ins, data) => {
+    var text = data.text.toString().charCodeAt(0);
+    var enterline = parseInt(data.to.line) + 1;
+    var remove = data.removed;
+    var isEnter = false;
+    var isDelete = false;
 
     //check when enter new line
-    if(text==44){
+    if (text == 44) {
       // console.log('enter '+enterline)
-        for(var i in comments){
-          if((comments[i].line > enterline) && (comments[i].file==fileName)){
-            isEnter = true
-            comments[i].line = parseInt(comments[i].line)+1
-          }
+      for (var i in comments) {
+        if (comments[i].line > enterline && comments[i].file == fileName) {
+          isEnter = true;
+          comments[i].line = parseInt(comments[i].line) + 1;
         }
-      socket.emit('move hilight',{
+      }
+      socket.emit("move hilight", {
         fileName: fileName,
         comments: comments,
         enterline: enterline,
         isEnter: isEnter
-      })
+      });
     }
 
     //check when delete line
-    if(remove.length==2){
-      for(var i in comments){
-        if((comments[i].line > enterline-1) && (comments[i].file==fileName)){
-          isDelete = true
-          comments[i].line = parseInt(comments[i].line)-1
+    if (remove.length == 2) {
+      for (var i in comments) {
+        if (comments[i].line > enterline - 1 && comments[i].file == fileName) {
+          isDelete = true;
+          comments[i].line = parseInt(comments[i].line) - 1;
         }
       }
-      socket.emit('move hilight',{
+      socket.emit("move hilight", {
         fileName: fileName,
         comments: comments,
         enterline: enterline,
-        isDelete: isDelete,
-      })
+        isDelete: isDelete
+      });
     }
 
-    socket.emit('code change', {
+    socket.emit("code change", {
       code: data,
       editor: editor[fileName].getValue(),
       user: user,
@@ -993,55 +1163,65 @@ function setOnChangeEditer(fileName) {
       isEnter: isEnter,
       isDelete: isDelete,
       currentTab: fileName,
-      fileName : fileName
-    })
-  })
+      fileName: fileName
+    });
+  });
 }
 
 function setOnDoubleClickEditor(fileName) {
   /**
    * Code review modal
    */
-  editor[fileName].on('dblclick', () => {
-    let A1 = editor[fileName].getCursor().line
-    let A2 = editor[fileName].getCursor().ch
+  editor[fileName].on("dblclick", () => {
+    let A1 = editor[fileName].getCursor().line;
+    let A2 = editor[fileName].getCursor().ch;
     let B1 = editor[fileName].findWordAt({
       line: A1,
       ch: A2
-    }).anchor.ch
+    }).anchor.ch;
     let B2 = editor[fileName].findWordAt({
       line: A1,
       ch: A2
-    }).head.ch
-    $('input.disabled.line.no').val(A1 + 1)
-    $('input.disabled.file.name').val(fileName+".py")
-    $('input.hidden.file.name').val(fileName)
-    let line = $('input.disabled.line.no').val()
+    }).head.ch;
+    $("input.disabled.line.no").val(A1 + 1);
+    $("input.disabled.file.name").val(fileName + ".py");
+    $("input.hidden.file.name").val(fileName);
+    let line = $("input.disabled.line.no").val();
     switch (roles.user) {
-      case 'coder':
-        for(var i in comments){
-          if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
-            $('textarea.line.coder.disabled.description').val(comments[i].description)
-            break
-          }else{
-            $('textarea.line.coder.disabled.description').val('')
+      case "coder":
+        for (var i in comments) {
+          if (
+            comments[i].file == fileName &&
+            comments[i].line == parseInt(line)
+          ) {
+            $("textarea.line.coder.disabled.description").val(
+              comments[i].description
+            );
+            break;
+          } else {
+            $("textarea.line.coder.disabled.description").val("");
           }
         }
-        $('.ui.coder.small.modal').modal('show')
-        break
-      case 'reviewer':
-        for(var i in comments){
-          if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
-            $('textarea.line.reviewer.description').val(comments[i].description)
-            break
-          }else{
-            $('textarea.line.reviewer.description').val('')
+        $(".ui.coder.small.modal").modal("show");
+        break;
+      case "reviewer":
+        for (var i in comments) {
+          if (
+            comments[i].file == fileName &&
+            comments[i].line == parseInt(line)
+          ) {
+            $("textarea.line.reviewer.description").val(
+              comments[i].description
+            );
+            break;
+          } else {
+            $("textarea.line.reviewer.description").val("");
           }
         }
-        $('.ui.reviewer.small.modal').modal('show')
-        break
+        $(".ui.reviewer.small.modal").modal("show");
+        break;
     }
-  })
+  });
 }
 
 function getAllFileEditor() {
@@ -1054,24 +1234,32 @@ function getAllFileEditor() {
 }
 
 function newEditorFacade(fileName) {
-  setEditor(fileName)
-  setOnChangeEditer(fileName)
-  setOnDoubleClickEditor(fileName)
+  setEditor(fileName);
+  setOnChangeEditer(fileName);
+  setOnDoubleClickEditor(fileName);
 
   //setup partner active tab
-  if(fileName == "main") {
-    $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>');
+  if (fileName == "main") {
+    $("#" + partnerTab + "-file-icon").replaceWith(
+      '<img id="' +
+        partnerTab +
+        '-file-icon" class="ui avatar image partner-file-icon" src="' +
+        partner_img +
+        '" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>'
+    );
   } else {
-    $('#'+fileName+'-file-icon').replaceWith('<div id="'+fileName+'-file-icon"/>');
+    $("#" + fileName + "-file-icon").replaceWith(
+      '<div id="' + fileName + '-file-icon"/>'
+    );
   }
 }
 
 function storeActiveTime() {
-  const counts = $('#counts_min_sec').attr('data-count');
-  if(counts !== undefined) {
-    socket.emit('save active time',{
+  const counts = $("#counts_min_sec").attr("data-count");
+  if (counts !== undefined) {
+    socket.emit("save active time", {
       uid: uid,
       time: counts
-    })
+    });
   }
 }

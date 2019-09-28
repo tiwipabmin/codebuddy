@@ -1,147 +1,149 @@
 extends layout/layout.pug
 
 block script
-    script(src='/js/app/classroom.js')
-    script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
-    script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
-    link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
-    link(rel='stylesheet' href='/css/main.css')
-    script(type='text/javascript').
-      $(document).ready(function () {
-        setClassroomDetail('!{data_set.common.section.day}', '!{data_set.common.section.time_start}', '!{data_set.common.section.time_end}')
-      });
-      
-    style.
-      @media (min-height: 200px) {
-        .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-          position: absolute;
-          width: 100%;
-        }
-      }
+  script(src='/js/app/classroom.js')
+  script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
+  script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+  link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+  link(rel='stylesheet' href='/css/main.css')
+  script(type='text/javascript').
+    $(document).ready(function () {
+      setClassroomDetail('!{data_set.common.section.day}', '!{data_set.common.section.time_start}', '!{data_set.common.section.time_end}')
+    });
+
+  style.
+    @media (min-height: 200px) {
+    .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+    position: fixed;
+    margin-top: 20px;
+    bottom: 0;
+    width: 100%;
+    }
+    }
 
 block content
-    if user.info.occupation === 'teacher'
-      +pairStudent(user, data_set.common.students, data_set.common.pairing_sessions, data_set.common.section)
-      +alertModal()
-      +confirmModal()
-      +assignmentManagementModal()
-      +assignmentEndTimeModal()
-      +settingsModal()
-      +assignmentModal()
-      +pairingSettingsModal()
-      
-    .ui.raised.very.padded.container
-      .ui.centered.grid(style='padding-top:20px;')
-        +detailSection()
-        .ten.wide.column#first_container
-          .ui.segment#segment_in_first_container
-            .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_first_container(style='padding-top:20px; margin-bottom:20px;')
-              .column
-                if user.info.occupation === 'teacher'
-                  h1.ui.header#headerContainer Assignment
-                else
-                  h1.ui.header#headerContainer My Project
-              .right.column
-                div
-                  .ui.selection.dropdown#weeks(style='float: right;')
-                    i.dropdown.icon
+  if user.info.occupation === 'teacher'
+    +pairStudent(user, data_set.common.students, data_set.common.pairing_sessions, data_set.common.section)
+    +alertModal()
+    +confirmModal()
+    +assignmentManagementModal()
+    +assignmentEndTimeModal()
+    +settingsModal()
+    +assignmentModal()
+    +pairingSettingsModal()
+
+  .ui.raised.very.padded.container
+    .ui.centered.grid(style='padding-top:20px;')
+      +detailSection()
+      .ten.wide.column#first_container
+        .ui.segment#segment_in_first_container
+          .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_first_container(style='padding-top:20px; margin-bottom:20px;')
+            .column
+              if user.info.occupation === 'teacher'
+                h1.ui.header#headerContainer Assignment
+              else
+                h1.ui.header#headerContainer My Project
+            .right.column
+              div
+                .ui.selection.dropdown#weeks(style='float: right;')
+                  i.dropdown.icon
+                  if data_set.common.weeks.length > 0
+                    .default.text Select week
+                  else
+                    .default.text No week
+                  .menu#menu_week(name='status')
                     if data_set.common.weeks.length > 0
-                      .default.text Select week
-                    else
-                      .default.text No week
-                    .menu#menu_week(name='status')
-                      if data_set.common.weeks.length > 0
-                        if user.info.occupation === 'teacher'
-                          .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.assignments}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 0)') All
-                        else
-                          .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.projects}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 1)') All
-                      each week in data_set.common.weeks
-                        if user.info.occupation === 'teacher'
-                          .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.assignments}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 0)') !{week}
-                        else
-                          .item(id=`${week}`+'week'  data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.projects}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 1)') !{week}
-                  script(type='text/javascript').
-                    $('#weeks').dropdown();
-            if user.info.occupation === 'teacher'
-              .ui.secondary.pointing.menu#uspm
-                a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Setting
-                a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
-                a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Manage Assignment
-              .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
-                button.ui.button.approve.blue.newAssignment Create
-                button.ui.button.approve.blue#delete_assignment_button Delete
-              .ui.segment.uspm#action_checkbox_segment(style='display: none')
-                button.ui.button.approve.blue#check_all_of_box(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 1)') Check All Box
-                button.ui.button.approve.blue#clear_checkbox(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 0)') Clear Checkbox
-              .ui.segment.uspm#manageAssignment_segment(style='display: none')
-                button.ui.button.approve.blue#assign_button Assign
-                button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_assignment_button()') Enable Assignment
-                button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
-              .ui.section.divider#divider_in_first_container
-              if data_set.common.assignments.length > 0
+                      if user.info.occupation === 'teacher'
+                        .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.assignments}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 0)') All
+                      else
+                        .item#-1week(data-value='-1' onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.projects}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 1)') All
+                    each week in data_set.common.weeks
+                      if user.info.occupation === 'teacher'
+                        .item(id=`${week}`+'week' data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.assignments}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 0)') !{week}
+                      else
+                        .item(id=`${week}`+'week' data-value=''+`${week}` onclick='on_click_weeks_dropdown('+`$(this).attr('id')`+', '+`${data_set.json.projects}`+', \''+`${user.username}`+'\', \''+`${user.img}`+'\', '+`${data_set.common.pairing_sessions[0].pairing_session_id}`+', 1)') !{week}
                 script(type='text/javascript').
-                  $(document).ready(function() {
-                    on_click_weeks_dropdown('-1week', !{data_set.json.assignments}, `!{user.username}`, `!{user.img}`, `!{data_set.common.pairing_sessions[0].pairing_session_id}`, 0)
-                  })
-              else
-                p.text-center#no_assignment No assignment.
-            else
-              if data_set.common.projects.length > 0
-                script(type='text/javascript').
-                  $(document).ready(function() {
-                    on_click_weeks_dropdown('-1week', !{data_set.json.projects}, `!{user.username}`, `!{user.img}`, `!{data_set.common.pairing_sessions[0].pairing_session_id}`, 1)
-                  })
-              else
-                p.text-center No project.  
-            
-        .ten.wide.column#second_container(style='display:none;')
-          .ui.segment#segment_in_second_container
-            .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_second_container(style='padding-top:20px; margin-bottom:20px;')
-              .column
-                h1.ui.header#headerContainer Student
-            if data_set.common.students.length > 0
+                  $('#weeks').dropdown();
+          if user.info.occupation === 'teacher'
+            .ui.secondary.pointing.menu#uspm
+              a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Setting
+              a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
+              a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Manage Assignment
+            .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
+              button.ui.button.approve.blue.newAssignment Create
+              button.ui.button.approve.blue#delete_assignment_button Delete
+            .ui.segment.uspm#action_checkbox_segment(style='display: none')
+              button.ui.button.approve.blue#check_all_of_box(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 1)') Check All Box
+              button.ui.button.approve.blue#clear_checkbox(onclick='checkbox_event('+`${data_set.json.assignments}`+', \"-1week\", 0)') Clear Checkbox
+            .ui.segment.uspm#manageAssignment_segment(style='display: none')
+              button.ui.button.approve.blue#assign_button Assign
+              button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_assignment_button()') Enable Assignment
+              button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
+            .ui.section.divider#divider_in_first_container
+            if data_set.common.assignments.length > 0
               script(type='text/javascript').
                 $(document).ready(function() {
-                  set_item_pagination_in_second_container(!{data_set.json.students}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
-                  on_click_page_number_in_second_container(1)
+                  on_click_weeks_dropdown('-1week', !{data_set.json.assignments}, `!{user.username}`, `!{user.img}`, `!{data_set.common.pairing_sessions[0].pairing_session_id}`, 0)
                 })
             else
-              p.text-center No student.  
-                      
-        .ten.wide.column#third_container(style='display:none;')
-          .ui.segment#segment_in_third_container
-            .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_third_container(style='padding-top:20px; margin-bottom:20px;')
-              .column
-                if user.info.occupation === 'teacher'
-                  h1.ui.header#headerContainer Pairing Session
-                else
-                  h1.ui.header#headerContainer Assignment
-              //- .column
-              //-   .ui.button.approve.teal#resetPair-button Reset Pair
-              .right.column
-                if user.info.occupation === 'teacher'
-                  a.right
-                    button.ui.button.approve.green#newPairingSession(style='float: right;', onclick='onClickCreateSession('+data_set.common.pairing_sessions[0].pairing_session_id+', \''+data_set.common.section.section_id+'\', '+data_set.common.pairing_sessions[0].status+')', value=`${data_set.common.pairing_sessions[0].status}`) Create Session
-            if user.info.occupation === 'teacher'
-              if data_set.common.pairing_sessions.length > 0 && data_set.common.pairing_sessions[0].status >= 0
-                script(type='text/javascript').
-                  $(document).ready(function() {
-                    set_item_pagination_in_third_container(!{data_set.json.pairing_sessions}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
-                    on_click_page_number_in_third_container(1)
-                    $('.ui.pointing.dropdown').dropdown();
-                  })
-                  
-              else
-                p.text-center#no_session No session.
+              p.text-center#no_assignment No assignment.
+          else
+            if data_set.common.projects.length > 0
+              script(type='text/javascript').
+                $(document).ready(function() {
+                  on_click_weeks_dropdown('-1week', !{data_set.json.projects}, `!{user.username}`, `!{user.img}`, `!{data_set.common.pairing_sessions[0].pairing_session_id}`, 1)
+                })
             else
-              if data_set.common.assignments.length > 0
-                script(type='text/javascript').
-                  $(document).ready(function() {
-                    set_item_pagination_in_third_container(!{data_set.json.assignments}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
-                    on_click_page_number_in_third_container(1)
-                    monitorActiveProjects(!{data_set.json.projects})
-                    clearInterval("!{user.username}")
-                    setMonitoringInterval("!{user.username}", 60000, !{data_set.json.projects})
-                  })
+              p.text-center No project.  
+
+      .ten.wide.column#second_container(style='display:none;')
+        .ui.segment#segment_in_second_container
+          .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_second_container(style='padding-top:20px; margin-bottom:20px;')
+            .column
+              h1.ui.header#headerContainer Student
+          if data_set.common.students.length > 0
+            script(type='text/javascript').
+              $(document).ready(function() {
+                set_item_pagination_in_second_container(!{data_set.json.students}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
+                on_click_page_number_in_second_container(1)
+              })
+          else
+            p.text-center No student.  
+
+      .ten.wide.column#third_container(style='display:none;')
+        .ui.segment#segment_in_third_container
+          .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_third_container(style='padding-top:20px; margin-bottom:20px;')
+            .column
+              if user.info.occupation === 'teacher'
+                h1.ui.header#headerContainer Pairing Session
               else
-                p.text-center No assignment.
+                h1.ui.header#headerContainer Assignment
+            //- .column
+            //-   .ui.button.approve.teal#resetPair-button Reset Pair
+            .right.column
+              if user.info.occupation === 'teacher'
+                a.right
+                  button.ui.button.approve.green#newPairingSession(style='float: right;' onclick='onClickCreateSession('+data_set.common.pairing_sessions[0].pairing_session_id+', \''+data_set.common.section.section_id+'\', '+data_set.common.pairing_sessions[0].status+')', value=`${data_set.common.pairing_sessions[0].status}`) Create Session
+          if user.info.occupation === 'teacher'
+            if data_set.common.pairing_sessions.length > 0 && data_set.common.pairing_sessions[0].status >= 0
+              script(type='text/javascript').
+                $(document).ready(function() {
+                  set_item_pagination_in_third_container(!{data_set.json.pairing_sessions}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
+                  on_click_page_number_in_third_container(1)
+                  $('.ui.pointing.dropdown').dropdown();
+                })
+
+            else
+              p.text-center#no_session No session.
+          else
+            if data_set.common.assignments.length > 0
+              script(type='text/javascript').
+                $(document).ready(function() {
+                  set_item_pagination_in_third_container(!{data_set.json.assignments}, "!{data_set.common.section.section_id}", "!{user.info.occupation}")
+                  on_click_page_number_in_third_container(1)
+                  monitorActiveProjects(!{data_set.json.projects})
+                  clearInterval("!{user.username}")
+                  setMonitoringInterval("!{user.username}", 60000, !{data_set.json.projects})
+                })
+            else
+              p.text-center No assignment.

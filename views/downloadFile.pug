@@ -1,32 +1,34 @@
 extends layout/layout.pug
 
 block script
-    //- script(src='/js/app/dashboard.js')
-    script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
-    script(src='/jquery-timepicker/jquery.timepicker.min.js')
-    link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
-    link(rel='stylesheet', href='/jquery-timepicker/jquery.timepicker.css')
-    link(rel='stylesheet' href='/css/main.css')
+  //- script(src='/js/app/dashboard.js')
+  script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+  script(src='/jquery-timepicker/jquery.timepicker.min.js')
+  link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+  link(rel='stylesheet' href='/jquery-timepicker/jquery.timepicker.css')
+  link(rel='stylesheet' href='/css/main.css')
 
 
-    style.
-      @media (min-height: 200px) {
-      .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-      position: absolute;
-      width: 100%;
-      }
-      }
+  style.
+    @media (min-height: 200px) {
+    .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+    position: fixed;
+    margin-top: 20px;
+    bottom: 0;
+    width: 100%;
+    }
+    }
 
 block content
-    script(type='text/javascript').
-      $(document).ready(function(){
-        let a = document.createElement("a");
-        a.href = "!{data_set.common.link}"
-        a.download
-        document.body.appendChild(a);
-        a.style = "display: none";
-        a.click();
-        document.body.removeChild(a);
-      })
-    h1
-      p(align='center') Downloaded!
+  script(type='text/javascript').
+    $(document).ready(function(){
+      let a = document.createElement("a");
+      a.href = "!{data_set.common.link}"
+      a.download
+      document.body.appendChild(a);
+      a.style = "display: none";
+      a.click();
+      document.body.removeChild(a);
+    })
+  h1
+    p(align='center') Downloaded!

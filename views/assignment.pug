@@ -1,96 +1,98 @@
 extends layout/layout.pug
 
 block script
-    script(src='/js/app/classroom.js')
-    script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
-    link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
-    link(rel='stylesheet' href='/css/main.css')
-    script(type='text/javascript').
-      $(document).ready(function () {
-        $('#assignment-modal').modal({
-          closable: false,
-          transition: 'fade up',
-          onApprove : function() {
-            //$('.ui.form').submit();
-            return false;
+  script(src='/js/app/classroom.js')
+  script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+  link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+  link(rel='stylesheet' href='/css/main.css')
+  script(type='text/javascript').
+    $(document).ready(function () {
+      $('#assignment-modal').modal({
+        closable: false,
+        transition: 'fade up',
+        onApprove : function() {
+          //$('.ui.form').submit();
+          return false;
+        },
+      })
+      $('.ui.form.createAssignment').form({
+        fields: {
+          title: {
+            identifier: 'title',
+            rules: [
+              {
+                type   : 'empty',
+                prompt : 'Please enter your title'
+              }
+            ]
           },
-        })
-        $('.ui.form.createAssignment').form({
-          fields: {
-            title: {
-              identifier: 'title',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your title'
-                }
-              ]
-            },
-            description: {
-              identifier: 'description',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your description'
-                }
-              ]
-            },
-            input_specification: {
-              identifier: 'input_specification',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your input specification'
-                }
-              ]
-            },
-            output_specification: {
-              identifier: 'output_specification',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your output specification'
-                }
-              ]
-            },
-            sample_input: {
-              identifier: 'sample_input',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your sample input'
-                }
-              ]
-            },
-            sample_output: {
-              identifier: 'sample_output',
-              rules: [
-                {
-                  type   : 'empty',
-                  prompt : 'Please enter your sample output'
-                }
-              ]
-            }
+          description: {
+            identifier: 'description',
+            rules: [
+              {
+                type   : 'empty',
+                prompt : 'Please enter your description'
+              }
+            ]
           },
-          onSuccess : function() {
-            $('#assignment-modal').modal('hide');
+          input_specification: {
+            identifier: 'input_specification',
+            rules: [
+              {
+                type   : 'empty',
+                prompt : 'Please enter your input specification'
+              }
+            ]
           },
-        })
-      });
-      function showDeleteModal(){
-        $('#delete-modal').modal('show')
-      }
-      function showAssignmentModal(){
-        $('#assignment-modal').modal('show')
-      }
+          output_specification: {
+            identifier: 'output_specification',
+            rules: [
+              {
+                type   : 'empty',
+                prompt : 'Please enter your output specification'
+              }
+            ]
+          },
+          sample_input: {
+            identifier: 'sample_input',
+            rules: [
+              {
+                type   : 'empty',
+                prompt : 'Please enter your sample input'
+              }
+            ]
+          },
+          sample_output: {
+            identifier: 'sample_output',
+            rules: [
+              {
+                type   : 'empty',
+                prompt : 'Please enter your sample output'
+              }
+            ]
+          }
+        },
+        onSuccess : function() {
+          $('#assignment-modal').modal('hide');
+        },
+      })
+    });
+    function showDeleteModal(){
+      $('#delete-modal').modal('show')
+    }
+    function showAssignmentModal(){
+      $('#assignment-modal').modal('show')
+    }
 
-    style.
-      @media (min-height: 200px) {
-      .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-      position: absolute;
-      width: 100%;
-      }
-      }
+  style.
+    @media (min-height: 200px) {
+    .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+    position: fixed;
+    margin-top: 20px;
+    bottom: 0;
+    width: 100%;
+    }
+    }
 
 block content
   .ui.segment.container
@@ -104,7 +106,7 @@ block content
               i.close.icon
               .header Assignment
               .content
-                form.ui.form.createAssignment.segment(action='/assignment/updateAssignment', method='POST')
+                form.ui.form.createAssignment.segment(action='/assignment/updateAssignment' method='POST')
                   .inline.fields
                     label Programming Style :
                     .field
@@ -128,42 +130,42 @@ block content
                       .field
                         label Title :
                         |
-                        input(type='text', name='title', placeholder='Your title', value=`${data_set.common.assignment.title}`)
+                        input(type='text' name='title' placeholder='Your title', value=`${data_set.common.assignment.title}`)
                     .three.wide.column
                       .field
                         label Week :
                         |
-                        input(type='text', name='week', placeholder='Week', maxlength='3', value=`${data_set.common.assignment.week}`)
+                        input(type='text' name='week' placeholder='Week' maxlength='3', value=`${data_set.common.assignment.week}`)
                   .field
                     label Description :
                     |
-                    textarea#description(type='text', name='description', placeholder='Some content...', style='resize:none;') !{data_set.common.assignment.description}
+                    textarea#description(type='text' name='description' placeholder='Some content...' style='resize:none;') !{data_set.common.assignment.description}
                   .ui.grid
                     .two.column.row
                       .column
                         .field
                           label Input specification :
                           |
-                          textarea#input_specification(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;') !{data_set.common.assignment.input_specification}
+                          textarea#input_specification(row='2' type='text' name='input_specification' placeholder='Input specification...' style='resize:none;') !{data_set.common.assignment.input_specification}
                       .column
                         .field
                           label Output specification :
                           |
-                          textarea#output_specification(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;') !{data_set.common.assignment.output_specification}
+                          textarea#output_specification(row='2' type='text' name='output_specification' placeholder='Output specification...' style='resize:none;') !{data_set.common.assignment.output_specification}
                   .ui.grid
                     .two.column.row
                       .column
                         .field
                           label Sample Input :
                           |
-                          textarea#sample_input(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;') !{data_set.common.assignment.sample_input}
+                          textarea#sample_input(row='2' type='text' name='sample_input' placeholder='Sample Input...' style='resize:none;') !{data_set.common.assignment.sample_input}
                       .column
                         .field
                           label Sample Output :
                           |
-                          textarea#sample_output(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;') !{data_set.common.assignment.sample_output}
-                  input(type='hidden', name='assignment_id', value=`${data_set.common.assignment.assignment_id}`)
-                  input(type='hidden', name='section_id', value=`${data_set.common.section.section_id}`)
+                          textarea#sample_output(row='2' type='text' name='sample_output' placeholder='Sample Output...' style='resize:none;') !{data_set.common.assignment.sample_output}
+                  input(type='hidden' name='assignment_id', value=`${data_set.common.assignment.assignment_id}`)
+                  input(type='hidden' name='section_id', value=`${data_set.common.section.section_id}`)
                   .ui.basic.center.aligned.segment
                     .actions
                       button.ui.button.approve.green(type='submit') Update

@@ -1,23 +1,25 @@
 extends layout/layout.pug
 
 block script
-    script(src='/js/app/counter.js')
-    script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
-    script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
-    link(rel='stylesheet', href='/easy-autocomplete/dist/easy-autocomplete.min.css')
-    link(rel='stylesheet' href='/css/main.css')
+  script(src='/js/app/counter.js')
+  script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
+  script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+  link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+  link(rel='stylesheet' href='/css/main.css')
 
-    style.
-      @media (min-height: 200px) {
-        .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-          position: absolute;
-          width: 100%;
-        }
-      }
+  style.
+    @media (min-height: 200px) {
+    .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+    position: fixed;
+    margin-top: 20px;
+    bottom: 0;
+    width: 100%;
+    }
+    }
 
 block content
-  
-  input#previousData(type='hidden', value='[]')
+
+  input#previousData(type='hidden' value='[]')
   .ui.fluid.container.segment
     //- .ui.top.attached.tabular.menu
     //-   a.item.active(data-tab="purpose") Select by purpose
@@ -108,6 +110,6 @@ block content
               .row
                 .column
                   input#inputFile(type='file')
-                  input#viewFile(type='button', value='Import File')
+                  input#viewFile(type='button' value='Import File')
                   .ui.blue.button#updateTotalScores
                     | Update Total Scores
