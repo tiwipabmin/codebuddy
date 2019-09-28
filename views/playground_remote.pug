@@ -98,6 +98,7 @@ block content
                         .hidden.content Delete
                         .visible.content
                           i.trash.icon
+    //- review description modal
     .ui.coder.small.modal
       .header Review Description
       .content
@@ -206,6 +207,7 @@ block content
                                   .actions
                                     button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
                                     .ui.button.approve.red(data-value='cancel') Cancel 
+          //- exporting file modal
           .ui.small.modal#export-modal
             .header Export File
             .content  
