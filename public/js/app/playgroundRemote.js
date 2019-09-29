@@ -1,11 +1,6 @@
 $(document).ready(function() {
   $("#switch_role_modal").modal({
     closable: false,
-    // onDeny    : function(){
-    //   socket.emit('do not switch role', {
-    //     action: 'do not switch role'
-    //   })
-    // },
     onDeny: function() {
       $("#switch_role_modal").modal("hide");
     },
@@ -18,7 +13,7 @@ $(document).ready(function() {
     }
   });
 
-  $("#reject_to_join_project").modal({
+  $("#rejectJoining").modal({
     closable: false,
     onApprove: function() {
       $("#global_loader").attr({
@@ -215,7 +210,9 @@ socket.on("update tab", payload => {
     );
     $(".menu .item").tab();
 
-    //setup file
+    /**
+     * setup file
+     **/
     projectFiles.push(fileName);
     newEditorFacade(fileName);
     var html =
@@ -315,7 +312,6 @@ socket.on("confirm to switch role", payload => {
     $("#global_loader").attr({
       style: "display: block; position: fixed;"
     });
-    // $('#header_srm').text('เพื่อนของคุณออกจากหน้าเขียนโปรแกรมตอนนี้คุณเป็น \"Coder\" แล้วครับ/ค่ะ')
     $("#header_serm").empty();
     $("#header_serm").text("เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ");
     $("#reviewer_button").attr("style", "display:none;");
@@ -323,20 +319,15 @@ socket.on("confirm to switch role", payload => {
       pid: getParameterByName("pid"),
       username: user
     });
-    // $('#ok_button_srm').attr({
-    //   style: 'display:block;',
-    //   value: payload.status
-    // })
-    // $('#switch_role_modal').modal('show')
   } else if (
     user === payload.projectRoles.roles.reviewer &&
-    payload.projectRoles.count == 2
+    payload.numUser == 2
   ) {
     $("#header_srm").text('ถึงเวลาที่คุณเป็น "Coder" แล้วครับ/ค่ะ');
     $("#switch_role_modal").modal("show");
   } else if (
     user === payload.projectRoles.roles.coder &&
-    payload.projectRoles.count == 2
+    payload.numUser == 2
   ) {
     $("#header_srm").text('ถึงเวลาที่คุณเป็น "Reviewer" แล้วครับ/ค่ะ');
     $("#ok_button_srm").attr({
@@ -344,18 +335,10 @@ socket.on("confirm to switch role", payload => {
       value: payload.status
     });
     $("#switch_role_modal").modal("show");
-  } else if (payload.projectRoles.count == 1) {
-    // console.log('payload.projectRoles.count, ', payload.projectRoles.count)
-    socket.emit("switch role", {
-      user: user,
-      action: "switch role",
-      status: "disconnect"
-    });
   }
 });
 
 socket.on("countdown", payload => {
-  // socket.emit('wait pair', {time: 5000})
   if (payload.minutes == "0" && payload.seconds <= 15) {
     $(".countdown").html(
       `<span style="color: red;"> ${pad(payload.minutes)} : ${pad(
@@ -375,9 +358,9 @@ socket.on("countdown", payload => {
   }
 });
 
-socket.on("reject to join project", () => {
-  socket.emit("clear interval");
-  $("#reject_to_join_project").modal("show");
+socket.on("reject joining", payload => {
+  let a = document.getElementById("backToClass");
+  a.click();
 });
 
 socket.on("clear interval", () => {
@@ -385,7 +368,6 @@ socket.on("clear interval", () => {
 });
 
 socket.on("role updated", payload => {
-  // console.log('projectRoles, ', payload.projectRoles)
   if (user === payload.projectRoles.roles.reviewer) {
     roles.user = "reviewer";
     roles.partner = "coder";
@@ -416,7 +398,6 @@ socket.on("role updated", payload => {
 
   $(".partner-role-label").text(`${roles.partner}`);
   $(".user-role-label").text(`${roles.user}`);
-  // startCountdown()
 });
 
 socket.on("show reviewer active time", payload => {
@@ -435,7 +416,6 @@ socket.on("show reviewer active time", payload => {
  * `beforeunload` event will fired and sending client disconnection to the server
  */
 $(window).on("beforeunload", () => {
-  // storeActiveTime()
   socket.emit("submit code", {
     mode: "auto",
     uid: uid,
@@ -445,7 +425,6 @@ $(window).on("beforeunload", () => {
 });
 
 $(window).bind("hashchange", function() {
-  // storeActiveTime()
   socket.emit("submit code", {
     mode: "auto",
     uid: uid,
@@ -463,31 +442,11 @@ socket.on("editor update", payload => {
   }, 1);
 });
 
-/**
- * User status checking
- */
-let windowIsFocus;
-
-$(window)
-  .focus(() => {
-    windowIsFocus = true;
-  })
-  .blur(() => {
-    windowIsFocus = false;
-  });
-
-setInterval(() => {
-  socket.emit("user status", {
-    status: windowIsFocus
-  });
-}, 3000);
-
 socket.on("update status", payload => {
-  if (payload.status && payload.projectRoles.count == 2) {
+  if (payload.status && payload.numUser == 2) {
     $(".user.status").html(
       `<strong><em><i class='green circle icon'></i></em></strong>`
     );
-    // $('#global_loader').attr('style', 'display: none')
   } else {
     $(".user.status").html(
       `<strong><em><i class='grey circle icon'></i></em></strong>`
@@ -562,22 +521,21 @@ term.on("key", function(key, ev) {
 
   if (ev.keyCode == 13) {
     if (inputTerm !== "input@codebuddy") {
-      // console.log('slice, ', inputTerm.slice(inputTerm.indexOf('y') + 1, inputTerm.length), ', not slice', inputTerm)
       inputTerm = inputTerm.slice(inputTerm.indexOf("y") + 1, inputTerm.length);
       socket.emit("typing input on term", {
         inputTerm: inputTerm
       });
-      // console.log('inputTerm, ', inputTerm)
       inputTerm = "input@codebuddy";
     }
     term.prompt();
   } else if (ev.keyCode == 8) {
-    // Do not delete the prompt
+    /**
+     * Do not delete the prompt
+     **/
     if (term.x > 2) {
       term.write("\b \b");
     }
   } else if (printable) {
-    // console.log(`printable : ${key}`)
     term.write(key);
   }
 });
@@ -696,7 +654,6 @@ socket.on("auto update score", payload => {
  * Auto update score
  */
 socket.on("show auto update score", payload => {
-  // console.log(payload)
   $("p#project-score-point").text(
     "project score : " + parseFloat(payload.score)
   );
@@ -720,7 +677,9 @@ socket.on("show partner active tab", payload => {
       '<div id="' + partnerTab + '-file-icon"/>'
     );
 
-    //set new partner actice tab
+    /**
+     * set new partner actice tab
+     **/
     partnerTab = payload.activeTab;
     $("#" + partnerTab + "-file-icon").replaceWith(
       '<img id="' +
@@ -823,7 +782,9 @@ function videoEvent(b) {
   }
 }
 
-// attach ready event -- Video Toggle
+/**
+ * attach ready event -- Video Toggle
+ **/
 $(document).ready(function() {
   $(".ui.video.toggle.button").state({
     text: {
@@ -861,11 +822,15 @@ $(document).ready(function() {
   updateScroll();
 });
 
-//- is just jQuery short-hand for $(document).ready(function(){...})
+/**
+ * is just jQuery short-hand for $(document).ready(function(){...})
+ **/
 $(function() {
   var acc = 0;
   var session_flag = 0;
-  // send active time
+  /**
+   * send active time
+   **/
   setInterval(function() {
     const counts = $("#counts_min_sec").attr("data-count");
     const min = $("#counts_min_sec").attr("data-min");
@@ -929,12 +894,16 @@ function pad(val) {
   return val > 9 ? val : "0" + val;
 }
 
-//add file tab
+/**
+ * add file tab
+ **/
 function addFile() {
   $("#filename-modal").modal("show");
   $(".filename").val("");
 
-  //disable create button when input is empty
+  /**
+   * disable create button when input is empty
+   **/
   $("#createBtn").prop("disabled", true);
   $(".filename").keyup(function() {
     var disable = false;
@@ -981,7 +950,9 @@ function getActiveTab(fileName) {
         isNewTab = false;
       }
     }
-    //open tab which is already closed
+    /**
+     * open tab which is already closed
+     **/
     if (isNewTab && isCloseTab == false) {
       openTab(fileName);
     }
@@ -991,13 +962,17 @@ function getActiveTab(fileName) {
     currentTab = "main";
     fileName = "main";
   }
-  //old tab
+  /**
+   * old tab
+   **/
   $("#" + currentTab).removeClass("active");
   $("#" + currentTab + "-tab").removeClass("active");
   $("#" + currentTab + "-file").removeClass("file-active");
   $("#" + currentTab + "-header").removeClass("file-active");
 
-  //new tab
+  /**
+   * new tab
+   **/
   $("#" + fileName).addClass("active");
   $("#" + fileName + "-tab").addClass("active");
   $("#" + fileName + "-file").addClass("file-active");
@@ -1099,10 +1074,8 @@ function onClickExport() {
       code: getAllFileEditor()
     });
   } else {
-    // console.log('Please, selected file before click \"Export\" button.')
     alert('Please, selected file before click "Export" button.');
   }
-  // exportSingleFile(fileName, text)
 }
 
 function setOnChangeEditer(fileName) {
@@ -1116,9 +1089,10 @@ function setOnChangeEditer(fileName) {
     var isEnter = false;
     var isDelete = false;
 
-    //check when enter new line
+    /**
+     * check when enter new line
+     **/
     if (text == 44) {
-      // console.log('enter '+enterline)
       for (var i in comments) {
         if (comments[i].line > enterline && comments[i].file == fileName) {
           isEnter = true;
@@ -1133,7 +1107,9 @@ function setOnChangeEditer(fileName) {
       });
     }
 
-    //check when delete line
+    /**
+     * check when delete line
+     **/
     if (remove.length == 2) {
       for (var i in comments) {
         if (comments[i].line > enterline - 1 && comments[i].file == fileName) {
@@ -1232,7 +1208,9 @@ function newEditorFacade(fileName) {
   setOnChangeEditer(fileName);
   setOnDoubleClickEditor(fileName);
 
-  //setup partner active tab
+  /**
+   * setup partner active tab
+   **/
   if (fileName == "main") {
     $("#" + partnerTab + "-file-icon").replaceWith(
       '<img id="' +

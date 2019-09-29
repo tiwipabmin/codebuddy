@@ -1111,7 +1111,7 @@ function set_item_pagination_in_first_container(pagination, items_of_week, usern
               img2 = $('<img class=\'img-owner ui avatar image\' src=\''+img+'\', style=\'width: 30px;height: 30px; top: 20px;\'/>')
               img3 = $('<img class=\'img-partner ui avatar image\' src=\'/images/user_img_4.jpg\', style=\'width:30px; height:30px; top:-10px;\'/>')
               content = $('<div class=\'content\'><b style=\'font-size:1.2em;\'><a href=\'/project?pid='+project.pid+'&user_role=collaborator&section_id='+section_id+'\'>'+project.title+'</a></b></div>')
-              description = $('<div class=\'description\' style=\'margin-top:0px;\'><p>'+project.description+'</p><div id=\''+project.pid+'Project\'><p>Last updated '+moment(project.enable_time).fromNow()+'</p></div></div>')
+              description = $('<div class=\'description\'><p>'+project.description+'</p><div id=\''+project.pid+'Project\' class=\'ui grid\'><div class=\'ten wide column\'><font id=\''+project.pid+'TextStatus\'>Last updated '+moment(project.enable_time).fromNow()+'</font></div></div></div>')
               div_a.append(img1)
               div_a.append(img2)
               div_a.append(img3)

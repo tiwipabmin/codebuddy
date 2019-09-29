@@ -36,15 +36,16 @@ block content
             .ui.green.massive.inverted.negative.button#close_button_srm
               i.check.icon
               |       ตกลง
-    //- reject into project
-    .ui.basic.modal#reject_to_join_project
+    //- reject joining project
+    .ui.basic.modal#rejectJoining
       .ui.icon.header#header_rip เกิดข้อผิดพลาดกรุณาออกจากหน้านี้
       .content
         .actions
           center
-            a.ui.green.massive.inverted.positive.button(href='/classroom?section_id='+`${data_set.common.section.section_id}`)#ok_button_rip
+            a.ui.green.massive.inverted.positive.button(href='/classroom?section_id='+`${data_set.common.section.section_id}`)
               i.check.icon
               |       ตกลง
+    a#backToClass(href='/classroom?section_id='+`${data_set.common.section.section_id}`, style="display: none")
     //- select role modal
     .ui.basic.modal#selectRole-modal
       .ui.icon.header#header_serm
@@ -266,7 +267,7 @@ block content
               p You
               #counts_min_sec.ui.red.circular.label active time: 00:00 min
               .videoContainer
-                video#localVideo(style='height: 150px; transform: scaleX(-1);', oncontextmenu='return false;')
+                //- video#localVideo(style='height: 150px; transform: scaleX(-1);', oncontextmenu='return false;')
                 canvas(id="canvas" width="320" height="240" style="transform: scaleX(-1);")
                 #localVolume.volume_bar
         .twelve.wide.column.right
