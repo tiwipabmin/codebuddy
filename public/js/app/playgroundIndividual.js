@@ -135,8 +135,9 @@ socket.on('init state', (payload) => {
   // webrtc.emit('readyToCall')
 })
 
-socket.on('reject to join project', () => {
-  $('#reject_to_join_project').modal('show')
+socket.on('reject joining', () => {
+  let a = document.getElementById("backToClass");
+  a.click();
 })
 
 /**

@@ -95,7 +95,6 @@ module.exports = (io, client, redis, projects) => {
             reviewer: "",
             reviews: []
           },
-          count: 1,
           active_user: active_user
         };
         client.emit("role selection", { partner: partner });
