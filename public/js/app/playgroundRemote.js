@@ -740,29 +740,26 @@ socket.on("update message", payload => {
   }
 });
 
-socket.on("download file", payload => {
-  var fileNameListLength = payload.fileNameListLength;
-  var projectId = payload.projectId;
-  if (fileNameListLength === 1) {
-    let a = document.createElement("a");
-    a.href = "/api/downloadFile?link=" + payload.link;
-    a.target = "_blank";
-    document.body.appendChild(a);
-    a.style = "display: none";
-    a.click();
-    document.body.removeChild(a);
-    // $('#linkDownloadFile').attr('href', '/api/downloadFile?link='+payload.link)
-    // $('#downloadFileModal').modal('show')
+socket.on('download file', (payload) => {
+  let fileNameListLength = payload.fileNameListLength
+  let projectId = payload.projectId
+  let a = document.createElement("a")
+  a.download
+  a.target = "_blank"
+  a.style = "display: none"
+
+  if(fileNameListLength === 1) {
+    a.href = "/api/downloadFile?filePath=" + payload.filePath;
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   } else {
-    let a = document.createElement("a");
-    a.href = "../project_files/" + projectId + "/" + projectId + ".zip";
-    a.download;
-    document.body.appendChild(a);
-    a.style = "display: none";
-    a.click();
-    document.body.removeChild(a);
+    a.href = "/api/downloadFile?filePath=" + payload.filePath;
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
-});
+})
 
 /**
  * WebRTC TEST MUTING
@@ -1036,18 +1033,18 @@ function createFile() {
   socket.emit("create file", fileName);
 }
 
-function exportSingleFile(fileName, text) {
-  var element = document.createElement("a");
-  element.setAttribute(
-    "href",
-    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
-  );
-  element.setAttribute("download", fileName + ".py");
-  element.style.display = "none";
-  document.body.appendChild(element);
-  element.click();
-  document.body.removeChild(element);
-}
+// function exportSingleFile(fileName, text) {
+//   var element = document.createElement("a");
+//   element.setAttribute(
+//     "href",
+//     "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+//   );
+//   element.setAttribute("download", fileName + ".py");
+//   element.style.display = "none";
+//   document.body.appendChild(element);
+//   element.click();
+//   document.body.removeChild(element);
+// }
 
 function showExportModal() {
   $("#export-modal").modal("show");

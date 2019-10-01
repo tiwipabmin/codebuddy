@@ -15,7 +15,9 @@ const Comment = mongoose.model("Comment");
 const History = mongoose.model("History");
 
 module.exports = (io, client, redis, projects) => {
-  // recieve project id from client and stored in projectId
+  /**
+   * recieve project id from client and stored in projectId
+   **/
   let projectId = "";
   let curUser = "";
   var comments = [];
@@ -80,13 +82,6 @@ module.exports = (io, client, redis, projects) => {
         winston.info(`created new projects['${projectId}']`);
 
         let active_user = {};
-        let partner = null;
-        active_user[curUser] = 1;
-        if (curUser === project.creator) {
-          partner = project.collaborator;
-        } else {
-          partner = project.creator;
-        }
         projects[projectId] = {
           roles: {
             coder: "",
@@ -95,7 +90,6 @@ module.exports = (io, client, redis, projects) => {
           },
           active_user: active_user
         };
-        client.emit("role selection", { partner: partner });
 
         initRemainder();
       } else {
@@ -118,7 +112,6 @@ module.exports = (io, client, redis, projects) => {
       )
     });
     io.in(projectId).emit("auto update score");
-    // client.emit("init reviews", comments);
   }
 
   /**
@@ -159,125 +152,14 @@ module.exports = (io, client, redis, projects) => {
     }
   });
 
-  //set review to mongoDB
-  // client.on('submit review', (payload) => {
-  //   var found = false
-  //
-  //   //if there's no comment in array => add to DB and array
-  //   if (comments.length==0) {
-  //     saveComment(payload)
-  //   } else {
-  //     //edit comment in exist line => update in DB
-  //     for (var i in comments) {
-  //       if (comments[i].line==payload.line  && comments[i].file == payload.file) {
-  //         found = true
-  //         index = i
-  //       }
-  //     }
-  //     if (found) {
-  //       if (payload.description=='') {
-  //         Comment.findOne({
-  //           file: payload.file,
-  //           pid:  projectId,
-  //           line: payload.line
-  //         }).remove().exec()
-  //         comments.splice(index,1)
-  //       } else {
-  //         Comment.update({
-  //           file: payload.file,
-  //           pid: projectId,
-  //           line: payload.line
-  //         }, {
-  //           $set: {
-  //             description: payload.description
-  //           }
-  //         }, (err) => {
-  //           if (err) throw err
-  //         })
-  //         updateDesc(payload.file, payload.line, payload.description);
-  //       }
-  //     } else {
-  //       saveComment(payload)
-  //     }
-  //   }
-  //   io.in(projectId).emit('new review', comments)
-  // })
-
-  // client.on('delete review', (payload) => {
-  //   Comment.findOne({
-  //     file: payload.file,
-  //     pid:  projectId,
-  //     line: payload.line
-  //   }).remove().exec()
-  //   //remove deleted comment from list
-  //   for (var i in comments) {
-  //     if ((comments[i].file == payload.file) && (comments[i].line==payload.line)) {
-  //       comments.splice(i, 1)
-  //       break
-  //     }
-  //   }
-  //
-  //   io.in(projectId).emit('update after delete review', {
-  //     comments: comments,
-  //     file: payload.file,
-  //     deleteline: payload.line})
-  // })
-
-  //move hilight when enter or delete
-  // client.on('move hilight', (payload) => {
-  //   var fileName = payload.fileName
-  //   var enterline = payload.enterline
-  //   var remove = payload.remove
-  //   var oldline = payload.oldline
-  //   var isEnter = payload.isEnter
-  //   var isDelete = payload.isDelete
-  //   comments = payload.comments
-  //
-  //   //check when enter new line
-  //   if (isEnter) {
-  //     for (var i in comments) {
-  //       if ((comments[i].line > enterline) && (comments[i].file == fileName)) {
-  //         Comment.update({
-  //           file: fileName,
-  //           pid: projectId,
-  //           description: comments[i].description
-  //         }, {
-  //           $set: {
-  //             line: comments[i].line
-  //           }
-  //         }, (err) => {
-  //           if (err) throw err
-  //         })
-  //       }
-  //     }
-  //   }
-  //
-  //   //check when delete line
-  //   if (isDelete) {
-  //     for (var i in comments) {
-  //       if ((comments[i].line > parseInt(enterline)-1) && (comments[i].file == fileName)) {
-  //         Comment.update({
-  //           file: fileName,
-  //           pid: projectId,
-  //           description: comments[i].description
-  //         }, {
-  //           $set: {
-  //             line: comments[i].line
-  //           }
-  //         }, (err) => {
-  //           if (err) throw err
-  //         })
-  //       }
-  //     }
-  //   }
-  // })
-
   /**
    * `create file` event fired when user click create new file
    * @param {Ibject} payload fileName
    */
   client.on("create file", payload => {
-    //save file name to mongoDB
+    /** 
+     * save file name to mongoDB
+     **/
     Project.update(
       {
         pid: projectId
@@ -292,7 +174,9 @@ module.exports = (io, client, redis, projects) => {
       }
     );
 
-    //create new file  ./public/project_files/projectId/fileName.py
+    /**
+     * create new file  ./public/project_files/projectId/fileName.py
+     **/
     fs.open(
       "./public/project_files/" + projectId + "/" + payload + ".py",
       "w",
@@ -313,7 +197,9 @@ module.exports = (io, client, redis, projects) => {
    * @param {Ibject} payload fileName
    */
   client.on("delete file", async payload => {
-    //delete file in mongoDB
+    /** 
+     * delete file in mongoDB
+     **/
     Project.update(
       {
         pid: projectId
@@ -328,7 +214,9 @@ module.exports = (io, client, redis, projects) => {
       }
     );
 
-    //delete code in redis
+    /** 
+     * delete code in redis
+     **/
     var code = JSON.parse(
       await redis.hget(`project:${projectId}`, "editor", (err, ret) => ret)
     );
@@ -337,7 +225,9 @@ module.exports = (io, client, redis, projects) => {
       redis.hset(`project:${projectId}`, "editor", JSON.stringify(code));
     }
 
-    // delete file
+    /**
+     * delete file
+     **/
     fs.unlink(
       "./public/project_files/" + projectId + "/" + payload + ".py",
       function(err) {
@@ -352,30 +242,6 @@ module.exports = (io, client, redis, projects) => {
     });
   });
 
-  /**
-   * `role selected` event fired when one of the project user select his role
-   * @param {Ibject} payload user selected role and partner username
-   * then socket will broadcast the role to his partner
-   */
-  client.on("role selected", payload => {
-    // countdownTimer()
-    if (payload.select === 0) {
-      projects[projectId].roles.reviewer = curUser;
-      projects[projectId].roles.coder = payload.partner;
-    } else {
-      projects[projectId].roles.reviewer = payload.partner;
-      projects[projectId].roles.coder = curUser;
-    }
-    console.log(projects[projectId]);
-    Project.findOne({ pid: projectId }, function(err, res) {
-      if (err) return handleError(err);
-      io.in(projectId).emit("role updated", {
-        projectRoles: projects[projectId],
-        project: res
-      });
-    });
-  });
-
   client.on("switch role", () => {
     switchRole();
   });
@@ -386,7 +252,9 @@ module.exports = (io, client, redis, projects) => {
    */
   client.on("code change", payload => {
     const origin = !!payload.code.origin && payload.code.origin !== "setValue";
-    // origin mustn't be an `undefined` or `setValue` type
+    /**
+     * origin mustn't be an `undefined` or `setValue` type
+     **/
     if (origin) {
       // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
       payload.code.fileName = payload.fileName;
@@ -406,7 +274,9 @@ module.exports = (io, client, redis, projects) => {
           JSON.stringify(editorJson)
         );
       });
-      // ------ history -----
+      /**
+       * ------ history -----
+       **/
       var enterText = payload.code.text;
       var removeText = payload.code.removed;
       var action = payload.code.origin;
@@ -425,15 +295,23 @@ module.exports = (io, client, redis, projects) => {
           break;
         }
       }
-      //save input text to mongoDB
+      /** 
+       * save input text to mongoDB
+       **/
       if (action == "+input") {
         console.log(">>>>>>save input");
         if (enterText.length == 1) {
-          //input ch
+          /** 
+           * input ch
+           **/
           if (removeText[0].length != 0) {
-            //select some text and add input
+            /**
+             * select some text and add input
+             **/
             if (removeText.length == 1) {
-              //select text in 1 line
+              /**
+               * select text in 1 line
+               **/
               console.log(">>>>>>delete in 1 line more than 1 text");
               deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh);
               updateTextAfter(
@@ -448,7 +326,9 @@ module.exports = (io, client, redis, projects) => {
               (removeText.length > 1 && moreLine) ||
               (removeText[0].length == 0 && removeText[1].length == 0)
             ) {
-              //select more than 1 line || delete line
+              /** 
+               * select more than 1 line || delete line
+               **/
               deleteMoreLine(
                 projectId,
                 fileName,
@@ -460,7 +340,9 @@ module.exports = (io, client, redis, projects) => {
               );
             }
           } else {
-            //move right ch of cursor
+            /**
+             * move right ch of cursor
+             **/
             History.find(
               {
                 pid: projectId,
@@ -498,7 +380,9 @@ module.exports = (io, client, redis, projects) => {
             );
           }
 
-          //save ch to mongoDB
+          /**
+           * save ch to mongoDB
+           **/
           const historyModel = {
             pid: projectId,
             file: fileName,
@@ -512,10 +396,14 @@ module.exports = (io, client, redis, projects) => {
             if (err) throw err;
           }).save();
         } else if (enterText.length == 2) {
-          //enter new line
-          //first line -> move right ch of cursor to new line
+          /**
+           * enter new line
+           * first line -> move right ch of cursor to new line
+           **/
           if (removeText[0].length != 0) {
-            //enter delete text
+            /**
+             * enter delete text
+             **/
             deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh);
           }
 
@@ -555,7 +443,9 @@ module.exports = (io, client, redis, projects) => {
             }
           );
 
-          //not first line -> line+1
+          /**
+           * not first line -> line+1
+           **/
           History.find(
             { pid: projectId, file: fileName, line: { $gt: fromLine } },
             { line: 1, ch: 1, text: 1, _id: 0 },
@@ -587,9 +477,13 @@ module.exports = (io, client, redis, projects) => {
           );
         }
       } else if (action == "+delete") {
-        //delete text from mongoDB
+        /**
+         * delete text from mongoDB
+         **/
         if (removeText.length == 1) {
-          //delete select text
+          /**
+           * delete select text
+           **/
           console.log(">>>>>>delete in 1 line more than 1 text");
           deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh);
           updateTextAfter(
@@ -604,7 +498,9 @@ module.exports = (io, client, redis, projects) => {
           (removeText.length > 1 && moreLine) ||
           (removeText[0].length == 0 && removeText[1].length == 0)
         ) {
-          //delete more than 1 line || delete line
+          /**
+           * delete more than 1 line || delete line
+           **/
           deleteMoreLine(
             projectId,
             fileName,
@@ -616,7 +512,9 @@ module.exports = (io, client, redis, projects) => {
           );
         }
       }
-      // ------ end history -----
+      /**
+       * ------ end history -----
+       **/
     }
   });
 
@@ -661,13 +559,17 @@ module.exports = (io, client, redis, projects) => {
     }
 
     pythonProcess.on("data", data => {
-      // check is code error
+      /**
+       * check is code error
+       **/
       if (
         data.indexOf("Error") != -1 ||
         data.indexOf("Traceback (most recent call last):") != -1
       ) {
         console.log(curUser, "makes error!");
-        // increase error_count of user
+        /**
+         * increase error_count of user
+         **/
         Score.where({ pid: projectId, uid: payload.uid }).findOne(function(
           err,
           score
@@ -692,8 +594,10 @@ module.exports = (io, client, redis, projects) => {
         });
       }
 
-      //Resolve the output get echo the input ex. input is 'input', output is 'input input'
-      var splitData = data.split("\n");
+      /**
+       * Resolve the output get echo the input ex. input is 'input', output is 'input input'
+       **/
+       var splitData = data.split("\n");
       console.log("Split Data, ", splitData);
       if (detectInput !== "empty@Codebuddy") {
         console.log("DetectInput is true, ", detectInput);
@@ -734,35 +638,6 @@ module.exports = (io, client, redis, projects) => {
   });
 
   /**
-   * `send message` event fired when user send chat message from front-end
-   * @param {Object} payload code from editor
-   */
-  // client.on('send message', (payload) => {
-  //   const message = payload.message
-  //   const uid = payload.uid
-  //   console.log(payload)
-  //   const messageModel = {
-  //     pid: projectId,
-  //     uid: uid,
-  //     message: message,
-  //     createdAt: Date.now()
-  //   }
-  //   new Message(messageModel, (err) => {
-  //     if (err) throw err
-  //   }).save()
-  //   User.where({ _id: uid}).findOne(function (err, user) {
-  //     if (err) throw err
-  //     if (user) {
-  //       const response = {
-  //         user: user,
-  //         message: messageModel
-  //       }
-  //       io.in(projectId).emit('update message', response)
-  //     }
-  //   })
-  // })
-
-  /**
    * `send active tab` event fired when user change tab
    * @param {Object} payload active tab
    */
@@ -782,18 +657,6 @@ module.exports = (io, client, redis, projects) => {
       editor: code
     });
   });
-
-  // client.on('is typing', (payload) => {
-  //   io.in(projectId).emit('is typing', payload)
-  // })
-
-  /**
-   * `reviewer active time` event fired reviewer active time every 1 sec
-   * @param {Object} payload time from face detection on main.js
-   */
-  // client.on('reviewer active time', (payload) => {
-  //   io.in(projectId).emit('show reviewer active time', payload);
-  // })
 
   client.on("save active time", async payload => {
     console.log(payload);
@@ -830,8 +693,6 @@ module.exports = (io, client, redis, projects) => {
         }
       }
     );
-
-    console.log("time", payload.time);
   });
 
   client.on("save lines of code", payload => {
@@ -993,7 +854,9 @@ module.exports = (io, client, redis, projects) => {
                       if (err) throw err;
                     }).save();
 
-                    // recalculate score
+                    /**
+                     * recalculate score
+                     **/
                     sumScore = Score.aggregate(
                       [
                         {
@@ -1014,10 +877,14 @@ module.exports = (io, client, redis, projects) => {
                           return;
                         }
                         if (results) {
-                          // sum = 0;
+                          /**
+                           * sum = 0;
+                           **/
                           console.log("results, ", results);
                           results.forEach(function(result) {
-                            // start update
+                            /**
+                             * start update
+                             **/
                             User.update(
                               {
                                 _id: element
@@ -1034,7 +901,9 @@ module.exports = (io, client, redis, projects) => {
                                 }
                               }
                             );
-                            // end update
+                            /**
+                             * end update
+                             **/
                             const shownScore = {
                               score: score,
                               uid: element,
@@ -1056,7 +925,9 @@ module.exports = (io, client, redis, projects) => {
                         }
                       }
                     );
-                    // end recalculate score
+                    /**
+                     * end recalculate score
+                     **/
                   }
                   if (oldScore) {
                     Score.update(
@@ -1072,7 +943,9 @@ module.exports = (io, client, redis, projects) => {
                       async function(err, scoreReturn) {
                         if (err) throw err;
                         if (scoreReturn) {
-                          // recalculate score
+                          /**
+                           * recalculate score
+                           **/
                           sumScore = await Score.aggregate(
                             [
                               {
@@ -1093,9 +966,13 @@ module.exports = (io, client, redis, projects) => {
                                 return;
                               }
                               if (results) {
-                                // sum = 0;
+                                /**
+                                 * sum = 0;
+                                 **/
                                 results.forEach(function(result) {
-                                  // start update
+                                  /**
+                                   * start update
+                                   **/
                                   User.update(
                                     {
                                       _id: element
@@ -1112,20 +989,20 @@ module.exports = (io, client, redis, projects) => {
                                       }
                                     }
                                   );
-                                  // end update
+                                  /**
+                                   * end update
+                                   **/
                                   const shownScore = {
                                     score: score,
                                     uid: element,
                                     avgScore: result.avg
                                   };
                                   if (mode == "auto") {
-                                    // console.log('auto', oldScore)
                                     io.in(projectId).emit(
                                       "show auto update score",
                                       shownScore
                                     );
                                   } else {
-                                    // console.log('not auto', oldScore)
                                     io.in(projectId).emit(
                                       "show score",
                                       shownScore
@@ -1139,7 +1016,9 @@ module.exports = (io, client, redis, projects) => {
                               }
                             }
                           );
-                          // end recalculate score
+                          /**
+                           * end recalculate score
+                           **/
                         }
                       }
                     );
@@ -1155,134 +1034,60 @@ module.exports = (io, client, redis, projects) => {
   });
 
   client.on("export file", payload => {
-    var fileNameList = payload.fileNameList;
-    let fileNameListLength = Object.keys(fileNameList).length;
-    console.log(
-      "payload, ",
-      payload,
-      ", fileNameListLength, ",
-      fileNameListLength
-    );
-    var code = payload.code;
+    let fileNameList = payload.fileNameList
+    let fileNameListLength = Object.keys(fileNameList).length
+    let code = payload.code
+    let filePath = "../project_files/" + projectId + "/main.py"
 
-    for (var i in fileNameList) {
+    for (let index in fileNameList) {
       fs.writeFile(
-        "./public/project_files/" + projectId + "/" + fileNameList[i] + ".py",
-        code[fileNameList[i]],
+        "./public/project_files/" + projectId + "/" + fileNameList[index] + ".py",
+        code[fileNameList[index]],
         err => {
           if (err) throw er;
         }
       );
     }
 
-    let noticeMsg = "One file";
     if (fileNameListLength > 1) {
-      let noticeMsg = "Many file";
-      var output = fs.createWriteStream(
+      filePath = "../project_files/" + projectId + "/" + projectId + ".zip"
+      let output = fs.createWriteStream(
         "./public/project_files/" + projectId + "/" + projectId + ".zip"
       );
-      var archive = archiver("zip", {
+
+      let archive = archiver("zip", {
         gzip: true,
-        zlib: { level: 9 } // Sets the compression level.
+        /**
+         * Sets the compression level.
+         **/
+        zlib: { level: 9 }
       });
+
       archive.on("error", function(err) {
         throw err;
       });
-      // pipe archive data to the output file
-      archive.pipe(output);
-      // append files
+      /**
+       * pipe archive data to the output file
+       **/
+      archive.pipe(output)
+      /**
+       * append files
+       **/
       fileNameList.forEach(function(fileName) {
         archive.file(
           "./public/project_files/" + projectId + "/" + fileName + ".py",
           { name: fileName + ".py" }
-        );
-      });
-      archive.finalize();
+        )
+      })
+      archive.finalize()
     }
+
     client.emit("download file", {
       projectId: projectId,
       fileNameListLength: fileNameListLength,
-      link: cryptr.encrypt("../project_files/" + projectId + "/main.py")
+      filePath: cryptr.encrypt(filePath)
     });
   });
-
-  // function countdownTimer() {
-  //     function intervalFunc() {
-  //       redis.hgetall(`project:${projectId}`, function (err, obj) {
-  //         var start = new Date(parseInt(obj.startTime))
-  //         let minutes = moment.duration(swaptime - (Date.now() - start)).minutes();
-  //         let seconds = moment.duration(swaptime - (Date.now() - start)).seconds();
-  //         // console.log(seconds + "secound")
-  //         flag = 0
-  //         if (seconds == 0 && flag != 1) {
-  //           flag = 1
-  //           io.in(projectId).emit('auto update score')
-  //         } else {
-  //           flag = 0
-  //         }
-  //         io.in(projectId).emit('countdown', {minutes: minutes, seconds: seconds})
-  //         if (minutes <= 0 && seconds <= 0) {
-  //             clearInterval(timerId)
-  //             switchRole()
-  //         }
-  //       });
-  //     }
-  //     var query  = Project.where({ pid: projectId });
-  //     let swaptime = query.findOne(function (err, project) {
-  //         if (err) return 300000;
-  //         if (project) {
-  //             return swaptime = parseInt(project.swaptime) * 60 * 1000
-  //         }
-  //     });
-  //     let timerId = setInterval(intervalFunc, 1000);
-  //     redis.hset(`project:${projectId}`, 'startTime', Date.now().toString())
-  // }
-
-  // function switchRole() {
-  //   countdownTimer()
-  //   console.log("project_id" + projectId);
-  //   console.log(projects[projectId]);
-  //   // Checking if this project hasn't have any roles assigned.
-  //   if (!projects[projectId]) {
-  //     winston.info(`created new projects['${projectId}'] - fix bug version`)
-  //     projects[projectId] = {
-  //       roles: {
-  //         coder: '',
-  //         reviewer: '',
-  //         reviews: []
-  //       },
-  //       count: 1
-  //     }
-  //     winston.info(projects[projectId].count)
-  //     client.emit('role selection')
-  //   } else {
-  //     const temp = projects[projectId].roles.coder
-  //     projects[projectId].roles.coder = projects[projectId].roles.reviewer
-  //     projects[projectId].roles.reviewer = temp
-  //     Project.findOne({ pid: projectId}, function (err, res) {
-  //       if (err) return handleError(err);
-  //       io.in(projectId).emit('role updated', { projectRoles: projects[projectId], project: res})
-  //     })
-  //   }
-  // }
-
-  function saveComment(payload) {
-    const commentModel = {
-      file: payload.file,
-      line: parseInt(payload.line),
-      pid: projectId,
-      description: payload.description,
-      createdAt: Date.now()
-    };
-    new Comment(commentModel, err => {
-      if (err) throw err;
-    }).save();
-    comments.push({
-      file: payload.file,
-      line: parseInt(payload.line),
-      description: payload.description
-    });
-  }
 
   function updateDesc(file, line, description) {
     for (var i in comments) {
@@ -1317,7 +1122,9 @@ module.exports = (io, client, redis, projects) => {
     console.log(">>>>delete line" + lineRange);
     for (var i = fromLine; i <= fromLine + lineRange; i++) {
       console.log(">---- " + i);
-      //first line
+      /**
+       * first line
+       **/
       if (i == fromLine) {
         console.log("   first line");
         History.findOne({
@@ -1329,7 +1136,9 @@ module.exports = (io, client, redis, projects) => {
           .remove()
           .exec();
       }
-      //not last line
+      /**
+       * not last line
+       **/
       else if (i != fromLine + lineRange) {
         console.log("   not first line");
         History.find({
@@ -1340,7 +1149,9 @@ module.exports = (io, client, redis, projects) => {
           .remove()
           .exec();
       }
-      //last line
+      /**
+       * last line
+       **/
       else {
         console.log("   last line");
         History.find({

@@ -23,7 +23,7 @@ block content
   script(type='text/javascript').
     $(document).ready(function(){
       let a = document.createElement("a");
-      a.href = "!{data_set.common.link}"
+      a.href = "!{data_set.common.filePath}"
       a.download
       document.body.appendChild(a);
       a.style = "display: none";

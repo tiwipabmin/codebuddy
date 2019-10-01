@@ -10,19 +10,9 @@ block script
   link(rel='stylesheet' href='/codemirror/theme/material.css')
 block content
   script(stype='text/javascript').
-    $('#global_loader').attr({
-      'style': 'display: block; position: fixed;'
-    })
-
-  .ui.small.modal#downloadFileModal
-    .header Link Download File
-    .content
-      h1
-        p(align='center')
-          a#linkDownloadFile Go to download file page    
-    .ui.basic.center.aligned.segment 
-      .actions
-        button.ui.button.approve.green(data-value='cancel') OK 
+    //- $('#global_loader').attr({
+    //-   'style': 'display: block; position: fixed;'
+    //- })
 
   //- reject joining project
   .ui.basic.modal#rejectJoining

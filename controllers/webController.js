@@ -1708,8 +1708,8 @@ exports.updateAssignment = async (req, res) => {
 }
 
 exports.downloadFile = async (req, res) => {
-  let link = req.query.link
-  data_set = {common: {link: cryptr.decrypt(link)}}
+  let filePath = req.query.filePath
+  data_set = {common: {filePath: cryptr.decrypt(filePath)}}
   res.render('downloadFile', {data_set, title: 'Download file'})
 }
 

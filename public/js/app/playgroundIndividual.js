@@ -200,99 +200,10 @@ socket.on('update tab', (payload) => {
 })
 
 /**
- * If there's no one select the role, then first user that come to the project must choose one
- */
-socket.on('role selection', () => {
-  socket.emit('role selected', {
-    select: 0,
-    partner
-  })
-  $('#global_loader').attr('style', 'display: none')
-  // $('#selectRole-modal')
-  //   .modal({
-  //     closable  : false,
-  //     onDeny    : function(){
-  //       console.log('select : reviewer')
-  //       socket.emit('role selected', {
-  //         select: 0,
-  //         partner
-  //       })
-  //       $('#global_loader').attr({
-  //         'style': 'display: block; position: fixed;'
-  //       })
-  //     },
-  //     onApprove : function() {
-  //       console.log('select : coder')
-  //       socket.emit('role selected', {
-  //         select: 1,
-  //         partner
-  //       })
-  //       $('#global_loader').attr({
-  //         'style': 'display: block; position: fixed;'
-  //       })
-  //     }
-  //   })
-})
-
-// socket.on('countdown', (payload) => {
-//   if(payload.minutes == '0' && payload.seconds <= 15){
-//     $(".countdown").html(`<span style="color: red;"> ${pad(payload.minutes)} : ${pad(payload.seconds)}</span> <span style="font-size:12px;">mins</span>`)
-//     $(".auto-swap-warning").html(`<div class="ui circular labels" style="margin-top: 10px;"><a class="ui label">Auto swaping role in ${payload.seconds} secs</a></div>`)
-//   } else {
-//     $(".countdown").html(`${pad(payload.minutes)} : ${pad(payload.seconds)} <span style="font-size:12px;">mins</span>`)
-//     $(".auto-swap-warning").html(``)
-//   }
-//   $('#global_loader').attr({
-//     'style': 'display: none; position: fixed;'
-//   })
-// })
-
-// socket.on('role updated', (payload) => {
-//   if (user === payload.projectRoles.roles.reviewer) {
-//     roles.user = 'reviewer'
-//     roles.partner = 'coder'
-//     projectFiles.forEach(setOptionFileNoCursor)
-//   } else if(user === payload.projectRoles.roles.coder) {
-//     roles.user = 'coder'
-//     roles.partner = 'reviewer'
-//     projectFiles.forEach(setOptionFileShowCursor)
-//   }else{
-//     if(user === payload.project.creator) {
-//       roles.user = 'coder'
-//       roles.partner = 'reviewer'
-//     } else {
-//       roles.user = 'reviewer'
-//       roles.partner = 'coder'
-//     }
-//   }
-
-  // function setOptionFileNoCursor(fileName) {
-  //   editor[fileName].setOption('readOnly', 'nocursor')
-  // }
-  // function setOptionFileShowCursor(fileName) {
-  //   editor[fileName].setOption('readOnly', false)
-  // }
-  //
-  // $(".partner-role-label").text(`${roles.partner}`)
-  // $(".user-role-label").text(`${roles.user}`)
-  // startCountdown()
-// })
-
-// socket.on('show reviewer active time', (payload) => {
-//   if(roles.user === 'coder' && payload.counts >= 0) {
-//     $('#buddy_counts_min_sec').show();
-//     $('#buddy_counts_min_sec').text("Reviewer active time: " + payload.mins + ":" + payload.secs + " mins");
-//   } else {
-//     $('#buddy_counts_min_sec').hide();
-//   }
-// })
-
-/**
  * If user exit or going elsewhere which can be caused this project window closed
  * `beforeunload` event will fired and sending client disconnection to the server
  */
 $(window).on('beforeunload', () => {
-  // storeActiveTime()
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
@@ -302,7 +213,6 @@ $(window).on('beforeunload', () => {
 })
 
 $(window).bind('hashchange', function() {
-  // storeActiveTime()
   socket.emit('submit code', {
     mode: "auto",
     uid: uid,
@@ -320,31 +230,6 @@ socket.on('editor update', (payload) => {
   }, 1);
 })
 
-/**
- * User status checking
- */
-// let windowIsFocus
-//
-// $(window).focus(() => {
-//   windowIsFocus = true
-// }).blur(() => {
-//   windowIsFocus = false
-// })
-//
-// setInterval(() => {
-//   socket.emit('user status', {
-//     status: windowIsFocus
-//   })
-// }, 3000)
-
-// socket.on('update status', (payload) => {
-//   if (payload.status) {
-//     $(".user.status").html(`<strong><em><i class='green circle icon'></i></em></strong>`)
-//   } else {
-//     $(".user.status").html(`<strong><em><i class='grey circle icon'></i></em></strong>`)
-//   }
-// })
-
 function submitReview() {
   socket.emit('submit review', {
     file: $('input.hidden.file.name').val(),
@@ -353,33 +238,6 @@ function submitReview() {
   })
   $('textarea.line.description').val('')
 }
-
-// socket.on('new review', (payload) => {
-//   comments = payload
-//   comments.map((comment) => {
-//     editor[comment.file].addLineClass(parseInt(comment.line-1), 'wrap', 'CodeMirror-activeline-background')
-//   })
-// })
-
-function deleteReview() {
-  socket.emit('delete review', {
-    file: $('input.hidden.file.name').val(),
-    line: $('input.disabled.line.no').val(),
-    description: $('textarea.line.reviewer.description').val(),
-  })
-}
-
-// socket.on('update after delete review', (payload) =>{
-//   comments = payload.comments
-//   deleteline = payload.deleteline
-//   editor[payload.file].removeLineClass(parseInt(deleteline-1), 'wrap', 'CodeMirror-activeline-background')
-// })
-
-// socket.on('is typing', (payload) => {
-//   if (uid != payload.uid) {
-//     $('#show-is-typing').text(payload.text);
-//   }
-// })
 
 /**
  * Run code
@@ -415,7 +273,9 @@ term.on('key', function (key, ev) {
     }
     term.prompt();
   } else if (ev.keyCode == 8) {
-    // Do not delete the prompt
+    /**
+     * Do not delete the prompt
+     **/
     if (term.x > 2) {
       term.write('\b \b');
     }
@@ -473,18 +333,6 @@ function clearTerminal() {
 }
 
 /**
- * Send Message
- */
-function sendMessage() {
-  if (document.getElementById("inputMessage").value != '') {
-    socket.emit('send message', {
-      uid: uid,
-      message:  document.getElementById("inputMessage").value
-    })
-  }
-}
-
-/**
  * Send Active Tab
  */
 function sendActiveTab(tab) {
@@ -512,7 +360,7 @@ socket.on('show score', (payload) => {
 })
 
 /**
- * Auto update score
+ * Pause run code
  */
 socket.on('pause run code', (payload) => {
   term.writeln('Stop running pytest.py...')
@@ -531,7 +379,7 @@ socket.on('auto update score', (payload) => {
 })
 
 /**
- * Auto update score
+ * Show auto update score
  */
 socket.on('show auto update score', (payload) => {
   // console.log(payload)
@@ -542,20 +390,7 @@ socket.on('show auto update score', (payload) => {
 })
 
 /**
- * Partner Active Tab
- */
-socket.on('show partner active tab', (payload) => {
-  if(payload.uid !== uid){
-    // $('#'+partnerTab+'-file-icon').replaceWith('<div id="'+partnerTab+'-file-icon"/>');
-
-    //set new partner actice tab
-    partnerTab = payload.activeTab
-    //$('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>');
-  }
-})
-
-/**
- * set editor value into open tab
+ * Set editor value into open tab
  */
 socket.on('set editor open tab', (payload) => {
   var code = JSON.parse(payload.editor)
@@ -576,182 +411,28 @@ socket.on('term update', (payload) => {
   term.prompt()
 })
 
-/**
- * Terminal socket
- */
-// socket.on('update message', (payload) => {
-//   updateScroll()
-//   if (payload.user._id === uid) {
-//     $(".message-list").append("<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>"+ payload.message.message +"</p></div></li>");
-//     $("#inputMessage").val("")
-//     // socket.emit('is typing', {
-//     //   uid: uid,
-//     //   text: ''
-//     // })
-//   } else {
-//     $(".message-list").append("<li class='ui item'><a class='ui avatar image'><img src='"+ payload.user.img +"'></a><div class='description curve-box'><p>"+ payload.message.message +"</p></div></li>");
-//   }
-// })
-//
 socket.on('download file', (payload) => {
-  var fileNameListLength = payload.fileNameListLength
-  var projectId = payload.projectId
+  let fileNameListLength = payload.fileNameListLength
+  let projectId = payload.projectId
+  let a = document.createElement("a")
+  a.download
+  a.target = "_blank"
+  a.style = "display: none"
+
   if(fileNameListLength === 1) {
-    $('#linkDownloadFile').attr('href', '/api/downloadFile?link='+payload.link)
-    $('#downloadFileModal').modal('show')
+    a.href = "/api/downloadFile?filePath=" + payload.filePath;
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   } else {
-    let a = document.createElement("a");
-    a.href = '../project_files/'+projectId+'/'+projectId+'.zip'
-    a.download
-    document.body.appendChild(a);
-    a.style = "display: none";
-    a.click();
-    document.body.removeChild(a);
+    a.href = "/api/downloadFile?filePath=" + payload.filePath;
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 })
 
-/**
- * WebRTC TEST MUTING
- */
-// function muteEvent(b) {
-//   if ($(b).hasClass("active")) {
-//     webrtc.mute();
-//   }
-//   else {
-//     webrtc.unmute();
-//   }
-// }
-// function videoEvent(b) {
-//   if ($(b).hasClass("active")) {
-//     webrtc.pauseVideo();
-//   }
-//   else {
-//     webrtc.resumeVideo();
-//   }
-// }
-// attach ready event -- Video Toggle
-$(document)
-  .ready(function () {
-    $('.ui.video.toggle.button')
-      .state({
-        text: {
-          inactive: '<i class="pause circle icon"/>',
-          active: '<i class="play video icon"/>'
-        }
-      });
-    $('.ui.mute.toggle.button')
-      .state({
-        text: {
-          inactive: '<i class="mute icon"/>',
-          active: '<i class="unmute icon"/>'
-        }
-      });
-      // $('#inputMessage').keydown(function() {
-      //   socket.emit('is typing', {
-      //     uid: uid,
-      //     text: `${user} is typing...`
-      //   })
-      //   clearTimeout(parseInt($('#inputMessage').attr('data-timeId')))
-      // });
-      // $('#inputMessage').keyup(function() {
-      //   let timeId = setTimeout(function(){
-      //     socket.emit('is typing', {
-      //         uid: uid,
-      //         text: ''
-      //     })
-      //   }, 5000)
-      //   $('#inputMessage').attr('data-timeId', timeId)
-      // });
-    $('#inputMessage').keydown(function(e) {
-      if (e.keyCode == 13) {
-        sendMessage()
-      }
-    });
-    // console.log("is typing : " + $('#inputMessage').val())
-    updateScroll();
-  });
-
-//- is just jQuery short-hand for $(function () {...})
-$(function(){
-
-  // var acc = 0;
-  // var session_flag = 0;
-  // send active time
-  // setInterval(function(){
-  //   const counts = $('#counts_min_sec').attr('data-count');
-  //   const min = $('#counts_min_sec').attr('data-min');
-  //   const sec = $('#counts_min_sec').attr('data-sec');
-  //   if(roles.user === "reviewer" && counts !== undefined && session_flag === 0) {
-  //     session_flag = 1;
-  //     acc = counts;
-  //   }else if(roles.user === "coder" && session_flag === 1){
-  //     session_flag = 0;
-  //   } else if(roles.user === "reviewer" && counts >= 0 && session_flag === 1) {
-  //     socket.emit('reviewer active time', {
-  //       counts: counts,
-  //       mins : pad(parseInt((counts-acc)/60)),
-  //       secs: pad((counts-acc)%60)
-  //     })
-  //   }
-  // }, 1000);
-
-  var lastSavedTime = 0
-
-  // setInterval(function() {
-  //   const counts = $('#counts_min_sec').attr('data-count');
-  //   let add = counts - lastSavedTime
-  //
-  //   if (counts !== undefined && add > 0) {
-  //     socket.emit('save active time',{
-  //       uid: uid,
-  //       time: add
-  //     })
-  //
-  //     lastSavedTime = counts
-  //   }
-  // }, 10000)
-});
-
-function switchRole() {
-  socket.emit('switch role')
-}
-
-function updateScroll(){
-  // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
-  $(".chat-history").animate({ scrollTop: $('.message-list').height() }, "fast");
-}
-
 function pad ( val ) { return val > 9 ? val : "0" + val; }
-
-//add file tab
-// function addFile(){
-//   $('#filename-modal').modal('show')
-//   $('.filename').val('')
-//
-//   //disable create button when input is empty
-//   $('#createBtn').prop('disabled', true);
-//   $('.filename').keyup(function() {
-//     var disable = false;
-//     var isExists = false;
-//     var fileName = $('.filename').val()
-//     isExists = projectFiles.indexOf(fileName)
-//
-//     $('.filename').each(function() {
-//       if ($(this).val() == "" || isExists!=-1 || (!fileName.match(/^[0-9a-zA-Z\.]*$/)) || fileName.indexOf('.') !== -1) {
-//         disable = true;
-//         if(isExists!=-1){
-//           $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">This File name already exists.</p>')
-//         }
-//         if(!fileName.match(/^[0-9a-zA-Z\.]*$/) || fileName.indexOf('.') !== -1){
-//           $('.file.name.exists.warning').html('<p style="margin-left:95px; margin-top:5px; color: #db2828;">Filename should not have special characters.</p>')
-//         }
-//       }else{
-//         $('.file.name.exists.warning').html('')
-//       }
-//     });
-//     $('#createBtn').prop('disabled', disable);
-//   });
-// }
 
 function getActiveTab(fileName){
   var isNewTab = true
@@ -763,20 +444,26 @@ function getActiveTab(fileName){
         isNewTab = false
       }
     }
-    //open tab which is already closed
+    /**
+     * open tab which is already closed
+     **/
     if(isNewTab&&(isCloseTab==false)){
       openTab(fileName)
     }
   }
 
   if(isCloseTab){currentTab='main'; fileName='main';}
-  //old tab
+  /**
+   * Old tab
+   **/
   $('#'+currentTab).removeClass('active');
   $('#'+currentTab+'-tab').removeClass('active');
   $('#'+currentTab+'-file').removeClass('file-active');
   $('#'+currentTab+'-header').removeClass('file-active');
 
-  //new tab
+  /**
+   * New tab
+   **/
   $('#'+fileName).addClass('active');
   $('#'+fileName+'-tab').addClass('active');
   $('#'+fileName+'-file').addClass('file-active');
@@ -815,16 +502,6 @@ function createFile(){
   socket.emit('create file', fileName)
 }
 
-function exportSingleFile(fileName, text){
-  var element = document.createElement('a')
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', fileName+'.py');
-  element.style.display = 'none';
-  document.body.appendChild(element);
-  element.click();
-  document.body.removeChild(element);
-}
-
 function showExportModal(){
   $('#export-modal').modal('show')
 }
@@ -850,10 +527,8 @@ function onClickExport(){
       code: getAllFileEditor()
     })
   } else {
-    // console.log('Please, selected file before click \"Export\" button.')
     alert('Please, selected file before click \"Export\" button.')
   }
-  // exportSingleFile(fileName, text)
 }
 
 function setOnChangeEditer(fileName) {
@@ -868,7 +543,9 @@ function setOnChangeEditer(fileName) {
     var isEnter = false
     var isDelete = false
 
-    //check when enter new line
+    /**
+     * Check when enter new line
+     **/
     if(text==44){
       // console.log('enter '+enterline)
         for(var i in comments){
@@ -885,7 +562,9 @@ function setOnChangeEditer(fileName) {
       })
     }
 
-    //check when delete line
+    /**
+     * Check when delete line
+     **/
     if(remove.length==2){
       for(var i in comments){
         if((comments[i].line > enterline-1) && (comments[i].file==fileName)){
@@ -914,52 +593,6 @@ function setOnChangeEditer(fileName) {
   })
 }
 
-function setOnDoubleClickEditor(fileName) {
-  /**
-   * Code review modal
-   */
-  editor[fileName].on('dblclick', () => {
-    let A1 = editor[fileName].getCursor().line
-    let A2 = editor[fileName].getCursor().ch
-    let B1 = editor[fileName].findWordAt({
-      line: A1,
-      ch: A2
-    }).anchor.ch
-    let B2 = editor[fileName].findWordAt({
-      line: A1,
-      ch: A2
-    }).head.ch
-    $('input.disabled.line.no').val(A1 + 1)
-    $('input.disabled.file.name').val(fileName+".py")
-    $('input.hidden.file.name').val(fileName)
-    let line = $('input.disabled.line.no').val()
-    switch (roles.user) {
-      case 'coder':
-        for(var i in comments){
-          if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
-            $('textarea.line.coder.disabled.description').val(comments[i].description)
-            break
-          }else{
-            $('textarea.line.coder.disabled.description').val('')
-          }
-        }
-        $('.ui.coder.small.modal').modal('show')
-        break
-      case 'reviewer':
-        for(var i in comments){
-          if (comments[i].file == fileName && comments[i].line == parseInt(line)) {
-            $('textarea.line.reviewer.description').val(comments[i].description)
-            break
-          }else{
-            $('textarea.line.reviewer.description').val('')
-          }
-        }
-        $('.ui.reviewer.small.modal').modal('show')
-        break
-    }
-  })
-}
-
 function getAllFileEditor() {
   var codeEditors = {};
   projectFiles.forEach(runCodeEachFile);
@@ -972,22 +605,13 @@ function getAllFileEditor() {
 function newEditorFacade(fileName) {
   setEditor(fileName)
   setOnChangeEditer(fileName)
-  // setOnDoubleClickEditor(fileName)
 
-  //setup partner active tab
+  /**
+   * setup partner active tab
+   **/
   if(fileName == "main") {
     $('#'+partnerTab+'-file-icon').replaceWith('<img id="'+partnerTab+'-file-icon" class="ui avatar image partner-file-icon" src="'+partner_img+'" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>');
   } else {
     $('#'+fileName+'-file-icon').replaceWith('<div id="'+fileName+'-file-icon"/>');
-  }
-}
-
-function storeActiveTime() {
-  const counts = $('#counts_min_sec').attr('data-count');
-  if(counts !== undefined) {
-    socket.emit('save active time',{
-      uid: uid,
-      time: counts
-    })
   }
 }
