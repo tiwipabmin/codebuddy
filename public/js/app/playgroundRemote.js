@@ -164,7 +164,6 @@ socket.on("init state", payload => {
 /**
  * After user join the project, user will recieve initiate review to hilight in local editor
  */
-
 socket.on("init reviews", payload => {
   comments = payload;
   for (var i in comments) {
@@ -335,6 +334,12 @@ socket.on("confirm to switch role", payload => {
       value: payload.status
     });
     $("#switch_role_modal").modal("show");
+  } else if (payload.numUser == 1) {
+    socket.emit("switch role", {
+      user: user,
+      action: "switch role",
+      status: "disconnect"
+    });
   }
 });
 
@@ -389,6 +394,10 @@ socket.on("role updated", payload => {
     }
   }
 
+  /**
+   * Editor is configured cursor according to the user's role.
+   * @param {object} fileName receive a file name.
+   */
   function setOptionFileNoCursor(fileName) {
     editor[fileName].setOption("readOnly", "nocursor");
   }
@@ -1032,19 +1041,6 @@ function createFile() {
   var fileName = $(".filename").val();
   socket.emit("create file", fileName);
 }
-
-// function exportSingleFile(fileName, text) {
-//   var element = document.createElement("a");
-//   element.setAttribute(
-//     "href",
-//     "data:text/plain;charset=utf-8," + encodeURIComponent(text)
-//   );
-//   element.setAttribute("download", fileName + ".py");
-//   element.style.display = "none";
-//   document.body.appendChild(element);
-//   element.click();
-//   document.body.removeChild(element);
-// }
 
 function showExportModal() {
   $("#export-modal").modal("show");

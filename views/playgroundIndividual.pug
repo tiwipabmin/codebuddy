@@ -10,9 +10,9 @@ block script
   link(rel='stylesheet' href='/codemirror/theme/material.css')
 block content
   script(stype='text/javascript').
-    //- $('#global_loader').attr({
-    //-   'style': 'display: block; position: fixed;'
-    //- })
+    $('#global_loader').attr({
+      'style': 'display: block; position: fixed;'
+    })
 
   //- reject joining project
   .ui.basic.modal#rejectJoining
@@ -38,6 +38,7 @@ block content
           .ui.green.massive.inverted.negative.button
             i.unhide.icon
             |       Reviewer
+
   //- show score modal
   .ui.basic.modal#showScore-modal
     .ui.icon.header
@@ -51,50 +52,6 @@ block content
           .ui.blue.massive.inverted.negative.button
             i.remove.icon
             |       Close
-  .ui.modal
-  .ui.reviewer.small.modal
-    .header Code Review
-    .content
-      .ui.form
-        .field
-          label File :
-          |  
-          input.disabled.file.name(type='text' placeholder='File' disabled='')
-          input.hidden.file.name(type='hidden')
-        .field
-          label Line No :
-          |  
-          input.disabled.line.no(type='text' placeholder='Your Project Name' disabled='')
-        .field
-          label Comment :
-          |  
-          textarea.line.reviewer.description(rows='4' cols='50' placeholder='Something about this line')
-        .ui.basic.center.aligned.segment()
-          .actions
-            button.ui.button.approve.green(onClick='submitReview()') Submit
-            .ui.button.approve.red(data-value='cancel') Cancel
-            .ui.floated.alignedvertical.animated.deleteProject.button.approve(onClick='deleteReview()' tabindex='0')
-              .hidden.content Delete
-              .visible.content
-                i.trash.icon
-  .ui.coder.small.modal
-    .header Review Description
-    .content
-      .ui.form
-        .field
-          label File :
-          |  
-          input.disabled.file.name(type='text' placeholder='File' disabled='')
-        .field
-          label Line No :
-          |  
-          input.disabled.line.no(type='text' placeholder='Line number' disabled='')
-        .field
-          label Comment :
-          textarea.coder.disabled.line.description(rows='4' cols='50' placeholder='Something about this line' disabled='')
-        .ui.basic.center.aligned.segment()
-          .actions
-            .ui.button.approve.red(data-value='cancel') Close
 
   .ui.container.segment
     .ui.centered.grid
@@ -154,6 +111,8 @@ block content
                                 .actions
                                   button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
                                   .ui.button.approve.red(data-value='cancel') Cancel 
+
+        //- Export file modal
         .ui.small.modal#export-modal
           .header Export File
           .content  

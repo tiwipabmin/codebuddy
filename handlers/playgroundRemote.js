@@ -20,9 +20,10 @@ module.exports = (io, client, redis, projects) => {
    **/
   let projectId = "";
   let curUser = "";
+  let detectInput = "empty@Codebuddy";
   let timerId = {};
-  var comments = [];
-  var index = null;
+  let comments = [];
+  let index = null;
   let pythonProcess = undefined;
 
   winston.info("Client connected");
@@ -178,12 +179,9 @@ module.exports = (io, client, redis, projects) => {
       );
 
       if (projects[projectId].reject) {
-
         delete projects[projectId].reject;
         client.leave(projectId);
-
       } else {
-
         clearInterval(timerId["codebuddy"]);
         /**
          * Some time, countdownTimer() is started by any users.
@@ -223,19 +221,19 @@ module.exports = (io, client, redis, projects) => {
     }
   });
 
-  /** 
+  /**
    * set review to mongoDB
    **/
   client.on("submit review", payload => {
     var found = false;
 
-    /** 
+    /**
      * if there's not comment in array => add to DB and array
      **/
     if (comments.length == 0) {
       saveComment(payload);
     } else {
-      /** 
+      /**
        * edit comment in exist line => update in DB
        **/
       for (var i in comments) {
@@ -290,7 +288,7 @@ module.exports = (io, client, redis, projects) => {
     })
       .remove()
       .exec();
-    /** 
+    /**
      * remove deleted comment from list
      **/
     for (var i in comments) {
@@ -310,7 +308,7 @@ module.exports = (io, client, redis, projects) => {
     });
   });
 
-  /** 
+  /**
    * move hilight when enter or delete
    **/
   client.on("move hilight", payload => {
@@ -347,7 +345,7 @@ module.exports = (io, client, redis, projects) => {
       }
     }
 
-    /** 
+    /**
      * check when delete line
      **/
     if (isDelete) {
@@ -381,7 +379,7 @@ module.exports = (io, client, redis, projects) => {
    * @param {Ibject} payload fileName
    **/
   client.on("create file", payload => {
-    /** 
+    /**
      * save file name to mongoDB
      **/
     Project.updateOne(
@@ -398,7 +396,7 @@ module.exports = (io, client, redis, projects) => {
       }
     );
 
-    /** 
+    /**
      * create new file  ./public/project_files/projectId/fileName.py
      **/
     fs.open(
@@ -421,7 +419,7 @@ module.exports = (io, client, redis, projects) => {
    * @param {Ibject} payload fileName
    **/
   client.on("delete file", async payload => {
-    /** 
+    /**
      * delete file in mongoDB
      **/
     Project.updateOne(
@@ -753,13 +751,11 @@ module.exports = (io, client, redis, projects) => {
           );
         }
       }
-      /** 
+      /**
        * ------ end history -----
        **/
     }
   });
-
-  var detectInput = "empty";
 
   /**
    * `run code` event fired when user click on run button from front-end
@@ -826,14 +822,14 @@ module.exports = (io, client, redis, projects) => {
         });
       }
 
-      /** 
+      /**
        * Resolve the output get echo the input ex. input is 'input', output is 'input input'
        **/
-       var splitData = data.split("\n");
-      if (detectInput !== "empty") {
+      let splitData = data.split("\n");
+      if (detectInput !== "empty@Codebuddy") {
         if (splitData[0].indexOf(String.valueOf(detectInput))) {
           data = splitData.slice(1, splitData.length).join("\n");
-          detectInput = "empty";
+          detectInput = "empty@Codebuddy";
         }
       }
 
@@ -847,7 +843,7 @@ module.exports = (io, client, redis, projects) => {
    * @param {Object} payload code from editor
    */
   client.on("typing input on term", payload => {
-    var inputTerm = payload.inputTerm;
+    let inputTerm = payload.inputTerm;
     detectInput = inputTerm;
     if (pythonProcess !== undefined) {
       pythonProcess.write(inputTerm + "\r");
@@ -902,7 +898,7 @@ module.exports = (io, client, redis, projects) => {
   });
 
   client.on("open tab", async payload => {
-    var fileName = payload;
+    let fileName = payload;
     var code = await redis.hget(
       `project:${projectId}`,
       "editor",
@@ -1288,33 +1284,39 @@ module.exports = (io, client, redis, projects) => {
   });
 
   client.on("export file", payload => {
-    var fileNameList = payload.fileNameList;
+    let fileNameList = payload.fileNameList;
     let fileNameListLength = Object.keys(fileNameList).length;
-    var code = payload.code;
+    let code = payload.code;
+    let filePath = "../project_files/" + projectId + "/main.py";
 
-    for (var i in fileNameList) {
+    for (let index in fileNameList) {
       fs.writeFile(
-        "./public/project_files/" + projectId + "/" + fileNameList[i] + ".py",
-        code[fileNameList[i]],
+        "./public/project_files/" +
+          projectId +
+          "/" +
+          fileNameList[index] +
+          ".py",
+        code[fileNameList[index]],
         err => {
           if (err) throw er;
         }
       );
     }
 
-    let noticeMsg = "One file";
     if (fileNameListLength > 1) {
-      let noticeMsg = "Many file";
-      var output = fs.createWriteStream(
+      filePath = "../project_files/" + projectId + "/" + projectId + ".zip";
+      let output = fs.createWriteStream(
         "./public/project_files/" + projectId + "/" + projectId + ".zip"
       );
-      var archive = archiver("zip", {
+
+      let archive = archiver("zip", {
         gzip: true,
-        /** 
+        /**
          * Sets the compression level.
          **/
         zlib: { level: 9 }
       });
+
       archive.on("error", function(err) {
         throw err;
       });
@@ -1333,12 +1335,11 @@ module.exports = (io, client, redis, projects) => {
       });
       archive.finalize();
     }
-    // let link = cryptr.encrypt('../project_files/'+projectId+'/main.py')
-    let link = "../project_files/" + projectId + "/main.py";
+
     client.emit("download file", {
       projectId: projectId,
       fileNameListLength: fileNameListLength,
-      link: cryptr.encrypt(link)
+      filePath: cryptr.encrypt(filePath)
     });
   });
 
@@ -1367,6 +1368,7 @@ module.exports = (io, client, redis, projects) => {
           seconds: seconds
         });
         if (minutes <= 0 && seconds <= 0) {
+          console.log('Minutes, Seconds')
           let numUser = Object.keys(projects[projectId].active_user).length;
           clearInterval(timerId["codebuddy"]);
           io.in(projectId).emit("confirm to switch role", {
@@ -1374,6 +1376,8 @@ module.exports = (io, client, redis, projects) => {
             status: "connect",
             numUser: numUser
           });
+        } else {
+          console.log('Do not Minutes, Seconds')
         }
       });
     }

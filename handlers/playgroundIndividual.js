@@ -1,6 +1,5 @@
 const winston = require("winston");
 const mongoose = require("mongoose");
-const moment = require("moment");
 const fs = require("fs");
 const archiver = require("archiver");
 const nodepty = require("node-pty");
@@ -8,10 +7,8 @@ const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
 
 const Project = mongoose.model("Project");
-const Message = mongoose.model("Message");
 const Score = mongoose.model("Score");
 const User = mongoose.model("User");
-const Comment = mongoose.model("Comment");
 const History = mongoose.model("History");
 
 module.exports = (io, client, redis, projects) => {
@@ -20,8 +17,7 @@ module.exports = (io, client, redis, projects) => {
    **/
   let projectId = "";
   let curUser = "";
-  var comments = [];
-  var index = null;
+  let detectInput = "empty@Codebuddy";
   let pythonProcess;
 
   winston.info("Client connected");
@@ -37,19 +33,6 @@ module.exports = (io, client, redis, projects) => {
       curUser = payload.username;
       winston.info(`User ${payload.username} joined at pid: ${payload.pid}`);
       client.join(projectId);
-
-      // var allcomment = await Comment.find(
-      //   { pid: payload.pid },
-      //   { file: 1, line: 1, description: 1, _id: 0 }
-      // ).sort({ line: 1 });
-
-      // for (var i in allcomment) {
-      //   comments.push({
-      //     file: allcomment[i].file,
-      //     line: allcomment[i].line,
-      //     description: allcomment[i].description
-      //   });
-      // }
 
       Project.update(
         {
@@ -69,7 +52,6 @@ module.exports = (io, client, redis, projects) => {
        * Increase user's enter count
        */
       const user = await User.findOne({ username: curUser });
-      const project = await Project.findOne({ pid: projectId });
       await Score.update(
         { pid: projectId, uid: user._id },
         { $inc: { "participation.enter": 1 } }
@@ -127,24 +109,26 @@ module.exports = (io, client, redis, projects) => {
 
       if (projects[projectId].reject) {
         delete projects[projectId].reject;
+
+        client.leave(projectId);
       } else {
-        delete projects[projectId]
-      }
-      
-      client.leave(projectId);
-      Project.updateOne(
-        {
-          pid: projectId
-        },
-        {
-          $set: {
-            disable_time: Date.now()
+        delete projects[projectId];
+
+        client.leave(projectId);
+        Project.updateOne(
+          {
+            pid: projectId
+          },
+          {
+            $set: {
+              disable_time: Date.now()
+            }
+          },
+          err => {
+            if (err) throw err;
           }
-        },
-        err => {
-          if (err) throw err;
-        }
-      );
+        );
+      }
 
       winston.info("Client disconnected");
     } catch (error) {
@@ -157,7 +141,7 @@ module.exports = (io, client, redis, projects) => {
    * @param {Ibject} payload fileName
    */
   client.on("create file", payload => {
-    /** 
+    /**
      * save file name to mongoDB
      **/
     Project.update(
@@ -182,7 +166,6 @@ module.exports = (io, client, redis, projects) => {
       "w",
       function(err, file) {
         if (err) throw err;
-        console.log("file " + payload + ".py is created");
       }
     );
 
@@ -197,7 +180,7 @@ module.exports = (io, client, redis, projects) => {
    * @param {Ibject} payload fileName
    */
   client.on("delete file", async payload => {
-    /** 
+    /**
      * delete file in mongoDB
      **/
     Project.update(
@@ -214,7 +197,7 @@ module.exports = (io, client, redis, projects) => {
       }
     );
 
-    /** 
+    /**
      * delete code in redis
      **/
     var code = JSON.parse(
@@ -232,7 +215,6 @@ module.exports = (io, client, redis, projects) => {
       "./public/project_files/" + projectId + "/" + payload + ".py",
       function(err) {
         if (err) throw err;
-        console.log(payload + ".py is deleted!");
       }
     );
 
@@ -240,10 +222,6 @@ module.exports = (io, client, redis, projects) => {
       fileName: payload,
       action: "delete"
     });
-  });
-
-  client.on("switch role", () => {
-    switchRole();
   });
 
   /**
@@ -259,8 +237,6 @@ module.exports = (io, client, redis, projects) => {
       // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
       payload.code.fileName = payload.fileName;
       client.to(projectId).emit("editor update", payload.code);
-      console.log(payload);
-      console.log("code " + payload.code.text[0]);
       editorName = payload.fileName;
       redis.hgetall(`project:${projectId}`, function(err, obj) {
         var editorJson = {};
@@ -287,21 +263,18 @@ module.exports = (io, client, redis, projects) => {
       var moreLine = false;
       var fileName = payload.fileName;
 
-      console.log(removeText[0].length);
-
       for (var i = 0; i < removeText.length; i++) {
         if (removeText[i].length) {
           moreLine = true;
           break;
         }
       }
-      /** 
+      /**
        * save input text to mongoDB
        **/
       if (action == "+input") {
-        console.log(">>>>>>save input");
         if (enterText.length == 1) {
-          /** 
+          /**
            * input ch
            **/
           if (removeText[0].length != 0) {
@@ -312,7 +285,6 @@ module.exports = (io, client, redis, projects) => {
               /**
                * select text in 1 line
                **/
-              console.log(">>>>>>delete in 1 line more than 1 text");
               deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh);
               updateTextAfter(
                 projectId,
@@ -326,7 +298,7 @@ module.exports = (io, client, redis, projects) => {
               (removeText.length > 1 && moreLine) ||
               (removeText[0].length == 0 && removeText[1].length == 0)
             ) {
-              /** 
+              /**
                * select more than 1 line || delete line
                **/
               deleteMoreLine(
@@ -354,9 +326,7 @@ module.exports = (io, client, redis, projects) => {
               function(err, res) {
                 if (err) return handleError(err);
                 var textInLine = res;
-                console.log(res);
                 for (var i = 0; i < textInLine.length; i++) {
-                  console.log(textInLine[i]);
                   History.update(
                     {
                       pid: projectId,
@@ -418,7 +388,6 @@ module.exports = (io, client, redis, projects) => {
             function(err, res) {
               if (err) return handleError(err);
               var textInLine = res;
-              console.log(res);
 
               for (var i = 0; i < textInLine.length; i++) {
                 History.update(
@@ -452,7 +421,6 @@ module.exports = (io, client, redis, projects) => {
             function(err, res) {
               if (err) return handleError(err);
               var textInLine = res;
-              console.log(res);
 
               for (var i = 0; i < textInLine.length; i++) {
                 History.update(
@@ -484,7 +452,6 @@ module.exports = (io, client, redis, projects) => {
           /**
            * delete select text
            **/
-          console.log(">>>>>>delete in 1 line more than 1 text");
           deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh);
           updateTextAfter(
             projectId,
@@ -517,16 +484,6 @@ module.exports = (io, client, redis, projects) => {
        **/
     }
   });
-
-  /**
-   * `user status` event fired every 3 seconds for checking user status
-   * @param {Object} payload user status from client-side
-   */
-  // client.on('user status', (payload) => {
-  //   client.to(projectId).emit('update status', payload)
-  // })
-
-  var detectInput = "empty@Codebuddy";
 
   /**
    * `run code` event fired when user click on run button from front-end
@@ -566,7 +523,6 @@ module.exports = (io, client, redis, projects) => {
         data.indexOf("Error") != -1 ||
         data.indexOf("Traceback (most recent call last):") != -1
       ) {
-        console.log(curUser, "makes error!");
         /**
          * increase error_count of user
          **/
@@ -597,13 +553,10 @@ module.exports = (io, client, redis, projects) => {
       /**
        * Resolve the output get echo the input ex. input is 'input', output is 'input input'
        **/
-       var splitData = data.split("\n");
-      console.log("Split Data, ", splitData);
+      var splitData = data.split("\n");
       if (detectInput !== "empty@Codebuddy") {
-        console.log("DetectInput is true, ", detectInput);
         if (splitData[0].indexOf(String.valueOf(detectInput))) {
           data = splitData.slice(1, splitData.length).join("\n");
-          console.log("Data, ", data);
           detectInput = "empty@Codebuddy";
         }
       }
@@ -620,7 +573,6 @@ module.exports = (io, client, redis, projects) => {
   client.on("typing input on term", payload => {
     var inputTerm = payload.inputTerm;
     detectInput = inputTerm;
-    console.log("pythonProcess, ", pythonProcess);
     if (pythonProcess !== undefined) {
       pythonProcess.write(inputTerm + "\r");
     }
@@ -658,49 +610,11 @@ module.exports = (io, client, redis, projects) => {
     });
   });
 
-  client.on("save active time", async payload => {
-    console.log(payload);
-    console.log(projectId);
-
-    const score = await Score.findOne({
-      pid: projectId,
-      uid: payload.uid
-    });
-
-    await Score.update(
-      {
-        pid: projectId,
-        uid: payload.uid
-      },
-      {
-        $set: {
-          time: parseInt(score.time) + parseInt(payload.time)
-        }
-      }
-    );
-
-    const user = await User.findOne({
-      _id: payload.uid
-    });
-
-    await User.update(
-      {
-        _id: payload.uid
-      },
-      {
-        $set: {
-          totalTime: parseInt(user.totalTime) + parseInt(payload.time)
-        }
-      }
-    );
-  });
-
   client.on("save lines of code", payload => {
     History.aggregate([
       { $match: { user: curUser, pid: projectId } },
       { $group: { _id: { file: "$file", line: "$line" } } }
     ]).then(function(res) {
-      console.log("save lines of code: ", res.length, res);
       Score.where({ pid: projectId, uid: payload.uid }).findOne(function(
         err,
         score
@@ -848,7 +762,6 @@ module.exports = (io, client, redis, projects) => {
                   oldScore
                 ) {
                   if (err) throw err;
-                  console.log("oldScore, ", oldScore);
                   if (!oldScore) {
                     new Score(scoreModel, err => {
                       if (err) throw err;
@@ -877,10 +790,7 @@ module.exports = (io, client, redis, projects) => {
                           return;
                         }
                         if (results) {
-                          /**
-                           * sum = 0;
-                           **/
-                          console.log("results, ", results);
+                          // sum = 0;
                           results.forEach(function(result) {
                             /**
                              * start update
@@ -966,9 +876,7 @@ module.exports = (io, client, redis, projects) => {
                                 return;
                               }
                               if (results) {
-                                /**
-                                 * sum = 0;
-                                 **/
+                                // sum = 0;
                                 results.forEach(function(result) {
                                   /**
                                    * start update
@@ -1034,14 +942,18 @@ module.exports = (io, client, redis, projects) => {
   });
 
   client.on("export file", payload => {
-    let fileNameList = payload.fileNameList
-    let fileNameListLength = Object.keys(fileNameList).length
-    let code = payload.code
-    let filePath = "../project_files/" + projectId + "/main.py"
+    let fileNameList = payload.fileNameList;
+    let fileNameListLength = Object.keys(fileNameList).length;
+    let code = payload.code;
+    let filePath = "../project_files/" + projectId + "/main.py";
 
     for (let index in fileNameList) {
       fs.writeFile(
-        "./public/project_files/" + projectId + "/" + fileNameList[index] + ".py",
+        "./public/project_files/" +
+          projectId +
+          "/" +
+          fileNameList[index] +
+          ".py",
         code[fileNameList[index]],
         err => {
           if (err) throw er;
@@ -1050,7 +962,7 @@ module.exports = (io, client, redis, projects) => {
     }
 
     if (fileNameListLength > 1) {
-      filePath = "../project_files/" + projectId + "/" + projectId + ".zip"
+      filePath = "../project_files/" + projectId + "/" + projectId + ".zip";
       let output = fs.createWriteStream(
         "./public/project_files/" + projectId + "/" + projectId + ".zip"
       );
@@ -1069,7 +981,7 @@ module.exports = (io, client, redis, projects) => {
       /**
        * pipe archive data to the output file
        **/
-      archive.pipe(output)
+      archive.pipe(output);
       /**
        * append files
        **/
@@ -1077,9 +989,9 @@ module.exports = (io, client, redis, projects) => {
         archive.file(
           "./public/project_files/" + projectId + "/" + fileName + ".py",
           { name: fileName + ".py" }
-        )
-      })
-      archive.finalize()
+        );
+      });
+      archive.finalize();
     }
 
     client.emit("download file", {
@@ -1088,15 +1000,6 @@ module.exports = (io, client, redis, projects) => {
       filePath: cryptr.encrypt(filePath)
     });
   });
-
-  function updateDesc(file, line, description) {
-    for (var i in comments) {
-      if (comments[i].file == file && comments[i].line == line) {
-        comments[i].description = description;
-        break;
-      }
-    }
-  }
 
   function deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh) {
     History.find({
@@ -1119,14 +1022,11 @@ module.exports = (io, client, redis, projects) => {
     action
   ) {
     var lineRange = toLine - fromLine;
-    console.log(">>>>delete line" + lineRange);
     for (var i = fromLine; i <= fromLine + lineRange; i++) {
-      console.log(">---- " + i);
       /**
        * first line
        **/
       if (i == fromLine) {
-        console.log("   first line");
         History.findOne({
           pid: projectId,
           file: fileName,
@@ -1135,12 +1035,10 @@ module.exports = (io, client, redis, projects) => {
         })
           .remove()
           .exec();
-      }
-      /**
-       * not last line
-       **/
-      else if (i != fromLine + lineRange) {
-        console.log("   not first line");
+      } else if (i != fromLine + lineRange) {
+        /**
+         * not last line
+         **/
         History.find({
           pid: projectId,
           file: fileName,
@@ -1148,12 +1046,10 @@ module.exports = (io, client, redis, projects) => {
         })
           .remove()
           .exec();
-      }
-      /**
-       * last line
-       **/
-      else {
-        console.log("   last line");
+      } else {
+        /**
+         * last line
+         **/
         History.find({
           pid: projectId,
           file: fileName,
@@ -1181,7 +1077,6 @@ module.exports = (io, client, redis, projects) => {
         var textInLine = res;
         console.log(res);
         for (var i = 0; i < textInLine.length; i++) {
-          console.log(textInLine[i]);
           History.update(
             {
               pid: projectId,
