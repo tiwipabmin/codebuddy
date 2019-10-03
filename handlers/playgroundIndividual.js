@@ -358,7 +358,7 @@ module.exports = (io, client, redis, projects) => {
             file: fileName,
             line: fromLine,
             ch: fromCh,
-            text: payload.code.text,
+            text: payload.code.text.toString(),
             user: payload.user,
             createdAt: Date.now()
           };

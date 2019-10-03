@@ -14,18 +14,8 @@ block content
       'style': 'display: block; position: fixed;'
     })
 
-  .ui.small.modal#downloadFileModal
-    .header Link Download File
-    .content
-      h1
-        p(align='center')
-          a#linkDownloadFile Go to download file page    
-    .ui.basic.center.aligned.segment 
-      .actions
-        button.ui.button.approve.green(data-value='cancel') OK 
-
-  //- confirm to switch role
-  .ui.basic.modal#switch_role_modal
+  //- confirm role change
+  .ui.basic.modal#confirmRoleChange
     .ui.icon.header#header_srm ถึงเวลาสลับบทบาทแล้วครับ/ค่ะ
     .content
       .actions
@@ -36,16 +26,17 @@ block content
           .ui.green.massive.inverted.negative.button#close_button_srm
             i.check.icon
             |       ตกลง
+
   //- reject joining project
   .ui.basic.modal#rejectJoining
     .ui.icon.header เกิดข้อผิดพลาดกรุณาออกจากหน้านี้
     .content
       .actions
         center
-          a.ui.green.massive.inverted.positive.button(href='/classroom?section_id='+`${data_set.common.section.section_id}`)
+          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom?section_id='+`${data_set.common.section.section_id}`)
             i.check.icon
             |       ตกลง
-  a#backToClass(href='/classroom?section_id='+`${data_set.common.section.section_id}`, style="display: none")
+  
   //- select role modal
   .ui.basic.modal#selectRole-modal
     .ui.icon.header#header_serm

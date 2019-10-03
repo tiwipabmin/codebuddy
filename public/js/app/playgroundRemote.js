@@ -1,8 +1,8 @@
 $(document).ready(function() {
-  $("#switch_role_modal").modal({
+  $("#confirmRoleChange").modal({
     closable: false,
     onDeny: function() {
-      $("#switch_role_modal").modal("hide");
+      $("#confirmRoleChange").modal("hide");
     },
     onApprove: function() {
       socket.emit("switch role", {
@@ -304,7 +304,7 @@ socket.on("role selection", payload => {
 /**
  * If there's no one select the role, then first user that come to the project must choose one
  */
-socket.on("confirm to switch role", payload => {
+socket.on("confirm role change", payload => {
   $("#close_button_srm").attr("style", "display:none;");
   $("#ok_button_srm").attr("style", "display:none;");
   if (payload.status === "disconnect") {
@@ -323,7 +323,7 @@ socket.on("confirm to switch role", payload => {
     payload.numUser == 2
   ) {
     $("#header_srm").text('ถึงเวลาที่คุณเป็น "Coder" แล้วครับ/ค่ะ');
-    $("#switch_role_modal").modal("show");
+    $("#confirmRoleChange").modal("show");
   } else if (
     user === payload.projectRoles.roles.coder &&
     payload.numUser == 2
@@ -333,12 +333,11 @@ socket.on("confirm to switch role", payload => {
       style: "display:block;",
       value: payload.status
     });
-    $("#switch_role_modal").modal("show");
+    $("#confirmRoleChange").modal("show");
   } else if (payload.numUser == 1) {
     socket.emit("switch role", {
       user: user,
-      action: "switch role",
-      status: "disconnect"
+      action: "switch role"
     });
   }
 });
@@ -641,7 +640,7 @@ socket.on("show score", payload => {
 });
 
 /**
- * Auto update score
+ * Pause run code
  */
 socket.on("pause run code", payload => {
   term.writeln("Stop running pytest.py...");
@@ -719,15 +718,15 @@ socket.on("set editor open tab", payload => {
 var lastInput = "";
 
 /**
- * Terminal socket
+ * Terminal update data
  */
 socket.on("term update", payload => {
-  term.writeln(payload);
+  term.writeln(payload.data);
   term.prompt();
 });
 
 /**
- * Terminal socket
+ * Update message
  */
 socket.on("update message", payload => {
   updateScroll();
@@ -875,11 +874,6 @@ $(function() {
     }
   }, 10000);
 });
-
-// $('.ui.video.toggle.button')
-//   .on('click', handler.activate);
-// $('.ui.mute.toggle.button')
-//   .on('click', handler.activate);
 
 function switchRole() {
   socket.emit("switch role", {

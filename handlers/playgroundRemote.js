@@ -40,12 +40,12 @@ module.exports = (io, client, redis, projects) => {
       winston.info(`User ${payload.username} joined at pid: ${payload.pid}`);
       client.join(projectId);
 
-      var allcomment = await Comment.find(
+      let allcomment = await Comment.find(
         { pid: payload.pid },
         { file: 1, line: 1, description: 1, _id: 0 }
       ).sort({ line: 1 });
 
-      for (var i in allcomment) {
+      for (let i in allcomment) {
         comments.push({
           file: allcomment[i].file,
           line: allcomment[i].line,
@@ -184,12 +184,12 @@ module.exports = (io, client, redis, projects) => {
       } else {
         clearInterval(timerId["codebuddy"]);
         /**
-         * Some time, countdownTimer() is started by any users.
+         * Some time, countdownTimer() is started by only one users.
          **/
         io.in(projectId).emit("clear interval");
 
         delete projects[projectId];
-        io.in(projectId).emit("confirm to switch role", {
+        io.in(projectId).emit("confirm role change", {
           projectRoles: projects[projectId],
           status: "disconnect",
           numUser: numUser
@@ -597,9 +597,8 @@ module.exports = (io, client, redis, projects) => {
               function(err, res) {
                 if (err) return handleError(err);
                 var textInLine = res;
-                let histories = {};
                 for (var i = 0; i < textInLine.length; i++) {
-                  histories[i] = History.updateOne(
+                  History.updateOne(
                     {
                       pid: projectId,
                       file: fileName,
@@ -630,7 +629,7 @@ module.exports = (io, client, redis, projects) => {
             file: fileName,
             line: fromLine,
             ch: fromCh,
-            text: payload.code.text,
+            text: payload.code.text.toString(),
             user: payload.user,
             createdAt: Date.now()
           };
@@ -659,10 +658,9 @@ module.exports = (io, client, redis, projects) => {
             { line: 1, ch: 1, text: 1, _id: 0 },
             function(err, res) {
               if (err) return handleError(err);
-              var textInLine = res;
-              let histories = {};
-              for (var i = 0; i < textInLine.length; i++) {
-                histories[i] = History.updateOne(
+              let textInLine = res;
+              for (let i = 0; i < textInLine.length; i++) {
+                History.updateOne(
                   {
                     pid: projectId,
                     file: fileName,
@@ -693,9 +691,8 @@ module.exports = (io, client, redis, projects) => {
             function(err, res) {
               if (err) return handleError(err);
               var textInLine = res;
-              let histories = {};
               for (var i = 0; i < textInLine.length; i++) {
-                histories[i] = History.updateOne(
+                History.updateOne(
                   {
                     pid: projectId,
                     file: fileName,
@@ -992,7 +989,6 @@ module.exports = (io, client, redis, projects) => {
    */
   client.on("submit code", payload => {
     const mode = payload.mode;
-    const uid = payload.uid;
     const code = payload.code;
 
     /**
@@ -1004,7 +1000,7 @@ module.exports = (io, client, redis, projects) => {
     let count_error = 0;
     let count_file = 0;
 
-    for (var key in code) {
+    for (let key in code) {
       count_file++;
       let element_ = code[key];
       split_code = element_.split("\n");
@@ -1020,7 +1016,7 @@ module.exports = (io, client, redis, projects) => {
     }
 
     let pylintProcess;
-    var args = ["-j", "4"];
+    let args = ["-j", "4"];
 
     Object.keys(code).forEach(function(key) {
       args.push("./public/project_files/" + projectId + "/" + key + ".py");
@@ -1368,16 +1364,13 @@ module.exports = (io, client, redis, projects) => {
           seconds: seconds
         });
         if (minutes <= 0 && seconds <= 0) {
-          console.log('Minutes, Seconds')
           let numUser = Object.keys(projects[projectId].active_user).length;
           clearInterval(timerId["codebuddy"]);
-          io.in(projectId).emit("confirm to switch role", {
+          io.in(projectId).emit("confirm role change", {
             projectRoles: projects[projectId],
             status: "connect",
             numUser: numUser
           });
-        } else {
-          console.log('Do not Minutes, Seconds')
         }
       });
     }
@@ -1458,7 +1451,7 @@ module.exports = (io, client, redis, projects) => {
     }
   }
 
-  function deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh) {
+  async function deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh) {
     History.find({
       pid: projectId,
       file: fileName,
@@ -1478,12 +1471,20 @@ module.exports = (io, client, redis, projects) => {
     toCh,
     action
   ) {
-    var lineRange = toLine - fromLine;
-    for (var i = fromLine; i <= fromLine + lineRange; i++) {
+    let lineRange = toLine - fromLine;
+    for (let i = fromLine; i <= fromLine + lineRange; i++) {
       /**
        * first line
        **/
       if (i == fromLine) {
+        let resHis = History.findOne({
+          pid: projectId,
+          file: fileName,
+          line: i,
+          ch: { $gte: fromCh }
+        })
+        console.log('Delete more line, ', resHis)
+
         History.findOne({
           pid: projectId,
           file: fileName,
@@ -1531,10 +1532,9 @@ module.exports = (io, client, redis, projects) => {
       { line: 1, ch: 1, text: 1, _id: 0 },
       function(err, res) {
         if (err) return handleError(err);
-        var textInLine = res;
-        let histories = {};
-        for (var i = 0; i < textInLine.length; i++) {
-          histories[i] = History.updateOne(
+        let textInLine = res;
+        for (let i = 0; i < textInLine.length; i++) {
+          History.updateOne(
             {
               pid: projectId,
               file: fileName,
