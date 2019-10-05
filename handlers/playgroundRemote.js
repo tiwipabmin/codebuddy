@@ -24,7 +24,7 @@ module.exports = (io, client, redis, projects) => {
   let timerId = {};
   let comments = [];
   let index = null;
-  let pythonProcess = undefined;
+  let pythonProcess = null;
 
   winston.info("Client connected");
 
@@ -103,7 +103,34 @@ module.exports = (io, client, redis, projects) => {
         initRemainder();
       } else {
         if (projects[projectId].active_user[curUser] === undefined) {
-          partner(project);
+          await Project.findOne({ pid: projectId }, async function(err, res) {
+            if (err) return handleError(err);
+            projects[projectId].active_user[curUser] = 1;
+
+            /**
+             * Increase users' pairing count
+             **/
+            await Score.updateOne(
+              { pid: projectId, uid: project.creator_id },
+              { $inc: { "participation.pairing": 1 } }
+            );
+            await Score.updateOne(
+              { pid: projectId, uid: project.collaborator_id },
+              { $inc: { "participation.pairing": 1 } }
+            );
+            let numUser = Object.keys(projects[projectId].active_user).length;
+            client.emit("role updated", {
+              projectRoles: projects[projectId],
+              project: res
+            });
+            io.in(projectId).emit("update status", {
+              projectRoles: projects[projectId],
+              status: 1,
+              numUser: numUser
+            });
+
+            initRemainder();
+          });
         } else {
           if (projects[projectId].reject === undefined) {
             projects[projectId].reject = 1;
@@ -126,40 +153,6 @@ module.exports = (io, client, redis, projects) => {
     });
     io.in(projectId).emit("auto update score");
     client.emit("init reviews", comments);
-  }
-
-  async function partner(project) {
-    let resProject = await Project.findOne({ pid: projectId }, async function(
-      err,
-      res
-    ) {
-      if (err) return handleError(err);
-      projects[projectId].active_user[curUser] = 1;
-
-      /**
-       * Increase users' pairing count
-       **/
-      await Score.updateOne(
-        { pid: projectId, uid: project.creator_id },
-        { $inc: { "participation.pairing": 1 } }
-      );
-      await Score.updateOne(
-        { pid: projectId, uid: project.collaborator_id },
-        { $inc: { "participation.pairing": 1 } }
-      );
-      let numUser = Object.keys(projects[projectId].active_user).length;
-      client.emit("role updated", {
-        projectRoles: projects[projectId],
-        project: res
-      });
-      io.in(projectId).emit("update status", {
-        projectRoles: projects[projectId],
-        status: 1,
-        numUser: numUser
-      });
-
-      initRemainder();
-    });
   }
 
   client.on("clear interval", () => {
@@ -1451,7 +1444,7 @@ module.exports = (io, client, redis, projects) => {
     }
   }
 
-  async function deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh) {
+  function deleteInOneLine(projectId, fileName, fromLine, fromCh, toCh) {
     History.find({
       pid: projectId,
       file: fileName,
@@ -1482,8 +1475,8 @@ module.exports = (io, client, redis, projects) => {
           file: fileName,
           line: i,
           ch: { $gte: fromCh }
-        })
-        console.log('Delete more line, ', resHis)
+        });
+        console.log("Delete more line, ", resHis);
 
         History.findOne({
           pid: projectId,

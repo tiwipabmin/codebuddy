@@ -427,13 +427,14 @@ socket.on("auto update score", payload => {
  * Show auto update score
  */
 socket.on("show auto update score", payload => {
-  $("p#project-score-point").text(
+  $("#project-score-point").text(
     "project score : " + parseFloat(payload.score)
   );
   if (uid == payload.uid) {
     $("#user-point-label").text(
       "average score: " + parseFloat(payload.avgScore).toFixed(2)
     );
+    console.log('Display: none!!')
     $("#global_loader").attr("style", "display: none");
   }
 });

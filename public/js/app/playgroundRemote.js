@@ -424,6 +424,7 @@ socket.on("show reviewer active time", payload => {
  * `beforeunload` event will fired and sending client disconnection to the server
  */
 $(window).on("beforeunload", () => {
+  // storeActiveTime()
   socket.emit("submit code", {
     mode: "auto",
     uid: uid,
@@ -433,6 +434,7 @@ $(window).on("beforeunload", () => {
 });
 
 $(window).bind("hashchange", function() {
+  // storeActiveTime()
   socket.emit("submit code", {
     mode: "auto",
     uid: uid,
@@ -748,26 +750,26 @@ socket.on("update message", payload => {
   }
 });
 
-socket.on('download file', (payload) => {
-  let fileNameListLength = payload.fileNameListLength
-  let projectId = payload.projectId
-  let a = document.createElement("a")
-  a.download
-  a.target = "_blank"
-  a.style = "display: none"
+socket.on("download file", payload => {
+  let fileNameListLength = payload.fileNameListLength;
+  let projectId = payload.projectId;
+  let a = document.createElement("a");
+  a.download;
+  a.target = "_blank";
+  a.style = "display: none";
 
-  if(fileNameListLength === 1) {
+  if (fileNameListLength === 1) {
     a.href = "/api/downloadFile?filePath=" + payload.filePath;
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   } else {
     a.href = "/api/downloadFile?filePath=" + payload.filePath;
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
-})
+});
 
 /**
  * WebRTC TEST MUTING

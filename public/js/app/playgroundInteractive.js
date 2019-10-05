@@ -74,7 +74,7 @@ var executingBlock;
 var hasError = false;
 
 projectFiles.forEach(newEditorFacade);
-getActiveTab("main");
+// getActiveTab("main");
 
 var segmentCodeBlock = document.getElementById("segmentCodeBlock");
 
@@ -116,7 +116,9 @@ function setEditor(fileName) {
   cm.on("focus", cm => {
     var prevFocusBlock = detectFocusBlock;
 
-    // find index of focusing codemirror in editors array.
+    /**
+     * find index of focusing codemirror in editors array.
+     **/
     detectFocusBlock = editors
       .map(function(obj) {
         return obj.editor;
@@ -127,7 +129,7 @@ function setEditor(fileName) {
       prevFocus: prevFocusBlock,
       newFocus: detectFocusBlock
     });
-    console.log(detectFocusBlock);
+    console.log(`Detect focus block!! ${detectFocusBlock}`);
   });
   editors.push({ blockId: fileName, editor: cm });
 }
@@ -180,7 +182,7 @@ socket.on("init state", payload => {
     var editorValues = JSON.parse(payload.editor);
     projectFiles.forEach(setEditorValue);
   } else {
-    editors["main"].setValue("");
+    editors[0].editor.setValue("");
   }
 
   function setEditorValue(fileName) {
@@ -248,8 +250,10 @@ socket.on("update block", payload => {
       segmentCodeBlock.children[index]
     );
 
-    // TODO: refactor setEditor with index parameter
-    // add codemirror of new into editors array
+    /**
+     * TODO: refactor setEditor with index parameter
+     * add codemirror of new into editors array
+     **/
     var cm = CodeMirror.fromTextArea(
       document.getElementById(blockId + "-text"),
       {
@@ -289,7 +293,9 @@ socket.on("update block", payload => {
     cm.on("focus", cm => {
       var prevFocusBlock = detectFocusBlock;
 
-      // find index of focusing codemirror in editors array.
+      /**
+       * find index of focusing codemirror in editors array.
+       **/
       detectFocusBlock = editors
         .map(function(obj) {
           return obj.editor;
@@ -444,10 +450,16 @@ socket.on("role updated", payload => {
    * @param {object} fileName receive a file name.
    */
   function setOptionFileNoCursor(fileName) {
-    editor[fileName].setOption("readOnly", "nocursor");
+    var blockObj = editors.find(obj => {
+      return obj.blockId == fileName;
+    });
+    blockObj.editor.setOption("readOnly", "nocursor");
   }
   function setOptionFileShowCursor(fileName) {
-    editor[fileName].setOption("readOnly", false);
+    var blockObj = editors.find(obj => {
+      return obj.blockId == fileName;
+    });
+    blockObj.editor.setOption("readOnly", false);
   }
 
   $(".partner-role-label").text(`${roles.partner}`);
@@ -673,7 +685,9 @@ socket.on("restart a kernel", payload => {
  * Add code block
  */
 function addBlock() {
-  // random block id
+  /**
+   * random block id
+   **/
   var random = Math.random()
     .toString(36)
     .substr(2, 9);
@@ -723,7 +737,6 @@ function sendActiveTab(tab) {
  * Show score dialog
  */
 socket.on("show score", payload => {
-  console.log(payload);
   $("#showScore-modal").modal("hide");
   $("#showScore-modal").modal("show");
   $("p#show-point").text(
@@ -757,7 +770,6 @@ socket.on("auto update score", payload => {
  * Auto auto update score
  */
 socket.on("show auto update score", payload => {
-  console.log(payload);
   $("p#project-score-point").text(
     "project score : " + parseFloat(payload.score)
   );
@@ -781,7 +793,9 @@ socket.on("show partner active tab", payload => {
       '<div id="' + partnerTab + '-file-icon"/>'
     );
 
-    //set new partner actice tab
+    /**
+     * set new partner actice tab
+     **/
     partnerTab = payload.activeTab;
     $("#" + partnerTab + "-file-icon").replaceWith(
       '<img id="' +
@@ -832,26 +846,26 @@ socket.on("update message", payload => {
   }
 });
 
-socket.on('download file', (payload) => {
-  let fileNameListLength = payload.fileNameListLength
-  let projectId = payload.projectId
-  let a = document.createElement("a")
-  a.download
-  a.target = "_blank"
-  a.style = "display: none"
+socket.on("download file", payload => {
+  let fileNameListLength = payload.fileNameListLength;
+  let projectId = payload.projectId;
+  let a = document.createElement("a");
+  a.download;
+  a.target = "_blank";
+  a.style = "display: none";
 
-  if(fileNameListLength === 1) {
+  if (fileNameListLength === 1) {
     a.href = "/api/downloadFile?filePath=" + payload.filePath;
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   } else {
     a.href = "/api/downloadFile?filePath=" + payload.filePath;
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
-})
+});
 
 /**
  * WebRTC TEST MUTING
@@ -964,7 +978,6 @@ function switchRole() {
 }
 
 function updateScroll() {
-  // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
   $(".chat-history").animate(
     { scrollTop: $(".message-list").height() },
     "fast"
@@ -1161,7 +1174,7 @@ function moveBlock(key) {
     /**
      * there is no insertAfter, so we basically swap the bottom block up
      **/
-     segmentCodeBlock[detectFocusBlock + 1].parentNode.insertBefore(
+    segmentCodeBlock[detectFocusBlock + 1].parentNode.insertBefore(
       segmentCodeBlock[detectFocusBlock + 1],
       segmentCodeBlock[detectFocusBlock]
     );
@@ -1209,7 +1222,9 @@ function setOnChangeEditer(fileName) {
     var isEnter = false;
     var isDelete = false;
 
-    //check when enter new line
+    /**
+     * check when enter new line
+     **/
     if (text == 44) {
       console.log("enter " + enterline);
       for (var i in comments) {
@@ -1226,7 +1241,9 @@ function setOnChangeEditer(fileName) {
       });
     }
 
-    //check when delete line
+    /**
+     * check when delete line
+     **/
     if (remove.length == 2) {
       for (var i in comments) {
         if (comments[i].line > enterline - 1 && comments[i].file == fileName) {
@@ -1316,14 +1333,11 @@ function setOnDoubleClickEditor(fileName) {
 
 function getAllFileEditor() {
   var codeEditors = {};
-  console.log("projectFiles: ", projectFiles);
   projectFiles.forEach(runCodeEachFile);
   function runCodeEachFile(fileName) {
-    console.log(fileName);
     var blockObj = editors.find(obj => {
       return obj.blockId == fileName;
     });
-    console.log(blockObj);
     codeEditors[fileName] = blockObj.editor.getValue();
   }
   return codeEditors;
@@ -1339,7 +1353,9 @@ function newEditorFacade(fileName) {
   setOnChangeEditer(fileName);
   setOnDoubleClickEditor(fileName);
 
-  //setup partner active tab
+  /**
+   * setup partner active tab
+   **/
   if (fileName == "main") {
     $("#" + partnerTab + "-file-icon").replaceWith(
       '<img id="' +

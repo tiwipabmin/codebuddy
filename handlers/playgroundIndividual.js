@@ -18,7 +18,7 @@ module.exports = (io, client, redis, projects) => {
   let projectId = "";
   let curUser = "";
   let detectInput = "empty@Codebuddy";
-  let pythonProcess;
+  let pythonProcess = null;
 
   winston.info("Client connected");
 
