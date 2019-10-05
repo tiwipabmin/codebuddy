@@ -4,7 +4,7 @@
  * @param {Object} res
  * @param {Function} next
  */
- const con = require('../my_sql')
+ const con = require('../mySql')
  const Cryptr = require('cryptr');
  const cryptr = new Cryptr('codebuddy');
 
@@ -26,10 +26,10 @@ exports.validateSection = async (req, res, next) => {
   if(occupation == 'teacher') {
 
     query = 'SELECT * FROM teacher AS t JOIN course AS c ON t.teacher_id = c.teacher_id JOIN section AS s ON c.course_id = s.course_id WHERE s.section_id = ' + section_id + ' AND t.username = \'' + req.user.username + '\''
-    res_object = await con.select_teacher(query)
+    res_object = await con.selectTeacher(query)
   } else {
     query = 'SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id WHERE e.section_id = ' + section_id + ' AND st.username = \'' + req.user.username + '\''
-    res_object = await con.select_student(query)
+    res_object = await con.selectStudent(query)
   }
 
   // console.log('res_object : ', res_object)

@@ -1,7 +1,6 @@
 extends layout/layout.pug
 
 block script
-  //- script(src='/js/app/dashboard.js')
   script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
   script(src='/jquery-timepicker/jquery.timepicker.min.js')
   link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
@@ -12,14 +11,6 @@ block script
   script(src='/datepair/dist/jquery.datepair.js')
 
   script(type='text/javascript').
-    const options = {}
-    $.ajax({
-      url: '/api/usernames',
-      success: function (result) {
-        options.data = result
-        // console.log('Ajax : ' + options)
-      }
-    })
     $(document).ready(function () {
       $('#newClassroom-modal').modal({
         closable: false,
@@ -136,8 +127,8 @@ block content
             button#new.ui.button.approve.green.joinClassroom(style='float: right;') Join Classroom
     br
     .ui.devided.items
-      if data_set.common.sections.length > 0
-        each section in data_set.common.sections
+      if dataSets.primitives.sections.length > 0
+        each section in dataSets.primitives.sections
           if user.info.occupation === 'teacher'
             .item(id=`${section.section_id}`, style='padding-top:2px; padding-bottom:5px;')
               .content

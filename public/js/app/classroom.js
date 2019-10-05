@@ -451,13 +451,13 @@ function on_click_confirm_button(parameters){
       type: 'delete',
       data: parameters,
       success: function (res) {
-        let status = res.data_set.common.status
-        let assignments = JSON.parse(res.data_set.json.assignments)
-        let username = res.data_set.common.username
-        let img = res.data_set.common.img
-        let pairing_session_id = res.data_set.common.pairing_session_id
+        let status = res.dataSets.primitives.status
+        let assignments = JSON.parse(res.dataSets.references.assignments)
+        let username = res.dataSets.primitives.username
+        let img = res.dataSets.primitives.img
+        let pairing_session_id = res.dataSets.primitives.pairing_session_id
         let opt = 0
-        let weeks = res.data_set.common.weeks
+        let weeks = res.dataSets.primitives.weeks
         let data_for_weeks_dropdown_function = {assignments: JSON.stringify(assignments), username: username, img: img, weeks: weeks}
         if(status == 'Delete all of these assignment successfully.') {
           $('#menu_week').empty()
@@ -981,10 +981,10 @@ function on_click_button_in_uspm(id) {
   })
 }
 
-function create_weeks_dropdown(id, pairing_session_id, data_set) {
-  $(''+id).append('<div class=\'item\' id=\'-1week\' data-value=\'-1\' onclick=\'on_click_weeks_dropdown(\"-1week\", '+data_set.assignments+', \"'+data_set.username+'\", \"'+data_set.img+'\", '+pairing_session_id+', 0)\'>All</div>')
-  data_set.weeks.forEach(function (e){
-    $(''+id).append('<div class=\'item\' id=\''+e+'week\' data-value=\''+e+'\' onclick=\'on_click_weeks_dropdown(\"'+e+'week\", '+data_set.assignments+', \"'+data_set.username+'\", \"'+data_set.img+'\", '+pairing_session_id+', 0)\'>'+e+'</div>')
+function create_weeks_dropdown(id, pairing_session_id, dataSets) {
+  $(''+id).append('<div class=\'item\' id=\'-1week\' data-value=\'-1\' onclick=\'on_click_weeks_dropdown(\"-1week\", '+dataSets.assignments+', \"'+dataSets.username+'\", \"'+dataSets.img+'\", '+pairing_session_id+', 0)\'>All</div>')
+  dataSets.weeks.forEach(function (e){
+    $(''+id).append('<div class=\'item\' id=\''+e+'week\' data-value=\''+e+'\' onclick=\'on_click_weeks_dropdown(\"'+e+'week\", '+dataSets.assignments+', \"'+dataSets.username+'\", \"'+dataSets.img+'\", '+pairing_session_id+', 0)\'>'+e+'</div>')
   })
 }
 

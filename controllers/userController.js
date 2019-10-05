@@ -1,6 +1,6 @@
 const passport = require('passport')
 const mongoose = require('mongoose')
-const con = require('../my_sql')
+const con = require('../mySql')
 
 const User = mongoose.model('User')
 

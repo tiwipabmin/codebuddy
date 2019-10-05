@@ -8,8 +8,8 @@ mixin pairStudent()
       input#active_filter(type='hidden', value='')
       button.ui.active.button#alphabetical_filter(style="font-size:7px;", value='A-Z') A-Z
       button.ui.button#avg_score_filter(style="font-size:7px;", value='1-100') 1-100
-      button.ui.right.floated.button#change_pair(style='margin-bottom:20px;' onclick='on_click_change_pair('+data_set.common.pairing_sessions[0].pairing_session_id+', \"'+data_set.common.section.section_id+'\")') Change pair
-      button.ui.right.floated.button#autoPairing(style='margin-bottom:20px; display:none;' onclick='onClickAutoPairingBtn(\"pair\", '+data_set.common.pairing_sessions[0].pairing_session_id+', \"'+data_set.common.section.section_id+'\")') Auto Pairing
+      button.ui.right.floated.button#change_pair(style='margin-bottom:20px;' onclick='on_click_change_pair('+dataSets.primitives.pairing_sessions[0].pairing_session_id+', \"'+dataSets.primitives.section.section_id+'\")') Change pair
+      button.ui.right.floated.button#autoPairing(style='margin-bottom:20px; display:none;' onclick='onClickAutoPairingBtn(\"pair\", '+dataSets.primitives.pairing_sessions[0].pairing_session_id+', \"'+dataSets.primitives.section.section_id+'\")') Auto Pairing
       .ui.fluid.container.segment.student-list-container.box
         .ui.middle.aligned.list.student-container
           .ui.segment

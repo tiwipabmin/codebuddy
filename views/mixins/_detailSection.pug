@@ -5,18 +5,18 @@ mixin detailSection()
         .item
           .content
             b(style='font-size:1.2em;')
-              header= data_set.common.section.course_name
+              header= dataSets.primitives.section.course_name
             .description
-              p   Section : !{data_set.common.section.section} Room : !{data_set.common.section.room}
-              p   !{data_set.common.section.day} !{data_set.common.section.time_start} - !{data_set.common.section.time_end}
+              p   Section : !{dataSets.primitives.section.section} Room : !{dataSets.primitives.section.room}
+              p   !{dataSets.primitives.section.day} !{dataSets.primitives.section.time_start} - !{dataSets.primitives.section.time_end}
               if user.info.occupation === 'teacher'
-                p   Classcode : !{data_set.common.section.class_code}
+                p   Classcode : !{dataSets.primitives.section.class_code}
       .ui.segment
         .ui.items
           .item
             .content
               .description
-                case data_set.common.occupation
+                case dataSets.primitives.occupation
                   when 0
                     p
                       i.book.icon
@@ -34,7 +34,7 @@ mixin detailSection()
           .item
             .content
               .description
-                case data_set.common.occupation
+                case dataSets.primitives.occupation
                   when 0
                     p
                       i.sitemap.icon
@@ -43,7 +43,7 @@ mixin detailSection()
                     p
                       i.book.icon
                       button.btn.third_container_menu Assignments
-          case data_set.common.occupation
+          case dataSets.primitives.occupation
             when 0
               .item
                 .content
