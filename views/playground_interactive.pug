@@ -33,7 +33,7 @@ block content
     .content
       .actions
         center
-          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom?section_id='+`${dataSets.primitives.section.section_id}`)
+          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom?section_id='+`${dataSets.origins.section.section_id}`)
             i.check.icon
             |       ตกลง
 
@@ -127,7 +127,7 @@ block content
                     label.ui.teal.circular.label#user-point-label average score : 0
       .four.wide.column
         center
-          h1.ui.header= dataSets.primitives.project.title
+          h1.ui.header= dataSets.origins.project.title
           #swapTimer(style='margin: 0 0 10 0')
             span.time
               .countdown
@@ -140,8 +140,8 @@ block content
             //- - if partner_obj is null
             - let partner_img = partner_obj === null ? '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg' : partner_obj.img
             - while (partner_img == user.img) {partner_img = '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg'}
-            - let partner = user.username === dataSets.primitives.project.creator ? dataSets.primitives.project.collaborator : dataSets.primitives.project.creator
-            - let curUser = user.username === dataSets.primitives.project.creator ? dataSets.primitives.project.creator : dataSets.primitives.project.collaborator
+            - let partner = user.username === dataSets.origins.project.creator ? dataSets.origins.project.collaborator : dataSets.origins.project.creator
+            - let curUser = user.username === dataSets.origins.project.creator ? dataSets.origins.project.creator : dataSets.origins.project.collaborator
       .six.wide.column
         .ui.grid
           .sixteen.wide.column.padding-left-20.padding-right-20
@@ -210,7 +210,7 @@ block content
                 input(type="checkbox" name="allfile")
                 label Select all file
               .list#export-checklist
-                each file in dataSets.primitives.project.files
+                each file in dataSets.origins.project.files
                   .item.export-file-item(id=file+'-export-file-item')
                     .ui.child.checkbox
                       input(type="checkbox" name='checkbox-file', value=file)
@@ -267,7 +267,7 @@ block content
         .ui.grid
           .sixteen.wide.column
             p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") project score : 0
-            a.ui.label(style='margin-left:10px;' href='/history?pid='+dataSets.primitives.project.pid+'&curUser='+curUser) view history
+            a.ui.label(style='margin-left:10px;' href='/history?pid='+dataSets.origins.project.pid+'&curUser='+curUser) view history
             button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()' data-tooltip="Verify" data-inverted="")
               i.unhide.icon
             button.ui.icon.button.negative.float-right(id='reKernel' onClick='reKernel()' data-tooltip="Restart a Kernel" data-inverted="")
@@ -292,7 +292,7 @@ block content
             //-   i.plus.icon
           .ui.tab-content
             .ui.segment(id='segmentCodeBlock')
-              each file in dataSets.primitives.project.files
+              each file in dataSets.origins.project.files
                 .code-block-container(id=file+'-div')
                   .code-block
                     .nowrap(id=file+'-in') In [&nbsp;&nbsp;]:
@@ -300,7 +300,7 @@ block content
                       textarea(id=file+'-text').show
                   .code-block(id=file+'-div-output')
                     div
-          input(type='hidden' id='projectFiles' value=dataSets.primitives.project.files)
+          input(type='hidden' id='projectFiles' value=dataSets.origins.project.files)
         .ui.small.modal#filename-modal
           .header Filename
           .content
@@ -332,11 +332,11 @@ block content
     .chat
       .chat-history
         .ui.items.message-list(id="chatheight")
-          if messages.length == 0
+          if dataSets.reforms.messages.length == 0
             .ui.item
             | Send message to your pair.
           else
-            each message in messages
+            each message in dataSets.reforms.messages
               .ui.item
                 if (message.uid != user._id)
                   img.ui.avatar.image(src=partner_img)

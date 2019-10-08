@@ -16,6 +16,7 @@ const router = express.Router()
  */
 router.get('/', auth.isSignedIn, catchErrors(webController.getLobby))
 router.get('/getProgress', auth.isSignedIn, catchErrors(webController.getProgress))
+router.delete('/deleteSection', auth.isSignedIn, catchErrors(webController.deleteSection))
 
 /**
  * Expose `router`

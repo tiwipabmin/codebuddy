@@ -79,19 +79,19 @@ mixin settingsModal()
         .field
           label Class Name :
           |
-          input(type='text', name='course_name', placeholder='Your class name', value=`${dataSets.primitives.section.course_name}`)
+          input(type='text', name='course_name', placeholder='Your class name', value=`${dataSets.origins.section.course_name}`)
         .ui.grid
           .two.column.row
             .column
               .field
                 label Section :
                 |
-                input(type='text', name='section', placeholder='Your section', maxlength='3', value=`${dataSets.primitives.section.section}`)
+                input(type='text', name='section', placeholder='Your section', maxlength='3', value=`${dataSets.origins.section.section}`)
             .column
               .field
                 label Room :
                 |
-                input(type='text', name='room', placeholder='Your room', maxlength='4', value=`${dataSets.primitives.section.room}`)
+                input(type='text', name='room', placeholder='Your room', maxlength='4', value=`${dataSets.origins.section.room}`)
         .ui.grid
           .four.wide.column
             .field
@@ -175,8 +175,8 @@ mixin settingsModal()
               select.ui.dropdown.timeEndAp(name='time_end_ap')
                 option(value='am.')  am.
                 option(value='pm.')  pm.
-        input(type='hidden', name='course_id', value=`${dataSets.primitives.section.course_id}`)
-        input(type='hidden', name='section_id', value=`${dataSets.primitives.section.section_id}`)
+        input(type='hidden', name='course_id', value=`${dataSets.origins.section.course_id}`)
+        input(type='hidden', name='section_id', value=`${dataSets.origins.section.section_id}`)
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green(type='submit') Update
@@ -250,7 +250,7 @@ mixin assignmentModal()
                 label Sample Output :
                 |
                 textarea(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;')
-        input(type='hidden', name='section_id', value=`${dataSets.primitives.section.section_id}`)
+        input(type='hidden', name='section_id', value=`${dataSets.origins.section.section_id}`)
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green(type='submit') Create
@@ -386,11 +386,10 @@ mixin confirmDeleteSection()
     .header Delete Section
     .content
       p#messageConfirm Are you sure to delete the section from the system?
-      input.section_id(type='hidden', name='section_id')
       .ui.basic.center.aligned.segment
         .actions
-          button.ui.button.approve.green.yesIamSure(onclick='onClickYes()') Yes
-          .ui.button.cancel.red.noIamNotSure No
+          button.ui.button.approve.green#confirmToDeleteSection Yes
+          .ui.button.cancel.red No
           
 mixin pairingSettingsModal()
   .ui.small.modal#pairingSettingsModal

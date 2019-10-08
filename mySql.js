@@ -41,7 +41,7 @@ exports.isDuplicateClassCode = () => {
 exports.selectSection = (query) => {
   return new Promise(function(resolve, reject) {
     conMysql.query(query, function(err, res){
-      if(err) reject(err);
+      if(err) reject(`Error: ${err}`);
       resolve(res);
     })
   })
@@ -113,8 +113,8 @@ exports.selectEnrollment = (query, values) => {
 exports.insertEnrollment = (query, values) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, [values], function(err, res){
-      if(err) reject(err);
-      resolve('Insert into enrollment complete!');
+      if(err) reject('Insert enrollment failed.');
+      resolve('Insert enrollment completed.');
     })
   })
 }
@@ -124,6 +124,15 @@ exports.updateEnrollment = (query) => {
     conMysql.query(query, function(err, res){
       if(err) reject('Update failed.');
       resolve('Update completed.');
+    })
+  })
+}
+
+exports.deleteEnrollment = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function(err, res){
+      if(err) reject('Delete enrollment failed.');
+      resolve('Delete enrollment completed.');
     })
   })
 }
@@ -239,8 +248,8 @@ exports.insertStudent = (query, values) => {
 exports.deleteStudent = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
-      if(err) reject('Remove the student from the classroom fail.');
-      resolve('Remove the student from the classroom complete.');
+      if(err) reject('Delete student failed.');
+      resolve('Delete student completed.');
     })
   })
 }

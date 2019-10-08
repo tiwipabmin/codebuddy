@@ -68,27 +68,25 @@ block script
         },
       })
     });
-    function onClickDeleteSection(section_id, course_name, section) {
-      $('#messageConfirm').text('Are you sure to delete a ' + course_name + ' course in section ' + section + ' from the system?')
-      $('.section_id').attr('value', section_id)
-      $('#confirmDeleteSection').modal('show');
-    }
-    function onClickYes(){
-      const section_id = $('.section_id').attr('value');
-      $.ajax({
-        url: '/api/deleteSection',
-        type: 'delete',
-        data: {
-          section_id
-        },
-        success: function (res) {
-          if(res.status == 'Delete the section complete.') {
-            $('#' + section_id).remove()
-          } else {
-            alert('Delete the section fail.')
+    function onClickDeleteSection(sectionId, courseName, section) {
+      $('#messageConfirm').text('Are you sure to delete the \"' + courseName + '\" course in section ' + section + ' from the system?')
+      $('#confirmToDeleteSection').click(function() {
+          $.ajax({
+          url: '/lobby/deleteSection',
+          type: 'delete',
+          data: {
+            sectionId
+          },
+          success: function (res) {
+            if(res.resStatus == 'Delete the section complete.') {
+              $('#' + res.sectionId).remove()
+            } else {
+              alert('Delete the section fail.')
+            }
           }
-        }
+        })
       })
+      $('#confirmDeleteSection').modal('show');
     }
 
 
@@ -127,8 +125,8 @@ block content
             button#new.ui.button.approve.green.joinClassroom(style='float: right;') Join Classroom
     br
     .ui.devided.items
-      if dataSets.primitives.sections.length > 0
-        each section in dataSets.primitives.sections
+      if dataSets.origins.sections.length > 0
+        each section in dataSets.origins.sections
           if user.info.occupation === 'teacher'
             .item(id=`${section.section_id}`, style='padding-top:2px; padding-bottom:5px;')
               .content
@@ -143,7 +141,7 @@ block content
                       .hidden.content Enter
                       .visible.content
                         i.sign.in.alternate.icon.icon
-                    a.ui.right.floated.alignedvertical.animated.deleteSection.button.red(tabindex='0' onclick='onClickDeleteSection(' + section.section_id + ', \'' + section.course_name + '\', ' + section.section + ')')
+                    a.ui.right.floated.alignedvertical.animated.deleteSection.button.red(tabindex='0' onclick='onClickDeleteSection(\'' + section.section_id + '\', \'' + section.course_name + '\', ' + section.section + ')')
                       .hidden.content Delete
                       .visible.content
                         i.trash.alternate.icon

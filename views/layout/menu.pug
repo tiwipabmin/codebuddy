@@ -10,12 +10,12 @@
           a.item(href='/lobby')
             i.home.icon
             |  Lobby
-          if (user.info.occupation === 'teacher' && dataSets.primitives.dataService)
+          if (user.info.occupation === 'teacher' && dataSets.origins.dataService)
             a.item(href='/dataService')
               i.database.icon
               |  Data Service
-          if (dataSets.primitives.section)
-            a.item(href='/classroom?section_id='+dataSets.primitives.section.section_id)
+          if (dataSets.origins.section)
+            a.item(href='/classroom?section_id='+dataSets.origins.section.section_id)
               i.laptop.layout.icon
               |  Classroom
           //- a.item(href='/notifications')

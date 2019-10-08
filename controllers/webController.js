@@ -23,10 +23,8 @@ exports.userSignout = (req, res) => {
 };
 
 exports.getLobby = async (req, res) => {
-  let dataSets = {};
   let occupation = req.user.info.occupation;
-  let querySection =
-    "SELECT * FROM section WHERE class_code = 'xxxxxxxxx'";
+  let querySection = "SELECT * FROM section WHERE class_code = 'xxxxxxxxx'";
   let sections = [];
   if (occupation == "teacher") {
     occupation = 0;
@@ -47,14 +45,12 @@ exports.getLobby = async (req, res) => {
       "'";
     sections = await conMysql.selectSection(querySection);
   }
-  for (_index in sections) {
-    sections[_index].section_id = await cryptr.encrypt(
-      sections[_index].section_id
-    );
+  for (let index in sections) {
+    sections[index].section_id = cryptr.encrypt(sections[index].section_id);
   }
   if (!sections.length) sections = [];
-  dataSets = {
-    primitives: {
+  let dataSets = {
+    origins: {
       occupation: occupation,
       sections: sections,
       dataService: "dataService"
@@ -64,14 +60,14 @@ exports.getLobby = async (req, res) => {
 };
 
 exports.getCounter = async (req, res) => {
-  dataSets = { primitives: { dataService: "dataService" } };
+  dataSets = { origins: { dataService: "dataService" } };
   res.render("counter");
 };
 
 exports.getPlayground = async (req, res) => {
   let dataSets = {};
-  if (!req.query.pid) res.redirect("/dashboard");
-  const user_role = req.query.user_role;
+  if (!req.query.pid) res.redirect("/lobby");
+  const userRole = req.query.user_role;
   var section_id = req.query.section_id;
   var section = {};
   section.section_id = section_id;
@@ -80,22 +76,29 @@ exports.getPlayground = async (req, res) => {
   const messages = await Message.find({ pid: req.query.pid }).sort({
     createdAt: 1
   });
-  if ("creator" == user_role && project.programming_style !== "Individual") {
+  if ("creator" == userRole && project.programming_style !== "Individual") {
     partner_obj = await User.findOne({ _id: project.collaborator_id });
   } else if (
-    "collaborator" == user_role &&
+    "collaborator" == userRole &&
     project.programming_style !== "Individual"
   ) {
     partner_obj = await User.findOne({ _id: project.creator_id });
   } else {
     partner_obj = null;
   }
-  dataSets = { primitives: { project: project, section: section } };
+  dataSets = {
+    origins: {
+      project: project,
+      section: section
+    },
+    reforms: {
+      messages: messages
+    }
+  };
   if (project.programming_style == "Interactive") {
     res.render("playground_interactive", {
       dataSets,
       title: `${project.title} - Playground`,
-      messages,
       partner_obj
     });
   } else if (project.programming_style == "Co-located") {
@@ -109,7 +112,6 @@ exports.getPlayground = async (req, res) => {
     res.render("playground_remote", {
       dataSets,
       title: `${project.title} - Playground`,
-      messages,
       partner_obj
     });
   } else if (project.programming_style == "Individual") {
@@ -131,25 +133,27 @@ exports.getHistory = async (req, res) => {
   );
 
   const project = await Project.findOne({ pid: req.query.pid });
-  var creator = project.creator;
-  var collaborator = project.collaborator;
-  var curUser = req.query.curUser;
+  let creator = project.creator;
+  let collaborator = project.collaborator;
+  let curUser = req.query.curUser;
   let userRole = null;
+  let curUser_obj = null;
+  let partner_obj = null;
 
   if (curUser == creator) {
-    var curUser_obj = await User.findOne({ username: curUser });
-    var partner_obj = await User.findOne({ username: collaborator });
+    curUser_obj = await User.findOne({ username: curUser });
+    partner_obj = await User.findOne({ username: collaborator });
     userRole = "creator";
   } else {
-    var curUser_obj = await User.findOne({ username: curUser });
-    var partner_obj = await User.findOne({ username: creator });
+    curUser_obj = await User.findOne({ username: curUser });
+    partner_obj = await User.findOne({ username: creator });
     userRole = "collaborator";
   }
 
   const histories = await History.find({ pid: req.query.pid });
 
   dataSets = {
-    primitives: { section_id: req.query.section_id, userRole: userRole }
+    origins: { section_id: req.query.section_id, userRole: userRole }
   };
   res.render("history", {
     histories,
@@ -175,7 +179,7 @@ exports.getProfile = async (req, res) => {
     pid.push(projects[_index].pid);
   }
 
-  dataSets = { primitives: { username: username, pid: pid } };
+  dataSets = { origins: { username: username, pid: pid } };
 
   res.render("profile", { dataSets, title: username + " Progress" });
 };
@@ -183,14 +187,12 @@ exports.getProfile = async (req, res) => {
 exports.getProfileByTeacher = async (req, res) => {
   const username = req.query.username;
   let section_id = parseInt(cryptr.decrypt(req.query.section_id));
-  var assignment_id = [];
-  var pid = [];
+  let assignment_id = [];
+  let pid = [];
 
-  var select_assignment_by_section_id =
+  let queryAssignment =
     "SELECT assignment_id FROM assignment WHERE section_id = " + section_id;
-  var assignments = await conMysql.selectAssignment(
-    select_assignment_by_section_id
-  );
+  let assignments = await conMysql.selectAssignment(queryAssignment);
   for (_index in assignments) {
     assignment_id.push(assignments[_index].assignment_id);
   }
@@ -206,80 +208,224 @@ exports.getProfileByTeacher = async (req, res) => {
     pid.push(projects[_index].pid);
   }
 
-  dataSets = { primitives: { username: username, pid: pid } };
+  dataSets = { origins: { username: username, pid: pid } };
 
   res.render("profile", { dataSets, title: username + " Progress" });
 };
 
-exports.getNotifications = async (req, res) => {
-  const projects = await Project.find({
-    $or: [{ creator: req.user.username }, { collaborator: req.user.username }]
-  }).sort({ createdAt: -1 });
-  res.render("notifications", { projects, title: "Notifications" });
-};
+// exports.getNotifications = async (req, res) => {
+//   const projects = await Project.find({
+//     $or: [{ creator: req.user.username }, { collaborator: req.user.username }]
+//   }).sort({ createdAt: -1 });
+//   res.render("notifications", { projects, title: "Notifications" });
+// };
 
-exports.createProject = async (req, res) => {
-  const collaborator = await User.findOne({ username: req.body.collaborator });
-  if (collaborator != null) {
-    const project = await new Project(req.body).save();
-    Project.update(
-      {
-        _id: project._id
-      },
-      {
-        $set: {
-          collaborator_id: collaborator._id
-        }
-      },
-      err => {
-        if (err) throw err;
-      }
-    );
-    req.flash("success", `Successfully Created ${project.title} Project.`);
-    /**
-     * create directory
-     */
-    var dir1 = "./public/project_files";
-    var dir2 = "./public/project_files/" + project.pid;
-    if (!fs.existsSync(dir1)) {
-      fs.mkdirSync(dir1);
-    }
-    if (!fs.existsSync(dir2)) {
-      fs.mkdirSync(dir2);
-    }
-    fs.writeFile(
-      "./public/project_files/" + project.pid + "/json.json",
-      JSON.stringify([{ id: "0", type: "code", source: "" }]),
-      function(err) {
-        if (err) throw err;
-      }
-    );
-  } else {
-    req.flash("error", "Can't find @" + req.body.collaborator);
+// exports.createProject = async (req, res) => {
+//   const collaborator = await User.findOne({ username: req.body.collaborator });
+//   if (collaborator != null) {
+//     const project = await new Project(req.body).save();
+//     Project.update(
+//       {
+//         _id: project._id
+//       },
+//       {
+//         $set: {
+//           collaborator_id: collaborator._id
+//         }
+//       },
+//       err => {
+//         if (err) throw err;
+//       }
+//     );
+//     req.flash("success", `Successfully Created ${project.title} Project.`);
+//     /**
+//      * create directory
+//      */
+//     var dir1 = "./public/project_files";
+//     var dir2 = "./public/project_files/" + project.pid;
+//     if (!fs.existsSync(dir1)) {
+//       fs.mkdirSync(dir1);
+//     }
+//     if (!fs.existsSync(dir2)) {
+//       fs.mkdirSync(dir2);
+//     }
+//     fs.writeFile(
+//       "./public/project_files/" + project.pid + "/json.json",
+//       JSON.stringify([{ id: "0", type: "code", source: "" }]),
+//       function(err) {
+//         if (err) throw err;
+//       }
+//     );
+//   } else {
+//     req.flash("error", "Can't find @" + req.body.collaborator);
+//   }
+//   res.redirect("dashboard");
+// };
+
+exports.getSection = async (req, res) => {
+  let dataSets = {};
+  let section_id = parseInt(cryptr.decrypt(req.query.section_id));
+  let occupation = req.user.info.occupation;
+  let queryStudent =
+    "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
+    section_id +
+    " ORDER BY st.first_name ASC";
+  let querySection =
+    "SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = " +
+    section_id +
+    "";
+  let queryAssignment =
+    "SELECT * FROM assignment WHERE section_id = " + section_id;
+  let queryPairingSession =
+    "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
+    section_id +
+    " ORDER BY ps.pairing_session_id DESC";
+  let section = [];
+  let students = [];
+  let assignments = [];
+  let weeks = [];
+  let pairingSessions = [];
+  section = await conMysql.selectSection(querySection);
+  students = await conMysql.selectStudent(queryStudent);
+  assignments = await conMysql.selectAssignment(queryAssignment);
+  pairingSessions = await conMysql.selectPairingSession(queryPairingSession);
+
+  if (!section.length) section = [];
+  else {
+    section = section[0];
+    section.section_id = cryptr.encrypt(section.section_id);
   }
-  res.redirect("dashboard");
+
+  if (!students.length) students = [];
+  if (!assignments.length) {
+    assignments = [];
+  } else if (assignments.length) {
+    for (_index in assignments) {
+      assignments[_index].assignment_id = cryptr.encrypt(
+        assignments[_index].assignment_id
+      );
+      assignments[_index].section_id = cryptr.encrypt(
+        assignments[_index].section_id
+      );
+      assignments[_index].title = assignments[_index].title
+        .replace(/\\n\\n/g, "<br>")
+        .replace(/\\n/g, " ");
+      assignments[_index].description = assignments[_index].description
+        .replace(/\\n\\n/g, "<br>")
+        .replace(/\\n/g, " ");
+      weeks.indexOf(assignments[_index].week) == -1
+        ? weeks.push(assignments[_index].week)
+        : null;
+    }
+  }
+
+  if (!pairingSessions.length)
+    pairingSessions = [{ pairing_session_id: -1, status: -1 }];
+
+  if (occupation == "teacher") {
+    occupation = 0;
+
+    dataSets = {
+      origins: {
+        occupation: occupation,
+        section: section,
+        assignments: assignments,
+        students: students,
+        pairingSessions: pairingSessions,
+        weeks: weeks
+      },
+      reforms: {
+        assignments: JSON.stringify(assignments),
+        students: JSON.stringify(students),
+        pairingSessions: JSON.stringify(pairingSessions),
+        weeks: JSON.stringify(weeks)
+      }
+    };
+  } else {
+    occupation = 1;
+    let cloneAssignments = Object.assign({}, assignments);
+    let projects = await Project.find({
+      $and: [
+        { status: { $ne: "pending" } },
+        {
+          $or: [
+            { creator: req.user.username },
+            { collaborator: req.user.username }
+          ]
+        }
+      ]
+    }).sort({ createdAt: -1 });
+
+    /**
+     * projects change data type from array to object
+     */
+    let cloneProjects = {};
+    projects.forEach(function(project) {
+      cloneProjects[project.assignment_id] = project;
+    });
+
+    projects = [];
+    assignments = [];
+    weeks = [];
+    for (i in cloneAssignments) {
+      let checkProjectFromAssignmentId =
+        cloneProjects[cryptr.decrypt(cloneAssignments[i].assignment_id)];
+      if (checkProjectFromAssignmentId !== undefined) {
+        let element = Object.assign({}, checkProjectFromAssignmentId);
+        if (element._doc.available_project) {
+          element._doc.section_id = cloneAssignments[i].section_id;
+          projects.push(element._doc);
+          assignments.push(cloneAssignments[i]);
+          weeks.indexOf(element._doc.week) == -1
+            ? weeks.push(element._doc.week)
+            : null;
+        }
+      }
+    }
+
+    projects.reverse();
+
+    dataSets = {
+      origins: {
+        occupation: occupation,
+        section: section,
+        projects: projects,
+        assignments: assignments,
+        students: students,
+        pairingSessions: pairingSessions,
+        weeks: weeks
+      },
+      reforms: {
+        projects: JSON.stringify(projects),
+        assignments: JSON.stringify(assignments),
+        students: JSON.stringify(students),
+        pairingSessions: JSON.stringify(pairingSessions)
+      }
+    };
+  }
+  res.render("classroom", { dataSets, title: section.course_name });
 };
 
 exports.createSection = async (req, res) => {
   const queryCourse = "INSERT INTO course (teacher_id, course_name) VALUES ?";
-  const select_teacher_by_username =
+  const queryTeacher =
     "SELECT teacher_id FROM teacher WHERE username = '" +
     req.user.username +
     "'";
   const querySection =
     "INSERT INTO section (course_id, section, room, class_code, day, time_start, time_end) VALUES ?";
-  const teacher = await conMysql.selectTeacher(select_teacher_by_username);
-  const teacher_id = teacher[0].teacher_id;
-  const courseValues = [[teacher_id, req.body.course_name]];
-  const course_id = await conMysql.insertCourse(queryCourse, courseValues);
+  const teacher = await conMysql.selectTeacher(queryTeacher);
+  const teacherId = teacher[0].teacher_id;
+  const courseValues = [[teacherId, req.body.course_name]];
+  const courseId = await conMysql.insertCourse(queryCourse, courseValues);
   const classCode = await conMysql.isDuplicateClassCode();
-  const time_start =
+  const timeStart =
     req.body.time_start_hh +
     ":" +
     req.body.time_start_mm +
     "" +
     req.body.time_start_ap;
-  const time_end =
+  const timeEnd =
     req.body.time_end_hh +
     ":" +
     req.body.time_end_mm +
@@ -287,13 +433,13 @@ exports.createSection = async (req, res) => {
     req.body.time_end_ap;
   const sectionValues = [
     [
-      course_id,
+      courseId,
       req.body.section,
       req.body.room,
       classCode,
       req.body.day,
-      time_start,
-      time_end
+      timeStart,
+      timeEnd
     ]
   ];
   const sections = await conMysql.insertSection(querySection, sectionValues);
@@ -301,12 +447,11 @@ exports.createSection = async (req, res) => {
 };
 
 exports.deleteSection = async (req, res) => {
-  let section_id = parseInt(cryptr.decrypt(req.body.section_id));
-  const deleteSection = "DELETE FROM section WHERE section_id = " + section_id;
-  const res_status = await conMysql.deleteSection(deleteSection);
-  let temp = {};
-  temp["status"] = res_status;
-  res.json(temp).status(200);
+  let sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
+  const deleteSection = "DELETE FROM section WHERE section_id = " + sectionId;
+  const resStatus = await conMysql.deleteSection(deleteSection);
+  dataSets = { resStatus: resStatus, sectionId: sectionId };
+  res.json(dataSets).status(200);
 };
 
 exports.updateSection = async (req, res) => {
@@ -346,156 +491,6 @@ exports.updateSection = async (req, res) => {
   res.redirect("/classroom?section_id=" + cryptr.encrypt(section_id));
 };
 
-exports.getSection = async (req, res) => {
-  let dataSets = {};
-  let section_id = parseInt(cryptr.decrypt(req.query.section_id));
-  let occupation = req.user.info.occupation;
-  let select_student_by_section_id =
-    "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
-    section_id +
-    " ORDER BY st.first_name ASC";
-  let select_section_by_section_id =
-    "SELECT * FROM course AS c JOIN section AS s WHERE c.course_id = s.course_id AND s.section_id = " +
-    section_id +
-    "";
-  let select_assignment_by_section_id =
-    "SELECT * FROM assignment WHERE section_id = " + section_id;
-  let select_pairing_session_by_section_id =
-    "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
-    section_id +
-    " ORDER BY ps.pairing_session_id DESC";
-  let section = [];
-  let students = [];
-  let assignments = [];
-  let weeks = [];
-  let pairing_sessions = [];
-  let assignment_set = "";
-  section = await conMysql.selectSection(select_section_by_section_id);
-  students = await conMysql.selectStudent(select_student_by_section_id);
-  assignments = await conMysql.selectAssignment(
-    select_assignment_by_section_id
-  );
-  pairing_sessions = await conMysql.selectPairingSession(
-    select_pairing_session_by_section_id
-  );
-
-  if (!section.length) section = [];
-  else {
-    section = section[0];
-    section.section_id = cryptr.encrypt(section.section_id);
-  }
-
-  if (!students.length) students = [];
-  if (!assignments.length) {
-    assignments = [];
-  } else if (assignments.length) {
-    for (_index in assignments) {
-      assignments[_index].assignment_id = cryptr.encrypt(
-        assignments[_index].assignment_id
-      );
-      assignments[_index].section_id = cryptr.encrypt(
-        assignments[_index].section_id
-      );
-      assignments[_index].title = assignments[_index].title
-        .replace(/\\n\\n/g, "<br>")
-        .replace(/\\n/g, " ");
-      assignments[_index].description = assignments[_index].description
-        .replace(/\\n\\n/g, "<br>")
-        .replace(/\\n/g, " ");
-      weeks.indexOf(assignments[_index].week) == -1
-        ? weeks.push(assignments[_index].week)
-        : null;
-    }
-  }
-
-  if (!pairing_sessions.length)
-    pairing_sessions = [{ pairing_session_id: -1, status: -1 }];
-
-  if (occupation == "teacher") {
-    occupation = 0;
-
-    dataSets = {
-      primitives: {
-        occupation: occupation,
-        section: section,
-        assignments: assignments,
-        students: students,
-        pairing_sessions: pairing_sessions,
-        weeks: weeks
-      },
-      references: {
-        assignments: JSON.stringify(assignments),
-        students: JSON.stringify(students),
-        pairing_sessions: JSON.stringify(pairing_sessions),
-        weeks: JSON.stringify(weeks)
-      }
-    };
-
-    res.render("classroom", { dataSets, title: section.course_name });
-  } else {
-    occupation = 1;
-    let assignmentClones = Object.assign({}, assignments);
-    let projects = await Project.find({
-      $and: [
-        { status: { $ne: "pending" } },
-        {
-          $or: [
-            { creator: req.user.username },
-            { collaborator: req.user.username }
-          ]
-        }
-      ]
-    }).sort({ createdAt: -1 });
-
-    //projects change data type from array to object
-    let projectClones = {};
-    projects.forEach(function(project) {
-      projectClones[project.assignment_id] = project;
-    });
-
-    projects = [];
-    assignments = [];
-    weeks = [];
-    for (i in assignmentClones) {
-      let checkProjectFromAssignmentId =
-        projectClones[cryptr.decrypt(assignmentClones[i].assignment_id)];
-      if (checkProjectFromAssignmentId !== undefined) {
-        let element = Object.assign({}, checkProjectFromAssignmentId);
-        if (element._doc.available_project) {
-          element._doc.section_id = assignmentClones[i].section_id;
-          projects.push(element._doc);
-          assignments.push(assignmentClones[i]);
-          weeks.indexOf(element._doc.week) == -1
-            ? weeks.push(element._doc.week)
-            : null;
-        }
-      }
-    }
-
-    projects.reverse();
-
-    dataSets = {
-      primitives: {
-        occupation: occupation,
-        section: section,
-        projects: projects,
-        assignments: assignments,
-        students: students,
-        pairing_sessions: pairing_sessions,
-        weeks: weeks
-      },
-      references: {
-        projects: JSON.stringify(projects),
-        assignments: JSON.stringify(assignments),
-        students: JSON.stringify(students),
-        pairing_sessions: JSON.stringify(pairing_sessions)
-      }
-    };
-
-    res.render("classroom", { dataSets, title: section.course_name });
-  }
-};
-
 exports.getProjects = async (req, res) => {
   let projects = req.query.projects;
   let resProjects = await Project.find({
@@ -510,43 +505,48 @@ exports.getProjects = async (req, res) => {
     ]
   }).sort({ createdAt: -1 });
 
-  let projectClones = [];
+  let cloneProjects = [];
   for (let indexPro in projects) {
     for (let indexResPro in resProjects) {
       if (projects[indexPro].pid === resProjects[indexResPro].pid) {
-        projectClones.push(resProjects[indexResPro]);
+        cloneProjects.push(resProjects[indexResPro]);
         resProjects.splice(indexResPro, 0);
         break;
       }
     }
   }
 
-  res.send({ projects: projectClones });
+  res.send({ projects: cloneProjects });
 };
 
 exports.removeStudent = async (req, res) => {
   let enrollment_id = req.body.enrollment_id;
-  let select_pairing_record_by_enrollment_id =
+  let queryPairingRecord =
     "SELECT * FROM pairing_record WHERE enrollment_id = " + enrollment_id;
-  let pairing_record = await conMysql.selectPairingRecord(
-    select_pairing_record_by_enrollment_id
-  );
+  let pairing_record = await conMysql.selectPairingRecord(queryPairingRecord);
+  let dataSets = {};
   if (!pairing_record.length) {
-    let remove_enrollment_by_enrollment_id =
+    let queryEnrollment =
       "DELETE FROM enrollment WHERE enrollment_id = " + enrollment_id;
-    let status = await conMysql.deleteStudent(
-      remove_enrollment_by_enrollment_id
-    );
-    let temp = {};
-    temp["status"] = status;
-    temp["enrollment_id"] = enrollment_id;
-    res.json(temp).status(200);
+    let resStatus = await conMysql.deleteEnrollment(queryEnrollment);
+    if (resStatus == "Delete enrollment completed.") {
+      dataSets = {
+        resStatus: "Remove the student from the classroom completed.",
+        enrollment_id: enrollment_id
+      };
+    } else {
+      dataSets = {
+        resStatus: "Remove the student from the classroom failed.",
+        enrollment_id: enrollment_id
+      };
+    }
   } else {
-    let temp = {};
-    temp["status"] =
-      "Cannot remove the student from the classroom because the student has already had pairing records!";
-    res.json(temp).status(200);
+    dataSets = {
+      resStatus:
+        "Cannot remove the student from the classroom because the student has already had pairing records!"
+    };
   }
+  res.json(dataSets).status(200);
 };
 
 exports.joinClass = async (req, res) => {
@@ -554,40 +554,37 @@ exports.joinClass = async (req, res) => {
     "SELECT * FROM section WHERE class_code = '" + req.body.class_code + "'";
   let queryStudent =
     "SELECT * FROM student WHERE username = '" + req.user.username + "'";
-  let section = await conMysql.selectSection(querySection).then(function(res) {
-    return res;
-  });
-  let student = await conMysql.selectStudent(queryStudent).then(function(res) {
-    return res;
-  });
-  if (section.length) {
-    let select_enrollment_id_from_student_id =
-      "SELECT * FROM enrollment WHERE student_id = " + student[0].student_id;
-    let enrollment = await conMysql.selectEnrollment(
-      select_enrollment_id_from_student_id
-    );
-    if (!enrollment.length) {
-      let queryEnrollment =
+  let resSections = await conMysql.selectSection(querySection);
+  let resStudents = await conMysql.selectStudent(queryStudent);
+  if (resSections.length && resSections instanceof Array) {
+    let queryEnrollment =
+      "SELECT * FROM enrollment WHERE student_id = " +
+      resStudents[0].student_id;
+    let resEnrollments = await conMysql.selectEnrollment(queryEnrollment);
+    if (!resEnrollments.length && resEnrollments instanceof Array) {
+      queryEnrollment =
         "INSERT INTO enrollment (student_id, section_id, grade) VALUES ?";
-      let values = [[student[0].student_id, section[0].section_id, "4"]];
-      let status = await conMysql.insertEnrollment(queryEnrollment, values);
+      let values = [
+        [resStudents[0].student_id, resSections[0].section_id, "4"]
+      ];
+      await conMysql.insertEnrollment(queryEnrollment, values);
     }
   }
   res.redirect("/lobby");
 };
 
 exports.updatePairingSession = async (req, res) => {
-  const section_id = parseInt(cryptr.decrypt(req.body.section_id));
+  const sectionId = parseInt(cryptr.decrypt(req.body.section_id));
   const pairing_session_id = req.body.pairing_session_id;
   const status = req.body.status;
 
   /**
    * create date time at this moment
    */
-  var date_time = new Date();
-  var str_date_time = date_time.toString();
-  var split_date_time = str_date_time.split(" ");
-  var slice_date_time = split_date_time.slice(1, 5);
+  var dateTime = new Date();
+  var strDataTime = dateTime.toString();
+  var splitDataTime = strDataTime.split(" ");
+  var sliceDataTime = splitDataTime.slice(1, 5);
   var month = {
     Jan: "01",
     Feb: "02",
@@ -602,76 +599,72 @@ exports.updatePairingSession = async (req, res) => {
     Nov: "11",
     Dec: "12"
   };
-  var num_month = month[slice_date_time[0]];
-  num_month === undefined ? (num_month = "13") : null;
-  var time_end =
-    slice_date_time[2] +
+  var numMonth = month[sliceDataTime[0]];
+  numMonth === undefined ? (numMonth = "13") : null;
+  var timeEnd =
+    sliceDataTime[2] +
     "-" +
-    num_month +
+    numMonth +
     "-" +
-    slice_date_time[1] +
+    sliceDataTime[1] +
     " " +
-    slice_date_time[3];
+    sliceDataTime[3];
 
   const update_pairing_session_by_pairing_session_id =
     "UPDATE pairing_session SET status = " +
     status +
     ", time_end = '" +
-    time_end +
+    timeEnd +
     "' WHERE pairing_session_id = " +
     pairing_session_id;
-  var res_status = await conMysql.updatePairingSession(
+  let resStatus = await conMysql.updatePairingSession(
     update_pairing_session_by_pairing_session_id
   );
 
-  let select_pairing_session_by_section_id = "";
-  let pairing_sessions = [];
-  if (res_status == "Update completed.") {
+  let queryPairingSession = "";
+  let pairingSessions = [];
+  if (resStatus == "Update completed.") {
     const resetPartner =
-      "UPDATE enrollment SET partner_id = NULL WHERE section_id = " +
-      section_id;
-    res_status = await conMysql.updateEnrollment(resetPartner);
+      "UPDATE enrollment SET partner_id = NULL WHERE section_id = " + sectionId;
+    resStatus = await conMysql.updateEnrollment(resetPartner);
 
-    select_pairing_session_by_section_id =
+    queryPairingSession =
       "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
-      section_id +
+      sectionId +
       " ORDER BY ps.pairing_session_id DESC";
-    pairing_sessions = await conMysql.selectPairingSession(
-      select_pairing_session_by_section_id
-    );
+    pairingSessions = await conMysql.selectPairingSession(queryPairingSession);
   } else {
-    res_status = "Update a pairing date time status failed.";
+    resStatus = "Update a pairing date time status failed.";
   }
 
   res.send({
-    status: res_status,
-    time_end: time_end,
-    pairing_sessions: JSON.stringify(pairing_sessions),
-    section_id: cryptr.encrypt(section_id)
+    resStatus: resStatus,
+    pairingSessions: JSON.stringify(pairingSessions),
+    sectionId: cryptr.encrypt(sectionId)
   });
 };
 
 exports.resetPair = async (req, res) => {
-  const updateEnrollment =
+  const queryEnrollment =
     "UPDATE enrollment SET partner_id = " +
     req.body.partner_id +
     " WHERE section_id = " +
     parseInt(cryptr.decrypt(req.body.section_id));
-  const res_status = await conMysql.updateEnrollment(updateEnrollment);
-  res.send({ status: res_status });
+  const resStatus = await conMysql.updateEnrollment(queryEnrollment);
+  res.send({ resStatus: resStatus });
 };
 
 exports.searchStudent = async (req, res) => {
   const search = req.query.search;
-  const student_id = req.query.student_id;
-  const section_id = parseInt(cryptr.decrypt(req.query.section_id));
-  const pairing_session_id = req.query.pairing_session_id;
+  const studentId = req.query.student_id;
+  const sectionId = parseInt(cryptr.decrypt(req.query.section_id));
+  const pairingSessionId = req.query.pairing_session_id;
   const username = req.query.username;
   const studentQuery =
     "SELECT * FROM enrollment AS\
    e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = \
    " +
-    section_id +
+    sectionId +
     " AND (s.first_name LIKE '%" +
     search +
     "%'\
@@ -680,161 +673,180 @@ exports.searchStudent = async (req, res) => {
     "%' OR s.username LIKE '%" +
     search +
     "%')";
-  const students = await conMysql.selectStudent(studentQuery);
-  var new_students = [];
-  var user;
-  for (_index in students) {
-    if (students[_index].username != username) {
-      user = await User.findOne({
-        username: students[_index].username
-      });
-      if (user != null) {
-        students[_index].avg_score = user.avgScore;
-        students[_index].img = user.img;
-        students[_index].total_time = user.totalTime;
+  const resStudents = await conMysql.selectStudent(studentQuery);
+  let students = [];
+  let user = null;
+  if (resStudents instanceof Array) {
+    for (let index in resStudents) {
+      if (resStudents[index].username != username) {
+        user = await User.findOne({
+          username: resStudents[index].username
+        });
+        if (user != null) {
+          resStudents[index].avg_score = user.avgScore;
+          resStudents[index].img = user.img;
+          resStudents[index].total_time = user.totalTime;
+        }
+        students.push(resStudents[index]);
       }
-      new_students.push(students[_index]);
     }
   }
   res.send({
-    student_id: student_id,
-    students: new_students,
+    studentId: studentId,
+    students: students,
     purpose: "none",
-    section_id: cryptr.encrypt(section_id),
-    pairing_session_id: pairing_session_id,
-    partner_keys: req.query.partner_keys,
-    pairing_objective: req.query.pairing_objective
+    sectionId: cryptr.encrypt(sectionId),
+    pairingSessionId: pairingSessionId,
+    partnerKeys: req.query.partner_keys,
+    pairingObjectives: req.query.pairing_objective
   });
 };
 
 exports.searchStudentByPurpose = async (req, res) => {
-  const student_id = req.query.student_id;
-  const pairing_session_id = req.query.pairing_session_id;
+  const studentId = req.query.studentId;
+  const pairingSessionId = req.query.pairingSessionId;
   const username = req.query.username;
-  const avg_score = parseFloat(req.query.avg_score);
-  const section_id = parseInt(cryptr.decrypt(req.query.section_id));
+  const avgScore = parseFloat(req.query.avgScore);
+  const sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
   const purpose = req.query.purpose;
   let students = [];
   let users = [];
   if ("quality" == purpose) {
     users = await User.find({
-      avgScore: { $lte: avg_score + 10, $gte: avg_score - 10 },
+      avgScore: { $lte: avgScore + 10, $gte: avgScore - 10 },
       username: { $ne: username }
     });
   } else if ("experience" == purpose) {
     users = await User.find({
       $or: [
-        { avgScore: { $gt: avg_score + 10, $lt: avg_score + 20 } },
-        { avgScore: { $lt: avg_score - 10, $gt: avg_score - 20 } }
+        { avgScore: { $gt: avgScore + 10, $lt: avgScore + 20 } },
+        { avgScore: { $lt: avgScore - 10, $gt: avgScore - 20 } }
       ],
       username: { $ne: username }
     });
   } else {
     users = await User.find({
       $or: [
-        { avgScore: { $gt: avg_score + 20, $lt: avg_score + 30 } },
-        { avgScore: { $lt: avg_score - 20, $gt: avg_score - 30 } }
+        { avgScore: { $gt: avgScore + 20, $lt: avgScore + 30 } },
+        { avgScore: { $lt: avgScore - 20, $gt: avgScore - 30 } }
       ],
       username: { $ne: username }
     });
   }
   let count = 0;
-  for (_index in users) {
+  for (index in users) {
     let queryStudent =
       "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND username = '" +
-      users[_index].username +
+      users[index].username +
       "' AND e.section_id = " +
-      section_id;
-    let student = await conMysql.selectStudent(queryStudent);
-    if (student.length) {
-      students[count] = student[0];
-      students[count].avg_score = users[_index].avgScore;
-      students[count].img = users[_index].img;
-      students[count].total_time = users[_index].totalTime;
+      sectionId;
+    let resStudent = await conMysql.selectStudent(queryStudent);
+    if (resStudent.length && resStudent instanceof Array) {
+      students[count] = resStudent[0];
+      students[count].avg_score = users[index].avgScore;
+      students[count].img = users[index].img;
+      students[count].total_time = users[index].totalTime;
       count++;
     }
   }
   res.send({
-    student_id: student_id,
-    pairing_session_id: pairing_session_id,
+    studentId: studentId,
+    pairingSessionId: pairingSessionId,
     students: students,
     purpose: purpose,
-    section_id: cryptr.encrypt(section_id),
-    partner_keys: req.query.partner_keys,
-    pairing_objective: req.query.pairing_objective
+    sectionId: cryptr.encrypt(sectionId),
+    partnerKeys: req.query.partnerKeys,
+    pairingObjectives: req.query.pairingObjectives
   });
 };
 
 exports.getPairing = async (req, res) => {
-  let pairing_session_id = parseInt(req.query.pairing_session_id);
-  let section_id = parseInt(cryptr.decrypt(req.query.section_id));
-  const select_pairing_record_by_pairing_session_id =
+  let pairingSessionId = parseInt(req.query.pairing_session_id);
+  let sectionId = parseInt(cryptr.decrypt(req.query.section_id));
+  let dataSets = await getPairingByPairingSessionId(
+    conMysql,
+    pairingSessionId,
+    sectionId
+  );
+
+  res.send({
+    status: "Pull information successfully",
+    pairingSessionId: pairingSessionId,
+    sectionId: cryptr.encrypt(sectionId),
+    partnerKeys: JSON.stringify(dataSets.partnerKeys),
+    pairingObjectives: JSON.stringify(dataSets.pairingObjectives)
+  });
+};
+
+async function getPairingByPairingSessionId(
+  conMysql,
+  pairingSessionId,
+  sectionId
+) {
+  const queryPairingRecord =
     "SELECT * FROM pairing_record WHERE pairing_session_id = " +
-    pairing_session_id;
-  let pairing_record = await conMysql.selectPairingRecord(
-    select_pairing_record_by_pairing_session_id
+    pairingSessionId;
+  let resPairingRecords = await conMysql.selectPairingRecord(
+    queryPairingRecord
   );
 
-  const select_enrollment_by_section_id =
-    "SELECT * FROM enrollment WHERE section_id = " + section_id;
-  let enrollment = await conMysql.selectEnrollment(
-    select_enrollment_by_section_id
-  );
+  const queryEnrollment =
+    "SELECT * FROM enrollment WHERE section_id = " + sectionId;
+  let resEnrollments = await conMysql.selectEnrollment(queryEnrollment);
 
-  let pairing_record_objects = {};
-  let enrollment_objects = {};
-  for (_index in pairing_record) {
-    pairing_record_objects[pairing_record[_index].enrollment_id] =
-      pairing_record[_index];
+  let pairingRecords = {};
+  let enrollments = {};
+  for (let index in resPairingRecords) {
+    pairingRecords[resPairingRecords[index].enrollment_id] =
+      resPairingRecords[index];
   }
 
-  for (_index in enrollment) {
-    enrollment_objects[enrollment[_index].enrollment_id] = enrollment[_index];
+  for (let index in resEnrollments) {
+    enrollments[resEnrollments[index].enrollment_id] = resEnrollments[index];
   }
 
-  let partner_keys = {};
-  let pairing_objective = {};
-  for (var element_en in enrollment_objects) {
-    if (enrollment_objects[element_en].partner_id == null) {
-      partner_keys[enrollment_objects[element_en].enrollment_id] = -1;
-      pairing_objective[enrollment_objects[element_en].enrollment_id] = -1;
+  let partnerKeys = {};
+  let pairingObjectives = {};
+  for (let indexEn in enrollments) {
+    if (enrollments[indexEn].partner_id == null) {
+      partnerKeys[enrollments[indexEn].enrollment_id] = -1;
+      pairingObjectives[enrollments[indexEn].enrollment_id] = -1;
 
-      delete enrollment_objects[enrollment_objects[element_en].enrollment_id];
+      delete enrollments[enrollments[indexEn].enrollment_id];
     } else {
-      for (var element_pair in pairing_record_objects) {
+      for (let indexPair in pairingRecords) {
         if (
-          enrollment_objects[element_en].enrollment_id ==
-          pairing_record_objects[element_pair].enrollment_id
+          enrollments[indexEn].enrollment_id ==
+          pairingRecords[indexPair].enrollment_id
         ) {
-          if (pairing_record_objects[element_pair].role == "host") {
-            partner_keys[enrollment_objects[element_en].enrollment_id] =
-              enrollment_objects[element_en].partner_id;
-          } else if (pairing_record_objects[element_pair].role == "partner") {
-            partner_keys[enrollment_objects[element_en].partner_id] =
-              enrollment_objects[element_en].enrollment_id;
+          if (pairingRecords[indexPair].role == "host") {
+            partnerKeys[enrollments[indexEn].enrollment_id] =
+              enrollments[indexEn].partner_id;
+          } else if (pairingRecords[indexPair].role == "partner") {
+            partnerKeys[enrollments[indexEn].partner_id] =
+              enrollments[indexEn].enrollment_id;
           }
 
-          pairing_objective[enrollment_objects[element_en].enrollment_id] =
-            pairing_record_objects[element_pair].pairing_objective;
-          pairing_objective[enrollment_objects[element_en].partner_id] =
-            pairing_record_objects[element_pair].pairing_objective;
-          delete pairing_record_objects[enrollment_objects[element_en]];
-          delete enrollment_objects[enrollment_objects[element_en].partner_id];
-          delete enrollment_objects[enrollment_objects[element_en]];
-          delete pairing_record_objects[pairing_record_objects[element_pair]];
+          pairingObjectives[enrollments[indexEn].enrollment_id] =
+            pairingRecords[indexPair].pairing_objective;
+          pairingObjectives[enrollments[indexEn].partner_id] =
+            pairingRecords[indexPair].pairing_objective;
+          delete pairingRecords[enrollments[indexEn]];
+          delete enrollments[enrollments[indexEn].partner_id];
+          delete enrollments[enrollments[indexEn]];
+          delete pairingRecords[pairingRecords[indexPair]];
         }
       }
     }
   }
 
-  res.send({
-    status: "Pull information successfully",
-    pairing_session_id: pairing_session_id,
-    section_id: cryptr.encrypt(section_id),
-    partner_keys: JSON.stringify(partner_keys),
-    pairing_objective: JSON.stringify(pairing_objective)
-  });
-};
+  const dataSets = {
+    partnerKeys: partnerKeys,
+    pairingObjectives: pairingObjectives
+  };
+
+  return dataSets;
+}
 
 exports.getAssignmentWeek = async (req, res) => {
   let action = req.query.action;
@@ -902,20 +914,24 @@ exports.manageAssignment = async (req, res) => {
 };
 
 exports.updatePairing = async (req, res) => {
-  let partner_keys = req.body.partner_keys;
-  let partnerKeyClones = req.body.cloning_partner_keys;
-  let pairingObjectiveClones = req.body.cloning_pairing_objective;
-  let pairing_objective = req.body.pairing_objective;
-  let pairing_session_id = req.body.pairing_session_id;
-  let section_id = parseInt(cryptr.decrypt(req.body.section_id));
-  let changePartnerKeys = {};
+  let partnerKeys = req.body.partnerKeys;
+  let pairingObjectives = req.body.pairingObjectives;
+  let pairingSessionId = req.body.pairingSessionId;
+  let sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
+  let changedPartnerKeys = {};
   let count = 0;
+
+  let dataSets = await getPairingByPairingSessionId(
+    conMysql,
+    pairingSessionId,
+    sectionId
+  );
 
   /*
    ** if there aren't student pairing, server will send message which 'Please, pair all student!'.
    */
-  for (key in partner_keys) {
-    if (parseInt(partner_keys[key]) < 0) {
+  for (key in partnerKeys) {
+    if (parseInt(partnerKeys[key]) < 0) {
       res.send({ status: "Please pair all students!" });
       return;
     }
@@ -923,20 +939,20 @@ exports.updatePairing = async (req, res) => {
     /*
      * if students join to the classroom after the teacher matched students, students don't have a partner.
      */
-    if (partnerKeyClones[key] === undefined) {
+    if (dataSets.partnerKeys[key] === undefined) {
       count++;
-      changePartnerKeys[key] = partner_keys[key];
-    } else if (partnerKeyClones[key] != partner_keys[key]) {
+      changedPartnerKeys[key] = partnerKeys[key];
+    } else if (dataSets.partnerKeys[key] != partnerKeys[key]) {
       count++;
-      changePartnerKeys[key] = partner_keys[key];
+      changedPartnerKeys[key] = partnerKeys[key];
     }
 
     /*
      * if pairing objective changes new objective, old pair changes new partner.
      */
-    if (pairingObjectiveClones[key] != pairing_objective[key]) {
+    if (dataSets.pairingObjectives[key] != pairingObjectives[key]) {
       count++;
-      changePartnerKeys[key] = partner_keys[key];
+      changedPartnerKeys[key] = partnerKeys[key];
     }
   }
 
@@ -947,7 +963,7 @@ exports.updatePairing = async (req, res) => {
 
   const pairingSessionQuery =
     "SELECT * FROM pairing_session WHERE pairing_session_id = " +
-    pairing_session_id;
+    pairingSessionId;
   let resPairingSession = await conMysql.selectPairingSession(
     pairingSessionQuery
   );
@@ -959,36 +975,34 @@ exports.updatePairing = async (req, res) => {
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id =" +
     "\
    e.student_id AND e.section_id = " +
-    section_id +
+    sectionId +
     " ORDER BY st.first_name ASC";
   let resStudents = await conMysql.selectStudent(studentQuery);
 
   let pairingRecordQuery =
     "SELECT * FROM pairing_record WHERE pairing_session_id = " +
-    pairing_session_id;
-  let resPairingRecord = await conMysql.selectPairingRecord(
-    pairingRecordQuery
-  );
+    pairingSessionId;
+  let resPairingRecord = await conMysql.selectPairingRecord(pairingRecordQuery);
 
   let pairingRecordRoles = {};
-  for (_index in resPairingRecord) {
-    pairingRecordRoles[resPairingRecord[_index].enrollment_id] =
-      resPairingRecord[_index].role;
+  for (let index in resPairingRecord) {
+    pairingRecordRoles[resPairingRecord[index].enrollment_id] =
+      resPairingRecord[index].role;
   }
 
   let newStudents = {};
 
-  for (_index in resStudents) {
-    newStudents[resStudents[_index].enrollment_id] = {
-      username: resStudents[_index].username,
-      role: pairingRecordRoles[resStudents[_index].enrollment_id]
+  for (let index in resStudents) {
+    newStudents[resStudents[index].enrollment_id] = {
+      username: resStudents[index].username,
+      role: pairingRecordRoles[resStudents[index].enrollment_id]
     };
   }
 
   let resProject = [];
   let projects = [];
   count = 0;
-  for (let key in changePartnerKeys) {
+  for (let key in changedPartnerKeys) {
     /*
      * Old pair changes a new partner.
      */
@@ -1046,28 +1060,28 @@ exports.updatePairing = async (req, res) => {
       count++;
     }
 
-    if (newStudents[changePartnerKeys[key]].role == "host") {
+    if (newStudents[changedPartnerKeys[key]].role == "host") {
       resProject = await Project.find({
         $or: [
           {
-            creator: newStudents[changePartnerKeys[key]].username,
+            creator: newStudents[changedPartnerKeys[key]].username,
             createdAt: { $gt: new Date(timeStart) }
           },
           {
-            creator: newStudents[changePartnerKeys[key]].username,
+            creator: newStudents[changedPartnerKeys[key]].username,
             createdAt: { $eq: new Date(timeStart) }
           }
         ]
       });
-    } else if (newStudents[changePartnerKeys[key]].role == "partner") {
+    } else if (newStudents[changedPartnerKeys[key]].role == "partner") {
       resProject = await Project.find({
         $or: [
           {
-            collaborator: newStudents[changePartnerKeys[key]].username,
+            collaborator: newStudents[changedPartnerKeys[key]].username,
             createdAt: { $gt: new Date(timeStart) }
           },
           {
-            collaborator: newStudents[changePartnerKeys[key]].username,
+            collaborator: newStudents[changedPartnerKeys[key]].username,
             createdAt: { $eq: new Date(timeStart) }
           }
         ]
@@ -1114,7 +1128,7 @@ exports.updatePairing = async (req, res) => {
   /*
    * Delete many projects in one week.
    */
-  for (var key in changePartnerKeys) {
+  for (var key in changedPartnerKeys) {
     if (newStudents[key].role == "host") {
       status = await Project.deleteMany({
         creator: newStudents[key].username,
@@ -1133,17 +1147,17 @@ exports.updatePairing = async (req, res) => {
       });
     }
 
-    if (newStudents[changePartnerKeys[key]].role == "host") {
+    if (newStudents[changedPartnerKeys[key]].role == "host") {
       status = await Project.deleteMany({
-        creator: newStudents[changePartnerKeys[key]].username,
+        creator: newStudents[changedPartnerKeys[key]].username,
         $or: [
           { createdAt: { $gt: new Date(timeStart) } },
           { createdAt: { $eq: new Date(timeStart) } }
         ]
       });
-    } else if (newStudents[changePartnerKeys[key]].role == "partner") {
+    } else if (newStudents[changedPartnerKeys[key]].role == "partner") {
       status = await Project.deleteMany({
-        collaborator: newStudents[changePartnerKeys[key]].username,
+        collaborator: newStudents[changedPartnerKeys[key]].username,
         $or: [
           { createdAt: { $gt: new Date(timeStart) } },
           { createdAt: { $eq: new Date(timeStart) } }
@@ -1156,12 +1170,12 @@ exports.updatePairing = async (req, res) => {
   /*
    * Sum new scores.
    */
-  for (let key in changePartnerKeys) {
-    let uid = [key, changePartnerKeys[key]];
-    for (_index in uid) {
+  for (let key in changedPartnerKeys) {
+    let uid = [key, changedPartnerKeys[key]];
+    for (let index in uid) {
       await User.findOne(
         {
-          username: newStudents[uid[_index]].username
+          username: newStudents[uid[index]].username
         },
         async function(err, element) {
           if (err) {
@@ -1236,20 +1250,20 @@ exports.updatePairing = async (req, res) => {
   }
 
   let enrollmentQuery = "";
-  let resEnrollment = "";
+  let resEnrollment = [];
   let pairingRecordValues = [];
-  for (let key in changePartnerKeys) {
+  for (let key in changedPartnerKeys) {
     pairingRecordQuery =
       "DELETE FROM pairing_record WHERE enrollment_id = " +
       parseInt(key) +
       "\
      AND pairing_session_id = " +
-      pairing_session_id;
+      pairingSessionId;
     resPairingRecord = await conMysql.selectPairingRecord(pairingRecordQuery);
 
     enrollmentQuery =
       "UPDATE enrollment SET partner_id = " +
-      parseInt(changePartnerKeys[key]) +
+      parseInt(changedPartnerKeys[key]) +
       " WHERE enrollment_id = " +
       key;
     resEnrollment = await conMysql.updateEnrollment(enrollmentQuery);
@@ -1259,9 +1273,9 @@ exports.updatePairing = async (req, res) => {
     pairingRecordValues = [
       [
         parseInt(key),
-        pairing_session_id,
-        parseInt(changePartnerKeys[key]),
-        pairing_objective[key],
+        pairingSessionId,
+        parseInt(changedPartnerKeys[key]),
+        pairingObjectives[key],
         "host"
       ]
     ];
@@ -1272,27 +1286,27 @@ exports.updatePairing = async (req, res) => {
 
     pairingRecordQuery =
       "DELETE FROM pairing_record WHERE enrollment_id = " +
-      parseInt(changePartnerKeys[key]) +
+      parseInt(changedPartnerKeys[key]) +
       "\
      AND pairing_session_id = " +
-      pairing_session_id;
+      pairingSessionId;
     resPairingRecord = await conMysql.selectPairingRecord(pairingRecordQuery);
 
     enrollmentQuery =
       "UPDATE enrollment SET partner_id = " +
       key +
       " WHERE enrollment_id = " +
-      changePartnerKeys[key];
+      changedPartnerKeys[key];
     resEnrollment = await conMysql.updateEnrollment(enrollmentQuery);
 
     pairingRecordQuery =
       "INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?";
     pairingRecordValues = [
       [
-        parseInt(changePartnerKeys[key]),
-        pairing_session_id,
+        parseInt(changedPartnerKeys[key]),
+        pairingSessionId,
         parseInt(key),
-        pairing_objective[changePartnerKeys[key]],
+        pairingObjectives[changedPartnerKeys[key]],
         "partner"
       ]
     ];
@@ -1637,54 +1651,40 @@ exports.startAutoPairingByPurpose = async (req, res) => {
 };
 
 exports.createPairingRecord = async (req, res) => {
-  const partner_keys = JSON.parse(req.body.partner_keys);
-  const pairing_objective = JSON.parse(req.body.pairing_objective);
-  const section_id = parseInt(cryptr.decrypt(req.body.section_id));
-  let res_status = "Confirm completed.";
+  const partnerKeys = JSON.parse(req.body.partnerKeys);
+  const pairingObjectives = JSON.parse(req.body.pairingObjectives);
+  const sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
+  let status = "Confirm completed.";
   let count = 0;
-  let pairing_record_values = [];
-  let add_partner_to_student;
-  let select_enrollment_by_enrollment_id;
-  let enrollment_value;
-  let pairing_record_value;
+  let pairingRecords = [];
+  let queryEnrollment = null;
 
-  //if there aren't student pairing, server will send message which 'Please, pair all student!'
-  for (key in partner_keys) {
-    if (partner_keys[key] < 0) {
-      res_status = "Please pair all students!";
-      res.send({ res_status: res_status });
-      return;
+  /**
+   * if there aren't student pairing, server will send message which 'Please, pair all student!'
+   */
+  for (key in partnerKeys) {
+    if (partnerKeys[key] < 0) {
+      status = "Please pair all students!";
+      res.send({ status: status });
     }
     count++;
   }
 
-  //if there aren't student in classroom, server will send message which 'There aren't student in classroom!'
+  /**
+   * if there aren't student in classroom, server will send message which 'There aren't student in classroom!'
+   */
   if (!count) {
-    res_status = "There is no student in the classroom!";
-    res.send({ res_status: res_status });
-    return;
+    status = "There is no student in the classroom!";
+    res.send({ status: status });
   }
 
-  //define sesstion time
-  let select_pairing_session_by_section_id =
-    "SELECT * FROM pairing_session WHERE section_id = " + section_id;
-  let pairing_session = await conMysql.selectPairingSession(
-    select_pairing_session_by_section_id
-  );
-  const pairing_time = pairing_session.length;
-
-  //create new pairing session
-  const insertPairingSession =
-    "INSERT INTO pairing_session (section_id, time_start, status) VALUES ?";
-  const querySection =
-    "SELECT * FROM section AS s WHERE s.section_id = " + section_id + "";
-  const section = await conMysql.selectSection(querySection);
-
-  //create date time at this moment
-  let date_time = new Date();
-  let str_date_time = date_time.toString();
-  let split_date_time = str_date_time.split(" ");
-  let slice_date_time = split_date_time.slice(1, 5);
+  /**
+   * create date time at this moment
+   */
+  let dateTime = new Date();
+  let strDateTime = dateTime.toString();
+  let splitDateTime = strDateTime.split(" ");
+  let sliceDateTime = splitDateTime.slice(1, 5);
   let month = {
     Jan: "01",
     Feb: "02",
@@ -1699,76 +1699,65 @@ exports.createPairingRecord = async (req, res) => {
     Nov: "11",
     Dec: "12"
   };
-  let num_month = month[slice_date_time[0]];
-  num_month === undefined ? (num_month = "13") : null;
+  let numMonth = month[sliceDateTime[0]];
+  numMonth === undefined ? (numMonth = "13") : null;
   let date =
-    slice_date_time[2] +
+    sliceDateTime[2] +
     "-" +
-    num_month +
+    numMonth +
     "-" +
-    slice_date_time[1] +
+    sliceDateTime[1] +
     " " +
-    slice_date_time[3];
+    sliceDateTime[3];
 
-  const values = [[section[0].section_id, date, 1]];
-  const pairing_session_id = await conMysql.insertPairingSession(
+  const insertPairingSession =
+    "INSERT INTO pairing_session (section_id, time_start, status) VALUES ?";
+  const values = [[sectionId, date, 1]];
+  const pairingSessionId = await conMysql.insertPairingSession(
     insertPairingSession,
     values
   );
 
-  if (typeof pairing_session_id == "number") {
+  if (typeof pairingSessionId == "number") {
     count = 0;
-    for (key in partner_keys) {
-      add_partner_to_student =
+    for (key in partnerKeys) {
+      queryEnrollment =
         "UPDATE enrollment SET partner_id = " +
-        partner_keys[key] +
+        partnerKeys[key] +
         " WHERE enrollment_id = " +
         key;
-      res_status = await conMysql.updateEnrollment(add_partner_to_student);
+      status = await conMysql.updateEnrollment(queryEnrollment);
 
-      if (res_status == "Update failed.") {
-        res.send({ res_status: res_status });
+      if (status == "Update failed.") {
+        res.send({ status: status });
         return;
       } else {
-        select_enrollment_by_enrollment_id =
-          "SELECT * FROM enrollment WHERE enrollment_id = " + key;
-        enrollment_value = await conMysql.selectEnrollment(
-          select_enrollment_by_enrollment_id
-        );
-        pairing_record_value = [
+        pairingRecords[count] = [
           parseInt(key),
-          parseInt(pairing_session_id),
-          partner_keys[key],
-          pairing_objective[key],
+          parseInt(pairingSessionId),
+          partnerKeys[key],
+          pairingObjectives[key],
           "host"
         ];
-        pairing_record_values[count] = pairing_record_value;
         count++;
 
-        add_partner_to_student =
+        queryEnrollment =
           "UPDATE enrollment SET partner_id = " +
           key +
           " WHERE enrollment_id = " +
-          partner_keys[key];
-        res_status = await conMysql.updateEnrollment(add_partner_to_student);
+          partnerKeys[key];
+        status = await conMysql.updateEnrollment(queryEnrollment);
 
-        if (res_status == "Update failed.") {
-          res.send({ res_status: res_status });
+        if (status == "Update failed.") {
+          res.send({ status: status });
         } else {
-          select_enrollment_by_enrollment_id =
-            "SELECT * FROM enrollment WHERE enrollment_id = " +
-            partner_keys[key];
-          enrollment_value = await conMysql.selectEnrollment(
-            select_enrollment_by_enrollment_id
-          );
-          pairing_record_value = [
-            partner_keys[key],
-            parseInt(pairing_session_id),
+          pairingRecords[count] = [
+            partnerKeys[key],
+            parseInt(pairingSessionId),
             parseInt(key),
-            pairing_objective[partner_keys[key]],
+            pairingObjectives[partnerKeys[key]],
             "partner"
           ];
-          pairing_record_values[count] = pairing_record_value;
           count++;
         }
       }
@@ -1776,58 +1765,55 @@ exports.createPairingRecord = async (req, res) => {
 
     const insertPairingRecord =
       "INSERT INTO pairing_record (enrollment_id, pairing_session_id, partner_id, pairing_objective, role) VALUES ?";
-    res_status = await conMysql.insertPairingRecord(
+    status = await conMysql.insertPairingRecord(
       insertPairingRecord,
-      pairing_record_values
+      pairingRecords
     );
 
-    if (res_status == "Create completed.") {
-      const update_pairing_session_by_pairing_session_id =
+    let queryPairingSession = null;
+    if (status == "Create completed.") {
+      queryPairingSession =
         "UPDATE pairing_session SET status = 1 WHERE pairing_session_id = " +
-        pairing_session_id;
-      res_status = await conMysql.updatePairingSession(
-        update_pairing_session_by_pairing_session_id
-      );
+        pairingSessionId;
+      status = await conMysql.updatePairingSession(queryPairingSession);
     }
 
-    select_pairing_session_by_section_id =
+    queryPairingSession =
       "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
-      section_id +
+      sectionId +
       " ORDER BY ps.pairing_session_id DESC";
-    pairing_sessions = await conMysql.selectPairingSession(
-      select_pairing_session_by_section_id
+    let pairingSessions = await conMysql.selectPairingSession(
+      queryPairingSession
     );
 
-    let select_assignment_by_section_id =
-      "SELECT * FROM assignment WHERE section_id = " + section_id;
-    assignments = await conMysql.selectAssignment(
-      select_assignment_by_section_id
-    );
+    let queryAssignment =
+      "SELECT * FROM assignment WHERE section_id = " + sectionId;
+    assignments = await conMysql.selectAssignment(queryAssignment);
 
     let weeks = [];
     if (!assignments.length) {
       assignments = [];
     } else if (assignments.length) {
-      for (_index in assignments) {
-        assignments[_index].assignment_id = cryptr.encrypt(
-          assignments[_index].assignment_id
+      for (let index in assignments) {
+        assignments[index].assignment_id = cryptr.encrypt(
+          assignments[index].assignment_id
         );
-        assignments[_index].section_id = cryptr.encrypt(
-          assignments[_index].section_id
+        assignments[index].section_id = cryptr.encrypt(
+          assignments[index].section_id
         );
-        assignments[_index].title = assignments[_index].title
+        assignments[index].title = assignments[index].title
           .replace(/\\n\\n/g, "<br>")
           .replace(/\\n/g, " ");
-        assignments[_index].description = assignments[_index].description
+        assignments[index].description = assignments[index].description
           .replace(/\\n\\n/g, "<br>")
           .replace(/\\n/g, " ");
-        weeks.indexOf(assignments[_index].week) == -1
-          ? weeks.push(assignments[_index].week)
+        weeks.indexOf(assignments[index].week) == -1
+          ? weeks.push(assignments[index].week)
           : null;
       }
     }
 
-    let data_for_weeks_dropdown_function = {
+    let weeklyDatas = {
       assignments: JSON.stringify(assignments),
       username: req.user.info.username,
       img: req.user.img,
@@ -1835,124 +1821,120 @@ exports.createPairingRecord = async (req, res) => {
     };
 
     res.send({
-      res_status: res_status,
-      pairing_sessions: JSON.stringify(pairing_sessions),
-      section_id: cryptr.encrypt(section_id),
-      data_for_weeks_dropdown_function: JSON.stringify(
-        data_for_weeks_dropdown_function
-      )
+      status: status,
+      pairingSessions: JSON.stringify(pairingSessions),
+      sectionId: cryptr.encrypt(sectionId),
+      weeklyDatas: JSON.stringify(weeklyDatas)
     });
-
-    // res.send({res_status: res_status, pairing_session_id: pairing_session_id, pairing_time: pairing_time, time_start: date, time_end: '-'})
   } else {
-    res.send({ res_status: "Update failed." });
+    res.send({ status: "Update failed." });
   }
 };
 
 exports.getStudentsFromSection = async (req, res) => {
-  var partner_keys = JSON.parse(req.query.partner_keys);
-  var pairing_objective = JSON.parse(req.query.pairing_objective);
-  const pairing_session_id = req.query.pairing_session_id;
-  const command = req.query.command;
-  let section_id = parseInt(cryptr.decrypt(req.query.section_id));
-  const queryStudent =
+  let partnerKeys = JSON.parse(req.query.partnerKeys);
+  let pairingObjectives = JSON.parse(req.query.pairingObjectives);
+  let pairingSessionId = req.query.pairingSessionId;
+  let command = req.query.command;
+  let sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
+  let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
-    section_id +
+    sectionId +
     " ORDER BY st.first_name ASC";
-  const students = await conMysql.selectStudent(queryStudent);
-  const select_pairing_session_by_pairing_session_id =
+  let resStudents = await conMysql.selectStudent(queryStudent);
+  let queryPairingSession =
     "SELECT * FROM pairing_session WHERE pairing_session_id = " +
-    pairing_session_id;
-  let pairing_session = await conMysql.selectPairingSession(
-    select_pairing_session_by_pairing_session_id
+    pairingSessionId;
+  let resPairingSessions = await conMysql.selectPairingSession(
+    queryPairingSession
   );
 
-  var arePairingsActive = false;
-  for (i in students) {
-    if (students[i].partner_id != null) {
-      arePairingsActive = true;
+  let isPairingActive = false;
+  for (let index in resStudents) {
+    if (resStudents[index].partner_id != null) {
+      isPairingActive = true;
     }
     let user = await User.findOne({
-      username: students[i].username
+      username: resStudents[index].username
     });
     if (user !== null) {
-      students[i].avg_score = user.avgScore;
-      students[i].img = user.img;
-      students[i].total_time = user.totalTime;
+      resStudents[index].avg_score = user.avgScore;
+      resStudents[index].img = user.img;
+      resStudents[index].total_time = user.totalTime;
     } else {
-      console.log("user instance is null in getStudentsFromSection function");
+      console.log("User instance is null in getStudentsFromSection function");
     }
   }
-  var count = 0;
-  for (_index in partner_keys) {
+  let count = 0;
+  for (let index in partnerKeys) {
     count++;
     break;
   }
-  if (!count && !arePairingsActive && command == "pair") {
-    for (_index in students) {
-      partner_keys[students[_index].enrollment_id] = -1;
-      pairing_objective[students[_index].enrollment_id] = -1;
+  if (!count && !isPairingActive && command == "pair") {
+    for (let index in resStudents) {
+      partnerKeys[resStudents[index].enrollment_id] = -1;
+      pairingObjectives[resStudents[index].enrollment_id] = -1;
     }
   } else if (command == "view") {
-    const select_pairing_record_by_pairing_session_id =
+    let queryPairingRecord =
       "SELECT * FROM pairing_record WHERE pairing_session_id = " +
-      pairing_session_id;
-    const pairing_record_values = await conMysql.selectPairingRecord(
-      select_pairing_record_by_pairing_session_id
+      pairingSessionId;
+    let resPairingRecords = await conMysql.selectPairingRecord(
+      queryPairingRecord
     );
-    var pairing_record_objects = {};
-    for (_index in pairing_record_values) {
-      pairing_record_objects[pairing_record_values[_index].enrollment_id] =
-        pairing_record_values[_index];
+    let pairingRecords = {};
+    for (let index in resPairingRecords) {
+      pairingRecords[resPairingRecords[index].enrollment_id] =
+        resPairingRecords[index];
     }
-    var key;
-    for (_index in pairing_record_values) {
+    let key;
+    for (let index in resPairingRecords) {
       /**
        * find key from value
        */
-      key = Object.keys(partner_keys).find(
-        key => partner_keys[key] === pairing_record_values[_index].enrollment_id
+      key = Object.keys(partnerKeys).find(
+        key => partnerKeys[key] === resPairingRecords[index].enrollment_id
       );
       if (
-        partner_keys[pairing_record_values[_index].enrollment_id] ===
+        partnerKeys[resPairingRecords[index].enrollment_id] ===
           undefined &&
-        partner_keys[key] === undefined
+        partnerKeys[key] === undefined
       ) {
         if (
-          pairing_record_objects[pairing_record_values[_index].enrollment_id]
+          pairingRecords[resPairingRecords[index].enrollment_id]
             .role == "host"
         ) {
-          partner_keys[pairing_record_values[_index].enrollment_id] =
-            pairing_record_values[_index].partner_id;
+          partnerKeys[resPairingRecords[index].enrollment_id] =
+            resPairingRecords[index].partner_id;
         } else if (
-          pairing_record_objects[pairing_record_values[_index].enrollment_id]
+          pairingRecords[resPairingRecords[index].enrollment_id]
             .role == "partner"
         ) {
-          partner_keys[pairing_record_values[_index].partner_id] =
-            pairing_record_values[_index].enrollment_id;
+          partnerKeys[resPairingRecords[index].partner_id] =
+            resPairingRecords[index].enrollment_id;
         }
-        pairing_objective[pairing_record_values[_index].enrollment_id] =
-          pairing_record_objects[
-            pairing_record_values[_index].enrollment_id
+        pairingObjectives[resPairingRecords[index].enrollment_id] =
+          pairingRecords[
+            resPairingRecords[index].enrollment_id
           ].pairing_objective;
-        pairing_objective[pairing_record_values[_index].partner_id] =
-          pairing_record_objects[
-            pairing_record_values[_index].partner_id
+        pairingObjectives[resPairingRecords[index].partner_id] =
+          pairingRecords[
+            resPairingRecords[index].partner_id
           ].pairing_objective;
       }
     }
   }
-  var student_objects = {};
-  for (_index in students) {
-    student_objects[students[_index].enrollment_id] = students[_index];
+  let students = {};
+  for (let index in resStudents) {
+    students[resStudents[index].enrollment_id] = resStudents[index];
   }
-  if (!pairing_session.length) pairing_session = [{ status: -1 }];
+  if (!resPairingSessions.length) resPairingSessions = [{ status: -1 }];
   res.send({
-    student_objects: student_objects,
-    partner_keys: partner_keys,
-    pairing_objective: pairing_objective,
+    students: students,
+    partnerKeys: partnerKeys,
+    pairingObjectives: pairingObjectives,
     command: command,
-    pairing_session_status: pairing_session[0].status
+    pairingSessionStatus: resPairingSessions[0].status
   });
 };
 
@@ -2015,7 +1997,7 @@ exports.createAssignment = async (req, res) => {
       .replace(/\\n\\n/g, "<br>")
       .replace(/\\n/g, " ");
     assignment.programming_style = programming_style;
-    dataSets = { primitives: { assignment: assignment, section: section } };
+    dataSets = { origins: { assignment: assignment, section: section } };
     res.render("assignment", { dataSets, title: title });
   } else {
     res.redirect("/classroom?section_id=" + section_id);
@@ -2043,7 +2025,7 @@ exports.deleteAssignment = async (req, res) => {
       "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
       section_id +
       " ORDER BY ps.pairing_session_id DESC";
-    let pairing_sessions = await conMysql.selectPairingSession(
+    let pairingSessions = await conMysql.selectPairingSession(
       select_pairing_session_by_section_id
     );
 
@@ -2076,25 +2058,25 @@ exports.deleteAssignment = async (req, res) => {
       }
     }
 
-    !pairing_sessions.length
-      ? (pairing_sessions = [{ pairing_session_id: -1, status: -1 }])
-      : (pairing_sessions = pairing_sessions[0]);
+    !pairingSessions.length
+      ? (pairingSessions = [{ pairing_session_id: -1, status: -1 }])
+      : (pairingSessions = pairingSessions[0]);
 
     dataSets = {
-      primitives: {
+      origins: {
         status: "Delete all of these assignment successfully.",
         username: req.user.username,
         img: req.user.img,
         weeks: weeks,
-        pairing_session_id: pairing_sessions.pairing_session_id
+        pairing_session_id: pairingSessions.pairing_session_id
       },
-      references: { assignments: JSON.stringify(assignments) }
+      reforms: { assignments: JSON.stringify(assignments) }
     };
     res.send({ dataSets: dataSets });
     return;
   }
   res.send({
-    dataSets: { primitives: { status: "Found error while is be processing!" } }
+    dataSets: { origins: { status: "Found error while is be processing!" } }
   });
 };
 
@@ -2145,7 +2127,7 @@ exports.updateAssignment = async (req, res) => {
 
 exports.downloadFile = async (req, res) => {
   let filePath = req.query.filePath;
-  dataSets = { primitives: { filePath: cryptr.decrypt(filePath) } };
+  dataSets = { origins: { filePath: cryptr.decrypt(filePath) } };
   res.render("downloadFile", { dataSets, title: "Download file" });
 };
 
@@ -2185,7 +2167,7 @@ exports.getAssignment = async (req, res) => {
       .replace(/\\n\\n/g, "<br>")
       .replace(/\\n/g, " ");
   }
-  dataSets = { primitives: { assignment: assignment, section: section } };
+  dataSets = { origins: { assignment: assignment, section: section } };
   res.render("assignment", { dataSets, title: title });
 };
 

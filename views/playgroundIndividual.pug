@@ -20,7 +20,7 @@ block content
     .content
       .actions
         center
-          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom?section_id='+`${dataSets.primitives.section.section_id}`)
+          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom?section_id='+`${dataSets.origins.section.section_id}`)
             i.check.icon
             |       ตกลง
 
@@ -56,7 +56,7 @@ block content
   .ui.container.segment
     .ui.centered.grid
       .row
-        h1.ui.header= dataSets.primitives.project.title
+        h1.ui.header= dataSets.origins.project.title
       .row  
         .ui.grid
           .sixteen.wide.column.padding-left-20.padding-right-20
@@ -91,7 +91,7 @@ block content
                     a.ui.label(id='exportBtn' onClick='showExportModal()') export file
                   .description Source files for project
                   .list.relaxed#file-list(style="margin:0px;")
-                    each file, index in dataSets.primitives.project.files
+                    each file, index in dataSets.origins.project.files
                       .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
                         //- div(id=file+'-file-icon')
                         i.file.icon
@@ -121,7 +121,7 @@ block content
                 input(type="checkbox" name="allfile")
                 label Select all file
               .list#export-checklist
-                each file in dataSets.primitives.project.files
+                each file in dataSets.origins.project.files
                   .item.export-file-item(id=file+'-export-file-item')
                     .ui.child.checkbox
                       input(type="checkbox" name='checkbox-file', value=file)
@@ -148,7 +148,7 @@ block content
         //- file tab  
         .ui.form
           .ui.top.attached.tabular.file.menu(id='file-tabs')
-            each file, index in dataSets.primitives.project.files
+            each file, index in dataSets.origins.project.files
               if index == 0
                 a.active.item(id=file data-tab='main' onClick=`getActiveTab(${JSON.stringify(file)})`) main.py
               else
@@ -156,14 +156,14 @@ block content
                   span(onClick=`closeTab(${JSON.stringify(file)})`)
                     i.delete.icon(id='close-tab-icon')
           .ui.tab-content
-            each file,index in dataSets.primitives.project.files
+            each file,index in dataSets.origins.project.files
               if index == 0
                 .ui.bottom.attached.active.tab.segment(id=file+'-tab' data-tab='main')
                   textarea(id=file+'text').show
               else
                 .ui.bottom.attached.tab.segment(id=file+'-tab' data-tab=file)
                   textarea(id=file+'text').show
-          input(type='hidden' id='projectFiles' value=dataSets.primitives.project.files)
+          input(type='hidden' id='projectFiles' value=dataSets.origins.project.files)
         .ui.small.modal#filename-modal
           .header Filename
           .content
