@@ -179,6 +179,37 @@ $(document).ready(function() {
   $(".tabular.menu .item").tab();
 });
 
+function storeValueTextarea(event, textarea) {
+  let valuesStore = JSON.parse($(`#${textarea.attr("id")}Store`).val());
+  let valueTextarea = textarea.val().split('');
+  let tempContainers = []
+  let index = -1
+  valueTextarea.forEach((element)=>{
+    console.log('Element, ', element)
+    if (element === '\n') {
+      tempContainers.push([])
+      index++
+    } else {
+      if (index < 0) {
+        tempContainers.push([])
+        index++
+      }
+      tempContainers[index].push(element)
+    }
+  })
+  $(`#${textarea.attr("id")}Store`).val(
+    JSON.stringify(tempContainers)
+  );
+  console.log(
+    "OnKeyDown, ",
+    event.key,
+    ", Values, ",
+    textarea.val(),
+    ", Store, ",
+    $(`#${textarea.attr("id")}Store`).val()
+  );
+}
+
 function showFirstContainer() {
   $("#first_container").show();
   $("#second_container").hide();
@@ -417,9 +448,7 @@ function on_click_confirm_button(parameters) {
         const status = data.status;
         const pairingSessions = JSON.parse(data.pairingSessions);
         const sectionId = data.sectionId;
-        const weeklyDatas = JSON.parse(
-          data.weeklyDatas
-        );
+        const weeklyDatas = JSON.parse(data.weeklyDatas);
         if (status == "There is no student in the classroom!") {
           alert(status);
         } else if (status == "Please pair all students!") {
@@ -777,7 +806,6 @@ function searchStudent(
   partner_keys,
   pairing_objective
 ) {
-  //console.log('section_id: ' + section_id)
   var parameters = {
     search: $(id).val(),
     student_id: student_id,
@@ -1218,20 +1246,14 @@ function showStudentList(
             " " +
             students[partnerKeys[key]].last_name +
             "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score " +
-            parseFloat(students[partnerKeys[key]].avg_score).toFixed(
-              2
-            ) +
+            parseFloat(students[partnerKeys[key]].avg_score).toFixed(2) +
             "</a></div><div style='font-size: 12px;'>total active time: " +
-            pad(
-              parseInt(students[partnerKeys[key]].total_time / 3600)
-            ) +
+            pad(parseInt(students[partnerKeys[key]].total_time / 3600)) +
             ":" +
             pad(
               parseInt(
                 (students[partnerKeys[key]].total_time -
-                  parseInt(
-                    students[partnerKeys[key]].total_time / 3600
-                  ) *
+                  parseInt(students[partnerKeys[key]].total_time / 3600) *
                     3600) /
                   60
               )
@@ -1262,9 +1284,7 @@ function showStudentList(
       );
       $("#alphabeticalFilter").attr(
         "onclick",
-        "onClickAlphabeticalFilterButton(" +
-          JSON.stringify(students) +
-          ")"
+        "onClickAlphabeticalFilterButton(" + JSON.stringify(students) + ")"
       );
       $("#avgScoreFilter").attr(
         "onclick",
@@ -1277,17 +1297,9 @@ function showStudentList(
       } else if (activeFilter == "Z-A") {
         sortZtoA(students, filtered, elementMoved);
       } else if (activeFilter == "1-100") {
-        sort1to100(
-          students,
-          filtered,
-          elementMoved
-        );
+        sort1to100(students, filtered, elementMoved);
       } else if (activeFilter == "100-1") {
-        sort100to1(
-          students,
-          filtered,
-          elementMoved
-        );
+        sort100to1(students, filtered, elementMoved);
       }
     }
     $("#student_list_modal").modal("show");
@@ -1474,7 +1486,7 @@ function on_click_enable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getAssignmentWeek", { action: "enable" }, function(res) {
+  $.get("/classroom/getWeeklyAssignments", { action: "enable" }, function(res) {
     let weeks = JSON.parse(res.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
@@ -1514,7 +1526,9 @@ function on_click_disable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getAssignmentWeek", { action: "disable" }, function(res) {
+  $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function(
+    res
+  ) {
     let weeks = JSON.parse(res.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
@@ -2638,22 +2652,14 @@ function onClickAvgScoreFilterButton(students) {
 
     $("#activeFilter").attr("value", "1-100");
 
-    sort1to100(
-      students,
-      filtered,
-      elementMoved
-    );
+    sort1to100(students, filtered, elementMoved);
   } else if ($("#avgScoreFilter").attr("value") == "100-1") {
     $("#avgScoreFilter").attr("value", "1-100");
     $("#avgScoreFilter").text("1-100");
 
     $("#activeFilter").attr("value", "100-1");
 
-    sort100to1(
-      students,
-      filtered,
-      elementMoved
-    );
+    sort100to1(students, filtered, elementMoved);
   }
 }
 
@@ -2883,11 +2889,7 @@ function sortZtoA(students, filtered, elementMoved) {
   }
 }
 
-function sort1to100(
-  students,
-  filtered,
-  elementMoved
-) {
+function sort1to100(students, filtered, elementMoved) {
   while (!filtered) {
     $("li.ui.segment").filter(function(indx) {
       var key = $(this).attr("id");
@@ -2982,11 +2984,7 @@ function sort1to100(
   }
 }
 
-function sort100to1(
-  students,
-  filtered,
-  elementMoved
-) {
+function sort100to1(students, filtered, elementMoved) {
   while (!filtered) {
     $("li.ui.segment").filter(function(indx) {
       var key = $(this).attr("id");

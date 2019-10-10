@@ -35,7 +35,7 @@ mixin assignmentManagementModal()
         .actions
           button.ui.button.approve.green#confirm_assignment_management(type='submit') Confirm
           button.ui.button.approve.red#cancel_assignment_management(data-value='cancel') Cancel
-      
+
 mixin assignmentEndTimeModal()
   .ui.small.modal#assignment-end-time-modal
     i.close.icon
@@ -75,35 +75,35 @@ mixin settingsModal()
     i.close.icon
     .header Settings Classroom
     .content
-      form.ui.form.updateSection.segment(action='/classroom/updateSection', method='POST')
+      form.ui.form.updateSection.segment(action='/classroom/updateSection' method='POST')
         .field
           label Class Name :
           |
-          input(type='text', name='course_name', placeholder='Your class name', value=`${dataSets.origins.section.course_name}`)
+          input(type='text' name='course_name' placeholder='Your class name', value=`${dataSets.origins.section.course_name}`)
         .ui.grid
           .two.column.row
             .column
               .field
                 label Section :
                 |
-                input(type='text', name='section', placeholder='Your section', maxlength='3', value=`${dataSets.origins.section.section}`)
+                input(type='text' name='section' placeholder='Your section' maxlength='3', value=`${dataSets.origins.section.section}`)
             .column
               .field
                 label Room :
                 |
-                input(type='text', name='room', placeholder='Your room', maxlength='4', value=`${dataSets.origins.section.room}`)
+                input(type='text' name='room' placeholder='Your room' maxlength='4', value=`${dataSets.origins.section.room}`)
         .ui.grid
           .four.wide.column
             .field
               label Day  :
               select.ui.dropdown.day(name='day')
-                 option(value='Mon.') Monday
-                 option(value='Tue.') Tuesday
-                 option(value='Wed.') Wednesday
-                 option(value='Thu.') Thursday
-                 option(value='Fri.') Friday
-                 option(value='Sat.') Saturday
-                 option(value='Sun.') Sunday
+                option(value='Mon.') Monday
+                option(value='Tue.') Tuesday
+                option(value='Wed.') Wednesday
+                option(value='Thu.') Thursday
+                option(value='Fri.') Friday
+                option(value='Sat.') Saturday
+                option(value='Sun.') Sunday
           .six.wide.column(style='text-align:center;')
             b Time start
             .ui.labeled.input
@@ -175,8 +175,8 @@ mixin settingsModal()
               select.ui.dropdown.timeEndAp(name='time_end_ap')
                 option(value='am.')  am.
                 option(value='pm.')  pm.
-        input(type='hidden', name='course_id', value=`${dataSets.origins.section.course_id}`)
-        input(type='hidden', name='section_id', value=`${dataSets.origins.section.section_id}`)
+        input(type='hidden' name='course_id', value=`${dataSets.origins.section.course_id}`)
+        input(type='hidden' name='section_id', value=`${dataSets.origins.section.section_id}`)
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green(type='submit') Update
@@ -188,7 +188,7 @@ mixin assignmentModal()
     i.close.icon
     .header Assignment
     .content
-      form.ui.form.createAssignment.segment(action='/assignment', method='POST')
+      form.ui.form.createAssignment.segment(action='/assignment' method='POST')
         .inline.fields
           label Programming Style :
           .field
@@ -216,69 +216,74 @@ mixin assignmentModal()
             .field
               label Title :
               |
-              input(type='text', name='title', placeholder='Your title')
+              input(type='text' name='title' placeholder='Your title')
           .three.wide.column
             .field
               label Week :
               |
-              input(type='text', name='week', placeholder='Week', maxlength='3')
+              input(type='text' name='week' placeholder='Week' maxlength='3')
         .field
           label Description :
           |
-          textarea(type='text', name='description', placeholder='Some content...', style='resize:none;')
+          textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
         .ui.grid
           .two.column.row
             .column
               .field
                 label Input specification :
                 |
-                textarea(row='2', type='text', name='input_specification', placeholder='Input specification...', style='resize:none;')
+                textarea#assInSpecify(row='2' type='text' name='input_specification' placeholder='Input specification...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
             .column
               .field
                 label Output specification :
                 |
-                textarea(row='2', type='text', name='output_specification', placeholder='Output specification...', style='resize:none;')
+                textarea#assOutSpecify(row='2' type='text' name='output_specification' placeholder='Output specification...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
         .ui.grid
           .two.column.row
             .column
               .field
                 label Sample Input :
                 |
-                textarea(row='2', type='text', name='sample_input', placeholder='Sample Input...', style='resize:none;')
+                textarea#assSamInput(row='2' type='text' name='sample_input' placeholder='Sample Input...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
             .column
               .field
                 label Sample Output :
                 |
-                textarea(row='2', type='text', name='sample_output', placeholder='Sample Output...', style='resize:none;')
-        input(type='hidden', name='section_id', value=`${dataSets.origins.section.section_id}`)
+                textarea#assSamOutput(row='2' type='text' name='sample_output' placeholder='Sample Output...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
+        input(type='hidden' name='sectionId', value=`${dataSets.origins.section.section_id}`)
+        input#assignmentDescStore(type='hidden' name='assignmentDescStore' value='[]')
+        input#assInSpecifyStore(type='hidden' name='assInSpecifyStore' value='[]')
+        input#assOutSpecifyStore(type='hidden' name='assOutSpecifyStore' value='[]')
+        input#assSamInputStore(type='hidden' name='assSamInputStore' value='[]')
+        input#assSamOutputStore(type='hidden' name='assSamOutputStore' value='[]')
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green(type='submit') Create
             .ui.button.cancel.red(data-value='cancel') Cancel
         .ui.error.message
-          
+
 mixin newClassroomModal()
   .ui.small.modal#newClassroom-modal
     i.close.icon
     .header Create New Classroom
     .content
-      form.ui.form.segment(action='/classroom', method='POST')
+      form.ui.form.segment(action='/classroom' method='POST')
         .field
           label Class Name :
           |
-          input(type='text', name='course_name', placeholder='Your class name')
+          input(type='text' name='course_name' placeholder='Your class name')
         .ui.grid
           .two.column.row
             .column
               .field
                 label Section :
                 |
-                input(type='text', name='section', placeholder='Your section', maxlength='3')
+                input(type='text' name='section' placeholder='Your section' maxlength='3')
             .column
               .field
                 label Room :
                 |
-                input(type='text', name='room', placeholder='Your room', maxlength='4')
+                input(type='text' name='room' placeholder='Your room' maxlength='4')
         .ui.grid
           .four.wide.column
             .field
@@ -368,17 +373,17 @@ mixin newClassroomModal()
 
 mixin joinClassroomModal()
   .ui.mini.modal#joinClassroom-modal
-      i.close.icon
-      .header Join Classroom
-      .content
-          form.ui.form(action='/classroom/joinClass', method='POST')
-              .field
-                  |
-                  input(type='text', name='class_code', placeholder='Classroom code', maxlength='9')
-              .ui.basic.center.aligned.segment
-                  .actions
-                      button.ui.button.approve.green(type='submit') Join
-                      .ui.button.approve.red(data-value='cancel') Cancel
+    i.close.icon
+    .header Join Classroom
+    .content
+      form.ui.form(action='/classroom/joinClass' method='POST')
+        .field
+          |
+          input(type='text' name='class_code' placeholder='Classroom code' maxlength='9')
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green(type='submit') Join
+            .ui.button.approve.red(data-value='cancel') Cancel
 
 mixin confirmDeleteSection()
   .ui.small.modal#confirmDeleteSection
@@ -390,35 +395,35 @@ mixin confirmDeleteSection()
         .actions
           button.ui.button.approve.green#confirmToDeleteSection Yes
           .ui.button.cancel.red No
-          
+
 mixin pairingSettingsModal()
   .ui.small.modal#pairingSettingsModal
     .header Auto pairing
     .content
       .ui.top.attached.tabular.menu
-        a.item.active.apsm#aPurpose(data-tab="purpose", onclick='onClickAutoPairingSelectionMethod('+`$(this).attr('id')`+')') Auto by purpose
-        a.item.apsm#aScoreDiff(data-tab="scoreDiff", onclick='onClickAutoPairingSelectionMethod('+`$(this).attr('id')`+')') Auto by score difference
+        a.item.active.apsm#aPurpose(data-tab="purpose" onclick='onClickAutoPairingSelectionMethod('+`$(this).attr('id')`+')') Auto by purpose
+        a.item.apsm#aScoreDiff(data-tab="scoreDiff" onclick='onClickAutoPairingSelectionMethod('+`$(this).attr('id')`+')') Auto by score difference
       .ui.bottom.attached.tab.segment.active.apsm.aPurpose(data-tab="purpose" onclick='onClickAutoPairingTab()')
         .ui.two.column.very.relaxed.grid
           .column#traditionalPairingPrinciple
-              p(style='text-align:center;') Traditional Pairing Principle
-              .ui.column.grid
-                .column
-                  .field
-                    .ui.radio.checkbox
-                      input#expertWithExpert(type='radio' name='pairingPrinciple' value='expertWithExpert' checked)
-                      |
-                      label Expert - Expert
-                  .field
-                    .ui.radio.checkbox
-                      input#expertWithNovice(type='radio' name='pairingPrinciple' value='expertWithNovice')
-                      |  
-                      label Expert - Novice
-                  .field
-                    .ui.radio.checkbox
-                      input#noviceWithNovice(type='radio' name='pairingPrinciple' value='noviceWithNovice')
-                      |  
-                      label Novice - Novice
+            p(style='text-align:center;') Traditional Pairing Principle
+            .ui.column.grid
+              .column
+                .field
+                  .ui.radio.checkbox
+                    input#expertWithExpert(type='radio' name='pairingPrinciple' value='expertWithExpert' checked)
+                    |
+                    label Expert - Expert
+                .field
+                  .ui.radio.checkbox
+                    input#expertWithNovice(type='radio' name='pairingPrinciple' value='expertWithNovice')
+                    |  
+                    label Expert - Novice
+                .field
+                  .ui.radio.checkbox
+                    input#noviceWithNovice(type='radio' name='pairingPrinciple' value='noviceWithNovice')
+                    |  
+                    label Novice - Novice
           .column#newPairingPrinciple
             p(style='text-align:center;') New Pairing Principle
             .ui.column.grid
@@ -449,4 +454,4 @@ mixin pairingSettingsModal()
         .actions
           .ui.approve.green.button#startAutoPairingBtn(onclick='onClickStartAutoPairingBtn(null, null, null, null, null, null)') Start
           .ui.deny.red.button#cancelAutoPairingBtn Cancel
-      
+

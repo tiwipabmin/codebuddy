@@ -68,7 +68,7 @@ block content
             .ui.secondary.pointing.menu#uspm
               a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Setting
               a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
-              a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Manage Assignment
+              a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`attr('id')`+')') Manage Assignment
             .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
               button.ui.button.approve.blue.newAssignment Create
               button.ui.button.approve.blue#delete_assignment_button Delete

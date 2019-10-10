@@ -102,6 +102,7 @@ block content
       if user.info.occupation == 'teacher'
         .right.aligned.column
           .ui.button.approve.grey#edit-assignment(onclick='showAssignmentModal()') Edit
+            //- Assignment modal
             .ui.small.modal#assignment-modal
               i.close.icon
               .header Assignment
@@ -111,20 +112,24 @@ block content
                     label Programming Style :
                     .field
                       .ui.radio.checkbox
-                        if dataSets.origins.assignment.programming_style == 'Co-located'
-                          input(type='radio' name='programming_style' value='Co-located' checked='checked')
-                        else
-                          input(type='radio' name='programming_style' value='Co-located')
-                        |  
-                        label Co-located ( ทำ Pair แบบดั้งเดิม )
+                        input(type='radio' name='programming_style' value='Co-located' checked='checked')
+                        |
+                        label Conventional Pair-Programming
                     .field
                       .ui.radio.checkbox
-                        if dataSets.origins.assignment.programming_style == 'Remote'
-                          input(type='radio' name='programming_style' value='Remote' checked='checked')
-                        else
-                          input(type='radio' name='programming_style' value='Remote')
+                        input(type='radio' name='programming_style' value='Remote')
+                        |
+                        label Remote Pair-Programming
+                    .field
+                      .ui.radio.checkbox
+                        input(type='radio' name='programming_style' value='Individual')
                         |  
-                        label Remote ( ทำ Pair ทางไกลคนละเครื่อง )
+                        label Individual Programming
+                    .field
+                      .ui.radio.checkbox
+                        input(type='radio' name='programming_style' value='Interactive')
+                        |  
+                        label Interactive Programming
                   .ui.grid
                     .thirteen.wide.column
                       .field
@@ -139,56 +144,43 @@ block content
                   .field
                     label Description :
                     |
-                    textarea#description(type='text' name='description' placeholder='Some content...' style='resize:none;') !{dataSets.origins.assignment.description}
+                    textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;') !{dataSets.origins.assignment.description}
                   .ui.grid
                     .two.column.row
                       .column
                         .field
                           label Input specification :
                           |
-                          textarea#input_specification(row='2' type='text' name='input_specification' placeholder='Input specification...' style='resize:none;') !{dataSets.origins.assignment.input_specification}
+                          textarea#assInSpecify(row='2' type='text' name='input_specification' placeholder='Input specification...' style='resize:none;') !{dataSets.origins.assignment.input_specification}
                       .column
                         .field
                           label Output specification :
                           |
-                          textarea#output_specification(row='2' type='text' name='output_specification' placeholder='Output specification...' style='resize:none;') !{dataSets.origins.assignment.output_specification}
+                          textarea#assOutSpecify(row='2' type='text' name='output_specification' placeholder='Output specification...' style='resize:none;') !{dataSets.origins.assignment.output_specification}
                   .ui.grid
                     .two.column.row
                       .column
                         .field
                           label Sample Input :
                           |
-                          textarea#sample_input(row='2' type='text' name='sample_input' placeholder='Sample Input...' style='resize:none;') !{dataSets.origins.assignment.sample_input}
+                          textarea#assSamInput(row='2' type='text' name='sample_input' placeholder='Sample Input...' style='resize:none;') !{dataSets.origins.assignment.sample_input}
                       .column
                         .field
                           label Sample Output :
                           |
-                          textarea#sample_output(row='2' type='text' name='sample_output' placeholder='Sample Output...' style='resize:none;') !{dataSets.origins.assignment.sample_output}
+                          textarea#assSamOutput(row='2' type='text' name='sample_output' placeholder='Sample Output...' style='resize:none;') !{dataSets.origins.assignment.sample_output}
                   input(type='hidden' name='assignment_id', value=`${dataSets.origins.assignment.assignment_id}`)
-                  input(type='hidden' name='section_id', value=`${dataSets.origins.section.section_id}`)
+                  input(type='hidden' name='sectionId', value=`${dataSets.origins.section.section_id}`)
+                  input#assignmentDescStore(type='hidden' name='assignmentDescStore' value='[]')
+                  input#assInSpecifyStore(type='hidden' name='assInSpecifyStore' value='[]')
+                  input#assOutSpecifyStore(type='hidden' name='assOutSpecifyStore' value='[]')
+                  input#assSamInputStore(type='hidden' name='assSamInputStore' value='[]')
+                  input#assSamOutputStore(type='hidden' name='assSamOutputStore' value='[]')
                   .ui.basic.center.aligned.segment
                     .actions
                       button.ui.button.approve.green(type='submit') Update
                       .ui.button.cancel.red(data-value='cancel') Cancel
                   .ui.error.message
-                  script.
-                    $(document).ready(function () {
-                      $('#edit-assignment').click(function(){
-                        var assignment = !{JSON.stringify(assignment)}
-                        console.log("assignment : ",  dataSets.origins.assignment.description)
-                        assignment.title = assignment.title.replace(/<br>/g, "\n")
-                        assignment.description = assignment.description.replace(/<br>/g, "\n")
-                        assignment.input_specification = assignment.input_specification.replace(/<br>/g, "\n")
-                        assignment.output_specification = assignment.output_specification.replace(/<br>/g, "\n")
-                        assignment.sample_input = assignment.sample_input.replace(/<br>/g, "\n")
-                        assignment.sample_output = assignment.sample_output.replace(/<br>/g, "\n")
-                        $('#description').text(assignment.description)
-                        $('#input_specification').text(assignment.input_specification)
-                        $('#output_specification').text(assignment.output_specification)
-                        $('#sample_input').text(assignment.sample_input)
-                        $('#sample_output').text(assignment.sample_output)
-                      })
-                    })
     .ui.two.column.grid
       .column(style="display: flex;")
         .ui.segment(style="flex: 1;")

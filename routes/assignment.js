@@ -17,10 +17,6 @@ const router = express.Router()
  */
 router.get('/', auth.isSignedIn, auth.validateSection, catchErrors(webController.getAssignment))
 router.post('/', auth.isSignedIn, catchErrors(webController.createAssignment))
-  // .use(auth.isSignedIn)
-  // .route('/')
-  // .get(webController.getAssignment)
-  // .post(catchErrors(webController.createAssignment))
 
 router.post('/updateAssignment', auth.isSignedIn, catchErrors(webController.updateAssignment))
 

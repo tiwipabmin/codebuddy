@@ -307,12 +307,10 @@ exports.getSection = async (req, res) => {
       assignments[_index].section_id = cryptr.encrypt(
         assignments[_index].section_id
       );
-      assignments[_index].title = assignments[_index].title
-        .replace(/\\n\\n/g, "<br>")
-        .replace(/\\n/g, " ");
-      assignments[_index].description = assignments[_index].description
-        .replace(/\\n\\n/g, "<br>")
-        .replace(/\\n/g, " ");
+      assignments[_index].title = assignments[_index].title;
+
+      assignments[_index].description = assignments[_index].description;
+
       weeks.indexOf(assignments[_index].week) == -1
         ? weeks.push(assignments[_index].week)
         : null;
@@ -847,27 +845,6 @@ async function getPairingByPairingSessionId(
 
   return dataSets;
 }
-
-exports.getAssignmentWeek = async (req, res) => {
-  let action = req.query.action;
-  let weeks = [];
-  if (action == "enable") {
-    let project = await Project.find({
-      available_project: false
-    });
-    project.forEach(function(e) {
-      weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
-    });
-  } else if (action == "disable") {
-    let project = await Project.find({
-      available_project: true
-    });
-    project.forEach(function(e) {
-      weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
-    });
-  }
-  res.send({ weeks: JSON.stringify(weeks) });
-};
 
 exports.manageAssignment = async (req, res) => {
   let action = req.body.action;
@@ -1801,12 +1778,10 @@ exports.createPairingRecord = async (req, res) => {
         assignments[index].section_id = cryptr.encrypt(
           assignments[index].section_id
         );
-        assignments[index].title = assignments[index].title
-          .replace(/\\n\\n/g, "<br>")
-          .replace(/\\n/g, " ");
-        assignments[index].description = assignments[index].description
-          .replace(/\\n\\n/g, "<br>")
-          .replace(/\\n/g, " ");
+        assignments[index].title = assignments[index].title;
+
+        assignments[index].description = assignments[index].description;
+
         weeks.indexOf(assignments[index].week) == -1
           ? weeks.push(assignments[index].week)
           : null;
@@ -1896,19 +1871,17 @@ exports.getStudentsFromSection = async (req, res) => {
         key => partnerKeys[key] === resPairingRecords[index].enrollment_id
       );
       if (
-        partnerKeys[resPairingRecords[index].enrollment_id] ===
-          undefined &&
+        partnerKeys[resPairingRecords[index].enrollment_id] === undefined &&
         partnerKeys[key] === undefined
       ) {
         if (
-          pairingRecords[resPairingRecords[index].enrollment_id]
-            .role == "host"
+          pairingRecords[resPairingRecords[index].enrollment_id].role == "host"
         ) {
           partnerKeys[resPairingRecords[index].enrollment_id] =
             resPairingRecords[index].partner_id;
         } else if (
-          pairingRecords[resPairingRecords[index].enrollment_id]
-            .role == "partner"
+          pairingRecords[resPairingRecords[index].enrollment_id].role ==
+          "partner"
         ) {
           partnerKeys[resPairingRecords[index].partner_id] =
             resPairingRecords[index].enrollment_id;
@@ -1918,9 +1891,7 @@ exports.getStudentsFromSection = async (req, res) => {
             resPairingRecords[index].enrollment_id
           ].pairing_objective;
         pairingObjectives[resPairingRecords[index].partner_id] =
-          pairingRecords[
-            resPairingRecords[index].partner_id
-          ].pairing_objective;
+          pairingRecords[resPairingRecords[index].partner_id].pairing_objective;
       }
     }
   }
@@ -1938,36 +1909,101 @@ exports.getStudentsFromSection = async (req, res) => {
   });
 };
 
-exports.createAssignment = async (req, res) => {
-  let section_id = parseInt(cryptr.decrypt(req.body.section_id));
+exports.getWeeklyAssignments = async (req, res) => {
+  let action = req.query.action;
+  let weeks = [];
+  if (action == "enable") {
+    let project = await Project.find({
+      available_project: false
+    });
+    project.forEach(function(e) {
+      weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+    });
+  } else if (action == "disable") {
+    let project = await Project.find({
+      available_project: true
+    });
+    project.forEach(function(e) {
+      weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+    });
+  }
+  res.send({ weeks: JSON.stringify(weeks) });
+};
+
+exports.getAssignment = async (req, res) => {
+  const section_id = req.query.section_id;
+  const select_assignment_by_assignment_id =
+    "SELECT * FROM assignment WHERE assignment_id = " +
+    cryptr.decrypt(req.query.assignment_id);
+  let assignment = await conMysql.selectAssignment(
+    select_assignment_by_assignment_id
+  );
+  let title = "Assignment";
   let dataSets = {};
-  var section = {};
-  section.section_id = cryptr.encrypt(section_id);
-  const title = req.body.title.replace(/\s/g, "\\n");
-  const week = parseInt(req.body.week);
-  const description = req.body.description.replace(/\s/g, "\\n");
-  const input_specification = req.body.input_specification.replace(
-    /\s/g,
-    "\\n"
-  );
-  const output_specification = req.body.output_specification.replace(
-    /\s/g,
-    "\\n"
-  );
-  const sample_input = req.body.sample_input.replace(/\s/g, "\\n");
-  const sample_output = req.body.sample_output.replace(/\s/g, "\\n");
-  const programming_style = req.body.programming_style;
+  let section = {};
+  section.section_id = section_id;
+
+  if (assignment.length) {
+    assignment = assignment[0];
+    assignment.assignment_id = cryptr.encrypt(assignment.assignment_id);
+    title = assignment.title;
+    assignment.title = assignment.title;
+
+    assignment.description = assignment.description;
+
+    assignment.input_specification = assignment.input_specification;
+
+    assignment.output_specification = assignment.output_specification;
+
+    assignment.sample_input = assignment.sample_input;
+
+    assignment.sample_output = assignment.sample_output;
+  }
+  dataSets = { origins: { assignment: assignment, section: section } };
+  res.render("assignment", { dataSets, title: title });
+};
+
+exports.createAssignment = async (req, res) => {
+  let sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
+  let dataSets = {};
+  let section = {};
+  section.section_id = cryptr.encrypt(sectionId);
+  let title = req.body.title;
+  let week = parseInt(req.body.week);
+  let description = JSON.parse(req.body.assignmentDescStore);
+  let input_specification = JSON.parse(req.body.assInSpecifyStore);
+  let output_specification = JSON.parse(req.body.assOutSpecifyStore);
+  let sample_input = JSON.parse(req.body.assSamInputStore);
+  let sample_output = JSON.parse(req.body.assSamOutputStore);
+  let programming_style = req.body.programming_style;
+
+  dataSets = {
+    description: description,
+    input_specification: input_specification,
+    output_specification: output_specification,
+    sample_input: sample_input,
+    sample_output: sample_output
+  };
+
+  for (let key in dataSets) {
+    let combination = "";
+    for (let index in dataSets[key]) {
+      combination += `${dataSets[key][index].join("")}<br>`;
+    }
+    dataSets[key] = combination;
+  }
+
   const insertAssignment =
     "INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style, week) VALUES ?";
   const values = [
     [
-      section_id,
+      sectionId,
       title,
-      description,
-      input_specification,
-      output_specification,
-      sample_input,
-      sample_output,
+      dataSets.description,
+      dataSets.input_specification,
+      dataSets.output_specification,
+      dataSets.sample_input,
+      dataSets.sample_output,
       programming_style,
       week
     ]
@@ -1979,29 +2015,58 @@ exports.createAssignment = async (req, res) => {
   var assignment = {};
   if (typeof assignment_id == "number") {
     assignment.assignment_id = cryptr.encrypt(assignment_id);
-    assignment.title = title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ");
+    assignment.title = title;
     assignment.week = week;
-    assignment.description = description
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.input_specification = input_specification
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.output_specification = output_specification
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.sample_input = sample_input
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.sample_output = sample_output
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
+    assignment.description = description;
+    assignment.input_specification = input_specification;
+    assignment.output_specification = output_specification;
+    assignment.sample_input = sample_input;
+    assignment.sample_output = sample_output;
     assignment.programming_style = programming_style;
     dataSets = { origins: { assignment: assignment, section: section } };
     res.render("assignment", { dataSets, title: title });
   } else {
-    res.redirect("/classroom?section_id=" + section_id);
+    res.redirect("/classroom?section_id=" + section.section_id);
   }
+};
+
+exports.updateAssignment = async (req, res) => {
+  const assignment_id = cryptr.decrypt(req.body.assignment_id);
+  const sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
+  const title = req.body.title;
+  const description = req.body.description;
+  const week = parseInt(req.body.week);
+  const input_specification = req.body.input_specification;
+  const output_specification = req.body.output_specification;
+  const sample_input = req.body.sample_input;
+  const sample_output = req.body.sample_output;
+  const programming_style = req.body.programming_style;
+  const updateAssignment =
+    "UPDATE assignment SET title = '" +
+    title +
+    "', description = '" +
+    description +
+    "', input_specification = '" +
+    input_specification +
+    "', output_specification = '" +
+    output_specification +
+    "', sample_input = '" +
+    sample_input +
+    "', sample_output = '" +
+    sample_output +
+    "', programming_style = '" +
+    programming_style +
+    "', week = " +
+    week +
+    " WHERE assignment_id = " +
+    assignment_id;
+  const res_status = await conMysql.updateAssignment(updateAssignment);
+  res.redirect(
+    "/assignment?section_id=" +
+      cryptr.encrypt(sectionId) +
+      "&assignment_id=" +
+      cryptr.encrypt(assignment_id)
+  );
 };
 
 exports.deleteAssignment = async (req, res) => {
@@ -2046,12 +2111,10 @@ exports.deleteAssignment = async (req, res) => {
         assignments[_index].section_id = cryptr.encrypt(
           assignments[_index].section_id
         );
-        assignments[_index].title = assignments[_index].title
-          .replace(/\\n\\n/g, "<br>")
-          .replace(/\\n/g, " ");
-        assignments[_index].description = assignments[_index].description
-          .replace(/\\n\\n/g, "<br>")
-          .replace(/\\n/g, " ");
+        assignments[_index].title = assignments[_index].title;
+
+        assignments[_index].description = assignments[_index].description;
+
         weeks.indexOf(assignments[_index].week) == -1
           ? weeks.push(assignments[_index].week)
           : null;
@@ -2080,95 +2143,10 @@ exports.deleteAssignment = async (req, res) => {
   });
 };
 
-exports.updateAssignment = async (req, res) => {
-  const assignment_id = cryptr.decrypt(req.body.assignment_id);
-  const section_id = parseInt(cryptr.decrypt(req.body.section_id));
-  const title = req.body.title.replace(/\s/g, "\\\\n");
-  const description = req.body.description.replace(/\s/g, "\\\\n");
-  const week = parseInt(req.body.week);
-  const input_specification = req.body.input_specification.replace(
-    /\s/g,
-    "\\\\n"
-  );
-  const output_specification = req.body.output_specification.replace(
-    /\s/g,
-    "\\\\n"
-  );
-  const sample_input = req.body.sample_input.replace(/\s/g, "\\\\n");
-  const sample_output = req.body.sample_output.replace(/\s/g, "\\\\n");
-  const programming_style = req.body.programming_style;
-  const updateAssignment =
-    "UPDATE assignment SET title = '" +
-    title +
-    "', description = '" +
-    description +
-    "', input_specification = '" +
-    input_specification +
-    "', output_specification = '" +
-    output_specification +
-    "', sample_input = '" +
-    sample_input +
-    "', sample_output = '" +
-    sample_output +
-    "', programming_style = '" +
-    programming_style +
-    "', week = " +
-    week +
-    " WHERE assignment_id = " +
-    assignment_id;
-  const res_status = await conMysql.updateAssignment(updateAssignment);
-  res.redirect(
-    "/assignment?section_id=" +
-      cryptr.encrypt(section_id) +
-      "&assignment_id=" +
-      cryptr.encrypt(assignment_id)
-  );
-};
-
 exports.downloadFile = async (req, res) => {
   let filePath = req.query.filePath;
   dataSets = { origins: { filePath: cryptr.decrypt(filePath) } };
   res.render("downloadFile", { dataSets, title: "Download file" });
-};
-
-exports.getAssignment = async (req, res) => {
-  const section_id = req.query.section_id;
-  const select_assignment_by_assignment_id =
-    "SELECT * FROM assignment WHERE assignment_id = " +
-    cryptr.decrypt(req.query.assignment_id);
-  let assignment = await conMysql.selectAssignment(
-    select_assignment_by_assignment_id
-  );
-  let title = "Assignment";
-  let dataSets = {};
-  let section = {};
-  section.section_id = section_id;
-
-  if (assignment.length) {
-    assignment = assignment[0];
-    assignment.assignment_id = cryptr.encrypt(assignment.assignment_id);
-    title = assignment.title.replace(/\\n\\n/g, "<br>").replace(/\\n/g, " ");
-    assignment.title = assignment.title
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.description = assignment.description
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.input_specification = assignment.input_specification
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.output_specification = assignment.output_specification
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.sample_input = assignment.sample_input
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-    assignment.sample_output = assignment.sample_output
-      .replace(/\\n\\n/g, "<br>")
-      .replace(/\\n/g, " ");
-  }
-  dataSets = { origins: { assignment: assignment, section: section } };
-  res.render("assignment", { dataSets, title: title });
 };
 
 exports.assignAssignment = async (req, res) => {
