@@ -56,8 +56,14 @@ const userSchema = mongoose.Schema({
       trim: true
     },
     occupation: String,
-    gender: String,
-    status: String
+    gender: String
+  },
+  systemAccessTime: {
+    type: Number,
+    default: 1
+  },
+  subjectId: {
+    type: Number
   }
 })
 

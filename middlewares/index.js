@@ -15,6 +15,7 @@ const redis = require('connect-redis')
 const passport = require('passport')
 const expressValidator = require('express-validator')
 const moment = require('moment')
+const compression = require('compression')
 
 /**
  * Config dependencies
@@ -26,12 +27,19 @@ const passportConfig = require('../handlers/passport')
  * Expose `settings`
  */
 module.exports = (app) => {
+  // middlewares setting
+  if(process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'))
+  } else {
+    app.use(compression());
+  }
+
+  console.log('process.env.NODE_ENV : ' + process.env.NODE_ENV)
+
   // view engine setup
   app.set('views', path.join(__dirname, '../views'))
   app.set('view engine', 'pug')
 
-  // middlewares setting
-  app.use(morgan('dev'))
   app.use(flash())
   app.use(expressValidator())
   app.use(bodyParser.json())

@@ -34,6 +34,7 @@ exports.postRegisterForm = passport.authenticate('local-register', {
  * Validate request body by using express-validator
  */
 exports.validateRegister = (req, res, next) => {
+
   // username field
   req.checkBody('username', 'You must enter a username!').notEmpty()
   req.checkBody('username', 'This username is not valid!').isAlphanumeric()
@@ -48,15 +49,57 @@ exports.validateRegister = (req, res, next) => {
   })
 
   // password field
-  req.checkBody('password', 'Password cannot be blank!').notEmpty()
+  req.checkBody('password')
+  .notEmpty()
+  .withMessage('Password cannot be blank!')
+  .isLength({min: 8})
+  .withMessage('This password must be at least 8 chars long.')
+  .isAlphanumeric()
+  .withMessage('This password is not valid!')
+
+  let validateName = function (name) {
+    let specialLiteral = '!@#$%^&*()_+-={}|[]\\\:\;\'\"<>?/,..ฺ'
+    for (let index in name) {
+      if (specialLiteral.indexOf(name[index]) != -1) {
+        return false
+      }
+    }
+    return true
+  }
 
   // Personal information field
-  req.checkBody('firstname', 'Please enter your First Name!').notEmpty()
-  req.checkBody('lastname', 'Please enter your Last Name!').notEmpty()
-  req.checkBody('gender', 'Please select one gender that matched you').notEmpty()
-  req.checkBody('agree', 'Please read and accept our Terms and Conditions').notEmpty()
+  req.checkBody('firstname')
+  .notEmpty()
+  .withMessage('Please enter your First Name!')
+  .isAlpha()
+  .withMessage('This firstname is not valid!')
+  let firstname = req.body.firstname
+  let isValidFirstname = validateName(firstname)
 
-  const errors = req.validationErrors()
+  req.checkBody('lastname')
+  .notEmpty()
+  .withMessage('Please enter your Last Name!')
+  .isAlpha()
+  .withMessage('This lastname is not valid!')
+  let lastname = req.body.lastname
+  let isValidLastname = validateName(lastname)
+
+  // req.checkBody('agree', 'Please read and accept our Terms and Conditions').notEmpty()
+
+  let errors = req.validationErrors()
+  if (!isValidFirstname) {
+    if(errors === false) {
+      errors = []
+    }
+    errors.push({msg: 'This firstname must not have special literal!'})
+  }
+
+  if (!isValidLastname) {
+    if(errors === false) {
+      errors = []
+    }
+    errors.push({msg: 'This lastname must not have special literal!'})
+  }
   if (errors) {
     req.flash('error', errors.map(err => err.msg))
     res.render('register', { title: 'Register', body: req.body, flashes: req.flash() })

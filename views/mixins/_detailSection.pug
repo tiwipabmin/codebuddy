@@ -1,0 +1,53 @@
+mixin detailSection()
+  .five.wide.column
+    .ui.segments
+      .ui.red.inverted.segment
+        .item
+          .content
+            b(style='font-size:1.2em;')
+              header= dataSets.origins.section.course_name
+            .description
+              p   Section : !{dataSets.origins.section.section} Room : !{dataSets.origins.section.room}
+              p   !{dataSets.origins.section.day} !{dataSets.origins.section.time_start} - !{dataSets.origins.section.time_end}
+              if user.info.occupation === 'teacher'
+                p   Classcode : !{dataSets.origins.section.class_code}
+      .ui.segment
+        .ui.items
+          .item
+            .content
+              .description
+                case dataSets.origins.occupation
+                  when 0
+                    p
+                      i.book.icon
+                      button.btn.first_container_menu Assignments
+                  default
+                    p
+                      i.file.icon
+                      button.btn.first_container_menu Projects
+          .item
+            .content
+              .description
+                p
+                  i.student.icon
+                  button.btn.second_container_menu Students
+          .item
+            .content
+              .description
+                case dataSets.origins.occupation
+                  when 0
+                    p
+                      i.sitemap.icon
+                      button.btn.third_container_menu Pairs
+                  default
+                    p
+                      i.book.icon
+                      button.btn.third_container_menu Assignments
+          case dataSets.origins.occupation
+            when 0
+              .item
+                .content
+                  .description
+                    p
+                      i.setting.icon
+                      button.btn.settings-menu Settings

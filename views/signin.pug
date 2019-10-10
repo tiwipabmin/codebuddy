@@ -19,41 +19,41 @@ html
         text-align: center;
         overflow: hidden;
       }
-    script.
-      $(document)
-        .ready(function () {
-          $('.ui.form')
-            .form({
-              fields: {
-                email: {
-                  identifier: 'email',
-                  rules: [{
-                      type: 'empty',
-                      prompt: 'Please enter your e-mail'
-                    },
-                    {
-                      type: 'email',
-                      prompt: 'Please enter a valid e-mail'
-                    }
-                  ]
-                },
-                password: {
-                  identifier: 'password',
-                  rules: [{
-                      type: 'empty',
-                      prompt: 'Please enter your password'
-                    },
-                    {
-                      type: 'length[6]',
-                      prompt: 'Your password must be at least 6 characters'
-                    }
-                  ]
-                }
-              }
-            });
-        });
     style#extension_grayscale(type='text/css').
       html *, * { filter: initial !important; }
+      
+    link(rel='stylesheet', type='text/css', href='/semantic/dist/semantic.min.css')
+    script(src='/js/static/jquery.min.js')
+    script(src='/semantic/dist/components/form.js')
+    script(src='/semantic/dist/components/transition.js')
+    script(type='text/javascript').
+      $(document).ready(function () {
+        $('.ui.form.signInForm').form({
+          fields: {
+            email: {
+              identifier: 'email',
+              rules: [{
+                  type: 'empty',
+                  prompt: 'Please enter your username or e-mail'
+                }
+              ]
+            },
+            password: {
+              identifier: 'password',
+              rules: [{
+                  type: 'empty',
+                  prompt: 'Please enter your password'
+                },
+                {
+                  type: 'length[8]',
+                  prompt: 'Your password must be at least 8 characters'
+                }
+              ]
+            }
+          }
+        });
+      });
+          
   body
     .ui.one.column.stackable.center.aligned.middle.aligned.page.grid
       .column.seven.wide
@@ -63,11 +63,6 @@ html
           h2.ui.yellow.image.header
             .content Sign In Account
           +signinForm()
-            .ui.error.message
           .ui.message
             | New to us? 
             a(href='/register') Register
-    link(rel='stylesheet', type='text/css', href='/semantic/dist/semantic.min.css')
-    script(src='/js/static/jquery.min.js')
-    script(src='/semantic/dist/components/form.js')
-    script(src='/semantic/dist/components/transition.js')

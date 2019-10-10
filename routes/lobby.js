@@ -15,17 +15,8 @@ const router = express.Router()
  * @method {GET} return rendered `dashboard.pug`
  */
 router.get('/', auth.isSignedIn, catchErrors(webController.getLobby))
-router.get('/searchUser', auth.isSignedIn, catchErrors(webController.searchUser))
-router.get('/searchUserByPurpose', auth.isSignedIn, catchErrors(webController.searchUserByPurpose))
-router.put('/acceptInvite', auth.isSignedIn, catchErrors(webController.acceptInvite))
-router.delete('/declineInvite', auth.isSignedIn, catchErrors(webController.declineInvite))
-router.post('/editProject', auth.isSignedIn, catchErrors(webController.editProject))
-router.delete('/deleteProject', auth.isSignedIn, catchErrors(webController.deleteProject))
 router.get('/getProgress', auth.isSignedIn, catchErrors(webController.getProgress))
-// router
-// .use(auth.isSignedIn)
-// .route('/searchUser')
-// .get(webController.searchUser)
+router.delete('/deleteSection', auth.isSignedIn, catchErrors(webController.deleteSection))
 
 /**
  * Expose `router`

@@ -4,6 +4,77 @@
     overflow-y: scroll;
 } */
 
+body {
+    height: 130%;
+}
+
+.btn {
+  border: none;
+  background-color: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* visited link */
+a:visited {
+  color: blue;
+}
+
+/* mouse over link */
+a:hover {
+  color: violet;
+}
+
+/* selected link */
+a:active {
+  color: blue;
+}
+
+.first_container_menu {color: blue;}
+.second_container_menu {color: blue;}
+.third_container_menu {color: blue;}
+.settings-menu {color: blue;}
+.first_container_menu:hover {color: violet;}
+.second_container_menu:hover {color: violet;}
+.third_container_menu:hover {color: violet;}
+.settings-menu:hover {color: violet;}
+
+.assignment_is_selected:hover {cursor: pointer;}
+
+table.gridtable {
+  margin:0 auto;
+  width: 95%;
+  overflow:auto;
+  font-family: helvetica,arial,sans-serif;
+  font-size: 14px;
+  color:#333333;
+  border-width: 1px;
+  border-color: #666666;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+table.gridtable th {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+  background-color: #F6B4A5
+}
+
+table.gridtable td {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+}
+
+.incorrect {
+  background-color: red;
+  color: white;
+}
+
 .curve-box {
     /* overflow-wrap: break-word;
     word-wrap: break-word;
@@ -35,6 +106,12 @@
 .user-purpose.box {
     height:300px;
     overflow-y: scroll;
+}
+
+.student-list-container.box {
+    height:500px;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .your-score-label {
@@ -377,4 +454,8 @@ fieldset {
 
 .nowrap {
     white-space: nowrap ;
+}
+
+.footer-index {
+    z-index: 1;
 }
