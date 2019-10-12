@@ -69,17 +69,26 @@ block content
               a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Setting
               a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
               a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Manage Assignment
+              a.item.uspm#uploadNotebookAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Upload Notebook Assignment
+
             .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
               button.ui.button.approve.blue.newAssignment Create
               button.ui.button.approve.blue#delete_assignment_button Delete
+
             .ui.segment.uspm#action_checkbox_segment(style='display: none')
               button.ui.button.approve.blue#check_all_of_box(onclick='checkbox_event('+`${dataSets.reforms.assignments}`+', \"-1week\", 1)') Check All Box
               button.ui.button.approve.blue#clear_checkbox(onclick='checkbox_event('+`${dataSets.reforms.assignments}`+', \"-1week\", 0)') Clear Checkbox
+
             .ui.segment.uspm#manageAssignment_segment(style='display: none')
               button.ui.button.approve.blue#assign_button Assign
               button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_assignment_button()') Enable Assignment
               button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
+              
+            .ui.segment.uspm#uploadNotebookAssignment_segment(style='display: none')
+              input(type="file", name="notebook_assignment" id='file_assignment' onchange="browseFile(event)" )
+              button.ui.button.approve.blue#upload_notebook_assignment(onclick='on_click_upload_notebook_assignment_button()') Open
             .ui.section.divider#divider_in_first_container
+
             if dataSets.origins.assignments.length > 0
               script(type='text/javascript').
                 $(document).ready(function() {
@@ -87,6 +96,7 @@ block content
                 })
             else
               p.text-center#no_assignment No assignment.
+
           else
             if dataSets.origins.projects.length > 0
               script(type='text/javascript').
