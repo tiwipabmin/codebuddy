@@ -33,6 +33,8 @@ router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
 router.post('/assignAssignment', auth.isSignedIn, catchErrors(webController.assignAssignment))
 router.post('/createPairingRecord', auth.isSignedIn, catchErrors(webController.createPairingRecord))
+router.post('/uploadAssignment', auth.isSignedIn, catchErrors(webController.uploadAssignment))
+
 
 /**
  * Expose `router`
