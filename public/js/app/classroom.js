@@ -70,9 +70,6 @@ $(document).ready(function() {
       $("#newClassroom-modal").modal("hide");
     }
   });
-  $(".newAssignment").click(function() {
-    $("#assignment-modal").modal("show");
-  });
   $(".ui.form.createAssignment").form({
     fields: {
       title: {
@@ -179,35 +176,11 @@ $(document).ready(function() {
   $(".tabular.menu .item").tab();
 });
 
-function storeValueTextarea(event, textarea) {
-  let valuesStore = JSON.parse($(`#${textarea.attr("id")}Store`).val());
-  let valueTextarea = textarea.val().split('');
-  let tempContainers = []
-  let index = -1
-  valueTextarea.forEach((element)=>{
-    console.log('Element, ', element)
-    if (element === '\n') {
-      tempContainers.push([])
-      index++
-    } else {
-      if (index < 0) {
-        tempContainers.push([])
-        index++
-      }
-      tempContainers[index].push(element)
-    }
+function showAssingmentModal() {
+  $("#confirmToCreateAssBtn").attr({
+    onclick: "createAssignment()"
   })
-  $(`#${textarea.attr("id")}Store`).val(
-    JSON.stringify(tempContainers)
-  );
-  console.log(
-    "OnKeyDown, ",
-    event.key,
-    ", Values, ",
-    textarea.val(),
-    ", Store, ",
-    $(`#${textarea.attr("id")}Store`).val()
-  );
+  $("#assignment-modal").modal("show");
 }
 
 function showFirstContainer() {
