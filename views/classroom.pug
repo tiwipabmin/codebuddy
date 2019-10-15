@@ -2,6 +2,7 @@ extends layout/layout.pug
 
 block script
   script(src='/js/app/classroom.js')
+  script(src='/js/app/assignment.js')
   script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
   script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
   link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
@@ -72,7 +73,7 @@ block content
               a.item.uspm#uploadNotebookAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Upload Notebook Assignment
 
             .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
-              button.ui.button.approve.blue.newAssignment Create
+              button.ui.button.blue(onclick='showAssingmentModal()') Create
               button.ui.button.approve.blue#delete_assignment_button Delete
 
             .ui.segment.uspm#action_checkbox_segment(style='display: none')

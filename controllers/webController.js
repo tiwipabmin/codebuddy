@@ -1948,18 +1948,16 @@ exports.getAssignment = async (req, res) => {
     assignment.assignment_id = cryptr.encrypt(assignment.assignment_id);
     title = assignment.title;
     assignment.title = assignment.title;
-
     assignment.description = assignment.description;
-
     assignment.input_specification = assignment.input_specification;
-
     assignment.output_specification = assignment.output_specification;
-
     assignment.sample_input = assignment.sample_input;
-
     assignment.sample_output = assignment.sample_output;
   }
-  dataSets = { origins: { assignment: assignment, section: section } };
+  dataSets = {
+    origins: { assignment: assignment, section: section },
+    reforms: { assignment: JSON.stringify(assignment) }
+  };
   res.render("assignment", { dataSets, title: title });
 };
 
@@ -1970,11 +1968,11 @@ exports.createAssignment = async (req, res) => {
   section.section_id = cryptr.encrypt(sectionId);
   let title = req.body.title;
   let week = parseInt(req.body.week);
-  let description = JSON.parse(req.body.assignmentDescStore);
-  let input_specification = JSON.parse(req.body.assInSpecifyStore);
-  let output_specification = JSON.parse(req.body.assOutSpecifyStore);
-  let sample_input = JSON.parse(req.body.assSamInputStore);
-  let sample_output = JSON.parse(req.body.assSamOutputStore);
+  let description = JSON.parse(req.body.description);
+  let input_specification = JSON.parse(req.body.input_specification);
+  let output_specification = JSON.parse(req.body.output_specification);
+  let sample_input = JSON.parse(req.body.sample_input);
+  let sample_output = JSON.parse(req.body.sample_output);
   let programming_style = req.body.programming_style;
 
   dataSets = {
@@ -1986,11 +1984,8 @@ exports.createAssignment = async (req, res) => {
   };
 
   for (let key in dataSets) {
-    let combination = "";
-    for (let index in dataSets[key]) {
-      combination += `${dataSets[key][index].join("")}<br>`;
-    }
-    dataSets[key] = combination;
+    let joinData = dataSets[key].join("<br>");
+    dataSets[key] = joinData;
   }
 
   const insertAssignment =
@@ -2017,13 +2012,16 @@ exports.createAssignment = async (req, res) => {
     assignment.assignment_id = cryptr.encrypt(assignment_id);
     assignment.title = title;
     assignment.week = week;
-    assignment.description = description;
-    assignment.input_specification = input_specification;
-    assignment.output_specification = output_specification;
-    assignment.sample_input = sample_input;
-    assignment.sample_output = sample_output;
+    assignment.description = dataSets.description;
+    assignment.input_specification = dataSets.input_specification;
+    assignment.output_specification = dataSets.output_specification;
+    assignment.sample_input = dataSets.sample_input;
+    assignment.sample_output = dataSets.sample_output;
     assignment.programming_style = programming_style;
-    dataSets = { origins: { assignment: assignment, section: section } };
+    dataSets = {
+      origins: { assignment: assignment, section: section },
+      reforms: { assignment: JSON.stringify(assignment) }
+    };
     res.render("assignment", { dataSets, title: title });
   } else {
     res.redirect("/classroom?section_id=" + section.section_id);
@@ -2033,34 +2031,48 @@ exports.createAssignment = async (req, res) => {
 exports.updateAssignment = async (req, res) => {
   const assignment_id = cryptr.decrypt(req.body.assignment_id);
   const sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
-  const title = req.body.title;
-  const description = req.body.description;
-  const week = parseInt(req.body.week);
-  const input_specification = req.body.input_specification;
-  const output_specification = req.body.output_specification;
-  const sample_input = req.body.sample_input;
-  const sample_output = req.body.sample_output;
-  const programming_style = req.body.programming_style;
+  let title = req.body.title;
+  let week = parseInt(req.body.week);
+  let description = JSON.parse(req.body.description);
+  let input_specification = JSON.parse(req.body.input_specification);
+  let output_specification = JSON.parse(req.body.output_specification);
+  let sample_input = JSON.parse(req.body.sample_input);
+  let sample_output = JSON.parse(req.body.sample_output);
+  let programming_style = req.body.programming_style;
+
+  dataSets = {
+    description: description,
+    input_specification: input_specification,
+    output_specification: output_specification,
+    sample_input: sample_input,
+    sample_output: sample_output
+  };
+
+  for (let key in dataSets) {
+    let joinData = dataSets[key].join("<br>");
+    dataSets[key] = joinData;
+  }
+
   const updateAssignment =
     "UPDATE assignment SET title = '" +
     title +
     "', description = '" +
-    description +
+    dataSets.description +
     "', input_specification = '" +
-    input_specification +
+    dataSets.input_specification +
     "', output_specification = '" +
-    output_specification +
+    dataSets.output_specification +
     "', sample_input = '" +
-    sample_input +
+    dataSets.sample_input +
     "', sample_output = '" +
-    sample_output +
+    dataSets.sample_output +
     "', programming_style = '" +
     programming_style +
     "', week = " +
     week +
     " WHERE assignment_id = " +
     assignment_id;
-  const res_status = await conMysql.updateAssignment(updateAssignment);
+  await conMysql.updateAssignment(updateAssignment);
   res.redirect(
     "/assignment?section_id=" +
       cryptr.encrypt(sectionId) +
