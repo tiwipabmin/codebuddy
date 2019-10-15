@@ -83,10 +83,13 @@ block content
               button.ui.button.approve.blue#assign_button Assign
               button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_assignment_button()') Enable Assignment
               button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
+            
+            form(action="/classroom/uploadAssignment",enctype="multipart/form-data" , method="post")
+              .ui.segment.uspm#uploadNotebookAssignment_segment(style='display: none')
+                input(type="file", name="file" id='file_assignment' )
+                button.ui.button.approve.blue#upload_nb_assignment(type="submit" Upload a file) Upload
+                //- button.ui.button.approve.blue#upload_notebook_assignment(onclick='on_click_upload_notebook_assignment_button()') Open
               
-            .ui.segment.uspm#uploadNotebookAssignment_segment(style='display: none')
-              input(type="file", name="notebook_assignment" id='file_assignment' onchange="browseFile(event)" )
-              button.ui.button.approve.blue#upload_notebook_assignment(onclick='on_click_upload_notebook_assignment_button()') Open
             .ui.section.divider#divider_in_first_container
 
             if dataSets.origins.assignments.length > 0

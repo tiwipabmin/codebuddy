@@ -2626,20 +2626,21 @@ exports.getProgress = async (req, res) => {
   res.send(data);
 };
 
-exports.uploadAssignment = (req, res) => {
-  var reqBody = req.body;
-  const data = "";
 
-  for (key in reqBody) {
-    this.data = reqBody[key];
-    console.log(data);
-  }
+
+exports.uploadAssignment = async (req, res) => {
+
+  let myBuffer = req.file.buffer
+
+  let bufferToJson = JSON.parse(myBuffer);
+
+  let dataStr = JSON.stringify(bufferToJson)
 
   /**
    * generate filename
    * ex: nb_2019-10-12_16-1-85.ipynb
    */
-  var randomNumber = Math.floor(Math.random() * (100000 - 0) + 0);
+  let randomNumber = Math.floor(Math.random() * (100000 - 0) + 0);
   let date_ob = new Date();
   // current date
   // adjust 0 before single digit date
@@ -2659,10 +2660,11 @@ exports.uploadAssignment = (req, res) => {
 
   let dateTime =
     year + "-" + month + "-" + date + "_" + hours + "-" + minutes + "-";
-  let filename = "nb_" + dateTime + randomNumber + ".ipynb";
-  let filePath = "./public/notebookAssignment/";
+  var filename = "nb_" + dateTime + randomNumber + ".ipynb";
+  var filePath = "./public/notebookAssignment/";
 
-  fs.writeFile(filePath+filename, this.data, err => {
+
+  fs.writeFile(filePath+filename, dataStr, 'utf8', err => {
     // throws an error, you could also catch it here
     if (err) throw err;
 
@@ -2670,4 +2672,8 @@ exports.uploadAssignment = (req, res) => {
     console.log(filename + " has been saved!");
 
   });
+
+  res.send("OK File has been saved")
+
+
 };

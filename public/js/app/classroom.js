@@ -3096,38 +3096,3 @@ function on_click_assignment(opt, id) {
 function pad(val) {
   return val > 9 ? val : "0" + val;
 }
-
-
-function browseFile(event){
-  console.log("browseFile")
-  console.log(event)
-  this.notebookAssignment = event;
-
-}
-
-
-function on_click_upload_notebook_assignment_button(){
-  console.log(this.notebookAssignment.target.files[0])
-
- 
-  var formData = new FormData();
-  formData.append("file", this.notebookAssignment.target.files[0] ) 
-  console.log(formData.getAll('file'))
-  
-
-  var settings = {
-    "async": true,
-    "crossDomain": true,
-    "url": "/classroom/uploadAssignment",
-    "method": "POST",
-    "processData": false,
-    "mimeType": "multipart/form-data",
-    "data": formData
-  };
-
-  $.ajax(settings).done(function (response) {
-    console.log(response);
-  });
-  
-
-}
