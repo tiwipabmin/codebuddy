@@ -188,27 +188,27 @@ mixin assignmentModal()
     i.close.icon
     .header Assignment
     .content
-      form.ui.form.createAssignment.segment(action='/assignment' method='POST')
+      form.ui.form.segment#assignmentForm
         .inline.fields
           label Programming Style :
           .field
             .ui.radio.checkbox
-              input(type='radio' name='programming_style' value='Co-located' checked='checked')
+              input#psCo-located(type='radio' name='programming_style' value='Co-located' checked='checked')
               |  
               label Conventional Pair-Programming
           .field
             .ui.radio.checkbox
-              input(type='radio' name='programming_style' value='Remote')
+              input#psRemote(type='radio' name='programming_style' value='Remote')
               |  
               label Remote Pair-Programming
           .field
             .ui.radio.checkbox
-              input(type='radio' name='programming_style' value='Individual')
+              input#psIndividual(type='radio' name='programming_style' value='Individual')
               |  
               label Individual Programming
           .field
             .ui.radio.checkbox
-              input(type='radio' name='programming_style' value='Interactive')
+              input#psInteractive(type='radio' name='programming_style' value='Interactive')
               |  
               label Interactive Programming
         .ui.grid
@@ -216,49 +216,44 @@ mixin assignmentModal()
             .field
               label Title :
               |
-              input(type='text' name='title' placeholder='Your title')
+              input#assTitle(type='text' name='title' placeholder='Your title')
           .three.wide.column
             .field
               label Week :
               |
-              input(type='text' name='week' placeholder='Week' maxlength='3')
+              input#assWeek(type='text' name='week' placeholder='Week' maxlength='3')
         .field
           label Description :
           |
-          textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
+          textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;')
         .ui.grid
           .two.column.row
             .column
               .field
                 label Input specification :
                 |
-                textarea#assInSpecify(row='2' type='text' name='input_specification' placeholder='Input specification...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
+                textarea#assInSpecify(row='2' type='text' name='input_specification' placeholder='Input specification...' style='resize:none;')
             .column
               .field
                 label Output specification :
                 |
-                textarea#assOutSpecify(row='2' type='text' name='output_specification' placeholder='Output specification...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
+                textarea#assOutSpecify(row='2' type='text' name='output_specification' placeholder='Output specification...' style='resize:none;')
         .ui.grid
           .two.column.row
             .column
               .field
                 label Sample Input :
                 |
-                textarea#assSamInput(row='2' type='text' name='sample_input' placeholder='Sample Input...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
+                textarea#assSamInput(row='2' type='text' name='sample_input' placeholder='Sample Input...' style='resize:none;')
             .column
               .field
                 label Sample Output :
                 |
-                textarea#assSamOutput(row='2' type='text' name='sample_output' placeholder='Sample Output...' style='resize:none;' onkeyup='storeValueTextarea(event, '+`$(this)`+')')
+                textarea#assSamOutput(row='2' type='text' name='sample_output' placeholder='Sample Output...' style='resize:none;')
         input(type='hidden' name='sectionId', value=`${dataSets.origins.section.section_id}`)
-        input#assignmentDescStore(type='hidden' name='assignmentDescStore' value='[]')
-        input#assInSpecifyStore(type='hidden' name='assInSpecifyStore' value='[]')
-        input#assOutSpecifyStore(type='hidden' name='assOutSpecifyStore' value='[]')
-        input#assSamInputStore(type='hidden' name='assSamInputStore' value='[]')
-        input#assSamOutputStore(type='hidden' name='assSamOutputStore' value='[]')
         .ui.basic.center.aligned.segment
           .actions
-            button.ui.button.approve.green(type='submit') Create
+            button.ui.button.approve.green#confirmToCreateAssBtn(type='button') Create
             .ui.button.cancel.red(data-value='cancel') Cancel
         .ui.error.message
 

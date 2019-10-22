@@ -264,4 +264,15 @@ exports.selectTeacher = (query) => {
   })
 }
 
+
+exports.selectBranchType = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
+  })
+}
+
+
 exports.connect = conMysql

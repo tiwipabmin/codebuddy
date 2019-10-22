@@ -70,9 +70,6 @@ $(document).ready(function() {
       $("#newClassroom-modal").modal("hide");
     }
   });
-  $(".newAssignment").click(function() {
-    $("#assignment-modal").modal("show");
-  });
   $(".ui.form.createAssignment").form({
     fields: {
       title: {
@@ -179,35 +176,11 @@ $(document).ready(function() {
   $(".tabular.menu .item").tab();
 });
 
-function storeValueTextarea(event, textarea) {
-  let valuesStore = JSON.parse($(`#${textarea.attr("id")}Store`).val());
-  let valueTextarea = textarea.val().split('');
-  let tempContainers = []
-  let index = -1
-  valueTextarea.forEach((element)=>{
-    console.log('Element, ', element)
-    if (element === '\n') {
-      tempContainers.push([])
-      index++
-    } else {
-      if (index < 0) {
-        tempContainers.push([])
-        index++
-      }
-      tempContainers[index].push(element)
-    }
+function showAssingmentModal() {
+  $("#confirmToCreateAssBtn").attr({
+    onclick: "createAssignment()"
   })
-  $(`#${textarea.attr("id")}Store`).val(
-    JSON.stringify(tempContainers)
-  );
-  console.log(
-    "OnKeyDown, ",
-    event.key,
-    ", Values, ",
-    textarea.val(),
-    ", Store, ",
-    $(`#${textarea.attr("id")}Store`).val()
-  );
+  $("#assignment-modal").modal("show");
 }
 
 function showFirstContainer() {
@@ -3095,39 +3068,4 @@ function on_click_assignment(opt, id) {
 
 function pad(val) {
   return val > 9 ? val : "0" + val;
-}
-
-
-function browseFile(event){
-  console.log("browseFile")
-  console.log(event)
-  this.notebookAssignment = event;
-
-}
-
-
-function on_click_upload_notebook_assignment_button(){
-  console.log(this.notebookAssignment.target.files[0])
-
- 
-  var formData = new FormData();
-  formData.append("file", this.notebookAssignment.target.files[0] ) 
-  console.log(formData.getAll('file'))
-  
-
-  var settings = {
-    "async": true,
-    "crossDomain": true,
-    "url": "/classroom/uploadAssignment",
-    "method": "POST",
-    "processData": false,
-    "mimeType": "multipart/form-data",
-    "data": formData
-  };
-
-  $.ajax(settings).done(function (response) {
-    console.log(response);
-  });
-  
-
 }

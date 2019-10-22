@@ -7,6 +7,10 @@ const auth = require('../middlewares/auth')
 const webController = require('../controllers/webController')
 const { catchErrors } = require('../handlers/errorHandlers')
 
+const multer = require('multer')
+
+const upload = multer();
+
 const router = express.Router()
 
 /**
@@ -33,7 +37,7 @@ router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
 router.post('/assignAssignment', auth.isSignedIn, catchErrors(webController.assignAssignment))
 router.post('/createPairingRecord', auth.isSignedIn, catchErrors(webController.createPairingRecord))
-router.post('/uploadAssignment', auth.isSignedIn, catchErrors(webController.uploadAssignment))
+router.post('/uploadAssignment',upload.single('file'), auth.isSignedIn, catchErrors(webController.uploadAssignment))
 
 
 /**
