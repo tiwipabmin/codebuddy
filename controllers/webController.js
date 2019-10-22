@@ -266,6 +266,22 @@ exports.getSection = async (req, res) => {
   let dataSets = {};
   let section_id = parseInt(cryptr.decrypt(req.query.section_id));
   let occupation = req.user.info.occupation;
+  
+  // jj author
+  let queryBranch_type = "SELECT branch_type FROM branch WHERE section_id = " + section_id;
+  let branch_type = [];
+  branch_type = await conMysql.selectBranchType(queryBranch_type)
+
+  console.log(branch_type)
+
+
+  console.log(branch_type[0]["branch_type"])
+
+
+  if(branch_type[0]["branch_type"] == "IT"){
+    console.log("OK IT")
+    
+
   let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
     section_id +
@@ -402,6 +418,11 @@ exports.getSection = async (req, res) => {
     };
   }
   res.render("classroom", { dataSets, title: section.course_name });
+  }else{
+    console.log("OK DSBA")
+  }
+
+  
 };
 
 exports.createSection = async (req, res) => {
