@@ -450,3 +450,34 @@ mixin pairingSettingsModal()
           .ui.approve.green.button#startAutoPairingBtn(onclick='onClickStartAutoPairingBtn(null, null, null, null, null, null)') Start
           .ui.deny.red.button#cancelAutoPairingBtn Cancel
 
+mixin notebookassignmentModal()
+  .ui.small.modal#notebook-assignment-modal
+    i.close.icon
+    .header Notebook Assignment
+    .content
+      form.ui.form.segment
+        .ui.grid
+          .thirteen.wide.column
+            .field
+              label Title :
+              |
+              input#assTitle(type='text' name='title' placeholder='Your title')
+          .three.wide.column
+            .field
+              label Week :
+              |
+              input#assWeek(type='text' name='week' placeholder='Week' maxlength='3')
+        .field
+          label Description :
+          |
+          textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;') 
+        .field
+          label Choose Assignment :
+          |
+          input(type="file", name="file" id='file_assignment' )              
+              
+        .ui.basic.center.aligned.segment
+          .actions
+            button.ui.button.approve.green#confirmToCreateNotebookAssingmentBtn(type='button') Create
+            .ui.button.cancel.red(data-value='cancel') Cancel
+        .ui.error.message
