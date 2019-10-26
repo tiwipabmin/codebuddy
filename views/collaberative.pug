@@ -2,14 +2,15 @@ extends layout/layout.pug
 
 block script
   script(src="/js/app/collaberative.js")
+  script(src='/js/app/assignment.js')
   script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
   script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
   link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
   link(rel='stylesheet' href='/css/main.css')
-  script(type='text/javascript').
-    $(document).ready(function () {
-      setClassroomDetail('!{dataSets.origins.section.day}', '!{dataSets.origins.section.time_start}', '!{dataSets.origins.section.time_end}')
-    });
+  //- script(type='text/javascript').
+  //-   $(document).ready(function () {
+  //-     setClassroomDetail('!{dataSets.origins.section.day}', '!{dataSets.origins.section.time_start}', '!{dataSets.origins.section.time_end}')
+  //-   });
 
   style.
     @media (min-height: 200px) {

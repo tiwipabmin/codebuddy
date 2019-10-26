@@ -455,7 +455,7 @@ mixin notebookassignmentModal()
     i.close.icon
     .header Notebook Assignment
     .content
-      form.ui.form.segment
+      form.ui.form.segment#notebookAssignmentForm
         .ui.grid
           .thirteen.wide.column
             .field
@@ -474,8 +474,8 @@ mixin notebookassignmentModal()
         .field
           label Choose Assignment :
           |
-          input(type="file", name="file" id='file_assignment' )              
-              
+          input(type="file", name="file" id='file_assignment')          
+        input(type='hidden' name='sectionId', value=`${dataSets.origins.section.section_id}`)
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green#confirmToCreateNotebookAssingmentBtn(type='button') Create
