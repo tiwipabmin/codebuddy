@@ -75,6 +75,7 @@ function showDeleteModal() {
 }
 
 function showAssignmentModal(assignment) {
+  console.log("showAssingmentModel")
   $(`#ps${assignment.programming_style}`).attr('checked', 'true')
   $(`#assTitle`).val(assignment.title)
   $(`#assWeek`).val(assignment.week)
@@ -106,6 +107,7 @@ function transformValueTextarea(textarea, func, separator) {
 }
 
 function createAssignment() {
+  console.log("createAssignment")
   $("#assignmentForm").attr({
     action: "/assignment",
     method: "POST"
@@ -153,4 +155,24 @@ function updateAssignment() {
     type: "submit"
   });
   $("#confirmToCreateAssBtn").click();
+}
+
+function createNotebookAssignment(){
+  console.log("createNotebookAssignemnt")
+  var formData = new FormData();
+  formData.append('title', $('input[id=assTitle]')[0].value );
+  formData.append('week', $('input[id=assWeek]')[0].value);
+  formData.append('description', $('textarea[id=assignmentDesc]')[0].value);
+  formData.append('file', $('input[id=file_assignment')[0].files[0])
+  formData.append('section_id', $('input[name=sectionId]')[0].value)
+  const options = {
+    method: 'POST',
+    body: formData
+  };
+
+  console.log('Files: ', options.body.getAll('file'))
+  
+  fetch('/classroom/uploadAssignment', options);
+
+
 }

@@ -265,6 +265,7 @@ exports.getProfileByTeacher = async (req, res) => {
 exports.getSection = async (req, res) => {
   let dataSets = {};
   let section_id = parseInt(cryptr.decrypt(req.query.section_id));
+  console.log(section_id)
   let occupation = req.user.info.occupation;
   
   // jj author
@@ -281,7 +282,6 @@ exports.getSection = async (req, res) => {
   if(branch_type[0]["branch_type"] == "IT"){
     console.log("OK IT")
     
-
   let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
     section_id +
@@ -417,6 +417,9 @@ exports.getSection = async (req, res) => {
       }
     };
   }
+
+  console.log(dataSets)
+  
   res.render("classroom", { dataSets, title: section.course_name });
   }else{
     console.log("OK DSBA")
@@ -429,7 +432,7 @@ exports.getSection = async (req, res) => {
     section_id +
     "";
   let queryAssignment =
-    "SELECT * FROM assignment WHERE section_id = " + section_id;
+    "SELECT * FROM notebook_assignment WHERE section_id = " + section_id;
   let queryPairingSession =
     "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
     section_id +
@@ -452,11 +455,13 @@ exports.getSection = async (req, res) => {
 
   if (!students.length) students = [];
   if (!assignments.length) {
+    console.log("assignment = 0")
     assignments = [];
   } else if (assignments.length) {
+    console.log("assignment != 0" + assignments.length)
     for (_index in assignments) {
-      assignments[_index].assignment_id = cryptr.encrypt(
-        assignments[_index].assignment_id
+      assignments[_index].notebook_assignment_id = cryptr.encrypt(
+        assignments[_index].notebook_assignment_id
       );
       assignments[_index].section_id = cryptr.encrypt(
         assignments[_index].section_id
@@ -472,9 +477,11 @@ exports.getSection = async (req, res) => {
   }
 
   if (!pairingSessions.length)
+    console.log("pairingSessions == 0")
     pairingSessions = [{ pairing_session_id: -1, status: -1 }];
 
   if (occupation == "teacher") {
+    console.log("occupation == teacher")
     occupation = 0;
 
     dataSets = {
@@ -494,6 +501,7 @@ exports.getSection = async (req, res) => {
       }
     };
   } 
+  console.log(dataSets)
   // else {
   //   occupation = 1;
   //   let cloneAssignments = Object.assign({}, assignments);
@@ -2800,50 +2808,73 @@ exports.getProgress = async (req, res) => {
 
 exports.uploadAssignment = async (req, res) => {
   console.log("uploadAssignment")
-  // let myBuffer = req.file.buffer
+  console.log(req.body)
+  let reqBody = req.body;
+  let myBuffer = req.file.buffer
+  let bufferToJson = JSON.parse(myBuffer);
+  let dataStr = JSON.stringify(bufferToJson)
+  console.log(`Data ${dataStr}`)
 
-  // let bufferToJson = JSON.parse(myBuffer);
+  /**
+   * generate filename
+   * ex: nb_2019-10-12_16-1-85.ipynb
+   */
+  let randomNumber = Math.floor(Math.random() * (100000 - 0) + 0);
+  let date_ob = new Date();
+  // current date
+  // adjust 0 before single digit date
+  let date = ("0" + date_ob.getDate()).slice(-2);
 
-  // let dataStr = JSON.stringify(bufferToJson)
+  // current month
+  let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
 
-  // /**
-  //  * generate filename
-  //  * ex: nb_2019-10-12_16-1-85.ipynb
-  //  */
-  // let randomNumber = Math.floor(Math.random() * (100000 - 0) + 0);
-  // let date_ob = new Date();
-  // // current date
-  // // adjust 0 before single digit date
-  // let date = ("0" + date_ob.getDate()).slice(-2);
+  // current year
+  let year = date_ob.getFullYear();
 
-  // // current month
-  // let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+  // current hours
+  let hours = date_ob.getHours();
 
-  // // current year
-  // let year = date_ob.getFullYear();
+  // current minutes
+  let minutes = date_ob.getMinutes();
 
-  // // current hours
-  // let hours = date_ob.getHours();
-
-  // // current minutes
-  // let minutes = date_ob.getMinutes();
-
-  // let dateTime =
-  //   year + "-" + month + "-" + date + "_" + hours + "-" + minutes + "-";
-  // var filename = "nb_" + dateTime + randomNumber + ".ipynb";
-  // var filePath = "./public/notebookAssignment/";
-
-
-  // fs.writeFile(filePath+filename, dataStr, 'utf8', err => {
-  //   // throws an error, you could also catch it here
-  //   if (err) throw err;
-
-  //   // success case, the file was saved
-  //   console.log(filename + " has been saved!");
-
-  // });
-
-  res.send("OK File has been saved")
+  let dateTime =
+    year + "-" + month + "-" + date + "_" + hours + "-" + minutes + "-";
+  var filename = "nb_" + dateTime + randomNumber + ".ipynb";
+  var filePath = "./public/notebookAssignment/";
 
 
+  fs.writeFileSync(filePath+filename, dataStr, 'utf8', err =>  {
+    // throws an error, you could also catch it here
+    if (err) throw err;
+
+    // success case, the file was saved
+    console.log(filename + " has been saved!");
+
+  });
+
+  console.log("insertAssingment begin")
+  let section_id = parseInt(cryptr.decrypt(req.body.section_id));
+  console.log(section_id)
+  let insertNotebookAssignment = "INSERT INTO notebook_assignment ( section_id, title, description, week, filePath) VALUES ?";
+
+
+  const notebookValue = [
+    [
+      section_id,
+      req.body.title,
+      req.body.description,
+      req.body.week,
+      filename
+    ]
+  ]
+  // console.log(insertNotebookAssignment)
+  const assignment_id = await conMysql.insertAssignment(
+    insertNotebookAssignment,
+    notebookValue
+  );
+  console.log(assignment_id)
+  // res.send("OK File has been saved")
+  res.redirect("/classroom?section_id=" +  cryptr.encrypt(section_id));
+
+  
 };
