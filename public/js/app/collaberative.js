@@ -7,7 +7,6 @@ function showNotebookAssingmentModal() {
   $("#notebook-assignment-modal").modal("show");
 }
 
-
 function on_click_weeks_dropdown(
   id,
   assignment_set,
@@ -48,25 +47,25 @@ function on_click_weeks_dropdown(
   if (pagination[pagination.length - 1] == 1) {
     pagination = [];
   } else if (pagination.length) {
-    // $(
-    //   "<div class='ui pagination menu' id='assignment_pagination'></div>"
-    // ).insertAfter("#divider_in_first_container");
+    $(
+      "<div class='ui pagination menu' id='assignment_pagination'></div>"
+    ).insertAfter("#divider_in_first_container");
   }
 
   let item = null;
 
-  // for (_index in pagination) {
-  //   item = $(
-  //     "<a class='item fc' id='page_" +
-  //       pagination[_index] +
-  //       "_first_container' onclick='on_click_page_number_in_first_container(" +
-  //       pagination[_index] +
-  //       ")'>" +
-  //       pagination[_index] +
-  //       "</a>"
-  //   );
-  //   $("#assignment_pagination").append(item);
-  // }
+  for (_index in pagination) {
+    item = $(
+      "<a class='item fc' id='page_" +
+        pagination[_index] +
+        "_first_container' onclick='on_click_page_number_in_first_container(" +
+        pagination[_index] +
+        ")'>" +
+        pagination[_index] +
+        "</a>"
+    );
+    $("#assignment_pagination").append(item);
+  }
 
   on_click_page_number_in_first_container(1);
 }
@@ -295,4 +294,26 @@ function set_item_pagination_in_first_container(
       }
     }
   }
+}
+
+function on_click_page_number_in_first_container(page) {
+  $(".active.item.fc").attr({
+    class: "item fc"
+  });
+  $("#page_" + page + "_first_container").attr({
+    class: "active item fc"
+  });
+
+  $(".active.first.container").attr({
+    class: "ui divided items first container",
+    style: "display: none"
+  });
+  $("#items_first_container" + page).attr({
+    class: "ui divided items active first container",
+    style: "display: block"
+  });
+}
+
+function onClickDeleteNotebookAssignment() {
+  console.log("onClickDeleteNotebookAssignment")
 }
