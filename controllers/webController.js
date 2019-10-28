@@ -2127,6 +2127,8 @@ exports.getAssignment = async (req, res) => {
   res.render("assignment", { dataSets, title: title });
 };
 
+
+
 exports.createAssignment = async (req, res) => {
   let sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
   let dataSets = {};
