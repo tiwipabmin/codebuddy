@@ -152,9 +152,9 @@ function set_item_pagination_in_first_container(
               "<div class='item' id='a" + assignment.notebook_assignment_id + "'></div>"
             );
             content = $(
-              "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/assignment?section_id=" +
+              "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/notebookAssignment?section_id=" +
                 assignment.section_id +
-                "&assignment_id=" +
+                "&notebook_assignment_id=" +
                 assignment.notebook_assignment_id +
                 "'>" +
                 assignment.title +
