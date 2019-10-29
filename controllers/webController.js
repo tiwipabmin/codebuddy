@@ -418,8 +418,6 @@ exports.getSection = async (req, res) => {
     };
   }
 
-  console.log(dataSets)
-  console.log(section_id)
 
   
   res.render("classroom", { dataSets, title: section.course_name });
@@ -504,7 +502,7 @@ exports.getSection = async (req, res) => {
       }
     };
   } 
-  console.log(dataSets)
+  // console.log(dataSets)
   // else {
   //   occupation = 1;
   //   let cloneAssignments = Object.assign({}, assignments);
@@ -2877,7 +2875,7 @@ exports.uploadAssignment = async (req, res) => {
     insertNotebookAssignment,
     notebookValue
   );
-  console.log(assignment_id)
+  // console.log(assignment_id)
   // res.send("OK File has been saved")
   res.redirect("/classroom?section_id=" +  cryptr.encrypt(section_id));
 

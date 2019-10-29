@@ -7,6 +7,98 @@ function showNotebookAssingmentModal() {
   $("#notebook-assignment-modal").modal("show");
 }
 
+
+function on_click_weeks_dropdown(
+  id,
+  assignment_set,
+  username,
+  img,
+  pairing_session_id,
+  opt
+) {
+  // console.log('pairing_session_id, ', pairing_session_id)
+  assignment_set = assignment_set;
+  let res_obj = get_items_of_week(assignment_set, 5, id);
+  let assignment_of_week_ = res_obj.items_of_week;
+  let pagination = res_obj.pagination;
+  // console.log('assignment_of_week_, ', assignment_of_week_)
+
+  set_item_pagination_in_first_container(
+    pagination,
+    assignment_of_week_,
+    username,
+    img,
+    id,
+    opt
+  );
+
+  $("#assign_button").attr(
+    "onclick",
+    "on_click_assign_button(" +
+      JSON.stringify(JSON.stringify(assignment_of_week_)) +
+      ", " +
+      pairing_session_id +
+      ")"
+  );
+  $("#delete_assignment_button").attr(
+    "onclick",
+    "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
+  );
+  $("div").remove("#assignment_pagination");
+  if (pagination[pagination.length - 1] == 1) {
+    pagination = [];
+  } else if (pagination.length) {
+    $(
+      "<div class='ui pagination menu' id='assignment_pagination'></div>"
+    ).insertAfter("#divider_in_first_container");
+  }
+
+  let item = null;
+
+  for (_index in pagination) {
+    item = $(
+      "<a class='item fc' id='page_" +
+        pagination[_index] +
+        "_first_container' onclick='on_click_page_number_in_first_container(" +
+        pagination[_index] +
+        ")'>" +
+        pagination[_index] +
+        "</a>"
+    );
+    $("#assignment_pagination").append(item);
+  }
+
+  on_click_page_number_in_first_container(1);
+}
+
+function get_items_of_week(items, range, week) {
+  week = week.split("week");
+  week = parseInt(week[0]);
+  let items_of_week = [];
+
+  for (_index in items) {
+    if (items[_index].week == week) {
+      items_of_week.push(items[_index]);
+    } else if (week < 0) {
+      items_of_week.push(items[_index]);
+    }
+  }
+
+  let pagination = [];
+  let page = 1;
+  let count = 0;
+  for (_index in items_of_week) {
+    items_of_week[_index].page = page;
+    count++;
+    if (count % range == 0 || _index == items_of_week.length - 1) {
+      pagination.indexOf(page) == -1 ? pagination.push(page) : null;
+      page++;
+    }
+  }
+
+  return { items_of_week: items_of_week, pagination: pagination };
+}
+
 function set_item_pagination_in_first_container(
   pagination,
   items_of_week,
@@ -1984,6 +2076,7 @@ function on_click_weeks_dropdown(
   on_click_page_number_in_first_container(1);
 }
 
+
 function on_click_page_number_in_first_container(page) {
   $(".active.item.fc").attr({
     class: "item fc"
@@ -3081,3 +3174,4 @@ function on_click_assignment(opt, id) {
 function pad(val) {
   return val > 9 ? val : "0" + val;
 }
+
