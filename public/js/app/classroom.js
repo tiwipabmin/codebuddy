@@ -1284,6 +1284,7 @@ function onClickCreateSession(
   section_id,
   pairing_session_status
 ) {
+  console.log("onClickCreateSession IT")
   if ($("#newPairingSession").attr("value") <= 0) {
     pairingOrViewingisHided("pair");
     showStudentList("pair", {}, {}, pairing_session_id, section_id);

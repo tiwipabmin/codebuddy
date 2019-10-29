@@ -27,10 +27,12 @@ block script
 block content
   if user.info.occupation === 'teacher'
     +notebookassignmentModal()
+    +collaborativeStudent(user, dataSets.origins.students, dataSets.origins.pairingSessions, dataSets.origins.section)
+
     
   .ui.raised.very.padded.container
     .ui.centered.grid(style='padding-top:20px;')
-      +detailSection()
+      +detailCollaborativeSection()
       .ten.wide.column#first_container
         .ui.segment#segment_in_first_container
           .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_first_container(style='padding-top:20px; margin-bottom:20px;')
