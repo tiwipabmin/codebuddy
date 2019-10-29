@@ -18,33 +18,32 @@ var markdown = require("markdown").markdown;
 
 exports.getNotebookAssignment = async (req, res) => {
 
-
     const section_id = req.query.section_id;
-    const select_assignment_by_assignment_id =
+    const select_notebookAssignment_by_notebookAssignment_id =
       "SELECT * FROM notebook_assignment WHERE notebook_assignment_id = " +
       cryptr.decrypt(req.query.notebook_assignment_id);
-    let assignment = await conMysql.selectAssignment(
-      select_assignment_by_assignment_id
+    let notebookAssignment = await conMysql.selectAssignment(
+      select_notebookAssignment_by_notebookAssignment_id
     );
-    let title = "Assignment";
+    let title = "Notebook Assignment";
     let dataSets = {};
     let section = {};
     section.section_id = section_id;
-    if (assignment.length) {
-      assignment = assignment[0];
-      assignment.assignment_id = cryptr.encrypt(assignment.notebook_assignment_id);
-      title = assignment.title;
-      assignment.title = assignment.title;
-      assignment.description = assignment.description;
+    if (notebookAssignment.length) {
+      notebookAssignment = notebookAssignment[0];
+      notebookAssignment.notebook_assignment_id = cryptr.encrypt(notebookAssignment.notebook_assignment_id);
+      title = notebookAssignment.title;
+      notebookAssignment.title = notebookAssignment.title;
+      notebookAssignment.description = notebookAssignment.description;
   
     }
     dataSets = {
-      origins: { assignment: assignment, section: section },
-      reforms: { assignment: JSON.stringify(assignment) }
+      origins: { notebookAssignment: notebookAssignment, section: section },
+      reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
     };
   
 
-    let data = dataSets.reforms.assignment
+    let data = dataSets.reforms.notebookAssignment
     var obj = JSON.parse(data)
 
     information = fs.readFileSync("./public/notebookAssignment/"+obj["filePath"], "utf8");
@@ -54,48 +53,61 @@ exports.getNotebookAssignment = async (req, res) => {
     var information_cells = information_obj["cells"];
 
 
-    arrFile = new Array()
-
+    cells = new Array()
     for (x in information_cells) {
         // console.log("---------Cells  [" + x + "]----------");
         if (information_cells[x]["cell_type"] == "markdown") {
+          let lines = []
           for (y in information_cells[x]["source"]) {
             // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-            let markdowns = markdown.toHTML(information_cells[x]["source"][y]);
-            // formData.append("markdown" , markdowns)
-            let objMarkdown = {"markdown" : markdowns}
-            arrFile.push(objMarkdown)
+            let line = markdown.toHTML(information_cells[x]["source"][y]);
+            lines.push(line)
+          }
+
+          let cellType = "markdown"
+          let source = lines
+          let cell = {
+            cellType,
+            source
+          }  
+          cells.push(cell)
       
-          }
         } else {
-          for (y in information_cells[x]["source"]) {
-            // console.log(information_cells[x]["source"][y]);
-            let code = information_cells[x]["source"][y];
-            let objCode = {"code" : code}
-            arrFile.push(objCode)
-
-          }
-        }
-      }
-      var arrFileLength = arrFile.length
-
-
-      // This is algorithm that have to show in pug
-      for (var i = 0 ; i<arrFile.length; i++){
-        for(var key in arrFile[i]){
-            if(arrFile[i].hasOwnProperty(key)){
-              if (key == 'code'){
-              
-                console.log(arrFile[i][key]+ " In text box")
-              }else{
-                console.log(arrFile[i][key] + "In area")
-
-              }
+            let linesSource = []
+            let outputs = []
+            for (y in information_cells[x]["source"]) {
+              // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+              let lineSource = information_cells[x]["source"][y]
+                linesSource.push(lineSource)
             }
+
+            
+            for (y in information_cells[x]["outputs"]) {
+              // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+              let outputObject = information_cells[x]["outputs"][y]
+              let linesText = []
+                for(z in outputObject["text"]){
+                  let lineText = outputObject["text"][z]
+                  linesText.push(lineText)
+                }
+                outputs.push({"text": linesText})
+            }
+            
+            let executionCount = information_cells[x]["execution_count"]
+            let cellType = "code"
+            let source = linesSource
+            let cell = {
+              cellType,
+              executionCount,
+              outputs,
+              source
+            }  
+            cells.push(cell)
         }
       }
-      // console.log("ArrFile")
-      // console.log(arrFile[0][0])
+      var arrFileLength = cells.length
+      console.log(cells)
+      console.log(cells[3]["outputs"][0]["text"])
 
-          res.render("notebookAssignment", { dataSets, title: title , arrFile : arrFile , arrFileLength : arrFileLength });
+      res.render("notebookAssignment", { dataSets, title: title , cells : cells , arrFileLength : arrFileLength });
   };

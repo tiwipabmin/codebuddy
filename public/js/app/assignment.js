@@ -170,7 +170,7 @@ function createNotebookAssignment(){
     body: formData
   };
 
-  console.log('Files: ', options.body.getAll('file'))
+  // console.log('Files: ', options.body.getAll('file'))
   
   fetch('/classroom/uploadAssignment', options);
 
