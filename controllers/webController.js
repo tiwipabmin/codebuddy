@@ -418,11 +418,15 @@ exports.getSection = async (req, res) => {
     };
   }
 
-  // console.log(dataSets)
+
+  console.log(dataSets)
+  console.log(section_id)
+
   
   res.render("classroom", { dataSets, title: section.course_name });
   }else{
     console.log("OK DSBA")
+    console.log(section_id)
     let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
     section_id +

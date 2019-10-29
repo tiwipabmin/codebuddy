@@ -7,6 +7,7 @@ mixin collaborativeStudent()
       button.ui.active.button#alphabeticalFilter(style="font-size:7px;", value='A-Z') A-Z
       button.ui.button#avgScoreFilter(style="font-size:7px;", value='1-100') 1-100
       button.ui.right.floated.button#changePair(style='margin-bottom:20px;' onclick='onClickChangePairButton('+dataSets.origins.pairingSessions[0].pairing_session_id+', \"'+dataSets.origins.section.section_id+'\")') Change pair
+      button.ui.right.floated.button#autoPairing(style='margin-bottom:20px; display:none;' onclick='onClickAutoPairingBtn(\"pair\", '+dataSets.origins.pairingSessions[0].pairing_session_id+', \"'+dataSets.origins.section.section_id+'\")') Auto Pairing
       .ui.fluid.container.segment.student-list-container.box
         .ui.middle.aligned.list.student-container
           .ui.segment
@@ -22,15 +23,38 @@ mixin collaborativeStudent()
           button.ui.button.approve.green#confirm-pairing(type='submit', value='create') Confirm
           .ui.button.approve.red#cancel-pairing(data-value='cancel' onclick='on_click_cancel_pairing_button()') Cancel
 
-
-
-
   .ui.small.modal#partner_selection_modal
     .header Select partner
     .content
-    
       .ui.top.attached.tabular.menu
-        a.item.active.psm#search(data-tab="search", onclick='onClickPartnerSelectionMethod('+`$(this).attr('id')`+')') Search partner
+        a.item.active.psm#purpose(data-tab="purpose", onclick='onClickPartnerSelectionMethod('+`$(this).attr('id')`+')') Select by purpose
+        a.item.psm#search(data-tab="search", onclick='onClickPartnerSelectionMethod('+`$(this).attr('id')`+')') Search partner
+      .ui.bottom.attached.tab.segment.active.psm.purpose(data-tab="purpose")
+        a.ui.red.ribbon.label Recommended
+        .ui.grid
+          .six.wide.column
+              #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab(data-tooltip='The difference of the score is less than 10 points.' data-position='left center')&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+                .row
+                  i.large.circular.inverted.teal.line.chart.icon
+                .row
+                  | Quality oriented
+              #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 10 to 20 points.' data-position='left center')&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+                .row
+                  i.large.circular.inverted.teal.line.idea.icon
+                .row
+                  | Mutual improvement
+              #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 20 to 30 points.' data-position='left center')&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+                .row
+                  i.large.circular.inverted.teal.line.student.icon.center.aligned
+                .row
+                  | Teaching &amp; Learning
+          .ten.wide.column
+            .ui.circular.labels.your-score-label
+                a.ui.red.label.student-score Student score -
+            .ui.segment.container.user-purpose.box
+              .ui.middle.aligned.divided.list.user-purpose-list
+                  li.ui.item Please select your purpose.
+      .ui.bottom.attached.tab.segment.psm.search(data-tab="search")
         .ui.grid
           .six.wide.column
             .ui.category.search
@@ -46,30 +70,3 @@ mixin collaborativeStudent()
             button.ui.labeled.icon.button#back-to-student-list-modal
               i.reply.icon
               font Back
-      //- .ui.bottom.attached.tab.segment.active.psm.search(data-tab="search")
-        //- a.ui.red.ribbon.label Recommended
-        //- .ui.grid
-        //-   .six.wide.column
-        //-       #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab(data-tooltip='The difference of the score is less than 10 points.' data-position='left center')&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
-        //-         .row
-        //-           i.large.circular.inverted.teal.line.chart.icon
-        //-         .row
-        //-           | Quality oriented
-        //-       #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 10 to 20 points.' data-position='left center')&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
-        //-         .row
-        //-           i.large.circular.inverted.teal.line.idea.icon
-        //-         .row
-        //-           | Mutual improvement
-        //-       #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 20 to 30 points.' data-position='left center')&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
-        //-         .row
-        //-           i.large.circular.inverted.teal.line.student.icon.center.aligned
-        //-         .row
-        //-           | Teaching &amp; Learning
-        //-   .ten.wide.column
-        //-     .ui.circular.labels.your-score-label
-        //-         a.ui.red.label.student-score Student score -
-        //-     .ui.segment.container.user-purpose.box
-        //-       .ui.middle.aligned.divided.list.user-purpose-list
-        //-           li.ui.item Please select your purpose.
-
-      //- .ui.top.attached.tab.segment.psm.search(data-tab="search")
