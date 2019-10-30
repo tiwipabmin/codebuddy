@@ -59,7 +59,7 @@ block content
                     .output_subarea.output_text(style="margin-top: 10px; padding-left:8em; padding-right:25px;")
                       - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
                           p !{cells[i]["outputs"][y]["text"]}   
-              input(type='hidden' id='projectFiles' value=`${cells.length}`)
+              input(type='hidden' id='projectFiles' value=`${codeCellId}`)
              
     a.button.ui.labeled.icon.button(href='/classroom?section_id='+dataSets.origins.section.section_id, style='margin-top:20px;')
       i.reply.icon

@@ -26,16 +26,22 @@ function addBlock() {
  */
 var projectFiles = document.getElementById("projectFiles").value;
 
+console.log(projectFiles)
 
+let listStr = projectFiles.split(',')
+console.log(listStr)
 
-newEditorFacade(3)
+for(var i = 0; i < listStr.length; i++){
+  newEditorFacade(listStr[i])
+}
+
 
 
 
 function newEditorFacade(fileName) {
   setEditor(fileName);
-  setOnChangeEditer(fileName);
-  setOnDoubleClickEditor(fileName);
+  // setOnChangeEditer(fileName);
+  // setOnDoubleClickEditor(fileName);
 
   // /**
   //  * setup partner active tab
