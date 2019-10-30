@@ -54,6 +54,7 @@ exports.getNotebookAssignment = async (req, res) => {
 
 
     cells = new Array()
+    codeCellId = []
     for (x in information_cells) {
         // console.log("---------Cells  [" + x + "]----------");
         if (information_cells[x]["cell_type"] == "markdown") {
@@ -73,6 +74,7 @@ exports.getNotebookAssignment = async (req, res) => {
           cells.push(cell)
       
         } else {
+            codeCellId.push(x)
             let linesSource = []
             let outputs = []
             for (y in information_cells[x]["source"]) {
@@ -105,9 +107,7 @@ exports.getNotebookAssignment = async (req, res) => {
             cells.push(cell)
         }
       }
-      var arrFileLength = cells.length
-      console.log(cells)
-      console.log(cells[3]["outputs"][0]["text"])
+      console.log(codeCellId)
 
-      res.render("notebookAssignment", { dataSets, title: title , cells : cells , arrFileLength : arrFileLength });
+      res.render("notebookAssignment", { dataSets, title: title , cells : cells , codeCellId : codeCellId });
   };

@@ -3,7 +3,6 @@ extends layout/layout.pug
 block script
   script(src="/js/app/collaberative.js")
   //- script(src='/js/app/assignment.js')
-  script(src='/js/app/notebookAssignment.js')
   script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
   script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
   link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
@@ -65,10 +64,16 @@ block content
           if user.info.occupation === 'teacher'
             .ui.secondary.pointing.menu#uspm
               a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Notebook Assignment
+              a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Manage Assignment
           
             .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
               button.ui.button.blue(onclick='showNotebookAssingmentModal()') Create
               button.ui.button.approve.blue(onclick='onClickDeleteNotebookAssignment()' ) Delete
+
+            .ui.segment.uspm#manageAssignment_segment(style='display: none')
+              button.ui.button.approve.blue#assign_button Assign
+              button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_notebook_assignment_button()') Enable Assignment
+              button.ui.button.approve.blue#disable_assignment Disable Assignment
 
             .ui.section.divider#divider_in_first_container
 

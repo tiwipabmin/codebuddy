@@ -96,6 +96,7 @@ exports.getPlayground = async (req, res) => {
     }
   };
   if (project.programming_style == "Interactive") {
+    console.log(dataSets.origins.project)
     res.render("playground_interactive", {
       dataSets,
       title: `${project.title} - Playground`,
@@ -419,6 +420,7 @@ exports.getSection = async (req, res) => {
   }
 
 
+
   
   res.render("classroom", { dataSets, title: section.course_name });
   }else{
@@ -502,69 +504,69 @@ exports.getSection = async (req, res) => {
       }
     };
   } 
-  // console.log(dataSets)
-  // else {
-  //   occupation = 1;
-  //   let cloneAssignments = Object.assign({}, assignments);
-  //   let projects = await Project.find({
-  //     $and: [
-  //       { status: { $ne: "pending" } },
-  //       {
-  //         $or: [
-  //           { creator: req.user.username },
-  //           { collaborator: req.user.username }
-  //         ]
-  //       }
-  //     ]
-  //   }).sort({ createdAt: -1 });
+  else {
+    console.log("occupation == student")
+    occupation = 1;
+    let cloneAssignments = Object.assign({}, assignments);
+    let projects = await Project.find({
+      $and: [
+        { status: { $ne: "pending" } },
+        {
+          $or: [
+            { creator: req.user.username },
+            { collaborator: req.user.username }
+          ]
+        }
+      ]
+    }).sort({ createdAt: -1 });
 
-  //   /**
-  //    * projects change data type from array to object
-  //    */
-  //   let cloneProjects = {};
-  //   projects.forEach(function(project) {
-  //     cloneProjects[project.assignment_id] = project;
-  //   });
+    /**
+     * projects change data type from array to object
+     */
+    let cloneProjects = {};
+    projects.forEach(function(project) {
+      cloneProjects[project.assignment_id] = project;
+    });
 
-  //   projects = [];
-  //   assignments = [];
-  //   weeks = [];
-  //   for (i in cloneAssignments) {
-  //     let checkProjectFromAssignmentId =
-  //       cloneProjects[cryptr.decrypt(cloneAssignments[i].assignment_id)];
-  //     if (checkProjectFromAssignmentId !== undefined) {
-  //       let element = Object.assign({}, checkProjectFromAssignmentId);
-  //       if (element._doc.available_project) {
-  //         element._doc.section_id = cloneAssignments[i].section_id;
-  //         projects.push(element._doc);
-  //         assignments.push(cloneAssignments[i]);
-  //         weeks.indexOf(element._doc.week) == -1
-  //           ? weeks.push(element._doc.week)
-  //           : null;
-  //       }
-  //     }
-  //   }
+    projects = [];
+    assignments = [];
+    weeks = [];
+    for (i in cloneAssignments) {
+      let checkProjectFromAssignmentId =
+        cloneProjects[cryptr.decrypt(cloneAssignments[i].notebook_assignment_id)];
+      if (checkProjectFromAssignmentId !== undefined) {
+        let element = Object.assign({}, checkProjectFromAssignmentId);
+        if (element._doc.available_project) {
+          element._doc.section_id = cloneAssignments[i].section_id;
+          projects.push(element._doc);
+          assignments.push(cloneAssignments[i]);
+          weeks.indexOf(element._doc.week) == -1
+            ? weeks.push(element._doc.week)
+            : null;
+        }
+      }
+    }
 
-  //   projects.reverse();
+    projects.reverse();
 
-  //   dataSets = {
-  //     origins: {
-  //       occupation: occupation,
-  //       section: section,
-  //       projects: projects,
-  //       assignments: assignments,
-  //       students: students,
-  //       pairingSessions: pairingSessions,
-  //       weeks: weeks
-  //     },
-  //     reforms: {
-  //       projects: JSON.stringify(projects),
-  //       assignments: JSON.stringify(assignments),
-  //       students: JSON.stringify(students),
-  //       pairingSessions: JSON.stringify(pairingSessions)
-  //     }
-  //   };
-  // }
+    dataSets = {
+      origins: {
+        occupation: occupation,
+        section: section,
+        projects: projects,
+        assignments: assignments,
+        students: students,
+        pairingSessions: pairingSessions,
+        weeks: weeks
+      },
+      reforms: {
+        projects: JSON.stringify(projects),
+        assignments: JSON.stringify(assignments),
+        students: JSON.stringify(students),
+        pairingSessions: JSON.stringify(pairingSessions)
+      }
+    };
+  }
     res.render("collaberative",{ dataSets, title: section.course_name })
   }
 
