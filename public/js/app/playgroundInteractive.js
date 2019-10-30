@@ -63,6 +63,8 @@ function getParameterByName(name) {
  * Initiate local editor
  */
 var projectFiles = JSON.parse(document.getElementById("projectFiles").value);
+console.log("projectFiles")
+console.log(projectFiles)
 var currentTab = "main";
 var partnerTab = "main";
 var isCloseTab = false;
@@ -1349,6 +1351,7 @@ function getCodeFocusBlock() {
 }
 
 function newEditorFacade(fileName) {
+  console.log(fileName)
   setEditor(fileName);
   setOnChangeEditer(fileName);
   setOnDoubleClickEditor(fileName);

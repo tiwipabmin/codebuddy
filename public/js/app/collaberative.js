@@ -3177,3 +3177,43 @@ function pad(val) {
   return val > 9 ? val : "0" + val;
 }
 
+function on_click_enable_notebook_assignment_button() {
+  $("#dropdown_amd").empty();
+  $("#dropdown_amd").append(
+    "<input id='week_input_amd' type='hidden'></input>"
+  );
+  $("#dropdown_amd").append("<i class='dropdown icon'></i>");
+  $("#dropdown_amd").append("<div class='default text'>Week</div>");
+  $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
+  $.get("/classroom/getWeeklyAssignments", { action: "enable" }, function(res) {
+    let weeks = JSON.parse(res.weeks);
+    if (!weeks.length) {
+      $("#week_amd").append(
+        "<div class='item' id='-1_week_in_dam' data-value='-1'>No disable assignment.</div>"
+      );
+    } else if (weeks.length) {
+      $("#week_amd").append(
+        "<div class='item' id='0_week_in_dam' data-value='0'>All</div>"
+      );
+    }
+    weeks.forEach(function(e) {
+      $("#week_amd").append(
+        "<div class='item' id='" +
+          e +
+          "_week_in_dam' data-value='" +
+          e +
+          "'>" +
+          e +
+          "</div>"
+      );
+    });
+    $("#confirm_assignment_management").attr(
+      "onclick",
+      "on_click_confirm_assignment_management_button('enable')"
+    );
+    $("#header_amd").text("Enable Assignment");
+    $("#assignment_management_modal").modal("show");
+    $("#dropdown_amd").dropdown();
+  });
+}
+
