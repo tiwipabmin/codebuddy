@@ -14,6 +14,8 @@ const Comment = mongoose.model("Comment");
 const History = mongoose.model("History");
 
 var markdown = require("markdown").markdown;
+const redis = new Redis();
+
 
 
 exports.getNotebookAssignment = async (req, res) => {
@@ -25,6 +27,7 @@ exports.getNotebookAssignment = async (req, res) => {
     let notebookAssignment = await conMysql.selectAssignment(
       select_notebookAssignment_by_notebookAssignment_id
     );
+
     let title = "Notebook Assignment";
     let dataSets = {};
     let section = {};
@@ -42,71 +45,84 @@ exports.getNotebookAssignment = async (req, res) => {
       reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
     };
   
+    var cellsRedis = await redis.hget( "notebookAssignment:"+"3", "cells");
+    let cells = JSON.parse(cellsRedis)
+    console.log(cells)
 
-    let data = dataSets.reforms.notebookAssignment
-    var obj = JSON.parse(data)
-
-    information = fs.readFileSync("./public/notebookAssignment/"+obj["filePath"], "utf8");
-
-    var information_obj = JSON.parse(information);
-    // console.log(obj)
-    var information_cells = information_obj["cells"];
-
-
-    cells = new Array()
     codeCellId = []
-    for (x in information_cells) {
-        // console.log("---------Cells  [" + x + "]----------");
-        if (information_cells[x]["cell_type"] == "markdown") {
-          let lines = []
-          for (y in information_cells[x]["source"]) {
-            // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-            let line = markdown.toHTML(information_cells[x]["source"][y]);
-            lines.push(line)
-          }
 
-          let cellType = "markdown"
-          let source = lines
-          let cell = {
-            cellType,
-            source
-          }  
-          cells.push(cell)
+    for (x in cells) {
+      if (cells[x]["cellType"] == "code") {
+        codeCellId.push(x)
+    }
+  }
+    
+
+
+    // let data = dataSets.reforms.notebookAssignment
+    // var obj = JSON.parse(data)
+
+    // information = fs.readFileSync("./public/notebookAssignment/"+obj["filePath"], "utf8");
+
+    // var information_obj = JSON.parse(information);
+    // // console.log(obj)
+    // var information_cells = information_obj["cells"];
+
+
+    // cells = new Array()
+    // codeCellId = []
+    // for (x in information_cells) {
+    //     // console.log("---------Cells  [" + x + "]----------");
+    //     if (information_cells[x]["cell_type"] == "markdown") {
+    //       let lines = []
+    //       for (y in information_cells[x]["source"]) {
+    //         // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+    //         let line = markdown.toHTML(information_cells[x]["source"][y]);
+    //         lines.push(line)
+    //       }
+
+    //       let cellType = "markdown"
+    //       let source = lines
+    //       let cell = {
+    //         cellType,
+    //         source
+    //       }  
+    //       cells.push(cell)
       
-        } else {
-            codeCellId.push(x)
-            let linesSource = []
-            let outputs = []
-            for (y in information_cells[x]["source"]) {
-              // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-              let lineSource = information_cells[x]["source"][y]
-                linesSource.push(lineSource)
-            }
+    //     } else {
+    //         codeCellId.push(x)
+    //         let linesSource = []
+    //         let outputs = []
+    //         for (y in information_cells[x]["source"]) {
+    //           // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+    //           let lineSource = information_cells[x]["source"][y]
+    //             linesSource.push(lineSource)
+    //         }
 
             
-            for (y in information_cells[x]["outputs"]) {
-              // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-              let outputObject = information_cells[x]["outputs"][y]
-              let linesText = []
-                for(z in outputObject["text"]){
-                  let lineText = outputObject["text"][z]
-                  linesText.push(lineText)
-                }
-                outputs.push({"text": linesText})
-            }
+    //         for (y in information_cells[x]["outputs"]) {
+    //           // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+    //           let outputObject = information_cells[x]["outputs"][y]
+    //           let linesText = []
+    //             for(z in outputObject["text"]){
+    //               let lineText = outputObject["text"][z]
+    //               linesText.push(lineText)
+    //             }
+    //             outputs.push({"text": linesText})
+    //         }
             
-            let executionCount = information_cells[x]["execution_count"]
-            let cellType = "code"
-            let source = linesSource
-            let cell = {
-              cellType,
-              executionCount,
-              outputs,
-              source
-            }  
-            cells.push(cell)
-        }
-      }
+    //         let executionCount = information_cells[x]["execution_count"]
+    //         let cellType = "code"
+    //         let source = linesSource
+    //         let cell = {
+    //           cellType,
+    //           executionCount,
+    //           outputs,
+    //           source
+    //         }  
+    //         cells.push(cell)
+    //     }
+    //   }
       console.log(codeCellId)
 
       res.render("notebookAssignment", { dataSets, title: title , cells : cells , codeCellId : codeCellId });
@@ -192,74 +208,73 @@ exports.uploadAssignment = async (req, res) => {
 };
 
 function readFileNotebookAssingment(filename){
-  information = fs.readFileSync("./public/notebookAssignment/"+filename, "utf8");
+  // information = fs.readFileSync("./public/notebookAssignment/"+filename, "utf8");
 
-    var information_obj = JSON.parse(information);
+  //   var information_obj = JSON.parse(information);
    
-    var information_cells = information_obj["cells"];
+  //   var information_cells = information_obj["cells"];
 
-    // console.log("information_cells", information_cells)
-    cells = new Array()
-    codeCellId = []
-    for (x in information_cells) {
-        // console.log("---------Cells  [" + x + "]----------");
-        if (information_cells[x]["cell_type"] == "markdown") {
-          let lines = []
-          for (y in information_cells[x]["source"]) {
-            // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-            let line = markdown.toHTML(information_cells[x]["source"][y]);
-            lines.push(line)
-          }
+  //   // console.log("information_cells", information_cells)
+  //   cells = new Array()
+  //   codeCellId = []
+  //   for (x in information_cells) {
+  //       // console.log("---------Cells  [" + x + "]----------");
+  //       if (information_cells[x]["cell_type"] == "markdown") {
+  //         let lines = []
+  //         for (y in information_cells[x]["source"]) {
+  //           // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+  //           let line = markdown.toHTML(information_cells[x]["source"][y]);
+  //           lines.push(line)
+  //         }
 
-          let cellType = "markdown"
-          let source = lines
-          let cell = {
-            cellType,
-            source
-          }  
-          cells.push(cell)
-          // let cell = [] 
-          // cell.push(cellType)
-          // cell.push(source)
-          // cells.x = cell.toString()
+  //         let cellType = "markdown"
+  //         let source = lines
+  //         let cell = {
+  //           cellType,
+  //           source
+  //         }  
+  //         cells.push(cell)
+  //         // let cell = [] 
+  //         // cell.push(cellType)
+  //         // cell.push(source)
+  //         // cells.x = cell.toString()
       
-        } else {
-            codeCellId.push(x)
-            let linesSource = []
-            let outputs = []
-            for (y in information_cells[x]["source"]) {
-              // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-              let lineSource = information_cells[x]["source"][y]
-                linesSource.push(lineSource)
-            }
+  //       } else {
+  //           codeCellId.push(x)
+  //           let linesSource = []
+  //           let outputs = []
+  //           for (y in information_cells[x]["source"]) {
+  //             // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+  //             let lineSource = information_cells[x]["source"][y]
+  //               linesSource.push(lineSource)
+  //           }
 
             
-            for (y in information_cells[x]["outputs"]) {
-              // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-              let outputObject = information_cells[x]["outputs"][y]
-              let linesText = []
-                for(z in outputObject["text"]){
-                  let lineText = outputObject["text"][z]
-                  linesText.push(lineText)
-                }
-                outputs.push({"text": linesText})
-            }
+  //           for (y in information_cells[x]["outputs"]) {
+  //             // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+  //             let outputObject = information_cells[x]["outputs"][y]
+  //             let linesText = []
+  //               for(z in outputObject["text"]){
+  //                 let lineText = outputObject["text"][z]
+  //                 linesText.push(lineText)
+  //               }
+  //               outputs.push({"text": linesText})
+  //           }
             
-            let executionCount = information_cells[x]["execution_count"]
-            let cellType = "code"
-            let source = linesSource
-            let cell = {
-              cellType,
-              executionCount,
-              outputs,
-              source
-            }  
+  //           let executionCount = information_cells[x]["execution_count"]
+  //           let cellType = "code"
+  //           let source = linesSource
+  //           let cell = {
+  //             cellType,
+  //             executionCount,
+  //             outputs,
+  //             source
+  //           }  
             
-            cells.push(cell)
-        }
-      }
+  //           cells.push(cell)
+  //       }
+  //     }
       console.log("cells",JSON.stringify(cells) )
-      // console.log("sprit", cells["x"].split("-text,"))
       return JSON.stringify(cells)
 }
 
@@ -272,16 +287,15 @@ async function saveFileToRedis(cells, notebookAssingmentId){
   
   // console.log("jsonObj", jsonObj.toString())
   // console.log(typeof jsonObj)
-  const redis = new Redis();
   var code = await redis.hset(
     "notebookAssignment:"+notebookAssingmentId,
     "cells",
     cells
     );
    
-    var code2 = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
-    let value = JSON.parse(code2)
-    console.log("Check, ", typeof(JSON.parse(code2)), ', value, ', value)
+    // var code2 = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
+    // let value = JSON.parse(code2)
+    // console.log("Check, ", typeof(JSON.parse(code2)), ', value, ', value)
       // console.log("code2",code2[0])
 }
 
