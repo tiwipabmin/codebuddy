@@ -26,10 +26,8 @@ function addBlock() {
  */
 var projectFiles = document.getElementById("projectFiles").value;
 
-console.log(projectFiles)
 
 let listStr = projectFiles.split(',')
-console.log(listStr)
 
 for(var i = 0; i < listStr.length; i++){
   newEditorFacade(listStr[i])
