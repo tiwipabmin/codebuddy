@@ -186,7 +186,7 @@ socket.on("init state", payload => {
   } else {
     editors[0].editor.setValue("");
   }
-
+ 
   function setEditorValue(fileName) {
     if (editorValues != null) {
       var blockObj = editors.find(obj => {
