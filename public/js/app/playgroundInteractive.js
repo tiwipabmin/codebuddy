@@ -181,7 +181,9 @@ socket.emit("join project", {
  */
 socket.on("init state", payload => {
   if (payload.editor != null) {
+    console.log("payload.editor ", payload.editor )
     var editorValues = JSON.parse(payload.editor);
+    console.log("editorValues", editorValues)
     projectFiles.forEach(setEditorValue);
   } else {
     editors[0].editor.setValue("");
@@ -192,6 +194,7 @@ socket.on("init state", payload => {
       var blockObj = editors.find(obj => {
         return obj.blockId == fileName;
       });
+      console.log("editors", editors)
       blockObj.editor.setValue(editorValues[fileName]);
       currentFileName = fileName;
     }
@@ -1218,7 +1221,8 @@ function setOnChangeEditer(fileName) {
   });
   blockObj.editor.on("change", (ins, data) => {
     var text = data.text.toString().charCodeAt(0);
-    console.log("data.text.toString() : " + data.text.toString());
+    console.log("data.text.toString() : " + data.text.toString())
+    console.log("data.text.toString() : " + text)
     var enterline = parseInt(data.to.line) + 1;
     var remove = data.removed;
     var isEnter = false;
@@ -1351,7 +1355,7 @@ function getCodeFocusBlock() {
 }
 
 function newEditorFacade(fileName) {
-  console.log(fileName)
+  console.log("fileName", fileName)
   setEditor(fileName);
   setOnChangeEditer(fileName);
   setOnDoubleClickEditor(fileName);

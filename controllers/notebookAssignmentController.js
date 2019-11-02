@@ -45,9 +45,9 @@ exports.getNotebookAssignment = async (req, res) => {
       reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
     };
   
-    var cellsRedis = await redis.hget( "notebookAssignment:"+"3", "cells");
+    var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(req.query.notebook_assignment_id), "cells");
     let cells = JSON.parse(cellsRedis)
-    console.log(cells)
+    console.log("cells", cells)
 
     codeCellId = []
 
@@ -56,74 +56,7 @@ exports.getNotebookAssignment = async (req, res) => {
         codeCellId.push(x)
     }
   }
-    
-
-
-    // let data = dataSets.reforms.notebookAssignment
-    // var obj = JSON.parse(data)
-
-    // information = fs.readFileSync("./public/notebookAssignment/"+obj["filePath"], "utf8");
-
-    // var information_obj = JSON.parse(information);
-    // // console.log(obj)
-    // var information_cells = information_obj["cells"];
-
-
-    // cells = new Array()
-    // codeCellId = []
-    // for (x in information_cells) {
-    //     // console.log("---------Cells  [" + x + "]----------");
-    //     if (information_cells[x]["cell_type"] == "markdown") {
-    //       let lines = []
-    //       for (y in information_cells[x]["source"]) {
-    //         // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-    //         let line = markdown.toHTML(information_cells[x]["source"][y]);
-    //         lines.push(line)
-    //       }
-
-    //       let cellType = "markdown"
-    //       let source = lines
-    //       let cell = {
-    //         cellType,
-    //         source
-    //       }  
-    //       cells.push(cell)
-      
-    //     } else {
-    //         codeCellId.push(x)
-    //         let linesSource = []
-    //         let outputs = []
-    //         for (y in information_cells[x]["source"]) {
-    //           // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-    //           let lineSource = information_cells[x]["source"][y]
-    //             linesSource.push(lineSource)
-    //         }
-
-            
-    //         for (y in information_cells[x]["outputs"]) {
-    //           // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-    //           let outputObject = information_cells[x]["outputs"][y]
-    //           let linesText = []
-    //             for(z in outputObject["text"]){
-    //               let lineText = outputObject["text"][z]
-    //               linesText.push(lineText)
-    //             }
-    //             outputs.push({"text": linesText})
-    //         }
-            
-    //         let executionCount = information_cells[x]["execution_count"]
-    //         let cellType = "code"
-    //         let source = linesSource
-    //         let cell = {
-    //           cellType,
-    //           executionCount,
-    //           outputs,
-    //           source
-    //         }  
-    //         cells.push(cell)
-    //     }
-    //   }
-      console.log(codeCellId)
+      // console.log(codeCellId)
 
       res.render("notebookAssignment", { dataSets, title: title , cells : cells , codeCellId : codeCellId });
   };
@@ -208,95 +141,79 @@ exports.uploadAssignment = async (req, res) => {
 };
 
 function readFileNotebookAssingment(filename){
-  // information = fs.readFileSync("./public/notebookAssignment/"+filename, "utf8");
+  information = fs.readFileSync("./public/notebookAssignment/"+filename, "utf8");
 
-  //   var information_obj = JSON.parse(information);
+    var information_obj = JSON.parse(information);
    
-  //   var information_cells = information_obj["cells"];
+    var information_cells = information_obj["cells"];
 
-  //   // console.log("information_cells", information_cells)
-  //   cells = new Array()
-  //   codeCellId = []
-  //   for (x in information_cells) {
-  //       // console.log("---------Cells  [" + x + "]----------");
-  //       if (information_cells[x]["cell_type"] == "markdown") {
-  //         let lines = []
-  //         for (y in information_cells[x]["source"]) {
-  //           // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-  //           let line = markdown.toHTML(information_cells[x]["source"][y]);
-  //           lines.push(line)
-  //         }
+    // console.log("information_cells", information_cells)
+    cells = new Array()
+    codeCellId = []
+    for (x in information_cells) {
+        // console.log("---------Cells  [" + x + "]----------");
+        if (information_cells[x]["cell_type"] == "markdown") {
+          let lines = []
+          for (y in information_cells[x]["source"]) {
+            // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+            let line = markdown.toHTML(information_cells[x]["source"][y]);
+            lines.push(line)
+          }
 
-  //         let cellType = "markdown"
-  //         let source = lines
-  //         let cell = {
-  //           cellType,
-  //           source
-  //         }  
-  //         cells.push(cell)
-  //         // let cell = [] 
-  //         // cell.push(cellType)
-  //         // cell.push(source)
-  //         // cells.x = cell.toString()
+          let cellType = "markdown"
+          let source = lines
+          let cell = {
+            cellType,
+            source
+          }  
+          cells.push(cell)
       
-  //       } else {
-  //           codeCellId.push(x)
-  //           let linesSource = []
-  //           let outputs = []
-  //           for (y in information_cells[x]["source"]) {
-  //             // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-  //             let lineSource = information_cells[x]["source"][y]
-  //               linesSource.push(lineSource)
-  //           }
+        } else {
+            codeCellId.push(x)
+            // let linesSource = []
+            let linesSource = ""
+            let outputs = []
+            for (y in information_cells[x]["source"]) {
+              let lineSource = information_cells[x]["source"][y]
+                // linesSource.push(lineSource)
+                 linesSource+= lineSource+"\n"
+            }
 
             
-  //           for (y in information_cells[x]["outputs"]) {
-  //             // console.log(markdown.toHTML(information_cells[x]["source"][y]));
-  //             let outputObject = information_cells[x]["outputs"][y]
-  //             let linesText = []
-  //               for(z in outputObject["text"]){
-  //                 let lineText = outputObject["text"][z]
-  //                 linesText.push(lineText)
-  //               }
-  //               outputs.push({"text": linesText})
-  //           }
+            for (y in information_cells[x]["outputs"]) {
+              let outputObject = information_cells[x]["outputs"][y]
+              let linesText = []
+                for(z in outputObject["text"]){
+                  let lineText = outputObject["text"][z]
+                  linesText.push(lineText)
+                }
+                outputs.push({"text": linesText})
+            }
             
-  //           let executionCount = information_cells[x]["execution_count"]
-  //           let cellType = "code"
-  //           let source = linesSource
-  //           let cell = {
-  //             cellType,
-  //             executionCount,
-  //             outputs,
-  //             source
-  //           }  
+            let executionCount = information_cells[x]["execution_count"]
+            let cellType = "code"
+            let source = linesSource
+            let cell = {
+              cellType,
+              executionCount,
+              outputs,
+              source
+            }  
             
-  //           cells.push(cell)
-  //       }
-  //     }
+            cells.push(cell)
+        }
+      }
       console.log("cells",JSON.stringify(cells) )
       return JSON.stringify(cells)
 }
 
 
 async function saveFileToRedis(cells, notebookAssingmentId){
-  // console.log("cells", cells)
-  // console.log(typeof cells)
-  // console.log("saveFileToRedis")
-  // let jsonObj = Object.values(cells)
-  
-  // console.log("jsonObj", jsonObj.toString())
-  // console.log(typeof jsonObj)
   var code = await redis.hset(
     "notebookAssignment:"+notebookAssingmentId,
     "cells",
     cells
     );
-   
-    // var code2 = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
-    // let value = JSON.parse(code2)
-    // console.log("Check, ", typeof(JSON.parse(code2)), ', value, ', value)
-      // console.log("code2",code2[0])
 }
 
 async function getNotebookAssignmentId(filePath){

@@ -104,7 +104,7 @@ module.exports = (io, client, redis, projects) => {
           active_user: active_user
         };
         client.emit("role selection", { partner: partner });
-
+        console.log("line 107 : call initRemainder")
         initRemainder();
       } else {
         if (projects[projectId].active_user[curUser] === undefined) {

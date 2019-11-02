@@ -41,7 +41,7 @@ block content
                     .text_cell_render.rendered_html(style="padding-left:8em; padding-right:25px; margin-top: 25px;")
                       - for (let y=0; y < `${cells[i]["source"].length}`; y++)
                           p !{cells[i]["source"][y]} 
-                          textarea(id=i+'-text' style="display:none;" )  !{cells[i]["source"][y]}          
+                          textarea(id=i style="display:none;" )  !{cells[i]["source"][y]}          
             else if `${cells[i]["cellType"]}` === "code"
               .cell.code_cell.rendered
                 .input
@@ -51,15 +51,16 @@ block content
                       bdi [!{cells[i]["executionCount"]}]:
                   .inner_cell
                     .input_area(style="margin-top: 25px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px; background: #f7f7f7;")
-                      textarea(id=i+'-text').show 
-                        - for(var y = 0; y < `${cells[i]["source"].length}`; y++)
-                          | !{cells[i]["source"][y]}   
+                      textarea(id=i).show 
+                        //- - for(var y = 0; y < `${cells[i]["source"].length}`; y++)
+                        //-   | !{cells[i]["source"][y]}   
                 .output(id="file"+'-div-output')
                   .output_area
                     .output_subarea.output_text(style="margin-top: 10px; padding-left:8em; padding-right:25px;")
                       - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
                           | !{cells[i]["outputs"][y]["text"]}   
-              input(type='hidden' id='projectFiles' value=`${codeCellId}`)
+              input(type='hidden' id='projectFiles' value=`${JSON.stringify(cells)}`)
+              input(type='hidden' id='notebookAssingmentId' value=`${dataSets.origins.notebookAssignment.notebook_assignment_id}`)
              
     a.button.ui.labeled.icon.button(href='/classroom?section_id='+dataSets.origins.section.section_id, style='margin-top:20px;')
       i.reply.icon

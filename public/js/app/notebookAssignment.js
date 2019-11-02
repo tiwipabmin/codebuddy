@@ -21,16 +21,20 @@ function addBlock() {
 
   var segmentCodeBlock = document.getElementById("segmentCodeBlock");
 
-  /**
+/**
  * Initiate local editor
  */
-var projectFiles = document.getElementById("projectFiles").value;
+var projectFiles = JSON.parse(document.getElementById("projectFiles").value);
+var notebookAssingmentId = document.getElementById("notebookAssingmentId").value;
+console.log("notebookAssingmentId", notebookAssingmentId)
 
 
-let listStr = projectFiles.split(',')
 
-for(var i = 0; i < listStr.length; i++){
-  newEditorFacade(listStr[i])
+for(var i = 0; i < projectFiles.length; i++){
+  if(projectFiles[i]["cellType"] == "code"){
+    newEditorFacade(i)
+  }
+  
 }
 
 
@@ -60,9 +64,9 @@ function newEditorFacade(fileName) {
 }
 
 function setEditor(fileName) {
-  console.log(fileName + "-text")
+  console.log(fileName)
   var cm = CodeMirror.fromTextArea(
-    document.getElementById(fileName + "-text"),
+    document.getElementById(fileName),
     {
       lineNumbers: true,
       mode: {
@@ -180,3 +184,56 @@ function setEditor(fileName) {
 //     });
 //   });
 // }
+
+/**
+ * Recieve new changes editor value from server and applied them to local editor
+ */
+// socket.on("editor update", payload => {
+//   var blockObj = editors.find(obj => {
+//     return obj.blockId == payload.fileName;
+//   });
+//   blockObj.editor.replaceRange(payload.text, payload.from, payload.to);
+//   setTimeout(function() {
+//     blockObj.editor.refresh();
+//   }, 1);
+// });
+
+/**
+ * User join the project
+ */
+socket.emit("load playground", { programming_style: "Collaborative" });
+socket.emit("join project", {
+  notebookAssingmentId: notebookAssingmentId
+});
+
+socket.on("init state", payload => {
+  if (payload.editor != null) {
+    console.log("payload.editor", payload.editor)
+    var editorValues = JSON.parse(payload.editor);
+    console.log("editorValues", editorValues)
+    // projectFiles.forEach(setEditorValue);
+    console.log("editors", editors)
+    for(var i = 0; i < editorValues.length; i++){
+      console.log("editorValues.length", editorValues.length)
+      if(editorValues[i]["cellType"] == "code"){
+        console.log("i", i)
+        setEditorValue(i)
+      }
+     
+    }
+  } else {
+    editors[0].editor.setValue("");
+  }
+ 
+  function setEditorValue(fileName) {
+    if (editorValues != null) {
+      var blockObj = editors.find(obj => {
+        return obj.blockId == fileName;
+      });
+      blockObj.editor.setValue(editorValues[fileName]["source"]);
+      currentFileName = fileName;
+    }
+  }
+
+  code = payload.editor;
+});
