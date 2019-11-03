@@ -540,6 +540,7 @@ module.exports = (io, client, redis, projects) => {
         var editorJson = {};
         if (obj.editor != undefined) {
           var editorJson = JSON.parse(obj.editor);
+          console.log("editorJson", editorJson)
         }
         editorJson[editorName] = payload.editor;
         redis.hset(
