@@ -71,7 +71,7 @@ module.exports = (io, client,redis, Projects) => {
       editorName = payload.fileName;
       redis.hgetall( "notebookAssignment:"+ cryptr.decrypt(notebookAssingmentId),
        function(err, obj) {
-        console.log("TypeOf obj, ", typeof(obj), ', Values, ', obj)
+        // console.log("TypeOf obj, ", typeof(obj), ', Values, ', obj)
         let cells = {};
         if (obj.cells != undefined) {
           cells = JSON.parse(obj.cells);
