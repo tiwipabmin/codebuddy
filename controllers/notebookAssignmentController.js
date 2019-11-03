@@ -176,7 +176,7 @@ function readFileNotebookAssingment(filename){
             for (y in information_cells[x]["source"]) {
               let lineSource = information_cells[x]["source"][y]
                 // linesSource.push(lineSource)
-                 linesSource+= lineSource+"\n"
+                 linesSource+= lineSource
             }
 
             
