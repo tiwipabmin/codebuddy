@@ -28,6 +28,8 @@ block content
         h1.ui.header !{dataSets.origins.notebookAssignment.title}
       if user.info.occupation == 'teacher'
         .right.aligned.column
+          button.ui.icon.button.pink.float-right(id='exportNotebookFile' onClick='exportNotebookFile("'+dataSets.origins.notebookAssignment.notebook_assignment_id+'","'+dataSets.origins.notebookAssignment.title+'")' data-tooltip="Export" data-inverted="")
+              i.fa.fa-folder.icon
           button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
               i.plus.icon
           //- .ui.button.approve.grey#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.notebookAssignment}`+')') Edit

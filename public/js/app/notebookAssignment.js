@@ -120,70 +120,70 @@ function setEditor(fileName) {
   editors.push({ blockId: fileName, editor: cm });
 }
 
-// function setOnChangeEditer(fileName) {
-//   /**
-//    * Local editor value is changing, to handle that we'll emit our changes to server
-//    */
-//   var blockObj = editors.find(obj => {
-//     return obj.blockId == fileName;
-//   });
-//   blockObj.editor.on("change", (ins, data) => {
-//     var text = data.text.toString().charCodeAt(0);
-//     console.log("data.text.toString() : " + data.text.toString());
-//     var enterline = parseInt(data.to.line) + 1;
-//     var remove = data.removed;
-//     var isEnter = false;
-//     var isDelete = false;
+function setOnChangeEditer(fileName) {
+  /**
+   * Local editor value is changing, to handle that we'll emit our changes to server
+   */
+  var blockObj = editors.find(obj => {
+    return obj.blockId == fileName;
+  });
+  blockObj.editor.on("change", (ins, data) => {
+    var text = data.text.toString().charCodeAt(0);
+    console.log("data.text.toString() : " + data.text.toString());
+    var enterline = parseInt(data.to.line) + 1;
+    var remove = data.removed;
+    var isEnter = false;
+    var isDelete = false;
 
-//     /**
-//      * check when enter new line
-//      **/
-//     if (text == 44) {
-//       console.log("enter " + enterline);
-//       for (var i in comments) {
-//         if (comments[i].line > enterline && comments[i].file == fileName) {
-//           isEnter = true;
-//           comments[i].line = parseInt(comments[i].line) + 1;
-//         }
-//       }
-//       socket.emit("move hilight", {
-//         fileName: fileName,
-//         comments: comments,
-//         enterline: enterline,
-//         isEnter: isEnter
-//       });
-//     }
+    /**
+     * check when enter new line
+     **/
+    if (text == 44) {
+      console.log("enter " + enterline);
+      for (var i in comments) {
+        if (comments[i].line > enterline && comments[i].file == fileName) {
+          isEnter = true;
+          comments[i].line = parseInt(comments[i].line) + 1;
+        }
+      }
+      socket.emit("move hilight", {
+        fileName: fileName,
+        comments: comments,
+        enterline: enterline,
+        isEnter: isEnter
+      });
+    }
 
-//     /**
-//      * check when delete line
-//      **/
-//     if (remove.length == 2) {
-//       for (var i in comments) {
-//         if (comments[i].line > enterline - 1 && comments[i].file == fileName) {
-//           isDelete = true;
-//           comments[i].line = parseInt(comments[i].line) - 1;
-//         }
-//       }
-//       socket.emit("move hilight", {
-//         fileName: fileName,
-//         comments: comments,
-//         enterline: enterline,
-//         isDelete: isDelete
-//       });
-//     }
+    /**
+     * check when delete line
+     **/
+    if (remove.length == 2) {
+      for (var i in comments) {
+        if (comments[i].line > enterline - 1 && comments[i].file == fileName) {
+          isDelete = true;
+          comments[i].line = parseInt(comments[i].line) - 1;
+        }
+      }
+      socket.emit("move hilight", {
+        fileName: fileName,
+        comments: comments,
+        enterline: enterline,
+        isDelete: isDelete
+      });
+    }
 
-//     socket.emit("code change", {
-//       code: data,
-//       editor: blockObj.editor.getValue(),
-//       user: user,
-//       enterline: enterline,
-//       isEnter: isEnter,
-//       isDelete: isDelete,
-//       currentTab: fileName,
-//       fileName: fileName
-//     });
-//   });
-// }
+    socket.emit("code change inter", {
+      code: data,
+      editor: blockObj.editor.getValue(),
+      user: user,
+      enterline: enterline,
+      isEnter: isEnter,
+      isDelete: isDelete,
+      currentTab: fileName,
+      fileName: fileName
+    });
+  });
+}
 
 /**
  * Recieve new changes editor value from server and applied them to local editor
@@ -237,3 +237,31 @@ socket.on("init state", payload => {
 
   code = payload.editor;
 });
+
+function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
+  console.log(" exportNotebookFile " + notebookAssingmentId + "  " + notebookAssingmenTitle)
+
+  var formData2 = new FormData();
+  formData2.append('notebookAssingmentId',notebookAssingmentId);
+  formData2.append('notebookAssingmenTitle', notebookAssingmenTitle);
+
+//   const options = {
+//     method: 'GET',
+//     body: formData
+//   };
+  
+  // $.ajax('/notebookAssignment/export', options);
+
+  // console.log(formData2.getAll("notebookAssingmenTitle"))
+
+  $.ajax({
+    type: "GET",
+    dataType:"json",
+    url: "/notebookAssignment/export",
+    data: formData2,
+    processData : false,
+    success: function (result) {
+         // do something here
+    }
+});
+}
