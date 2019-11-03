@@ -94,3 +94,4 @@ $RECYCLE.BIN/
 handlers/socket.js
 
 \.idea/
+package-lock.json
