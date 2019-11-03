@@ -141,10 +141,6 @@ function setOnChangeEditer(fileName) {
     return obj.blockId == fileName;
   });
 
-  
-
-  console.log("blockObj", blockObj)
-
   blockObj.editor.on("change", (ins, data) => {
     var text = data.text.toString().charCodeAt(0);
     console.log("data.text.toString() : " + data.text.toString());
@@ -189,6 +185,7 @@ function setOnChangeEditer(fileName) {
         isDelete: isDelete
       });
     }
+
     // var test =  blockObj.editor.getValue();
  
     // console.log("test",test )
@@ -262,3 +259,31 @@ socket.on("init state", payload => {
 
   code = payload.editor;
 });
+
+function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
+  console.log(" exportNotebookFile " + notebookAssingmentId + "  " + notebookAssingmenTitle)
+
+  var formData2 = new FormData();
+  formData2.append('notebookAssingmentId',notebookAssingmentId);
+  formData2.append('notebookAssingmenTitle', notebookAssingmenTitle);
+
+//   const options = {
+//     method: 'GET',
+//     body: formData
+//   };
+  
+  // $.ajax('/notebookAssignment/export', options);
+
+  // console.log(formData2.getAll("notebookAssingmenTitle"))
+
+  $.ajax({
+    type: "GET",
+    dataType:"json",
+    url: "/notebookAssignment/export",
+    data: formData2,
+    processData : false,
+    success: function (result) {
+         // do something here
+    }
+});
+}

@@ -16,6 +16,8 @@ const History = mongoose.model("History");
 var markdown = require("markdown").markdown;
 const redis = new Redis();
 
+var html2markdown = require('html2markdown');
+
 
 
 exports.getNotebookAssignment = async (req, res) => {
@@ -68,6 +70,7 @@ exports.uploadAssignment = async (req, res) => {
   let reqBody = req.body;
   let myBuffer = req.file.buffer
   let bufferToJson = JSON.parse(myBuffer);
+  console.log("bufferToJson " ,  bufferToJson)
   let dataStr = JSON.stringify(bufferToJson)
   console.log(`Data ${dataStr}`)
 
@@ -227,4 +230,93 @@ async function getNotebookAssignmentId(filePath){
   // console.log("query", query)
     let notebookAssignmentId = await conMysql.selectAssignment(query);
     return notebookAssignmentId
+}
+
+exports.exportNotebookFile = async (req, res) => {
+
+  console.log("exportNotebookFile" )
+
+  fileExport = new Array()
+   var notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
+   var notebookAssignment = JSON.parse(notebookAssignmentRedis)
+   let metadata = {}
+   let fileInfo
+
+     for (x in notebookAssignment) {
+      cell_type = notebookAssignment[x]["cellType"];
+      var html2Md = []
+          if ( cell_type == 'markdown') {
+            for (y in notebookAssignment[x]["source"]) {
+              sourceInfo = html2markdown(notebookAssignment[x]["source"][y]);   
+              html2Md.push(sourceInfo)   
+              source = html2Md 
+            }
+            let fileInfo = {
+              cell_type,
+             metadata,
+             source
+             } 
+            fileExport.push(fileInfo)
+         }
+          else{
+            source = notebookAssignment[x]["source"]; 
+            source = source.replace("\n","\n,,").split(",,")
+            let execution_count = null
+            let outputs = []
+
+            let fileInfo = {
+            cell_type,
+            execution_count,
+             metadata,
+             outputs,
+             source
+             } 
+
+             fileExport.push(fileInfo)
+
+          }
+
+      } 
+
+ let fileNotebook = 
+ {
+   "cells": fileExport,
+   "metadata": {
+    "kernelspec": {
+     "display_name": "Python 3",
+     "language": "python",
+     "name": "python3"
+    },
+    "language_info": {
+      "codemirror_mode": {
+       "name": "ipython",
+       "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.7.3"
+     }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 2
+
+ }
+
+ console.log("fileNotebook ", fileNotebook)
+ console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
+    fs.writeFileSync("aew.ipynb", JSON.stringify(fileNotebook), 'utf8', err =>  {
+
+
+    // throws an error, you could also catch it here
+    if (err) throw err;
+
+    // success case, the file was saved
+    console.log("aew.ipynb " + " has been saved!");
+
+  });
+
+
 }

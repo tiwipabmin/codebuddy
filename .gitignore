@@ -94,11 +94,5 @@ $RECYCLE.BIN/
 handlers/socket.js
 
 \.idea/
-handlers/playgroundCollaborative.js
 package-lock.json
-public/notebookAssignment/nb_2019-11-03_14-31-80225.ipynb
-public/notebookAssignment/nb_2019-11-03_14-41-6786.ipynb
-public/notebookAssignment/nb_2019-11-03_16-9-15874.ipynb
-public/project_files/rqVLZvjvPV/g13tky8b6.py
-public/project_files/rqVLZvjvPV/main.py
-public/project_files/rqVLZvjvPV/x7ddsijif.py
+
