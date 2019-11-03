@@ -47,7 +47,7 @@ exports.getNotebookAssignment = async (req, res) => {
   
     var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(req.query.notebook_assignment_id), "cells");
     let cells = JSON.parse(cellsRedis)
-    console.log("cells", cells)
+    // console.log("cells", cells)
 
     codeCellId = []
 
@@ -153,11 +153,13 @@ function readFileNotebookAssingment(filename){
     for (x in information_cells) {
         // console.log("---------Cells  [" + x + "]----------");
         if (information_cells[x]["cell_type"] == "markdown") {
-          let lines = []
+          // let lines = []
+          let lines = ""
           for (y in information_cells[x]["source"]) {
             // console.log(markdown.toHTML(information_cells[x]["source"][y]));
             let line = markdown.toHTML(information_cells[x]["source"][y]);
-            lines.push(line)
+            // lines.push(line)
+            lines += line+"\n"
           }
 
           let cellType = "markdown"
@@ -165,7 +167,8 @@ function readFileNotebookAssingment(filename){
           let cell = {
             cellType,
             source
-          }  
+          }
+          cell.blockId = x
           cells.push(cell)
       
         } else {
@@ -198,17 +201,19 @@ function readFileNotebookAssingment(filename){
               executionCount,
               outputs,
               source
-            }  
+            }
+            cell.blockId = x
             
             cells.push(cell)
         }
       }
-      console.log("cells",JSON.stringify(cells) )
+      // console.log("cells",JSON.stringify(cells) )
       return JSON.stringify(cells)
 }
 
 
 async function saveFileToRedis(cells, notebookAssingmentId){
+  console.log("TypeOf cells, ", typeof(cells))
   var code = await redis.hset(
     "notebookAssignment:"+notebookAssingmentId,
     "cells",
@@ -219,7 +224,7 @@ async function saveFileToRedis(cells, notebookAssingmentId){
 async function getNotebookAssignmentId(filePath){
   const query =
   "SELECT notebook_assignment_id FROM notebook_assignment WHERE filePath = " + '"'+filePath+'"'
-  console.log("query", query)
+  // console.log("query", query)
     let notebookAssignmentId = await conMysql.selectAssignment(query);
     return notebookAssignmentId
 }
