@@ -277,6 +277,15 @@ function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
   };
 
   // console.log('notebookAssingmentId: ', options.body.getAll('notebookAssingmentId'))
-  
-  fetch('/notebookAssignment/export', options);
+   
+
+  $.post("/notebookAssignment/export", notebookAssingmentId +","+ notebookAssingmenTitle)
+  // $.ajax({
+  //   url: "/notebookAssignment/export",
+  //   type: "post",
+  //   data: formData,
+  //   success: function(res) {
+  //   }});
+
+  // fetch('/notebookAssignment/export', options);
 }

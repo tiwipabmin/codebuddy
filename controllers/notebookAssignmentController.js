@@ -239,94 +239,100 @@ async function getNotebookAssignmentId(filePath){
 exports.exportNotebookFile = async (req, res) => {
 
   console.log("exportNotebookFile " )
-  console.log(req.body)
+  reqBody = Object.keys(req.body)
+  splitBody = reqBody[0].split(",")
+  notebookAssignmentID = cryptr.decrypt(splitBody[0])
+  notebookAssignmentTitle = splitBody[1]+".ipynb"
+  console.log("notebookAssignmentID" , notebookAssignmentID);
+  console.log("notebookAssignmentTitle" , notebookAssignmentTitle);
 
 
-//   fileExport = new Array()
-//    var notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+"7", "cells");
-//    var notebookAssignment = JSON.parse(notebookAssignmentRedis)
-//    let metadata = {}
-//    let fileInfo
+
+  fileExport = new Array()
+   var notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssignmentID, "cells");
+   var notebookAssignment = JSON.parse(notebookAssignmentRedis)
+   let metadata = {}
+   let fileInfo
 
 
-//      for (x in notebookAssignment) {
-//       cell_type = notebookAssignment[x]["cellType"];
-//       var html2Md = []
-//           if ( cell_type == 'markdown') {
-//               splitMD = notebookAssignment[x]["source"].split("\n")
-//               for (y in splitMD) {
-//                 sourceInfo = html2markdown(splitMD[y]);   
-//                 html2Md.push(sourceInfo)   
-//                 source = html2Md 
-//               }
-//               let fileInfo = {
-//                 cell_type,
-//               metadata,
-//               source
-//               } 
-//               fileExport.push(fileInfo)
-//           }
-//             else{
-//               source = notebookAssignment[x]["source"]; 
-//               source = source.replace("\n","\n,,").split(",,")
-//               let execution_count = null
-//               let outputs = []
+     for (x in notebookAssignment) {
+      cell_type = notebookAssignment[x]["cellType"];
+      var html2Md = []
+          if ( cell_type == 'markdown') {
+              splitMD = notebookAssignment[x]["source"].split("\n")
+              for (y in splitMD) {
+                sourceInfo = html2markdown(splitMD[y]);   
+                html2Md.push(sourceInfo)   
+                source = html2Md 
+              }
+              let fileInfo = {
+                cell_type,
+              metadata,
+              source
+              } 
+              fileExport.push(fileInfo)
+          }
+            else{
+              source = notebookAssignment[x]["source"]; 
+              source = source.replace("\n","\n,,").split(",,")
+              let execution_count = null
+              let outputs = []
 
-//               let fileInfo = {
-//               cell_type,
-//               execution_count,
-//               metadata,
-//               outputs,
-//               source
-//               } 
+              let fileInfo = {
+              cell_type,
+              execution_count,
+              metadata,
+              outputs,
+              source
+              } 
 
-//               fileExport.push(fileInfo)
+              fileExport.push(fileInfo)
 
-//             }
+            }
 
-//         } 
+        } 
 
-//  let fileNotebook = 
-//  {
-//    "cells": fileExport,
-//    "metadata": {
-//     "kernelspec": {
-//      "display_name": "Python 3",
-//      "language": "python",
-//      "name": "python3"
-//     },
-//     "language_info": {
-//       "codemirror_mode": {
-//        "name": "ipython",
-//        "version": 3
-//       },
-//       "file_extension": ".py",
-//       "mimetype": "text/x-python",
-//       "name": "python",
-//       "nbconvert_exporter": "python",
-//       "pygments_lexer": "ipython3",
-//       "version": "3.7.3"
-//      }
-//     },
-//     "nbformat": 4,
-//     "nbformat_minor": 2
+ let fileNotebook = 
+ {
+   "cells": fileExport,
+   "metadata": {
+    "kernelspec": {
+     "display_name": "Python 3",
+     "language": "python",
+     "name": "python3"
+    },
+    "language_info": {
+      "codemirror_mode": {
+       "name": "ipython",
+       "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.7.3"
+     }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 2
 
-//  }
+ }
 
-//  var filePath = "./public/notebookAssignment/";
+ var filePath = "./public/notebookAssignment/";
 
-//  console.log("fileNotebook ", fileNotebook)
-//  console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
-//     fs.writeFileSync("testFile.ipynb", JSON.stringify(fileNotebook), 'utf8', err =>  {
+ console.log("fileNotebook ", fileNotebook)
+ console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
+    fs.writeFileSync(notebookAssignmentTitle, JSON.stringify(fileNotebook), 'utf8', err =>  {
 
 
-//     // throws an error, you could also catch it here
-//     if (err) throw err;
+    // throws an error, you could also catch it here
+    if (err) throw err;
 
-//     // success case, the file was saved
-//     console.log("testFile.ipynb " + " has been saved!");
+    // success case, the file was saved
+    console.log("testFile.ipynb " + " has been saved!");
 
-//   });
+  });
 
 
 }
