@@ -69,7 +69,340 @@ function on_click_weeks_dropdown(
 
   on_click_page_number_in_first_container(1);
 }
+function on_click_page_number_in_first_container(page) {
+  $(".active.item.fc").attr({
+    class: "item fc"
+  });
+  $("#page_" + page + "_first_container").attr({
+    class: "active item fc"
+  });
 
+  $(".active.first.container").attr({
+    class: "ui divided items first container",
+    style: "display: none"
+  });
+  $("#items_first_container" + page).attr({
+    class: "ui divided items active first container",
+    style: "display: block"
+  });
+}
+
+function on_click_page_number_in_second_container(page) {
+  $(".active.item.sc").attr({
+    class: "item sc"
+  });
+  $("#page_" + page + "_second_container").attr({
+    class: "active item sc"
+  });
+
+  $(".active.second.container").attr({
+    class: "ui middle aligned divided list second container",
+    style: "display: none"
+  });
+  $("#items_second_container" + page).attr({
+    class: "ui middle aligned divided list active second container",
+    style: "display: block"
+  });
+}
+
+function set_item_pagination_in_second_container(
+  students,
+  section_id,
+  occupation
+) {
+  let res_obj = get_items_of_week(students, 10, "-1week");
+  students = res_obj.items_of_week;
+  let pagination = res_obj.pagination;
+
+  let item = null;
+  let student = null;
+  let content = null;
+  let img = null;
+
+  for (_index_p in pagination) {
+    $("div").remove("#items_second_container" + pagination[_index_p]);
+    $("#segment_in_second_container").append(
+      "<div class='ui middle aligned divided list second container' id='items_second_container" +
+        pagination[_index_p] +
+        "'></div>"
+    );
+
+    if (pagination[_index_p] == 1) {
+      $("#items_second_container" + pagination[_index_p]).attr(
+        "class",
+        "ui middle aligned divided list active second container"
+      );
+    } else if (pagination[_index_p] > 1) {
+      $("#items_second_container" + pagination[_index_p]).attr(
+        "style",
+        "display: none"
+      );
+    }
+
+    for (_index_s in students) {
+      if (students[_index_s].page == pagination[_index_p]) {
+        student = students[_index_s];
+        item = $(
+          "<div class='item' id='" +
+            student.enrollment_id +
+            "' style='padding-left:15px; padding-right:15px;'></div>"
+        );
+        img = $("<img class='ui avatar image' src='images/user_img_0.jpg'/>");
+        switch (occupation) {
+          case "teacher":
+            let right_floated_content = null;
+            let tag_a = null;
+            right_floated_content = $(
+              "<div class='right floated content'></div>"
+            );
+            tag_a = $(
+              "<a class='ui right floated aligedvertical animated button red' onclick='on_click_remove_student_button(" +
+                student.enrollment_id +
+                ',"' +
+                student.first_name +
+                '","' +
+                student.last_name +
+                "\")'><div class='hidden content' style='color:white'> Remove </div><div class='visible content'><i class='sign out icon'/></div></a>"
+            );
+            content = $(
+              "<div class='content'><a href='/profile?section_id=" +
+                section_id +
+                "&username=" +
+                student.username +
+                "'><p> " +
+                student.first_name +
+                " " +
+                student.last_name +
+                " </p></a></div>"
+            );
+            right_floated_content.append(tag_a);
+            item.append(right_floated_content);
+            item.append(img);
+            item.append(content);
+
+            break;
+          default:
+            content = $(
+              "<div class='content'><p> " +
+                student.first_name +
+                " " +
+                student.last_name +
+                " </p></div>"
+            );
+            item.append(img);
+            item.append(content);
+        }
+        $("#items_second_container" + pagination[_index_p]).append(item);
+      }
+    }
+  }
+
+  $("div").remove("#student_pagination");
+  if (pagination[pagination.length - 1] == 1) {
+    pagination = [];
+  } else {
+    $(
+      "<div class='ui pagination menu' id='student_pagination'></div>"
+    ).insertAfter("#ui_two_column_in_second_container");
+  }
+
+  item = null;
+  for (_index in pagination) {
+    item = $(
+      "<a class='item sc' id='page_" +
+        pagination[_index] +
+        "_second_container' onclick='on_click_page_number_in_second_container(" +
+        pagination[_index] +
+        ")'>" +
+        pagination[_index] +
+        "</a>"
+    );
+    $("#student_pagination").append(item);
+  }
+}
+function on_click_page_number_in_third_container(page) {
+  $(".active.item.tc").attr({
+    class: "item tc"
+  });
+  $("#page_" + page + "_third_container").attr({
+    class: "active item tc"
+  });
+
+  $(".active.third.container").attr({
+    class: "ui divided items third container",
+    style: "display: none"
+  });
+  $("#items_third_container" + page).attr({
+    class: "ui divided items active third container",
+    style: "display: block"
+  });
+}
+function set_item_pagination_in_third_container(
+  objects,
+  section_id,
+  occupation
+) {
+  let res_obj = get_items_of_week(objects, 5, "-1week");
+  objects = res_obj.items_of_week;
+  let pagination = res_obj.pagination;
+
+  let item = null;
+  let content = null;
+  let description = null;
+  let pairing_times = objects.length;
+
+  for (_index_p in pagination) {
+    $("div").remove("#items_third_container" + pagination[_index_p]);
+    $("#segment_in_third_container").append(
+      "<div class='ui divided items third container' id='items_third_container" +
+        pagination[_index_p] +
+        "'></div>"
+    );
+
+    if (pagination[_index_p] == 1) {
+      $("#items_third_container" + pagination[_index_p]).attr(
+        "class",
+        "ui divided items active third containerr"
+      );
+    } else if (pagination[_index_p] > 1) {
+      $("#items_third_container" + pagination[_index_p]).attr(
+        "style",
+        "display: none"
+      );
+    }
+
+    for (_index_o in objects) {
+      if (objects[_index_o].page == pagination[_index_p]) {
+        switch (occupation) {
+          case "teacher":
+            let grid = null;
+            let extra = null;
+            let eleven_wide_column = null;
+            let tag_b = null;
+            let five_wide_column = null;
+            let button = null;
+            let pairing_session = objects[_index_o];
+            item = $(
+              "<div class='item' style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;'></div>"
+            );
+            content = $("<div class='content'></div>");
+            grid = $("<div class='ui grid'></div>");
+            eleven_wide_column = $("<div class='eleven wide column'></div>");
+            five_wide_column = $("<div class='five wide column'></div>");
+            if (pairing_session.status == 0) {
+              // console.log('pairing_session.status, ', pairing_session.status)
+              tag_b = $(
+                "<b style='font-size:1.5em;'><header style='color:#5D5D5D;'> Session : " +
+                  (pairing_times - _index_o) +
+                  " </header></b>"
+              );
+              description = $(
+                "<p><b style='color:#5D5D5D'> Start at : </b><font style='color:#5D5D5D'>" +
+                  pairing_session.time_start +
+                  "</font><br><b style='color:#5D5D5D'> End at : </b><font style='color:#5D5D5D'>" +
+                  pairing_session.time_end +
+                  "</font></p>"
+              );
+              button = $(
+                "<div class='ui right floated alignedvertical animated button' onclick='onClickViewPairingRecord(" +
+                  pairing_session.pairing_session_id +
+                  ', "' +
+                  section_id +
+                  "\")'><div class='hidden content' style='color:#5D5D5D;'> View </div><div class='visible content'><i class='eye icon'/></div></div>"
+              );
+              extra = $(
+                "<div class='extra'><div class='ui label' id='status' style='background-color:#E8E8E8; color:#665D5D;'> COMPLETED </div></div>"
+              );
+            } else {
+              tag_b = $(
+                "<b style='font-size:1.5em;'><header> Session : " +
+                  (pairing_times - _index_o) +
+                  " </header></b>"
+              );
+              description = $(
+                "<p><b> Start at : </b><font>" +
+                  pairing_session.time_start +
+                  "</font><br><b> End at : </b><font>" +
+                  pairing_session.time_end +
+                  "</font></p>"
+              );
+              button = $(
+                "<div class='ui top right floated pointing dropdown button blue' ><font color='white'> Select </font><div class='menu'><div class='item' onclick='onClickViewPairingRecord(" +
+                  pairing_session.pairing_session_id +
+                  ', "' +
+                  section_id +
+                  "\")'> View </div><div class='item' onclick='onClickCompletedSessionMenu(" +
+                  pairing_session.pairing_session_id +
+                  ', "' +
+                  section_id +
+                  "\")'> Completed </div></div></div>"
+              );
+              extra = $(
+                "<div class='extra'><div class='ui label' id='status' style='background-color:#16AB39; color:white;'> ACTIVE </div></div>"
+              );
+            }
+            item.append(content);
+            content.append(grid);
+            content.append(extra);
+            grid.append(eleven_wide_column);
+            grid.append(five_wide_column);
+            eleven_wide_column.append(tag_b);
+            eleven_wide_column.append(description);
+            five_wide_column.append(button);
+            $("#items_third_container" + pagination[_index_p]).append(item);
+
+            break;
+          default:
+            let assignment = objects[_index_o];
+            let tag_a = null;
+            item = $("<div class='item'></div>");
+            content = $("<div class='content'></div>");
+            tag_a = $(
+              "<a href='/assignment?section_id=" +
+                section_id +
+                "&assignment_id=" +
+                assignment.assignment_id +
+                "'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'>" +
+                assignment.title +
+                "</b></a>"
+            );
+            description = $(
+              "<div class='description'><p style='padding-left:15px; padding-right:15px;'>" +
+                assignment.description +
+                "</p></div>"
+            );
+            item.append(content);
+            content.append(tag_a);
+            content.append(description);
+            $("#items_third_container" + pagination[_index_p]).append(item);
+        }
+      }
+    }
+  }
+
+  $("div").remove("#pagination_in_third_container");
+  if (pagination[pagination.length - 1] == 1) {
+    pagination = [];
+  } else {
+    $(
+      "<div class='ui pagination menu' id='pagination_in_third_container'></div>"
+    ).insertAfter("#ui_two_column_in_third_container");
+  }
+
+  item = null;
+  for (_index in pagination) {
+    item = $(
+      "<a class='item tc' id='page_" +
+        pagination[_index] +
+        "_third_container' onclick='on_click_page_number_in_third_container(" +
+        pagination[_index] +
+        ")'>" +
+        pagination[_index] +
+        "</a>"
+    );
+    $("#pagination_in_third_container").append(item);
+  }
+}
 function get_items_of_week(items, range, week) {
   week = week.split("week");
   week = parseInt(week[0]);
@@ -1665,6 +1998,8 @@ function onClickAssign(
 }
 
 function on_click_assign_button(assignment_of_week, pairing_session_id) {
+  
+  console.log(" on_click_assign_button ")
   assignment_of_week = JSON.parse(assignment_of_week);
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
@@ -1719,6 +2054,8 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
 // }
 
 function onClickDeleteAssignment(assignment_of_week) {
+  console.log(" onClickDeleteAssignment coll")
+
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
     $("#" + e.assignment_id + "_is_selected").is(":checked") == true
@@ -2013,1204 +2350,5 @@ function create_weeks_dropdown(id, pairing_session_id, dataSets) {
   });
 }
 
-function on_click_weeks_dropdown(
-  id,
-  assignment_set,
-  username,
-  img,
-  pairing_session_id,
-  opt
-) {
-  // console.log('pairing_session_id, ', pairing_session_id)
-  assignment_set = assignment_set;
-  let res_obj = get_items_of_week(assignment_set, 5, id);
-  let assignment_of_week_ = res_obj.items_of_week;
-  let pagination = res_obj.pagination;
-  // console.log('assignment_of_week_, ', assignment_of_week_)
 
-  set_item_pagination_in_first_container(
-    pagination,
-    assignment_of_week_,
-    username,
-    img,
-    id,
-    opt
-  );
-
-  $("#assign_button").attr(
-    "onclick",
-    "on_click_assign_button(" +
-      JSON.stringify(JSON.stringify(assignment_of_week_)) +
-      ", " +
-      pairing_session_id +
-      ")"
-  );
-  $("#delete_assignment_button").attr(
-    "onclick",
-    "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
-  );
-  $("div").remove("#assignment_pagination");
-  if (pagination[pagination.length - 1] == 1) {
-    pagination = [];
-  } else if (pagination.length) {
-    $(
-      "<div class='ui pagination menu' id='assignment_pagination'></div>"
-    ).insertAfter("#divider_in_first_container");
-  }
-
-  let item = null;
-
-  for (_index in pagination) {
-    item = $(
-      "<a class='item fc' id='page_" +
-        pagination[_index] +
-        "_first_container' onclick='on_click_page_number_in_first_container(" +
-        pagination[_index] +
-        ")'>" +
-        pagination[_index] +
-        "</a>"
-    );
-    $("#assignment_pagination").append(item);
-  }
-
-  on_click_page_number_in_first_container(1);
-}
-
-
-function on_click_page_number_in_first_container(page) {
-  $(".active.item.fc").attr({
-    class: "item fc"
-  });
-  $("#page_" + page + "_first_container").attr({
-    class: "active item fc"
-  });
-
-  $(".active.first.container").attr({
-    class: "ui divided items first container",
-    style: "display: none"
-  });
-  $("#items_first_container" + page).attr({
-    class: "ui divided items active first container",
-    style: "display: block"
-  });
-}
-
-
-function compareDate(date1, date2) {
-  if (date1 > date2) return 1;
-  else if (date1 === date2) return 0;
-  else if (date1 < date2) return -1;
-  else return "An illegal date.";
-}
-
-function monitorActiveProjects(projects) {
-  for (let indexPro in projects) {
-    let project = projects[indexPro];
-    if (compareDate(project.enable_time, project.disable_time) > 0) {
-      if (
-        $("#" + project.pid + "Project")
-          .find(".green")
-          .attr("class") === undefined
-      ) {
-        $("#" + project.pid + "Project").prepend(
-          "<div id='" +
-            project.pid +
-            "IconStatus' class='one wide column'><i class='green circle icon'/></div>"
-        );
-        $("#" + project.pid + "TextStatus").text("Active now!");
-      }
-    } else if (compareDate(project.enable_time, project.disable_time) < 0) {
-      $("#" + project.pid + "IconStatus").remove();
-      $("#" + project.pid + "TextStatus").text(
-        "Last updated " + moment(project.enable_time).fromNow()
-      );
-    } else if (compareDate(project.enable_time, project.disable_time) === 0) {
-      $("#" + project.pid + "IconStatus").remove();
-      $("#" + project.pid + "TextStatus").text(
-        "Last updated " + moment(project.enable_time).fromNow()
-      );
-    }
-  }
-}
-
-function setMonitoringInterval(id, intervalTime, projects) {
-  let intervalTimeId = {};
-  intervalTimeId[id] = setInterval(
-    projects => {
-      let parameters = { projects: projects };
-
-      $.get("/api/projects", parameters, function(data) {
-        let projects = data.projects;
-        monitorActiveProjects(projects);
-      });
-    },
-    intervalTime,
-    projects
-  );
-}
-
-function on_click_page_number_in_second_container(page) {
-  $(".active.item.sc").attr({
-    class: "item sc"
-  });
-  $("#page_" + page + "_second_container").attr({
-    class: "active item sc"
-  });
-
-  $(".active.second.container").attr({
-    class: "ui middle aligned divided list second container",
-    style: "display: none"
-  });
-  $("#items_second_container" + page).attr({
-    class: "ui middle aligned divided list active second container",
-    style: "display: block"
-  });
-}
-
-function set_item_pagination_in_second_container(
-  students,
-  section_id,
-  occupation
-) {
-  let res_obj = get_items_of_week(students, 10, "-1week");
-  students = res_obj.items_of_week;
-  let pagination = res_obj.pagination;
-
-  let item = null;
-  let student = null;
-  let content = null;
-  let img = null;
-
-  for (_index_p in pagination) {
-    $("div").remove("#items_second_container" + pagination[_index_p]);
-    $("#segment_in_second_container").append(
-      "<div class='ui middle aligned divided list second container' id='items_second_container" +
-        pagination[_index_p] +
-        "'></div>"
-    );
-
-    if (pagination[_index_p] == 1) {
-      $("#items_second_container" + pagination[_index_p]).attr(
-        "class",
-        "ui middle aligned divided list active second container"
-      );
-    } else if (pagination[_index_p] > 1) {
-      $("#items_second_container" + pagination[_index_p]).attr(
-        "style",
-        "display: none"
-      );
-    }
-
-    for (_index_s in students) {
-      if (students[_index_s].page == pagination[_index_p]) {
-        student = students[_index_s];
-        item = $(
-          "<div class='item' id='" +
-            student.enrollment_id +
-            "' style='padding-left:15px; padding-right:15px;'></div>"
-        );
-        img = $("<img class='ui avatar image' src='images/user_img_0.jpg'/>");
-        switch (occupation) {
-          case "teacher":
-            let right_floated_content = null;
-            let tag_a = null;
-            right_floated_content = $(
-              "<div class='right floated content'></div>"
-            );
-            tag_a = $(
-              "<a class='ui right floated aligedvertical animated button red' onclick='on_click_remove_student_button(" +
-                student.enrollment_id +
-                ',"' +
-                student.first_name +
-                '","' +
-                student.last_name +
-                "\")'><div class='hidden content' style='color:white'> Remove </div><div class='visible content'><i class='sign out icon'/></div></a>"
-            );
-            content = $(
-              "<div class='content'><a href='/profile?section_id=" +
-                section_id +
-                "&username=" +
-                student.username +
-                "'><p> " +
-                student.first_name +
-                " " +
-                student.last_name +
-                " </p></a></div>"
-            );
-            right_floated_content.append(tag_a);
-            item.append(right_floated_content);
-            item.append(img);
-            item.append(content);
-
-            break;
-          default:
-            content = $(
-              "<div class='content'><p> " +
-                student.first_name +
-                " " +
-                student.last_name +
-                " </p></div>"
-            );
-            item.append(img);
-            item.append(content);
-        }
-        $("#items_second_container" + pagination[_index_p]).append(item);
-      }
-    }
-  }
-
-  $("div").remove("#student_pagination");
-  if (pagination[pagination.length - 1] == 1) {
-    pagination = [];
-  } else {
-    $(
-      "<div class='ui pagination menu' id='student_pagination'></div>"
-    ).insertAfter("#ui_two_column_in_second_container");
-  }
-
-  item = null;
-  for (_index in pagination) {
-    item = $(
-      "<a class='item sc' id='page_" +
-        pagination[_index] +
-        "_second_container' onclick='on_click_page_number_in_second_container(" +
-        pagination[_index] +
-        ")'>" +
-        pagination[_index] +
-        "</a>"
-    );
-    $("#student_pagination").append(item);
-  }
-}
-
-function on_click_page_number_in_third_container(page) {
-  $(".active.item.tc").attr({
-    class: "item tc"
-  });
-  $("#page_" + page + "_third_container").attr({
-    class: "active item tc"
-  });
-
-  $(".active.third.container").attr({
-    class: "ui divided items third container",
-    style: "display: none"
-  });
-  $("#items_third_container" + page).attr({
-    class: "ui divided items active third container",
-    style: "display: block"
-  });
-}
-
-function set_item_pagination_in_third_container(
-  objects,
-  section_id,
-  occupation
-) {
-  let res_obj = get_items_of_week(objects, 5, "-1week");
-  objects = res_obj.items_of_week;
-  let pagination = res_obj.pagination;
-
-  let item = null;
-  let content = null;
-  let description = null;
-  let pairing_times = objects.length;
-
-  for (_index_p in pagination) {
-    $("div").remove("#items_third_container" + pagination[_index_p]);
-    $("#segment_in_third_container").append(
-      "<div class='ui divided items third container' id='items_third_container" +
-        pagination[_index_p] +
-        "'></div>"
-    );
-
-    if (pagination[_index_p] == 1) {
-      $("#items_third_container" + pagination[_index_p]).attr(
-        "class",
-        "ui divided items active third containerr"
-      );
-    } else if (pagination[_index_p] > 1) {
-      $("#items_third_container" + pagination[_index_p]).attr(
-        "style",
-        "display: none"
-      );
-    }
-
-    for (_index_o in objects) {
-      if (objects[_index_o].page == pagination[_index_p]) {
-        switch (occupation) {
-          case "teacher":
-            let grid = null;
-            let extra = null;
-            let eleven_wide_column = null;
-            let tag_b = null;
-            let five_wide_column = null;
-            let button = null;
-            let pairing_session = objects[_index_o];
-            item = $(
-              "<div class='item' style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;'></div>"
-            );
-            content = $("<div class='content'></div>");
-            grid = $("<div class='ui grid'></div>");
-            eleven_wide_column = $("<div class='eleven wide column'></div>");
-            five_wide_column = $("<div class='five wide column'></div>");
-            if (pairing_session.status == 0) {
-              // console.log('pairing_session.status, ', pairing_session.status)
-              tag_b = $(
-                "<b style='font-size:1.5em;'><header style='color:#5D5D5D;'> Session : " +
-                  (pairing_times - _index_o) +
-                  " </header></b>"
-              );
-              description = $(
-                "<p><b style='color:#5D5D5D'> Start at : </b><font style='color:#5D5D5D'>" +
-                  pairing_session.time_start +
-                  "</font><br><b style='color:#5D5D5D'> End at : </b><font style='color:#5D5D5D'>" +
-                  pairing_session.time_end +
-                  "</font></p>"
-              );
-              button = $(
-                "<div class='ui right floated alignedvertical animated button' onclick='onClickViewPairingRecord(" +
-                  pairing_session.pairing_session_id +
-                  ', "' +
-                  section_id +
-                  "\")'><div class='hidden content' style='color:#5D5D5D;'> View </div><div class='visible content'><i class='eye icon'/></div></div>"
-              );
-              extra = $(
-                "<div class='extra'><div class='ui label' id='status' style='background-color:#E8E8E8; color:#665D5D;'> COMPLETED </div></div>"
-              );
-            } else {
-              tag_b = $(
-                "<b style='font-size:1.5em;'><header> Session : " +
-                  (pairing_times - _index_o) +
-                  " </header></b>"
-              );
-              description = $(
-                "<p><b> Start at : </b><font>" +
-                  pairing_session.time_start +
-                  "</font><br><b> End at : </b><font>" +
-                  pairing_session.time_end +
-                  "</font></p>"
-              );
-              button = $(
-                "<div class='ui top right floated pointing dropdown button blue' ><font color='white'> Select </font><div class='menu'><div class='item' onclick='onClickViewPairingRecord(" +
-                  pairing_session.pairing_session_id +
-                  ', "' +
-                  section_id +
-                  "\")'> View </div><div class='item' onclick='onClickCompletedSessionMenu(" +
-                  pairing_session.pairing_session_id +
-                  ', "' +
-                  section_id +
-                  "\")'> Completed </div></div></div>"
-              );
-              extra = $(
-                "<div class='extra'><div class='ui label' id='status' style='background-color:#16AB39; color:white;'> ACTIVE </div></div>"
-              );
-            }
-            item.append(content);
-            content.append(grid);
-            content.append(extra);
-            grid.append(eleven_wide_column);
-            grid.append(five_wide_column);
-            eleven_wide_column.append(tag_b);
-            eleven_wide_column.append(description);
-            five_wide_column.append(button);
-            $("#items_third_container" + pagination[_index_p]).append(item);
-
-            break;
-          default:
-            let assignment = objects[_index_o];
-            let tag_a = null;
-            item = $("<div class='item'></div>");
-            content = $("<div class='content'></div>");
-            tag_a = $(
-              "<a href='/assignment?section_id=" +
-                section_id +
-                "&assignment_id=" +
-                assignment.assignment_id +
-                "'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'>" +
-                assignment.title +
-                "</b></a>"
-            );
-            description = $(
-              "<div class='description'><p style='padding-left:15px; padding-right:15px;'>" +
-                assignment.description +
-                "</p></div>"
-            );
-            item.append(content);
-            content.append(tag_a);
-            content.append(description);
-            $("#items_third_container" + pagination[_index_p]).append(item);
-        }
-      }
-    }
-  }
-
-  $("div").remove("#pagination_in_third_container");
-  if (pagination[pagination.length - 1] == 1) {
-    pagination = [];
-  } else {
-    $(
-      "<div class='ui pagination menu' id='pagination_in_third_container'></div>"
-    ).insertAfter("#ui_two_column_in_third_container");
-  }
-
-  item = null;
-  for (_index in pagination) {
-    item = $(
-      "<a class='item tc' id='page_" +
-        pagination[_index] +
-        "_third_container' onclick='on_click_page_number_in_third_container(" +
-        pagination[_index] +
-        ")'>" +
-        pagination[_index] +
-        "</a>"
-    );
-    $("#pagination_in_third_container").append(item);
-  }
-}
-
-function onClickChangePairButton(pairing_session_id, section_id) {
-  let parameters = {
-    pairing_session_id: pairing_session_id,
-    section_id: section_id
-  };
-  $.get("/classroom/getPairing", parameters, function(data) {
-    if (data.status == "Pull information successfully") {
-      // $('#autoPairing').attr('onclick', 'onClickAutoPairingBtn(\"pair\", '+JSON.stringify(data.partner_keys)+', '+JSON.stringify(data.pairing_objective)+', '+data.pairing_session_id+', \"'+data.section_id+'\")')
-      $("#autoPairing").show();
-      $("#confirm-pairing").attr("value", "change");
-      $("#confirm-header").text("Alert!");
-      $("#confirm-message").text("Something message.");
-      $("#confirm-message").attr("value", "Something message.");
-      showStudentList(
-        "pair",
-        JSON.parse(data.partnerKeys),
-        JSON.parse(data.pairingObjectives),
-        data.pairingSessionId,
-        data.sectionId
-      );
-      pairingOrViewingisHided("pair");
-      alert(data.status);
-    } else {
-      alert(data.status);
-    }
-  });
-}
-
-function onClickAutoPairingBtn(command, pairingSessionId, sectionId) {
-  $("#startAutoPairingBtn").attr(
-    "onclick",
-    "onClickStartAutoPairingBtn(null, null, null, null, null, null)"
-  );
-  $("#expertWithExpert").attr(
-    "onclick",
-    'onClickPairingPurposeRadioBtn("expertWithExpert", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-  $("#expertWithNovice").attr(
-    "onclick",
-    'onClickPairingPurposeRadioBtn("expertWithNovice", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-  $("#noviceWithNovice").attr(
-    "onclick",
-    'onClickPairingPurposeRadioBtn("noviceWithNovice", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-  $("#qualityOriented").attr(
-    "onclick",
-    'onClickPairingPurposeRadioBtn("quality", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-  $("#mutualLearning").attr(
-    "onclick",
-    'onClickPairingPurposeRadioBtn("experience", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-  $("#teachingAndLearning").attr(
-    "onclick",
-    'onClickPairingPurposeRadioBtn("train", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-  $("#scoreDiffField").attr(
-    "onkeyup",
-    'onTypingScoreDiffField("scoreDiff", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-  $("#pairingSettingsModal").modal("show");
-}
-
-function onClickStartAutoPairingBtn(
-  purposeOrScoreDiff,
-  autoPairingCommand,
-  command,
-  pairingSessionId,
-  sectionId
-) {
-  if (autoPairingCommand === "scoreDiff") {
-    parameters = {
-      scoreDiff: purposeOrScoreDiff,
-      command: command,
-      pairingSessionId: pairingSessionId,
-      sectionId: sectionId
-    };
-    $("#confirm-header").text("Start Auto Pairing");
-    $("#confirm-message").text("Are you sure you want to start auto pairing?");
-    $("#confirm-message").attr(
-      "value",
-      "Are you sure you want to start auto pairing?"
-    );
-    $("#confirm-button").attr(
-      "onclick",
-      "on_click_confirm_button(" + JSON.stringify(parameters) + ")"
-    );
-    $("#confirm-modal").modal("show");
-  } else if (autoPairingCommand === "purpose") {
-    parameters = {
-      purposePairing: purposeOrScoreDiff,
-      command: command,
-      pairingSessionId: pairingSessionId,
-      sectionId: sectionId
-    };
-    $("#confirm-header").text("Start Auto Pairing");
-    $("#confirm-message").text("Are you sure you want to start auto pairing?");
-    $("#confirm-message").attr(
-      "value",
-      "Are you sure you want to start auto pairing?"
-    );
-    $("#confirm-button").attr(
-      "onclick",
-      "on_click_confirm_button(" + JSON.stringify(parameters) + ")"
-    );
-    $("#confirm-modal").modal("show");
-  } else {
-    alert(
-      'Please select a pairing purpose choice or enter number of score difference\nbefore click the "Start" button.'
-    );
-    $("#student_list_modal").modal("show");
-  }
-}
-
-function onClickPairingPurposeRadioBtn(
-  pairingPurpose,
-  autoPairingCommand,
-  command,
-  pairingSessionId,
-  sectionId
-) {
-  $("#startAutoPairingBtn").attr(
-    "onclick",
-    'onClickStartAutoPairingBtn("' +
-      pairingPurpose +
-      '", "' +
-      autoPairingCommand +
-      '", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-}
-
-function onTypingScoreDiffField(
-  autoPairingCommand,
-  command,
-  pairingSessionId,
-  sectionId
-) {
-  $("#startAutoPairingBtn").attr(
-    "onclick",
-    'onClickStartAutoPairingBtn("' +
-      $("#scoreDiffField").val() +
-      '", "' +
-      autoPairingCommand +
-      '", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
-  );
-}
-
-function onClickAutoPairingTab() {
-  $("#startAutoPairingBtn").attr(
-    "onclick",
-    "onClickStartAutoPairingBtn(null, null, null, null, null, null)"
-  );
-}
-
-function onClickAlphabeticalFilterButton(students) {
-  var filtered = false;
-  var elementMoved = false;
-
-  var activeFilter = $("#activeFilter").attr("value");
-  if (
-    activeFilter == "1-100" ||
-    activeFilter == "100-1" ||
-    activeFilter == ""
-  ) {
-    $("#avgScoreFilter").attr("class", "ui button");
-    $("#alphabeticalFilter").attr("class", "ui grey button");
-
-    $("#avgScoreFilter").attr("value", "1-100");
-    $("#avgScoreFilter").text("1-100");
-  }
-
-  if ($("#alphabeticalFilter").attr("value") == "A-Z") {
-    $("#alphabeticalFilter").attr("value", "Z-A");
-    $("#alphabeticalFilter").text("Z-A");
-
-    $("#activeFilter").attr("value", "A-Z");
-
-    sortAtoZ(students, filtered, elementMoved);
-  } else if ($("#alphabeticalFilter").attr("value") == "Z-A") {
-    $("#alphabeticalFilter").attr("value", "A-Z");
-    $("#alphabeticalFilter").text("A-Z");
-
-    $("#activeFilter").attr("value", "Z-A");
-
-    sortZtoA(students, filtered, elementMoved);
-  }
-}
-
-function onClickAvgScoreFilterButton(students) {
-  var filtered = false;
-  var elementMoved = false;
-
-  var activeFilter = $("#activeFilter").attr("value");
-  if (activeFilter == "A-Z" || activeFilter == "Z-A" || activeFilter == "") {
-    $("#avgScoreFilter").attr("class", "ui grey button");
-    $("#alphabeticalFilter").attr("class", "ui button");
-
-    $("#alphabeticalFilter").attr("value", "A-Z");
-    $("#alphabeticalFilter").text("A-Z");
-  }
-
-  if ($("#avgScoreFilter").attr("value") == "1-100") {
-    $("#avgScoreFilter").attr("value", "100-1");
-    $("#avgScoreFilter").text("100-1");
-
-    $("#activeFilter").attr("value", "1-100");
-
-    sort1to100(students, filtered, elementMoved);
-  } else if ($("#avgScoreFilter").attr("value") == "100-1") {
-    $("#avgScoreFilter").attr("value", "1-100");
-    $("#avgScoreFilter").text("1-100");
-
-    $("#activeFilter").attr("value", "100-1");
-
-    sort100to1(students, filtered, elementMoved);
-  }
-}
-
-function setYear(start, end, id, input_type) {
-  $("#" + id).empty();
-  for (i = start; i < end; i++) {
-    if (input_type == "dropdown") {
-      let value = i.toString();
-      if (value.length == 1) {
-        value = "0" + value;
-      }
-      $("#" + id).append(
-        "<option value='" + value + "'>" + value + "</option>"
-      );
-    }
-  }
-}
-
-function setMonth(start, end, id, input_type) {
-  $("#" + id).empty();
-  for (i = start; i < end; i++) {
-    if (input_type == "dropdown") {
-      let value = i.toString();
-      if (value.length == 1) {
-        value = "0" + value;
-      }
-      $("#" + id).append(
-        "<option value='" + value + "'>" + value + "</option>"
-      );
-    }
-  }
-}
-
-function setDay(start, end, id, input_type) {
-  $("#" + id).empty();
-  for (i = start; i < end; i++) {
-    if (input_type == "dropdown") {
-      let value = i.toString();
-      if (value.length == 1) {
-        value = "0" + value;
-      }
-      $("#" + id).append(
-        "<option value='" + value + "'>" + value + "</option>"
-      );
-    }
-  }
-}
-
-function setHour(start, end, id, input_type) {
-  $("#" + id).empty();
-  for (i = start; i < end; i++) {
-    if (input_type == "dropdown") {
-      let value = i.toString();
-      if (value.length == 1) {
-        value = "0" + value;
-      }
-      $("#" + id).append(
-        "<option value='" + value + "'>" + value + "</option>"
-      );
-    }
-  }
-}
-
-function setMinute(start, end, id, input_type) {
-  $("#" + id).empty();
-  for (i = start; i < end; i++) {
-    if (input_type == "dropdown") {
-      let value = i.toString();
-      if (value.length == 1) {
-        value = "0" + value;
-      }
-      $("#" + id).append(
-        "<option value='" + value + "'>" + value + "</option>"
-      );
-    }
-  }
-}
-
-function setSecond(start, end, id, input_type) {
-  $("#" + id).empty();
-  for (i = start; i < end; i++) {
-    if (input_type == "dropdown") {
-      let value = i.toString();
-      if (value.length == 1) {
-        value = "0" + value;
-      }
-      $("#" + id).append(
-        "<option value='" + value + "'>" + value + "</option>"
-      );
-    }
-  }
-}
-
-function sortAtoZ(students, filtered, elementMoved) {
-  while (!filtered) {
-    $("li.ui.segment").filter(function(indx) {
-      var key = $(this).attr("id");
-      var name = (
-        students[key].first_name +
-        " " +
-        students[key].last_name
-      ).toLowerCase();
-      var index = indx;
-
-      $("li.ui.segment").filter(function(indx) {
-        key = $(this).attr("id");
-        var _name = (
-          students[key].first_name +
-          " " +
-          students[key].last_name
-        ).toLowerCase();
-        var _index = indx;
-        var max_length =
-          name.length > _name.length ? _name.length : name.length;
-        if (name != _name) {
-          if (index < _index) {
-            for (i = 0; i <= max_length; i++) {
-              if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                $(this)
-                  .parent()
-                  .find("li")
-                  .eq(index)
-                  .insertAfter($(this));
-                index = _index;
-                elementMoved = true;
-                break;
-              } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                break;
-              }
-            }
-          } else if (index > _index) {
-            for (i = 0; i <= max_length; i++) {
-              if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                $(this).insertAfter(
-                  $(this)
-                    .parent()
-                    .find("li")
-                    .eq(index)
-                );
-                index = _index;
-                elementMoved = true;
-                break;
-              } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                break;
-              }
-            }
-          }
-        }
-      });
-    });
-
-    if (elementMoved) {
-      filtered = false;
-    } else {
-      filtered = true;
-    }
-
-    elementMoved = false;
-  }
-}
-
-function sortZtoA(students, filtered, elementMoved) {
-  while (!filtered) {
-    $("li.ui.segment").filter(function(indx) {
-      var key = $(this).attr("id");
-      var name = (
-        students[key].first_name +
-        " " +
-        students[key].last_name
-      ).toLowerCase();
-      var index = indx;
-
-      $("li.ui.segment").filter(function(indx) {
-        key = $(this).attr("id");
-        var _name = (
-          students[key].first_name +
-          " " +
-          students[key].last_name
-        ).toLowerCase();
-        var _index = indx;
-        var max_length =
-          name.length > _name.length ? _name.length : name.length;
-        if (name != _name) {
-          if (index < _index) {
-            for (i = 0; i <= max_length; i++) {
-              if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                $(this)
-                  .parent()
-                  .find("li")
-                  .eq(index)
-                  .insertAfter($(this));
-                index = _index;
-                elementMoved = true;
-                break;
-              } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                break;
-              }
-            }
-          } else if (index > _index) {
-            for (i = 0; i <= max_length; i++) {
-              if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                $(this).insertAfter(
-                  $(this)
-                    .parent()
-                    .find("li")
-                    .eq(index)
-                );
-                index = _index;
-                elementMoved = true;
-                break;
-              } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                break;
-              }
-            }
-          }
-        }
-      });
-    });
-
-    if (elementMoved) {
-      filtered = false;
-    } else {
-      filtered = true;
-    }
-
-    elementMoved = false;
-  }
-}
-
-function sort1to100(students, filtered, elementMoved) {
-  while (!filtered) {
-    $("li.ui.segment").filter(function(indx) {
-      var key = $(this).attr("id");
-      var avg_score = students[key].avg_score;
-      var name = (
-        students[key].first_name +
-        " " +
-        students[key].last_name
-      ).toLowerCase();
-      var index = indx;
-
-      $("li.ui.segment").filter(function(indx) {
-        key = $(this).attr("id");
-        var _avg_score = students[key].avg_score;
-        var _name = (
-          students[key].first_name +
-          " " +
-          students[key].last_name
-        ).toLowerCase();
-        var _index = indx;
-        var max_length =
-          name.length > _name.length ? _name.length : name.length;
-        if (avg_score != _avg_score) {
-          if (index < _index) {
-            if (avg_score > _avg_score) {
-              $(this)
-                .parent()
-                .find("li")
-                .eq(index)
-                .insertAfter($(this));
-              index = _index;
-              elementMoved = true;
-            }
-          } else if (index > _index) {
-            if (avg_score < _avg_score) {
-              $(this).insertAfter(
-                $(this)
-                  .parent()
-                  .find("li")
-                  .eq(index)
-              );
-              index = _index;
-              elementMoved = true;
-            }
-          }
-        } else if (avg_score == _avg_score) {
-          if (name != _name) {
-            if (index < _index) {
-              for (i = 0; i <= max_length; i++) {
-                if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                  $(this)
-                    .parent()
-                    .find("li")
-                    .eq(index)
-                    .insertAfter($(this));
-                  index = _index;
-                  elementMoved = true;
-                  break;
-                } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                  break;
-                }
-              }
-            } else if (index > _index) {
-              for (i = 0; i <= max_length; i++) {
-                if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                  $(this).insertAfter(
-                    $(this)
-                      .parent()
-                      .find("li")
-                      .eq(index)
-                  );
-                  index = _index;
-                  elementMoved = true;
-                  break;
-                } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                  break;
-                }
-              }
-            }
-          }
-        }
-      });
-    });
-
-    if (elementMoved) {
-      filtered = false;
-    } else {
-      filtered = true;
-    }
-
-    elementMoved = false;
-  }
-}
-
-function sort100to1(students, filtered, elementMoved) {
-  while (!filtered) {
-    $("li.ui.segment").filter(function(indx) {
-      var key = $(this).attr("id");
-      var avg_score = students[key].avg_score;
-      var name = (
-        students[key].first_name +
-        " " +
-        students[key].last_name
-      ).toLowerCase();
-      var index = indx;
-
-      $("li.ui.segment").filter(function(indx) {
-        key = $(this).attr("id");
-        var _avg_score = students[key].avg_score;
-        var _name = (
-          students[key].first_name +
-          " " +
-          students[key].last_name
-        ).toLowerCase();
-        var _index = indx;
-        var max_length =
-          name.length > _name.length ? _name.length : name.length;
-        if (avg_score != _avg_score) {
-          if (index < _index) {
-            if (avg_score < _avg_score) {
-              $(this)
-                .parent()
-                .find("li")
-                .eq(index)
-                .insertAfter($(this));
-              index = _index;
-              elementMoved = true;
-            }
-          } else if (index > _index) {
-            if (avg_score > _avg_score) {
-              $(this).insertAfter(
-                $(this)
-                  .parent()
-                  .find("li")
-                  .eq(index)
-              );
-              index = _index;
-              elementMoved = true;
-            }
-          }
-        } else if (avg_score == _avg_score) {
-          if (name != _name) {
-            if (index < _index) {
-              for (i = 0; i <= max_length; i++) {
-                if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                  $(this)
-                    .parent()
-                    .find("li")
-                    .eq(index)
-                    .insertAfter($(this));
-                  index = _index;
-                  elementMoved = true;
-                  break;
-                } else if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                  break;
-                }
-              }
-            } else if (index > _index) {
-              for (i = 0; i <= max_length; i++) {
-                if (name.charCodeAt(i) < _name.charCodeAt(i)) {
-                  $(this).insertAfter(
-                    $(this)
-                      .parent()
-                      .find("li")
-                      .eq(index)
-                  );
-                  index = _index;
-                  elementMoved = true;
-                  break;
-                } else if (name.charCodeAt(i) > _name.charCodeAt(i)) {
-                  break;
-                }
-              }
-            }
-          }
-        }
-      });
-    });
-
-    if (elementMoved) {
-      filtered = false;
-    } else {
-      filtered = true;
-    }
-
-    elementMoved = false;
-  }
-}
-
-function on_click_settings_menu() {}
-
-function on_click_assignment(opt, id) {
-  switch (opt) {
-    case 1:
-      $("#" + id).is(":checked") == true
-        ? $("#" + id).prop("checked", false)
-        : $("#" + id).prop("checked", true);
-
-      break;
-    default:
-  }
-}
-
-function pad(val) {
-  return val > 9 ? val : "0" + val;
-}
-
-function on_click_enable_notebook_assignment_button() {
-  $("#dropdown_amd").empty();
-  $("#dropdown_amd").append(
-    "<input id='week_input_amd' type='hidden'></input>"
-  );
-  $("#dropdown_amd").append("<i class='dropdown icon'></i>");
-  $("#dropdown_amd").append("<div class='default text'>Week</div>");
-  $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "enable" }, function(res) {
-    let weeks = JSON.parse(res.weeks);
-    if (!weeks.length) {
-      $("#week_amd").append(
-        "<div class='item' id='-1_week_in_dam' data-value='-1'>No disable assignment.</div>"
-      );
-    } else if (weeks.length) {
-      $("#week_amd").append(
-        "<div class='item' id='0_week_in_dam' data-value='0'>All</div>"
-      );
-    }
-    weeks.forEach(function(e) {
-      $("#week_amd").append(
-        "<div class='item' id='" +
-          e +
-          "_week_in_dam' data-value='" +
-          e +
-          "'>" +
-          e +
-          "</div>"
-      );
-    });
-    $("#confirm_assignment_management").attr(
-      "onclick",
-      "on_click_confirm_assignment_management_button('enable')"
-    );
-    $("#header_amd").text("Enable Assignment");
-    $("#assignment_management_modal").modal("show");
-    $("#dropdown_amd").dropdown();
-  });
-}
+  
