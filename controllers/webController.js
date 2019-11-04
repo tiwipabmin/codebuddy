@@ -274,12 +274,6 @@ exports.getSection = async (req, res) => {
   let branch_type = [];
   branch_type = await conMysql.selectBranchType(queryBranch_type)
 
-  console.log(branch_type)
-
-
-  console.log(branch_type[0]["branch_type"])
-
-
   if(branch_type[0]["branch_type"] == "IT"){
     console.log("OK IT")
     
@@ -420,12 +414,12 @@ exports.getSection = async (req, res) => {
   }
 
 
-
+  // console.log("dataSets", dataSets)
+  // console.log("dataSets.reforms.pairingSessions", dataSets.reforms.pairingSessions)
   
   res.render("classroom", { dataSets, title: section.course_name });
   }else{
     console.log("OK DSBA")
-    console.log(section_id)
     let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
     section_id +
@@ -449,7 +443,7 @@ exports.getSection = async (req, res) => {
   students = await conMysql.selectStudent(queryStudent);
   assignments = await conMysql.selectAssignment(queryAssignment);
   pairingSessions = await conMysql.selectPairingSession(queryPairingSession);
-
+  // console.log("pairingSessions+pairingSessions ", pairingSessions)
   if (!section.length) section = [];
   else {
     section = section[0];
@@ -458,10 +452,10 @@ exports.getSection = async (req, res) => {
 
   if (!students.length) students = [];
   if (!assignments.length) {
-    console.log("assignment = 0")
+    // console.log("assignment = 0")
     assignments = [];
   } else if (assignments.length) {
-    console.log("assignment != 0" + assignments.length)
+    // console.log("assignment != 0 " + assignments.length)
     for (_index in assignments) {
       assignments[_index].notebook_assignment_id = cryptr.encrypt(
         assignments[_index].notebook_assignment_id
@@ -479,12 +473,12 @@ exports.getSection = async (req, res) => {
     }
   }
 
-  if (!pairingSessions.length)
-    console.log("pairingSessions == 0")
+  if (!pairingSessions.length){
+    // console.log("pairingSessions == 0")
     pairingSessions = [{ pairing_session_id: -1, status: -1 }];
-
+  }
   if (occupation == "teacher") {
-    console.log("occupation == teacher")
+    // console.log("occupation == teacher")
     occupation = 0;
 
     dataSets = {
@@ -567,6 +561,8 @@ exports.getSection = async (req, res) => {
       }
     };
   }
+  // console.log("dataSets", dataSets)
+  // console.log("dataSets.reforms.pairingSessions", dataSets.reforms.pairingSessions)
     res.render("collaberative",{ dataSets, title: section.course_name })
   }
 
@@ -1875,9 +1871,11 @@ exports.createPairingRecord = async (req, res) => {
       status = await conMysql.updateEnrollment(queryEnrollment);
 
       if (status == "Update failed.") {
+        // console.log("status == Update failed. partnerKeys[key]")
         res.send({ status: status });
         return;
       } else {
+        // console.log("status != Update failed. partnerKeys[key]")
         pairingRecords[count] = [
           parseInt(key),
           parseInt(pairingSessionId),
@@ -1895,8 +1893,10 @@ exports.createPairingRecord = async (req, res) => {
         status = await conMysql.updateEnrollment(queryEnrollment);
 
         if (status == "Update failed.") {
+          // console.log("status == Update failed. key")
           res.send({ status: status });
         } else {
+          // console.log("status != Update failed. key")
           pairingRecords[count] = [
             partnerKeys[key],
             parseInt(pairingSessionId),
@@ -1918,6 +1918,7 @@ exports.createPairingRecord = async (req, res) => {
 
     let queryPairingSession = null;
     if (status == "Create completed.") {
+      // console.log("status == Create completed.")
       queryPairingSession =
         "UPDATE pairing_session SET status = 1 WHERE pairing_session_id = " +
         pairingSessionId;
@@ -1932,29 +1933,58 @@ exports.createPairingRecord = async (req, res) => {
       queryPairingSession
     );
 
-    let queryAssignment =
+    let queryBranchType = "SELECT branch_type FROM branch where section_id = " +  sectionId;
+    let branch_type = await conMysql.selectBranchType(queryBranchType);
+    if(branch_type[0]["branch_type"] == "IT"){
+      let queryAssignment =
       "SELECT * FROM assignment WHERE section_id = " + sectionId;
-    assignments = await conMysql.selectAssignment(queryAssignment);
+      assignments = await conMysql.selectAssignment(queryAssignment);
+    }else if (branch_type[0]["branch_type"] == "DSBA"){
+      let queryNotebookAssignment =
+      "SELECT * FROM notebook_assignment WHERE section_id = " + sectionId;
+      assignments = await conMysql.selectAssignment(queryNotebookAssignment);
+    }
 
+    // console.log("assignments", assignments)
+   
     let weeks = [];
     if (!assignments.length) {
       assignments = [];
     } else if (assignments.length) {
-      for (let index in assignments) {
-        assignments[index].assignment_id = cryptr.encrypt(
-          assignments[index].assignment_id
-        );
-        assignments[index].section_id = cryptr.encrypt(
-          assignments[index].section_id
-        );
-        assignments[index].title = assignments[index].title;
-
-        assignments[index].description = assignments[index].description;
-
-        weeks.indexOf(assignments[index].week) == -1
-          ? weeks.push(assignments[index].week)
-          : null;
+      if(branch_type[0]["branch_type"] == "IT"){
+        for (let index in assignments) {
+          assignments[index].assignment_id = cryptr.encrypt(
+            assignments[index].assignment_id
+          );
+          assignments[index].section_id = cryptr.encrypt(
+            assignments[index].section_id
+          );
+          assignments[index].title = assignments[index].title;
+  
+          assignments[index].description = assignments[index].description;
+  
+          weeks.indexOf(assignments[index].week) == -1
+            ? weeks.push(assignments[index].week)
+            : null;
+        }
+      }else if(branch_type[0]["branch_type"] == "DSBA"){
+        for (let index in assignments) {
+          assignments[index].notebook_assignment_id = cryptr.encrypt(
+            assignments[index].notebook_assignment_id
+          );
+          assignments[index].section_id = cryptr.encrypt(
+            assignments[index].section_id
+          );
+          assignments[index].title = assignments[index].title;
+  
+          assignments[index].description = assignments[index].description;
+  
+          weeks.indexOf(assignments[index].week) == -1
+            ? weeks.push(assignments[index].week)
+            : null;
+        }
       }
+      
     }
 
     let weeklyDatas = {

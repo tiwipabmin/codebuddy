@@ -27,7 +27,7 @@ block content
   if user.info.occupation === 'teacher'
     +notebookassignmentModal()
     +collaborativeStudent(user, dataSets.origins.students, dataSets.origins.pairingSessions, dataSets.origins.section)
-
+    +confirmModal()
     
   .ui.raised.very.padded.container
     .ui.centered.grid(style='padding-top:20px;')
@@ -129,7 +129,7 @@ block content
                   on_click_page_number_in_third_container(1)
                   $('.ui.pointing.dropdown').dropdown();
                 })
-
+          
             else
               p.text-center#no_session No session.
           else
