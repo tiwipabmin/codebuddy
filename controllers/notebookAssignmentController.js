@@ -234,6 +234,8 @@ async function getNotebookAssignmentId(filePath){
 }
 
 // async function exportNotebookFile(){
+
+
 exports.exportNotebookFile = async (req, res) => {
 
   console.log("exportNotebookFile " )
@@ -328,3 +330,79 @@ exports.exportNotebookFile = async (req, res) => {
 
 
 }
+
+exports.deleteAssignment = async (req, res) => {
+  let assignment_is_selected = req.body.assignment_is_selected;
+  console.log("req.body.assignment_is_selected " , req.body.assignment_is_selected)
+  let max_length = assignment_is_selected.length;
+  let count = 0;
+  for (_index in assignment_is_selected) {
+    let deleteAssignment =
+      "DELETE FROM notebook_assignment WHERE notebook_assignment_id = " +
+      cryptr.decrypt(assignment_is_selected[_index].notebook_assignment_id);
+      console.log("deleteAssignment " , deleteAssignment)
+
+    let res_status = await conMysql.deleteAssignment(deleteAssignment);
+    if (res_status === "delete this assignment complete.") {
+      count++;
+    }
+  }
+
+  if (count === max_length) {
+    let section_id = cryptr.decrypt(assignment_is_selected[0].section_id);
+    let select_pairing_session_by_section_id =
+      "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
+      section_id +
+      " ORDER BY ps.pairing_session_id DESC";
+    let pairingSessions = await conMysql.selectPairingSession(
+      select_pairing_session_by_section_id
+    );
+
+    let select_assignment_by_section_id =
+      "SELECT * FROM notebook_assignment_id; WHERE section_id = " + section_id;
+    let assignments = await conMysql.selectAssignment(
+      select_assignment_by_section_id
+    );
+
+    let weeks = [];
+    if (!assignments.length) {
+      assignments = [];
+    } else if (assignments.length) {
+      for (_index in assignments) {
+        assignments[_index].notebook_assignment_id = cryptr.encrypt(
+          assignments[_index].notebook_assignment_id
+        );
+        assignments[_index].section_id = cryptr.encrypt(
+          assignments[_index].section_id
+        );
+        assignments[_index].title = assignments[_index].title;
+
+        assignments[_index].description = assignments[_index].description;
+
+        weeks.indexOf(assignments[_index].week) == -1
+          ? weeks.push(assignments[_index].week)
+          : null;
+      }
+    }
+
+    !pairingSessions.length
+      ? (pairingSessions = [{ pairing_session_id: -1, status: -1 }])
+      : (pairingSessions = pairingSessions[0]);
+
+    dataSets = {
+      origins: {
+        status: "Delete all of these assignment successfully.",
+        username: req.user.username,
+        img: req.user.img,
+        weeks: weeks,
+        pairing_session_id: pairingSessions.pairing_session_id
+      },
+      reforms: { assignments: JSON.stringify(assignments) }
+    };
+    res.send({ dataSets: dataSets });
+    return;
+  }
+  res.send({
+    dataSets: { origins: { status: "Found error while is be processing!" } }
+  });
+};

@@ -1365,17 +1365,18 @@ function onClickAssign(
 }
 
 function on_click_assign_button(assignment_of_week, pairing_session_id) {
-  console.log( " on_click_assign_button " , assignment_of_week)
-  console.log( " on_click_assign_button pairing_session_id" , pairing_session_id)
-
+  console.log(" on_click_assign_button " ,assignment_of_week )
+  console.log(" pairing_session_id " ,pairing_session_id )
   assignment_of_week = JSON.parse(assignment_of_week);
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
     $("#" + e.assignment_id + "_is_selected").is(":checked") == true
       ? assignment_is_selected.push(e)
       : null;
+
   });
   // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
+  console.log("assignment_is_selected.length " , assignment_is_selected.length)
   if (assignment_is_selected.length) {
     let parameters = JSON.stringify({
       assignment_set: assignment_is_selected,
@@ -1422,8 +1423,6 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
 // }
 
 function onClickDeleteAssignment(assignment_of_week) {
-
-  console.log(" onClickDeleteAssignment ")
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
     $("#" + e.assignment_id + "_is_selected").is(":checked") == true
@@ -1731,7 +1730,6 @@ function on_click_weeks_dropdown(
   let res_obj = get_items_of_week(assignment_set, 5, id);
   let assignment_of_week_ = res_obj.items_of_week;
   let pagination = res_obj.pagination;
-  // console.log('assignment_of_week_, ', assignment_of_week_)
 
   set_item_pagination_in_first_container(
     pagination,

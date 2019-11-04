@@ -20,7 +20,6 @@ function on_click_weeks_dropdown(
   let res_obj = get_items_of_week(assignment_set, 5, id);
   let assignment_of_week_ = res_obj.items_of_week;
   let pagination = res_obj.pagination;
-  // console.log('assignment_of_week_, ', assignment_of_week_)
 
   set_item_pagination_in_first_container(
     pagination,
@@ -360,8 +359,8 @@ function set_item_pagination_in_third_container(
             tag_a = $(
               "<a href='/assignment?section_id=" +
                 section_id +
-                "&assignment_id=" +
-                assignment.assignment_id +
+                "&notebook_assignment_id=" +
+                assignment.notebook_assignment_id +
                 "'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'>" +
                 assignment.title +
                 "</b></a>"
@@ -499,9 +498,9 @@ function set_item_pagination_in_first_container(
                 assignment.notebook_assignment_id +
                 "_is_selected\")'><p style='padding-left:15px; padding-right:15px;'>" +
                 assignment.description +
-                "</p><p style='padding-left:15px; padding-right:15px;'>Programming Style : " 
+                "</p><p style='padding-left:15px; padding-right:15px;'>Programming Style :Interactive"+
                 // assignment.programming_style +
-                // "</p></div>"
+                "</p></div>"
             );
             two_wide_column = $("<div class='two wide column'></div>");
             checkbox = $(
@@ -1261,7 +1260,7 @@ function on_click_confirm_button(parameters) {
       style: "display: block; position: fixed;"
     });
     $.ajax({
-      url: "/api/deleteAssignment",
+      url: "/notebookAssignment/deleteAssignment",
       type: "delete",
       data: parameters,
       success: function(res) {
@@ -1972,7 +1971,7 @@ function onClickViewPairingRecord(pairing_session_id, section_id) {
 function onClickAssign(
   section_id,
   pairing_session_id,
-  assignment_id,
+  notebook_assignment_id,
   title,
   description,
   programming_style
@@ -1980,10 +1979,10 @@ function onClickAssign(
   var parameters = {
     section_id: section_id,
     pairing_session_id: pairing_session_id,
-    assignment_id: assignment_id,
+    notebook_assignment_id: notebook_assignment_id,
     title: title,
     description: description,
-    programming_style: programming_style
+    programming_style: "Interactive"
   };
   $("#inp_cm").attr("value", JSON.stringify(parameters));
   $("#confirm-header").text("Assign assignment");
@@ -1999,15 +1998,20 @@ function onClickAssign(
 
 function on_click_assign_button(assignment_of_week, pairing_session_id) {
   
-  console.log(" on_click_assign_button ")
+  console.log(" on_click_assign_button " ,assignment_of_week )
+  console.log(" pairing_session_id " ,pairing_session_id )
+
   assignment_of_week = JSON.parse(assignment_of_week);
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
-    $("#" + e.assignment_id + "_is_selected").is(":checked") == true
+    $("#" + e.notebook_assignment_id + "_is_selected").is(":checked") == true
       ? assignment_is_selected.push(e)
       : null;
+
   });
   // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
+  console.log("assignment_is_selected.length " , assignment_is_selected.length)
+
   if (assignment_is_selected.length) {
     let parameters = JSON.stringify({
       assignment_set: assignment_is_selected,
@@ -2058,7 +2062,7 @@ function onClickDeleteAssignment(assignment_of_week) {
 
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
-    $("#" + e.assignment_id + "_is_selected").is(":checked") == true
+    $("#" + e.notebook_assignment_id + "_is_selected").is(":checked") == true
       ? assignment_is_selected.push(e)
       : null;
   });
@@ -2233,33 +2237,6 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   $("#confirm-modal").modal("show");
 }
 
-function get_items_of_week(items, range, week) {
-  week = week.split("week");
-  week = parseInt(week[0]);
-  let items_of_week = [];
-
-  for (_index in items) {
-    if (items[_index].week == week) {
-      items_of_week.push(items[_index]);
-    } else if (week < 0) {
-      items_of_week.push(items[_index]);
-    }
-  }
-
-  let pagination = [];
-  let page = 1;
-  let count = 0;
-  for (_index in items_of_week) {
-    items_of_week[_index].page = page;
-    count++;
-    if (count % range == 0 || _index == items_of_week.length - 1) {
-      pagination.indexOf(page) == -1 ? pagination.push(page) : null;
-      page++;
-    }
-  }
-
-  return { items_of_week: items_of_week, pagination: pagination };
-}
 
 function checkbox_event(assignment_set, id, opt) {
   let assignment_of_week_ = get_items_of_week(assignment_set, 5, id)
@@ -2268,14 +2245,14 @@ function checkbox_event(assignment_set, id, opt) {
     //on click the "Check All of Box" button
     case 1:
       assignment_of_week_.forEach(function(e) {
-        $("#" + e.assignment_id + "_is_selected").prop("checked", true);
+        $("#" + e.notebook_assignment_id + "_is_selected").prop("checked", true);
       });
 
       break;
     //on click the "Clear Checkbox" button
     default:
       assignment_of_week_.forEach(function(e) {
-        $("#" + e.assignment_id + "_is_selected").prop("checked", false);
+        $("#" + e.notebook_assignment_id + "_is_selected").prop("checked", false);
       });
   }
 }
@@ -2350,5 +2327,19 @@ function create_weeks_dropdown(id, pairing_session_id, dataSets) {
   });
 }
 
+function on_click_assignment(opt, id) {
+  switch (opt) {
+    case 1:
+      $("#" + id).is(":checked") == true
+        ? $("#" + id).prop("checked", false)
+        : $("#" + id).prop("checked", true);
 
+      break;
+    default:
+  }
+}
+
+function pad(val) {
+  return val > 9 ? val : "0" + val;
+}
   
