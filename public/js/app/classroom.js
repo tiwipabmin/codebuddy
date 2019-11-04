@@ -1365,6 +1365,9 @@ function onClickAssign(
 }
 
 function on_click_assign_button(assignment_of_week, pairing_session_id) {
+  console.log( " on_click_assign_button " , assignment_of_week)
+  console.log( " on_click_assign_button pairing_session_id" , pairing_session_id)
+
   assignment_of_week = JSON.parse(assignment_of_week);
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
@@ -1419,6 +1422,8 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
 // }
 
 function onClickDeleteAssignment(assignment_of_week) {
+
+  console.log(" onClickDeleteAssignment ")
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
     $("#" + e.assignment_id + "_is_selected").is(":checked") == true

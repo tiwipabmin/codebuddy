@@ -28,7 +28,9 @@ block content
     +notebookassignmentModal()
     +collaborativeStudent(user, dataSets.origins.students, dataSets.origins.pairingSessions, dataSets.origins.section)
     +confirmModal()
-    
+    +assignmentManagementModal()
+    +alertModal()
+
   .ui.raised.very.padded.container
     .ui.centered.grid(style='padding-top:20px;')
       +detailCollaborativeSection()
@@ -68,7 +70,8 @@ block content
           
             .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
               button.ui.button.blue(onclick='showNotebookAssingmentModal()') Create
-              button.ui.button.approve.blue(onclick='onClickDeleteNotebookAssignment()' ) Delete
+              button.ui.button.approve.blue#delete_assignment_button Delete
+              //- button.ui.button.approve.blue(onclick='onClickDeleteNotebookAssignment()' ) Delete
 
             .ui.segment.uspm#manageAssignment_segment(style='display: none')
               button.ui.button.approve.blue#assign_button Assign
