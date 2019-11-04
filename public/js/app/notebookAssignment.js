@@ -3,6 +3,7 @@ var detectFocusBlock = 0;
 var editors = [];
 var comments = [];
 
+
 function addBlock() {
     console.log("addbolock jj")
     /**
@@ -261,29 +262,21 @@ socket.on("init state", payload => {
 });
 
 function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
+
+
+
   console.log(" exportNotebookFile " + notebookAssingmentId + "  " + notebookAssingmenTitle)
 
-  var formData2 = new FormData();
-  formData2.append('notebookAssingmentId',notebookAssingmentId);
-  formData2.append('notebookAssingmenTitle', notebookAssingmenTitle);
+  var formData = new FormData();
+  formData.append('notebookAssingmentId',notebookAssingmentId);
+  formData.append('notebookAssingmenTitle', notebookAssingmenTitle);
 
-//   const options = {
-//     method: 'GET',
-//     body: formData
-//   };
+  const options = {
+    method: 'POST',
+    body: formData
+  };
+
+  // console.log('notebookAssingmentId: ', options.body.getAll('notebookAssingmentId'))
   
-  // $.ajax('/notebookAssignment/export', options);
-
-  // console.log(formData2.getAll("notebookAssingmenTitle"))
-
-  $.ajax({
-    type: "GET",
-    dataType:"json",
-    url: "/notebookAssignment/export",
-    data: formData2,
-    processData : false,
-    success: function (result) {
-         // do something here
-    }
-});
+  fetch('/notebookAssignment/export', options);
 }

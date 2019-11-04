@@ -59,7 +59,7 @@ exports.getNotebookAssignment = async (req, res) => {
     }
   }
       // console.log(codeCellId)
-      exportNotebookFile()
+      // exportNotebookFile()
 
       res.render("notebookAssignment", { dataSets, title: title , cells : cells , codeCellId : codeCellId });
   };
@@ -67,7 +67,7 @@ exports.getNotebookAssignment = async (req, res) => {
 
 exports.uploadAssignment = async (req, res) => {
   console.log("uploadAssignment")
-  console.log(req.body)
+  console.log("req.body uploadAssignment" , req.body)
   let reqBody = req.body;
   let myBuffer = req.file.buffer
   let bufferToJson = JSON.parse(myBuffer);
@@ -233,111 +233,98 @@ async function getNotebookAssignmentId(filePath){
     return notebookAssignmentId
 }
 
-async function exportNotebookFile(){
-// exports.exportNotebookFile = async (req, res) => {
+// async function exportNotebookFile(){
+exports.exportNotebookFile = async (req, res) => {
 
-  console.log("exportNotebookFile" )
-
-  fileExport = new Array()
-   var notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+"7", "cells");
-   var notebookAssignment = JSON.parse(notebookAssignmentRedis)
-   let metadata = {}
-   let fileInfo
-
-   console.log(" exportNotebookFile " , notebookAssignment)
-
-  //  for (x in notebookAssignment) {
-  //   cell_type = notebookAssignment[x]["cellType"];
-  //   var html2Md = []
-  //   if ( cell_type == 'markdown') {
-  //     splitMD = notebookAssignment[x]["source"].split("\n")
-  //     for (y in splitMD) {
-  //       sourceInfo = html2markdown(splitMD[y]);  
-  //       html2Md.push(sourceInfo) 
-  //     }
-  //     console.log("splitMD "+x , html2Md)
-      
-  //   }
-  //  }
-
-     for (x in notebookAssignment) {
-      cell_type = notebookAssignment[x]["cellType"];
-      var html2Md = []
-          if ( cell_type == 'markdown') {
-              splitMD = notebookAssignment[x]["source"].split("\n")
-              for (y in splitMD) {
-                sourceInfo = html2markdown(splitMD[y]);   
-                html2Md.push(sourceInfo)   
-                source = html2Md 
-              }
-              let fileInfo = {
-                cell_type,
-              metadata,
-              source
-              } 
-              fileExport.push(fileInfo)
-          }
-            else{
-              source = notebookAssignment[x]["source"]; 
-              source = source.replace("\n","\n,,").split(",,")
-              let execution_count = null
-              let outputs = []
-
-              let fileInfo = {
-              cell_type,
-              execution_count,
-              metadata,
-              outputs,
-              source
-              } 
-
-              fileExport.push(fileInfo)
-
-            }
-
-        } 
-
- let fileNotebook = 
- {
-   "cells": fileExport,
-   "metadata": {
-    "kernelspec": {
-     "display_name": "Python 3",
-     "language": "python",
-     "name": "python3"
-    },
-    "language_info": {
-      "codemirror_mode": {
-       "name": "ipython",
-       "version": 3
-      },
-      "file_extension": ".py",
-      "mimetype": "text/x-python",
-      "name": "python",
-      "nbconvert_exporter": "python",
-      "pygments_lexer": "ipython3",
-      "version": "3.7.3"
-     }
-    },
-    "nbformat": 4,
-    "nbformat_minor": 2
-
- }
-
- var filePath = "./public/notebookAssignment/";
-
- console.log("fileNotebook ", fileNotebook)
- console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
-    fs.writeFileSync("testFile.ipynb", JSON.stringify(fileNotebook), 'utf8', err =>  {
+  console.log("exportNotebookFile " )
+  console.log(req.body)
 
 
-    // throws an error, you could also catch it here
-    if (err) throw err;
+//   fileExport = new Array()
+//    var notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+"7", "cells");
+//    var notebookAssignment = JSON.parse(notebookAssignmentRedis)
+//    let metadata = {}
+//    let fileInfo
 
-    // success case, the file was saved
-    console.log("testFile.ipynb " + " has been saved!");
 
-  });
+//      for (x in notebookAssignment) {
+//       cell_type = notebookAssignment[x]["cellType"];
+//       var html2Md = []
+//           if ( cell_type == 'markdown') {
+//               splitMD = notebookAssignment[x]["source"].split("\n")
+//               for (y in splitMD) {
+//                 sourceInfo = html2markdown(splitMD[y]);   
+//                 html2Md.push(sourceInfo)   
+//                 source = html2Md 
+//               }
+//               let fileInfo = {
+//                 cell_type,
+//               metadata,
+//               source
+//               } 
+//               fileExport.push(fileInfo)
+//           }
+//             else{
+//               source = notebookAssignment[x]["source"]; 
+//               source = source.replace("\n","\n,,").split(",,")
+//               let execution_count = null
+//               let outputs = []
+
+//               let fileInfo = {
+//               cell_type,
+//               execution_count,
+//               metadata,
+//               outputs,
+//               source
+//               } 
+
+//               fileExport.push(fileInfo)
+
+//             }
+
+//         } 
+
+//  let fileNotebook = 
+//  {
+//    "cells": fileExport,
+//    "metadata": {
+//     "kernelspec": {
+//      "display_name": "Python 3",
+//      "language": "python",
+//      "name": "python3"
+//     },
+//     "language_info": {
+//       "codemirror_mode": {
+//        "name": "ipython",
+//        "version": 3
+//       },
+//       "file_extension": ".py",
+//       "mimetype": "text/x-python",
+//       "name": "python",
+//       "nbconvert_exporter": "python",
+//       "pygments_lexer": "ipython3",
+//       "version": "3.7.3"
+//      }
+//     },
+//     "nbformat": 4,
+//     "nbformat_minor": 2
+
+//  }
+
+//  var filePath = "./public/notebookAssignment/";
+
+//  console.log("fileNotebook ", fileNotebook)
+//  console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
+//     fs.writeFileSync("testFile.ipynb", JSON.stringify(fileNotebook), 'utf8', err =>  {
+
+
+//     // throws an error, you could also catch it here
+//     if (err) throw err;
+
+//     // success case, the file was saved
+//     console.log("testFile.ipynb " + " has been saved!");
+
+//   });
 
 
 }
