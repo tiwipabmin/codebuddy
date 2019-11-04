@@ -59,6 +59,7 @@ exports.getNotebookAssignment = async (req, res) => {
     }
   }
       // console.log(codeCellId)
+      exportNotebookFile()
 
       res.render("notebookAssignment", { dataSets, title: title , cells : cells , codeCellId : codeCellId });
   };
@@ -232,51 +233,69 @@ async function getNotebookAssignmentId(filePath){
     return notebookAssignmentId
 }
 
-exports.exportNotebookFile = async (req, res) => {
+async function exportNotebookFile(){
+// exports.exportNotebookFile = async (req, res) => {
 
   console.log("exportNotebookFile" )
 
   fileExport = new Array()
-   var notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
+   var notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+"7", "cells");
    var notebookAssignment = JSON.parse(notebookAssignmentRedis)
    let metadata = {}
    let fileInfo
+
+   console.log(" exportNotebookFile " , notebookAssignment)
+
+  //  for (x in notebookAssignment) {
+  //   cell_type = notebookAssignment[x]["cellType"];
+  //   var html2Md = []
+  //   if ( cell_type == 'markdown') {
+  //     splitMD = notebookAssignment[x]["source"].split("\n")
+  //     for (y in splitMD) {
+  //       sourceInfo = html2markdown(splitMD[y]);  
+  //       html2Md.push(sourceInfo) 
+  //     }
+  //     console.log("splitMD "+x , html2Md)
+      
+  //   }
+  //  }
 
      for (x in notebookAssignment) {
       cell_type = notebookAssignment[x]["cellType"];
       var html2Md = []
           if ( cell_type == 'markdown') {
-            for (y in notebookAssignment[x]["source"]) {
-              sourceInfo = html2markdown(notebookAssignment[x]["source"][y]);   
-              html2Md.push(sourceInfo)   
-              source = html2Md 
-            }
-            let fileInfo = {
-              cell_type,
-             metadata,
-             source
-             } 
-            fileExport.push(fileInfo)
-         }
-          else{
-            source = notebookAssignment[x]["source"]; 
-            source = source.replace("\n","\n,,").split(",,")
-            let execution_count = null
-            let outputs = []
-
-            let fileInfo = {
-            cell_type,
-            execution_count,
-             metadata,
-             outputs,
-             source
-             } 
-
-             fileExport.push(fileInfo)
-
+              splitMD = notebookAssignment[x]["source"].split("\n")
+              for (y in splitMD) {
+                sourceInfo = html2markdown(splitMD[y]);   
+                html2Md.push(sourceInfo)   
+                source = html2Md 
+              }
+              let fileInfo = {
+                cell_type,
+              metadata,
+              source
+              } 
+              fileExport.push(fileInfo)
           }
+            else{
+              source = notebookAssignment[x]["source"]; 
+              source = source.replace("\n","\n,,").split(",,")
+              let execution_count = null
+              let outputs = []
 
-      } 
+              let fileInfo = {
+              cell_type,
+              execution_count,
+              metadata,
+              outputs,
+              source
+              } 
+
+              fileExport.push(fileInfo)
+
+            }
+
+        } 
 
  let fileNotebook = 
  {
@@ -305,16 +324,18 @@ exports.exportNotebookFile = async (req, res) => {
 
  }
 
+ var filePath = "./public/notebookAssignment/";
+
  console.log("fileNotebook ", fileNotebook)
  console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
-    fs.writeFileSync("aew.ipynb", JSON.stringify(fileNotebook), 'utf8', err =>  {
+    fs.writeFileSync("testFile.ipynb", JSON.stringify(fileNotebook), 'utf8', err =>  {
 
 
     // throws an error, you could also catch it here
     if (err) throw err;
 
     // success case, the file was saved
-    console.log("aew.ipynb " + " has been saved!");
+    console.log("testFile.ipynb " + " has been saved!");
 
   });
 
