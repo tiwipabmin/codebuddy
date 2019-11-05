@@ -2,26 +2,15 @@ const mongoose = require("mongoose");
 const conMysql = require("../mySql");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
-const moment = require("moment");
 const Redis = require("ioredis");
 var fs = require("fs");
-
-const Project = mongoose.model("Project");
-const Message = mongoose.model("Message");
-const Score = mongoose.model("Score");
-const User = mongoose.model("User");
-const Comment = mongoose.model("Comment");
-const History = mongoose.model("History");
-
 var markdown = require("markdown").markdown;
 const redis = new Redis();
-
 var html2markdown = require('html2markdown');
 
 
 
 exports.getNotebookAssignment = async (req, res) => {
-
     const section_id = req.query.section_id;
     const select_notebookAssignment_by_notebookAssignment_id =
       "SELECT * FROM notebook_assignment WHERE notebook_assignment_id = " +
@@ -49,32 +38,16 @@ exports.getNotebookAssignment = async (req, res) => {
   
     var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(req.query.notebook_assignment_id), "cells");
     let cells = JSON.parse(cellsRedis)
-    // console.log("cells", cells)
-
-    codeCellId = []
-
-    for (x in cells) {
-      if (cells[x]["cellType"] == "code") {
-        codeCellId.push(x)
-    }
-  }
-      // console.log(codeCellId)
-      // exportNotebookFile()
-
-      res.render("notebookAssignment", { dataSets, title: title , cells : cells , codeCellId : codeCellId });
+      res.render("notebookAssignment", { dataSets, title: title , cells : cells });
   };
 
 
 exports.uploadAssignment = async (req, res) => {
   console.log("uploadAssignment")
-  // console.log("req.body uploadAssignment" , req.body)
   let reqBody = req.body;
   let myBuffer = req.file.buffer
   let bufferToJson = JSON.parse(myBuffer);
-  // console.log("bufferToJson " ,  bufferToJson)
   let dataStr = JSON.stringify(bufferToJson)
-  // console.log(`Data ${dataStr}`)
-
   /**
    * generate filename
    * ex: nb_2019-10-12_16-1-85.ipynb
@@ -108,15 +81,12 @@ exports.uploadAssignment = async (req, res) => {
     if (err) throw err;
 
     // success case, the file was saved
-    console.log(filename + " has been saved!");
+    // console.log(filename + " has been saved!");
 
   });
 
-  console.log("insertAssingment begin")
   let section_id = parseInt(cryptr.decrypt(req.body.section_id));
-  console.log(section_id)
   let insertNotebookAssignment = "INSERT INTO notebook_assignment ( section_id, title, description, week, filePath, programming_style) VALUES ?";
-
 
   const notebookValue = [
     [
@@ -128,17 +98,15 @@ exports.uploadAssignment = async (req, res) => {
       "Interactive"
     ]
   ]
-  // console.log(insertNotebookAssignment)
+ 
   const assignment_id = await conMysql.insertAssignment(
     insertNotebookAssignment,
     notebookValue
   );
 
   let notebookAssingmentId = await getNotebookAssignmentId(filename)
-  // console.log("notebookAssingmentId",notebookAssingmentId[0]["notebook_assignment_id"])
   let cells =  readFileNotebookAssingment(filename);
   saveFileToRedis(cells, notebookAssingmentId[0]["notebook_assignment_id"])
-  
   
   res.redirect("/classroom?section_id=" +  cryptr.encrypt(section_id));
 

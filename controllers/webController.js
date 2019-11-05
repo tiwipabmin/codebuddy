@@ -65,6 +65,7 @@ exports.getCounter = async (req, res) => {
 };
 
 exports.getPlayground = async (req, res) => {
+  const redis = new Redis();
   let dataSets = {};
   if (!req.query.pid) res.redirect("/lobby");
   const userRole = req.query.user_role;
@@ -76,54 +77,93 @@ exports.getPlayground = async (req, res) => {
   const messages = await Message.find({ pid: req.query.pid }).sort({
     createdAt: 1
   });
-  if ("creator" == userRole && project.programming_style !== "Individual") {
-    partner_obj = await User.findOne({ _id: project.collaborator_id });
-  } else if (
-    "collaborator" == userRole &&
-    project.programming_style !== "Individual"
-  ) {
-    partner_obj = await User.findOne({ _id: project.creator_id });
-  } else {
-    partner_obj = null;
-  }
-  dataSets = {
-    origins: {
-      project: project,
-      section: section
-    },
-    reforms: {
-      messages: messages
+
+  let queryBranch_type = "SELECT branch_type FROM branch WHERE section_id = " + cryptr.decrypt(section_id);
+  let branch_type = [];
+  branch_type = await conMysql.selectBranchType(queryBranch_type)
+
+  if(branch_type[0]["branch_type"] == "IT"){
+    console.log("OK IT")
+    if ("creator" == userRole && project.programming_style !== "Individual") {
+      partner_obj = await User.findOne({ _id: project.collaborator_id });
+    } else if (
+      "collaborator" == userRole &&
+      project.programming_style !== "Individual"
+    ) {
+      partner_obj = await User.findOne({ _id: project.creator_id });
+    } else {
+      partner_obj = null;
     }
+    dataSets = {
+      origins: {
+        project: project,
+        section: section
+      },
+      reforms: {
+        messages: messages
+      }
+    };
+    if (project.programming_style == "Interactive") {
+      console.log(dataSets.origins.project)
+      res.render("playground_interactive", {
+        dataSets,
+        title: `${project.title} - Playground`,
+        partner_obj
+      });
+    } else if (project.programming_style == "Co-located") {
+      res.render("playground_co_located", {
+        dataSets,
+        title: `${project.title} - Playground`,
+        messages,
+        partner_obj
+      });
+    } else if (project.programming_style == "Remote") {
+      res.render("playground_remote", {
+        dataSets,
+        title: `${project.title} - Playground`,
+        partner_obj
+      });
+    } else if (project.programming_style == "Individual") {
+      res.render("playgroundIndividual", {
+        dataSets,
+        title: `${project.title} - Playground`,
+        messages,
+        partner_obj
+      });
+    }
+  
+  }else if(branch_type[0]["branch_type"] == "DSBA"){
+    const select_notebookAssignment_by_notebookAssignment_id =
+      "SELECT * FROM notebook_assignment WHERE notebook_assignment_id = " +
+      cryptr.decrypt(project.files[0]);
+    let notebookAssignment = await conMysql.selectAssignment(
+      select_notebookAssignment_by_notebookAssignment_id
+    );
+
+   let title = "Notebook Assignment";
+    let dataSets = {};
+    let section = {};
+    section.section_id = section_id;
+
+    if (notebookAssignment.length) {
+      notebookAssignment = notebookAssignment[0];
+      notebookAssignment.notebook_assignment_id = cryptr.encrypt(notebookAssignment.notebook_assignment_id);
+      title = notebookAssignment.title;
+      notebookAssignment.title = notebookAssignment.title;
+      notebookAssignment.description = notebookAssignment.description;
+    }
+
+    dataSets = {
+      origins: { notebookAssignment: notebookAssignment, section: section },
+      reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
+    };
+
+    var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(project.files[0]), "cells");
+    let cells = JSON.parse(cellsRedis)
+ 
+    res.render("notebookAssignment", { dataSets, title: title , cells : cells});
   };
-  if (project.programming_style == "Interactive") {
-    console.log(dataSets.origins.project)
-    res.render("playground_interactive", {
-      dataSets,
-      title: `${project.title} - Playground`,
-      partner_obj
-    });
-  } else if (project.programming_style == "Co-located") {
-    res.render("playground_co_located", {
-      dataSets,
-      title: `${project.title} - Playground`,
-      messages,
-      partner_obj
-    });
-  } else if (project.programming_style == "Remote") {
-    res.render("playground_remote", {
-      dataSets,
-      title: `${project.title} - Playground`,
-      partner_obj
-    });
-  } else if (project.programming_style == "Individual") {
-    res.render("playgroundIndividual", {
-      dataSets,
-      title: `${project.title} - Playground`,
-      messages,
-      partner_obj
-    });
-  }
-};
+}
 
 exports.getHistory = async (req, res) => {
   const redis = new Redis();
@@ -264,6 +304,7 @@ exports.getProfileByTeacher = async (req, res) => {
 // };
 
 exports.getSection = async (req, res) => {
+
   let dataSets = {};
   let section_id = parseInt(cryptr.decrypt(req.query.section_id));
   console.log(section_id)
@@ -2367,7 +2408,6 @@ exports.downloadFile = async (req, res) => {
 };
 
 exports.assignAssignment = async (req, res) => {
-  console.log("exports.assignAssignment ");
 
   const selectEnrollmentBySectionId =
     "SELECT * FROM enrollment WHERE section_id = " +
@@ -2384,8 +2424,6 @@ exports.assignAssignment = async (req, res) => {
   let branch_type = await conMysql.selectBranchType(queryBranch_type)
 
   if(branch_type[0]["branch_type"] == "IT"){
-    console.log("OK IT")
-    
     for (_index in assignmentSet) {
       assignmentSet[_index].assignment_id = cryptr.decrypt(
         assignmentSet[_index].assignment_id
@@ -2420,8 +2458,6 @@ exports.assignAssignment = async (req, res) => {
     }
     
   }else if(branch_type[0]["branch_type"] == "DSBA"){
-    console.log("OK DSBA")
-
     for (_index in assignmentSet) {
       assignmentSet[_index].notebook_assignment_id = cryptr.decrypt(
         assignmentSet[_index].notebook_assignment_id
@@ -2465,9 +2501,6 @@ exports.assignAssignment = async (req, res) => {
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = " +
     pairingSessionId;
   var students = await conMysql.selectStudent(selectStudent);
-  
-  console.log("students from student join enrollment join pairing_record :", students)
-  
   var creator = "username@Codebuddy";
   var collaborator = "examiner@codebuddy";
   var cloneStudents = {};
@@ -2477,8 +2510,6 @@ exports.assignAssignment = async (req, res) => {
   let assignment_id = 1;
   let partnerKeys = {};
   let assignment_of_each_pair = {};
- 
-  // let end_time = req.body.end_time
 
   const selectPairingSessionByPairingSessionId =
     "SELECT * FROM pairing_session WHERE pairing_session_id = " +
@@ -2494,20 +2525,15 @@ exports.assignAssignment = async (req, res) => {
     cloneStudents[students[_index].enrollment_id] = students[_index];
   }
 
-
-
-  console.log("cloneStudents: " , cloneStudents)
-  console.log("cloneAssignmentSet ", cloneAssignmentSet)
-
   tempStudents = Object.assign({}, cloneStudents);
   if (
     proStyle === "Remote" ||
     proStyle === "Co-located" ||
     proStyle === "Interactive"
   ) {
-    console.log(`proStyle === Remote || 
-    proStyle === Co-located ||
-    proStyle === Interactive`)
+    // console.log(`proStyle === Remote || 
+    // proStyle === Co-located ||
+    // proStyle === Interactive`)
     for (key in tempStudents) {
       if (tempStudents[key].role == "host") {
         partnerKeys[key] = tempStudents[key].partner_id;
@@ -2521,9 +2547,9 @@ exports.assignAssignment = async (req, res) => {
       delete tempStudents[key];
     }
   } else {
-    console.log(`proStyle !== Remote || 
-    proStyle !== Co-located ||
-    proStyle !=== Interactive`)
+    // console.log(`proStyle !== Remote || 
+    // proStyle !== Co-located ||
+    // proStyle !=== Interactive`)
     for (key in tempStudents) {
       partnerKeys[key] = -1;
       assignment_of_each_pair[key] = [];
@@ -2580,9 +2606,8 @@ exports.assignAssignment = async (req, res) => {
                 assignmentSet[_index].assignment_id
               );
             } 
-            console.log("findProject", findProject)
+          
         }else if(branch_type[0]["branch_type"] == "DSBA"){
-
           /*
           * assignment is a interactive.
           */
@@ -2620,7 +2645,7 @@ exports.assignAssignment = async (req, res) => {
               assignmentSet[_index].notebook_assignment_id
             );
           }
-          console.log("findProject", findProject)
+        
         }
         
       } else if (proStyle === "Individual") {
@@ -2694,14 +2719,12 @@ exports.assignAssignment = async (req, res) => {
 
   // let timeoutHandles = []
   // Assign each assignment to the all of student
-  console.log("assignment_of_each_pair", assignment_of_each_pair)
   for (let key in assignment_of_each_pair) {
     for (let _index in assignment_of_each_pair[key]) {
       assignment_id = assignment_of_each_pair[key][_index];
-      console.log("assignment_id", assignment_id)
+     
       project = new Project();
       project.title = cloneAssignmentSet[assignment_id].title;
-      console.log(" project.title:  ",  project.title)
       project.description = cloneAssignmentSet[assignment_id].description;
       project.programming_style =
         cloneAssignmentSet[assignment_id].programming_style;
@@ -2713,6 +2736,11 @@ exports.assignAssignment = async (req, res) => {
       project.available_project = true;
       project.createdAt = start_time;
       
+      if(branch_type[0]["branch_type"] == "DSBA"){
+        project.files.pop();
+        project.files.push(cryptr.encrypt(cloneAssignmentSet[assignment_id].notebook_assignment_id)) 
+      }
+
       creator = cloneStudents[key].username;
       if (
         proStyle === "Remote" ||
@@ -2728,7 +2756,6 @@ exports.assignAssignment = async (req, res) => {
       project.creator = creator;
       project.collaborator = collaborator;
       creator = await User.findOne({ username: creator });
-      // console.log("PROJECT, " , project)
       
       let isCreatePro = false;
       if (creator != null) {
@@ -2740,8 +2767,7 @@ exports.assignAssignment = async (req, res) => {
           collaborator = await User.findOne({ username: collaborator });
 
           if (collaborator != null) {
-            console.log("collaborator != null")
-           
+            // console.log("collaborator != null")
               project = await project.save();
               await Project.updateOne(
                 {
@@ -2758,9 +2784,7 @@ exports.assignAssignment = async (req, res) => {
                   if (err) throw err;
                 }
               );
-          
-            
-
+         
             // timeoutHandles.push(project._id)
 
             // Insert score records
@@ -2829,25 +2853,28 @@ exports.assignAssignment = async (req, res) => {
         console.log("error", "Can't find @" + creator);
       }
 
-      if (isCreatePro) {
-        //create directory
-        var dir1 = "./public/project_files";
-        var dir2 = "./public/project_files/" + project.pid;
-        if (!fs.existsSync(dir1)) {
-          fs.mkdirSync(dir1);
-        }
-        if (!fs.existsSync(dir2)) {
-          fs.mkdirSync(dir2);
-        }
-        fs.open(
-          "./public/project_files/" + project.pid + "/main.py",
-          "w",
-          function(err, file) {
-            if (err) throw err;
-            console.log("file " + project.pid + ".py is created");
+      if(branch_type[0]["branch_type"] == "IT"){
+        if (isCreatePro) {
+          //create directory
+          var dir1 = "./public/project_files";
+          var dir2 = "./public/project_files/" + project.pid;
+          if (!fs.existsSync(dir1)) {
+            fs.mkdirSync(dir1);
           }
-        );
+          if (!fs.existsSync(dir2)) {
+            fs.mkdirSync(dir2);
+          }
+          fs.open(
+            "./public/project_files/" + project.pid + "/main.py",
+            "w",
+            function(err, file) {
+              if (err) throw err;
+              console.log("file " + project.pid + ".py is created");
+            }
+          );
+        }
       }
+     
     }
   }
 
@@ -2863,7 +2890,6 @@ exports.assignAssignment = async (req, res) => {
   //     })
   //   }
   // }, time_left)
-  console.log("PROJECT", project)
   if (!count) {
     res.send({ res_status: "You already assigned these assignments!" });
   } else {
