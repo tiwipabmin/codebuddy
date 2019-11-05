@@ -128,6 +128,9 @@ function createAssignment() {
     type: "submit"
   });
   $("#confirmToCreateAssBtn").click();
+  $("#confirmToCreateAssBtn").attr({
+    type: "button"
+  });
 }
 
 function updateAssignment() {
@@ -153,4 +156,7 @@ function updateAssignment() {
     type: "submit"
   });
   $("#confirmToCreateAssBtn").click();
+  $("#confirmToCreateAssBtn").attr({
+    type: "button"
+  });
 }
