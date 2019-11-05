@@ -67,13 +67,13 @@ exports.getNotebookAssignment = async (req, res) => {
 
 exports.uploadAssignment = async (req, res) => {
   console.log("uploadAssignment")
-  console.log("req.body uploadAssignment" , req.body)
+  // console.log("req.body uploadAssignment" , req.body)
   let reqBody = req.body;
   let myBuffer = req.file.buffer
   let bufferToJson = JSON.parse(myBuffer);
-  console.log("bufferToJson " ,  bufferToJson)
+  // console.log("bufferToJson " ,  bufferToJson)
   let dataStr = JSON.stringify(bufferToJson)
-  console.log(`Data ${dataStr}`)
+  // console.log(`Data ${dataStr}`)
 
   /**
    * generate filename
@@ -115,7 +115,7 @@ exports.uploadAssignment = async (req, res) => {
   console.log("insertAssingment begin")
   let section_id = parseInt(cryptr.decrypt(req.body.section_id));
   console.log(section_id)
-  let insertNotebookAssignment = "INSERT INTO notebook_assignment ( section_id, title, description, week, filePath) VALUES ?";
+  let insertNotebookAssignment = "INSERT INTO notebook_assignment ( section_id, title, description, week, filePath, programming_style) VALUES ?";
 
 
   const notebookValue = [
@@ -124,7 +124,8 @@ exports.uploadAssignment = async (req, res) => {
       req.body.title,
       req.body.description,
       req.body.week,
-      filename
+      filename,
+      "Interactive"
     ]
   ]
   // console.log(insertNotebookAssignment)

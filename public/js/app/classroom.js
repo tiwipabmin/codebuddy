@@ -1365,19 +1365,14 @@ function onClickAssign(
 }
 
 function on_click_assign_button(assignment_of_week, pairing_session_id) {
-  console.log(" on_click_assign_button " ,assignment_of_week )
-  console.log(" pairing_session_id " ,pairing_session_id )
   assignment_of_week = JSON.parse(assignment_of_week);
   let assignment_is_selected = [];
   assignment_of_week.forEach(function(e) {
     $("#" + e.assignment_id + "_is_selected").is(":checked") == true
       ? assignment_is_selected.push(e)
       : null;
-
   });
-  // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
-  console.log("assignment_is_selected.length " , assignment_is_selected.length)
-  if (assignment_is_selected.length) {
+ if (assignment_is_selected.length) {
     let parameters = JSON.stringify({
       assignment_set: assignment_is_selected,
       pairing_session_id: pairing_session_id
@@ -1725,7 +1720,14 @@ function on_click_weeks_dropdown(
   pairing_session_id,
   opt
 ) {
-  // console.log('pairing_session_id, ', pairing_session_id)
+  console.log("on_click_weeks_dropdown")
+  console.log('pairing_session_id, ', pairing_session_id)
+  console.log('id, ', id)
+  console.log('assignment_set ', assignment_set)
+  console.log('username ', username)
+  console.log('img ', img)
+  console.log('opt ', opt)
+
   assignment_set = assignment_set;
   let res_obj = get_items_of_week(assignment_set, 5, id);
   let assignment_of_week_ = res_obj.items_of_week;
@@ -1740,6 +1742,8 @@ function on_click_weeks_dropdown(
     opt
   );
 
+  console.log("assignment_of_week_ " , assignment_of_week_)
+  
   $("#assign_button").attr(
     "onclick",
     "on_click_assign_button(" +

@@ -364,7 +364,7 @@ exports.getSection = async (req, res) => {
         }
       ]
     }).sort({ createdAt: -1 });
-
+console.log("projects find", projects)
     /**
      * projects change data type from array to object
      */
@@ -379,6 +379,7 @@ exports.getSection = async (req, res) => {
     for (i in cloneAssignments) {
       let checkProjectFromAssignmentId =
         cloneProjects[cryptr.decrypt(cloneAssignments[i].assignment_id)];
+        console.log("checkProjectFromAssignmentId", checkProjectFromAssignmentId)
       if (checkProjectFromAssignmentId !== undefined) {
         let element = Object.assign({}, checkProjectFromAssignmentId);
         if (element._doc.available_project) {
@@ -392,6 +393,7 @@ exports.getSection = async (req, res) => {
       }
     }
 
+    
     projects.reverse();
 
     dataSets = {
@@ -413,7 +415,7 @@ exports.getSection = async (req, res) => {
     };
   }
 
-
+  console.log("projects", dataSets.reforms.projects)
   // console.log("dataSets", dataSets)
   // console.log("dataSets.reforms.pairingSessions", dataSets.reforms.pairingSessions)
   
@@ -513,7 +515,7 @@ exports.getSection = async (req, res) => {
         }
       ]
     }).sort({ createdAt: -1 });
-
+    console.log("projects find", projects)
     /**
      * projects change data type from array to object
      */
@@ -521,6 +523,8 @@ exports.getSection = async (req, res) => {
     projects.forEach(function(project) {
       cloneProjects[project.assignment_id] = project;
     });
+    
+    console.log("cloneAssignments", cloneAssignments)
 
     projects = [];
     assignments = [];
@@ -561,7 +565,7 @@ exports.getSection = async (req, res) => {
       }
     };
   }
-  // console.log("dataSets", dataSets)
+  console.log("projects", dataSets.reforms.projects)
   // console.log("dataSets.reforms.pairingSessions", dataSets.reforms.pairingSessions)
     res.render("collaberative",{ dataSets, title: section.course_name })
   }
@@ -2363,6 +2367,8 @@ exports.downloadFile = async (req, res) => {
 };
 
 exports.assignAssignment = async (req, res) => {
+  console.log("exports.assignAssignment ");
+
   const selectEnrollmentBySectionId =
     "SELECT * FROM enrollment WHERE section_id = " +
     cryptr.decrypt(req.body.assignment_set[0].section_id);
@@ -2372,33 +2378,66 @@ exports.assignAssignment = async (req, res) => {
   const assignmentSet = req.body.assignment_set;
   // let isThereIndividualPro = false
   // let isTherePairPro = false
+  let cloneAssignmentSet = {};
   let proStyles = [];
-  for (_index in assignmentSet) {
-    assignmentSet[_index].assignment_id = cryptr.decrypt(
-      assignmentSet[_index].assignment_id
-    );
-    let programmingStyle = assignmentSet[_index].programming_style;
-    if (proStyles.indexOf(programmingStyle)) {
-      proStyles.push(programmingStyle);
-      if (proStyles.length > 1) {
-        res.send({
-          res_status:
-            "Do not allow to assign assignment that have different programming type by once time!"
-        });
-        return;
+  let queryBranch_type = "SELECT branch_type FROM branch WHERE section_id = " +  cryptr.decrypt(req.body.assignment_set[0].section_id);
+  let branch_type = await conMysql.selectBranchType(queryBranch_type)
+
+  if(branch_type[0]["branch_type"] == "IT"){
+    console.log("OK IT")
+    
+    for (_index in assignmentSet) {
+      assignmentSet[_index].assignment_id = cryptr.decrypt(
+        assignmentSet[_index].assignment_id
+      );
+      let programmingStyle = assignmentSet[_index].programming_style;
+      if (proStyles.indexOf(programmingStyle)) {
+        proStyles.push(programmingStyle);
+        if (proStyles.length > 1) {
+          res.send({
+            res_status:
+              "Do not allow to assign assignment that have different programming type by once time!"
+          });
+          return;
+        }
+      }
+      // if (assignmentSet[_index].programming_style === 'Individual') {
+      //   isThereIndividualPro = true
+      // } else if (assignmentSet[_index].programming_style === 'Remote' || assignmentSet[_index].programming_style === 'Co-located') {
+      //   isTherePairPro = true
+      // }
+
+      // if(isThereIndividualPro && isTherePairPro) {
+      //   res.send({res_status: 'Do not allow to assign assignment that have different programming style by once time!'})
+      //   return
+      // }
+
+    }
+    
+    for (let _index in assignmentSet) {
+      cloneAssignmentSet[assignmentSet[_index].assignment_id] =
+        assignmentSet[_index];
+    }
+    
+  }else if(branch_type[0]["branch_type"] == "DSBA"){
+    console.log("OK DSBA")
+
+    for (_index in assignmentSet) {
+      assignmentSet[_index].notebook_assignment_id = cryptr.decrypt(
+        assignmentSet[_index].notebook_assignment_id
+      );
+      let programmingStyle = assignmentSet[_index].programming_style;
+      if (proStyles.indexOf(programmingStyle)) {
+        proStyles.push(programmingStyle);
       }
     }
-    // if (assignmentSet[_index].programming_style === 'Individual') {
-    //   isThereIndividualPro = true
-    // } else if (assignmentSet[_index].programming_style === 'Remote' || assignmentSet[_index].programming_style === 'Co-located') {
-    //   isTherePairPro = true
-    // }
 
-    // if(isThereIndividualPro && isTherePairPro) {
-    //   res.send({res_status: 'Do not allow to assign assignment that have different programming style by once time!'})
-    //   return
-    // }
+    for (let _index in assignmentSet) {
+      cloneAssignmentSet[assignmentSet[_index].notebook_assignment_id] =
+        assignmentSet[_index];
+    }
   }
+
   let isPairing = false;
   /**
    * check student pairing
@@ -2412,6 +2451,7 @@ exports.assignAssignment = async (req, res) => {
 
   let proStyle = proStyles[0];
   if (!isPairing && proStyle !== "Individual") {
+    console.log("!isPairing && proStyle !== Individual")
     res.send({
       res_status: "Please pair all students before assign the assignment!"
     });
@@ -2425,6 +2465,9 @@ exports.assignAssignment = async (req, res) => {
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = " +
     pairingSessionId;
   var students = await conMysql.selectStudent(selectStudent);
+  
+  console.log("students from student join enrollment join pairing_record :", students)
+  
   var creator = "username@Codebuddy";
   var collaborator = "examiner@codebuddy";
   var cloneStudents = {};
@@ -2434,7 +2477,7 @@ exports.assignAssignment = async (req, res) => {
   let assignment_id = 1;
   let partnerKeys = {};
   let assignment_of_each_pair = {};
-  let cloneAssignmentSet = {};
+ 
   // let end_time = req.body.end_time
 
   const selectPairingSessionByPairingSessionId =
@@ -2451,10 +2494,10 @@ exports.assignAssignment = async (req, res) => {
     cloneStudents[students[_index].enrollment_id] = students[_index];
   }
 
-  for (let _index in assignmentSet) {
-    cloneAssignmentSet[assignmentSet[_index].assignment_id] =
-      assignmentSet[_index];
-  }
+
+
+  console.log("cloneStudents: " , cloneStudents)
+  console.log("cloneAssignmentSet ", cloneAssignmentSet)
 
   tempStudents = Object.assign({}, cloneStudents);
   if (
@@ -2462,6 +2505,9 @@ exports.assignAssignment = async (req, res) => {
     proStyle === "Co-located" ||
     proStyle === "Interactive"
   ) {
+    console.log(`proStyle === Remote || 
+    proStyle === Co-located ||
+    proStyle === Interactive`)
     for (key in tempStudents) {
       if (tempStudents[key].role == "host") {
         partnerKeys[key] = tempStudents[key].partner_id;
@@ -2475,6 +2521,9 @@ exports.assignAssignment = async (req, res) => {
       delete tempStudents[key];
     }
   } else {
+    console.log(`proStyle !== Remote || 
+    proStyle !== Co-located ||
+    proStyle !=== Interactive`)
     for (key in tempStudents) {
       partnerKeys[key] = -1;
       assignment_of_each_pair[key] = [];
@@ -2493,43 +2542,87 @@ exports.assignAssignment = async (req, res) => {
         proStyle === "Co-located" ||
         proStyle === "Interactive"
       ) {
-        /*
-         * assignment is a remote pair-programming or conventional pair-programming.
-         */
-        findProject = await Project.findOne({
-          $or: [
-            {
-              assignment_id: assignmentSet[_index].assignment_id,
-              creator: cloneStudents[key].username,
-              collaborator: cloneStudents[partnerKeys[key]].username,
-              createdAt: { $gt: new Date(timeStart) }
-            },
-            {
-              assignment_id: assignmentSet[_index].assignment_id,
-              creator: cloneStudents[key].username,
-              collaborator: cloneStudents[partnerKeys[key]].username,
-              createdAt: { $lt: new Date(timeStart) }
-            },
-            {
-              assignment_id: assignmentSet[_index].assignment_id,
-              creator: cloneStudents[partnerKeys[key]].username,
-              collaborator: cloneStudents[key].username,
-              createdAt: { $gt: new Date(timeStart) }
-            },
-            {
-              assignment_id: assignmentSet[_index].assignment_id,
-              creator: cloneStudents[partnerKeys[key]].username,
-              collaborator: cloneStudents[key].username,
-              createdAt: { $lt: new Date(timeStart) }
-            }
-          ]
-        });
-        if (findProject == null) {
-          count++;
-          assignment_of_each_pair[key].push(
-            assignmentSet[_index].assignment_id
-          );
+        if(branch_type[0]["branch_type"] == "IT"){
+          /*
+          * assignment is a remote pair-programming or conventional pair-programming.
+          */
+          findProject = await Project.findOne({
+            $or: [
+              {
+                assignment_id: assignmentSet[_index].assignment_id,
+                creator: cloneStudents[key].username,
+                collaborator: cloneStudents[partnerKeys[key]].username,
+                createdAt: { $gt: new Date(timeStart) }
+              },
+              {
+                assignment_id: assignmentSet[_index].assignment_id,
+                creator: cloneStudents[key].username,
+                collaborator: cloneStudents[partnerKeys[key]].username,
+                createdAt: { $lt: new Date(timeStart) }
+              },
+              {
+                assignment_id: assignmentSet[_index].assignment_id,
+                creator: cloneStudents[partnerKeys[key]].username,
+                collaborator: cloneStudents[key].username,
+                createdAt: { $gt: new Date(timeStart) }
+              },
+              {
+                assignment_id: assignmentSet[_index].assignment_id,
+                creator: cloneStudents[partnerKeys[key]].username,
+                collaborator: cloneStudents[key].username,
+                createdAt: { $lt: new Date(timeStart) }
+              }
+            ]
+          });
+            if (findProject == null) {
+              count++;
+              assignment_of_each_pair[key].push(
+                assignmentSet[_index].assignment_id
+              );
+            } 
+            console.log("findProject", findProject)
+        }else if(branch_type[0]["branch_type"] == "DSBA"){
+
+          /*
+          * assignment is a interactive.
+          */
+          findProject = await Project.findOne({
+            $or: [
+              {
+                assignment_id: assignmentSet[_index].notebook_assignment_id,
+                creator: cloneStudents[key].username,
+                collaborator: cloneStudents[partnerKeys[key]].username,
+                createdAt: { $gt: new Date(timeStart) }
+              },
+              {
+                assignment_id: assignmentSet[_index].notebook_assignment_id,
+                creator: cloneStudents[key].username,
+                collaborator: cloneStudents[partnerKeys[key]].username,
+                createdAt: { $lt: new Date(timeStart) }
+              },
+              {
+                assignment_id: assignmentSet[_index].notebook_assignment_id,
+                creator: cloneStudents[partnerKeys[key]].username,
+                collaborator: cloneStudents[key].username,
+                createdAt: { $gt: new Date(timeStart) }
+              },
+              {
+                assignment_id: assignmentSet[_index].notebook_assignment_id,
+                creator: cloneStudents[partnerKeys[key]].username,
+                collaborator: cloneStudents[key].username,
+                createdAt: { $lt: new Date(timeStart) }
+              }
+            ]
+          });
+          if (findProject == null) {
+            count++;
+            assignment_of_each_pair[key].push(
+              assignmentSet[_index].notebook_assignment_id
+            );
+          }
+          console.log("findProject", findProject)
         }
+        
       } else if (proStyle === "Individual") {
         /*
          * assignment is a individual pair-programming.
@@ -2601,12 +2694,14 @@ exports.assignAssignment = async (req, res) => {
 
   // let timeoutHandles = []
   // Assign each assignment to the all of student
+  console.log("assignment_of_each_pair", assignment_of_each_pair)
   for (let key in assignment_of_each_pair) {
     for (let _index in assignment_of_each_pair[key]) {
       assignment_id = assignment_of_each_pair[key][_index];
-
+      console.log("assignment_id", assignment_id)
       project = new Project();
       project.title = cloneAssignmentSet[assignment_id].title;
+      console.log(" project.title:  ",  project.title)
       project.description = cloneAssignmentSet[assignment_id].description;
       project.programming_style =
         cloneAssignmentSet[assignment_id].programming_style;
@@ -2617,7 +2712,7 @@ exports.assignAssignment = async (req, res) => {
       // project.end_time = new Date(end_time)
       project.available_project = true;
       project.createdAt = start_time;
-
+      
       creator = cloneStudents[key].username;
       if (
         proStyle === "Remote" ||
@@ -2633,7 +2728,8 @@ exports.assignAssignment = async (req, res) => {
       project.creator = creator;
       project.collaborator = collaborator;
       creator = await User.findOne({ username: creator });
-
+      // console.log("PROJECT, " , project)
+      
       let isCreatePro = false;
       if (creator != null) {
         if (
@@ -2644,22 +2740,26 @@ exports.assignAssignment = async (req, res) => {
           collaborator = await User.findOne({ username: collaborator });
 
           if (collaborator != null) {
-            project = await project.save();
-            await Project.updateOne(
-              {
-                _id: project._id
-              },
-              {
-                $set: {
-                  creator_id: creator._id,
-                  collaborator_id: collaborator._id,
-                  assignment_id: assignment_id
+            console.log("collaborator != null")
+           
+              project = await project.save();
+              await Project.updateOne(
+                {
+                  _id: project._id
+                },
+                {
+                  $set: {
+                    creator_id: creator._id,
+                    collaborator_id: collaborator._id,
+                    assignment_id: assignment_id
+                  }
+                },
+                err => {
+                  if (err) throw err;
                 }
-              },
-              err => {
-                if (err) throw err;
-              }
-            );
+              );
+          
+            
 
             // timeoutHandles.push(project._id)
 
@@ -2763,7 +2863,7 @@ exports.assignAssignment = async (req, res) => {
   //     })
   //   }
   // }, time_left)
-
+  console.log("PROJECT", project)
   if (!count) {
     res.send({ res_status: "You already assigned these assignments!" });
   } else {
