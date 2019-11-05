@@ -208,10 +208,9 @@ async function getNotebookAssignmentId(filePath){
 exports.exportNotebookFile = async (req, res) => {
 
   console.log("exportNotebookFile " )
-  reqBody = Object.keys(req.body)
-  splitBody = reqBody[0].split(",")
-  notebookAssignmentID = cryptr.decrypt(splitBody[0])
-  notebookAssignmentTitle = splitBody[1]+".ipynb"
+
+  notebookAssignmentID = cryptr.decrypt(Object.values(req.body)[0])
+  notebookAssignmentTitle = Object.values(req.body)[1]+".ipynb"
   console.log("notebookAssignmentID" , notebookAssignmentID);
   console.log("notebookAssignmentTitle" , notebookAssignmentTitle);
 
@@ -290,8 +289,8 @@ exports.exportNotebookFile = async (req, res) => {
 
  var filePath = "./public/notebookAssignment/";
 
- console.log("fileNotebook ", fileNotebook)
- console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
+//  console.log("fileNotebook ", fileNotebook)
+//  console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
     fs.writeFileSync(notebookAssignmentTitle, JSON.stringify(fileNotebook), 'utf8', err =>  {
 
 
@@ -303,6 +302,8 @@ exports.exportNotebookFile = async (req, res) => {
 
   });
 
+  status = "Export File Complete!!";
+    res.send({ status: status });
 
 }
 
