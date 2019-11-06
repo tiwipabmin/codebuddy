@@ -2873,6 +2873,34 @@ exports.assignAssignment = async (req, res) => {
             }
           );
         }
+      }else if(branch_type[0]["branch_type"] == "DSBA"){
+        console.log("Project : ", project)
+        let dirPathMain = "./public/notebookAssignment/";
+        let dirPathSub  = dirPathMain +  cloneAssignmentSet[assignment_id].filePath.split(".ipynb")[0]+"/"+project.pid;
+        let filePath = dirPathSub+"/" +  cloneAssignmentSet[assignment_id].filePath;
+        let filePathRead = dirPathMain+cloneAssignmentSet[assignment_id].filePath.split(".ipynb")[0]+"/" +cloneAssignmentSet[assignment_id].filePath
+        let information = fs.readFileSync(filePathRead, "utf8");
+
+        let cells = JSON.parse(information);
+        // console.log("information_obj", information_obj)
+
+        // Create folder path
+        if (!fs.existsSync(dirPathMain)) {
+          fs.mkdirSync(dirPathMain);
+        }
+       
+        if (!fs.existsSync(dirPathSub)) {
+          fs.mkdirSync(dirPathSub);
+        }
+
+        fs.writeFileSync(filePath, cells, 'utf8', err =>  {
+          // throws an error, you could also catch it here
+          if (err) throw err;
+      
+          // success case, the file was saved
+          // console.log(filename + " has been saved!");
+        });
+
       }
      
     }
