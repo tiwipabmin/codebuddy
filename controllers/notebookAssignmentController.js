@@ -53,7 +53,7 @@ exports.uploadAssignment = async (req, res) => {
    * generate filename
    * ex: nb_2019-10-12_16-1-85.ipynb
    */
-  let randomNumber = Math.floor(Math.random() * (100 - 0) + 0);
+  let randomNumber = Math.floor(Math.random() * (1000 - 0) + 0);
   let date_ob = new Date();
   // current date
   // adjust 0 before single digit date
@@ -71,13 +71,14 @@ exports.uploadAssignment = async (req, res) => {
   // current minutes
   let minutes = date_ob.getMinutes();
 
-  let dateTime =
+  let dateTime ="-"+
     year + "-" + month + "-" + date + "_" + hours + "-" + minutes + "-";
   // var filename = "nb_" + dateTime + randomNumber + ".ipynb";
-  let filenameStr = req.body.filename.split(".ipynb")[0]+"-";
-  let filename =  filenameStr+ dateTime + randomNumber + ".ipynb"
+  // let filenameStr = req.body.filename.split(".ipynb")[0]+"-";
+  let assignmentTitle = req.body.title;
+  let filename =  assignmentTitle+ dateTime + randomNumber + ".ipynb"
   let dirPathMain = "./public/notebookAssignment/";
-  let dirPathSub  = dirPathMain +  filenameStr+ dateTime + randomNumber;
+  let dirPathSub  = dirPathMain +  assignmentTitle+ dateTime + randomNumber;
   let filePath = dirPathSub+"/" +  filename;
   
   // Create folder path
