@@ -33,6 +33,9 @@ block content
           button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
               i.plus.icon
           //- .ui.button.approve.grey#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.notebookAssignment}`+')') Edit
+      else
+        input(type='hidden' id='pid' value=`${dataSets.origins.project.pid}`)
+
     .ui
       .column(style="display: flex;")
         .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")

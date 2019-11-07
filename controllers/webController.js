@@ -158,7 +158,7 @@ exports.getPlayground = async (req, res) => {
     }
 
     dataSets = {
-      origins: { notebookAssignment: notebookAssignment, section: section },
+      origins: { notebookAssignment: notebookAssignment, section: section,  project: project },
       reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
     };
 
@@ -169,7 +169,7 @@ exports.getPlayground = async (req, res) => {
     
     
 
-    console.log("cells : ", cells)
+    console.log("dataSets : ", dataSets.origins.project.pid)
     res.render("notebookAssignment", { dataSets, title: title , cells : JSON.parse(cells)});
   };
 }
