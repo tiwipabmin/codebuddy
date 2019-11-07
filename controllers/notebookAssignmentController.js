@@ -44,15 +44,16 @@ exports.getNotebookAssignment = async (req, res) => {
 
 exports.uploadAssignment = async (req, res) => {
   console.log("uploadAssignment")
-  let reqBody = req.body;
   let myBuffer = req.file.buffer
   let bufferToJson = JSON.parse(myBuffer);
   let dataStr = JSON.stringify(bufferToJson)
+
+
   /**
    * generate filename
    * ex: nb_2019-10-12_16-1-85.ipynb
    */
-  let randomNumber = Math.floor(Math.random() * (100000 - 0) + 0);
+  let randomNumber = Math.floor(Math.random() * (1000 - 0) + 0);
   let date_ob = new Date();
   // current date
   // adjust 0 before single digit date
@@ -70,22 +71,37 @@ exports.uploadAssignment = async (req, res) => {
   // current minutes
   let minutes = date_ob.getMinutes();
 
-  let dateTime =
+  let dateTime ="-"+
     year + "-" + month + "-" + date + "_" + hours + "-" + minutes + "-";
-  var filename = "nb_" + dateTime + randomNumber + ".ipynb";
-  var filePath = "./public/notebookAssignment/";
+  // var filename = "nb_" + dateTime + randomNumber + ".ipynb";
+  // let filenameStr = req.body.filename.split(".ipynb")[0]+"-";
+  let assignmentTitle = req.body.title;
+  let filename =  assignmentTitle+ dateTime + randomNumber + ".ipynb"
+  let dirPathMain = "./public/notebookAssignment/";
+  let dirPathSub  = dirPathMain +  assignmentTitle+ dateTime + randomNumber;
+  let filePath = dirPathSub+"/" +  filename;
+  
+  // Create folder path
+  if (!fs.existsSync(dirPathMain)) {
+    fs.mkdirSync(dirPathMain);
+  }
 
+  if (!fs.existsSync(dirPathSub)) {
+    fs.mkdirSync(dirPathSub);
+  }
 
-  fs.writeFileSync(filePath+filename, dataStr, 'utf8', err =>  {
+  fs.writeFileSync(filePath, dataStr, 'utf8', err =>  {
     // throws an error, you could also catch it here
     if (err) throw err;
 
     // success case, the file was saved
-    // console.log(filename + " has been saved!");
-
+    console.log(filename + " has been saved!");
   });
 
   let section_id = parseInt(cryptr.decrypt(req.body.section_id));
+  let section = {};
+  section.section_id = cryptr.encrypt(section_id);
+
   let insertNotebookAssignment = "INSERT INTO notebook_assignment ( section_id, title, description, week, filePath, programming_style) VALUES ?";
 
   const notebookValue = [
@@ -99,26 +115,37 @@ exports.uploadAssignment = async (req, res) => {
     ]
   ]
  
-  const assignment_id = await conMysql.insertAssignment(
+  const notebookAssignment_id = await conMysql.insertAssignment(
     insertNotebookAssignment,
     notebookValue
   );
 
-  let notebookAssingmentId = await getNotebookAssignmentId(filename)
-  let cells =  readFileNotebookAssingment(filename);
-  saveFileToRedis(cells, notebookAssingmentId[0]["notebook_assignment_id"])
+  console.log("assignment_id ", notebookAssignment_id)
+  let cells =  readFileNotebookAssignment(filePath);
+  saveFileToRedis(cells, notebookAssignment_id)
   
-  res.redirect("/classroom?section_id=" +  cryptr.encrypt(section_id));
-
-  
+  let notebookAssignment = {};
+  notebookAssignment.notebookAssignment_id = cryptr.encrypt(notebookAssignment_id);
+  notebookAssignment.title = req.body.title;
+  notebookAssignment.week = req.body.week;
+  notebookAssignment.description = req.body.description
+  notebookAssignment.programming_style = "Interactive"
+  notebookAssignment.filename = filename
+  dataSets = {
+    origins: { notebookAssignment: notebookAssignment, section: section },
+    reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
+  };
+  console.log("dataSets", dataSets)
+  res.redirect("/notebookAssignment?section_id=" +  cryptr.encrypt(section_id)+"&notebook_assignment_id="+cryptr.encrypt(notebookAssignment_id));
+ 
 };
 
-function readFileNotebookAssingment(filename){
-  information = fs.readFileSync("./public/notebookAssignment/"+filename, "utf8");
+function readFileNotebookAssignment(filePath){
+  let information = fs.readFileSync(filePath, "utf8");
 
-    var information_obj = JSON.parse(information);
+  let information_obj = JSON.parse(information);
    
-    var information_cells = information_obj["cells"];
+  let information_cells = information_obj["cells"];
 
     // console.log("information_cells", information_cells)
     cells = new Array()
@@ -193,17 +220,6 @@ async function saveFileToRedis(cells, notebookAssingmentId){
     cells
     );
 }
-
-async function getNotebookAssignmentId(filePath){
-  const query =
-  "SELECT notebook_assignment_id FROM notebook_assignment WHERE filePath = " + '"'+filePath+'"'
-  // console.log("query", query)
-    let notebookAssignmentId = await conMysql.selectAssignment(query);
-    return notebookAssignmentId
-}
-
-// async function exportNotebookFile(){
-
 
 exports.exportNotebookFile = async (req, res) => {
 

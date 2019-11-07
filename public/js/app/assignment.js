@@ -165,6 +165,7 @@ function createNotebookAssignment(){
   formData.append('description', $('textarea[id=assignmentDesc]')[0].value);
   formData.append('file', $('input[id=file_assignment')[0].files[0])
   formData.append('section_id', $('input[name=sectionId]')[0].value)
+  
   const options = {
     method: 'POST',
     body: formData

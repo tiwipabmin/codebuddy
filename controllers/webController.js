@@ -4,6 +4,9 @@ const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
 const moment = require("moment");
 const Redis = require("ioredis");
+var markdown = require("markdown").markdown;
+var html2markdown = require('html2markdown');
+
 var fs = require("fs");
 
 const Project = mongoose.model("Project");
@@ -77,6 +80,7 @@ exports.getPlayground = async (req, res) => {
   const messages = await Message.find({ pid: req.query.pid }).sort({
     createdAt: 1
   });
+
 
   let queryBranch_type = "SELECT branch_type FROM branch WHERE section_id = " + cryptr.decrypt(section_id);
   let branch_type = [];
@@ -158,12 +162,97 @@ exports.getPlayground = async (req, res) => {
       reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
     };
 
-    var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(project.files[0]), "cells");
-    let cells = JSON.parse(cellsRedis)
- 
-    res.render("notebookAssignment", { dataSets, title: title , cells : cells});
+    let filePath = notebookAssignment.filePath;
+    let dirPath = "./public/notebookAssignment/" + filePath.split(".ipynb")[0]+"/"+ project.pid+"/"+ filePath;
+    let cells = readFileNotebookAssignment(dirPath)
+    saveFileToRedis(cells, notebookAssignment.notebook_assignment_id)
+    
+    
+
+    console.log("cells : ", cells)
+    res.render("notebookAssignment", { dataSets, title: title , cells : JSON.parse(cells)});
   };
 }
+
+function readFileNotebookAssignment(filePath){
+  let information = fs.readFileSync(filePath, "utf8");
+
+  let information_obj = JSON.parse(information);
+   
+  let information_cells = information_obj["cells"];
+
+    cells = new Array()
+    codeCellId = []
+    for (x in information_cells) {
+        // console.log("---------Cells  [" + x + "]----------");
+        if (information_cells[x]["cell_type"] == "markdown") {
+          // let lines = []
+          let lines = ""
+          for (y in information_cells[x]["source"]) {
+            // console.log(markdown.toHTML(information_cells[x]["source"][y]));
+            let line = markdown.toHTML(information_cells[x]["source"][y]);
+            // lines.push(line)
+            lines += line+"\n"
+          }
+
+          let cellType = "markdown"
+          let source = lines
+          let cell = {
+            cellType,
+            source
+          }
+          cell.blockId = x
+          cells.push(cell)
+      
+        } else {
+            codeCellId.push(x)
+            // let linesSource = []
+            let linesSource = ""
+            let outputs = []
+            for (y in information_cells[x]["source"]) {
+              let lineSource = information_cells[x]["source"][y]
+                // linesSource.push(lineSource)
+                 linesSource+= lineSource
+            }
+
+            
+            for (y in information_cells[x]["outputs"]) {
+              let outputObject = information_cells[x]["outputs"][y]
+              let linesText = []
+                for(z in outputObject["text"]){
+                  let lineText = outputObject["text"][z]
+                  linesText.push(lineText)
+                }
+                outputs.push({"text": linesText})
+            }
+            
+            let executionCount = information_cells[x]["execution_count"]
+            let cellType = "code"
+            let source = linesSource
+            let cell = {
+              cellType,
+              executionCount,
+              outputs,
+              source
+            }
+            cell.blockId = x
+            
+            cells.push(cell)
+        }
+      }
+
+      return JSON.stringify(cells)
+}
+
+async function saveFileToRedis(cells, notebookAssingmentId){
+  let redis = new Redis();
+  let code = await redis.hset(
+    "notebookAssignment:"+cryptr.decrypt(notebookAssingmentId),
+    "cells",
+    cells
+    );
+}
+
 
 exports.getHistory = async (req, res) => {
   const redis = new Redis();
@@ -2873,6 +2962,35 @@ exports.assignAssignment = async (req, res) => {
             }
           );
         }
+      }else if(branch_type[0]["branch_type"] == "DSBA"){
+        console.log("Project : ", project)
+        let dirPathMain = "./public/notebookAssignment/";
+        let dirPathSub  = dirPathMain +  cloneAssignmentSet[assignment_id].filePath.split(".ipynb")[0]+"/"+project.pid;
+        let filePath = dirPathSub+"/" +  cloneAssignmentSet[assignment_id].filePath;
+        let filePathRead = dirPathMain+cloneAssignmentSet[assignment_id].filePath.split(".ipynb")[0]+"/" +cloneAssignmentSet[assignment_id].filePath
+        let information = fs.readFileSync(filePathRead, "utf8");
+
+        let cells = JSON.parse(information);
+        // console.log("information_obj", information_obj)
+        let dataStr = JSON.stringify(cells)
+
+        // Create folder path
+        if (!fs.existsSync(dirPathMain)) {
+          fs.mkdirSync(dirPathMain);
+        }
+       
+        if (!fs.existsSync(dirPathSub)) {
+          fs.mkdirSync(dirPathSub);
+        }
+
+        fs.writeFileSync(filePath, dataStr, 'utf8', err =>  {
+          // throws an error, you could also catch it here
+          if (err) throw err;
+      
+          // success case, the file was saved
+          // console.log(filename + " has been saved!");
+        });
+
       }
      
     }
