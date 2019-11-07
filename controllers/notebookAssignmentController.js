@@ -6,7 +6,7 @@ const Redis = require("ioredis");
 var fs = require("fs");
 var markdown = require("markdown").markdown;
 const redis = new Redis();
-var html2markdown = require('html2markdown');
+const html2markdown = require('html2markdown');
 
 
 
@@ -48,7 +48,6 @@ exports.uploadAssignment = async (req, res) => {
   let bufferToJson = JSON.parse(myBuffer);
   let dataStr = JSON.stringify(bufferToJson)
 
-
   /**
    * generate filename
    * ex: nb_2019-10-12_16-1-85.ipynb
@@ -73,8 +72,6 @@ exports.uploadAssignment = async (req, res) => {
 
   let dateTime ="-"+
     year + "-" + month + "-" + date + "_" + hours + "-" + minutes + "-";
-  // var filename = "nb_" + dateTime + randomNumber + ".ipynb";
-  // let filenameStr = req.body.filename.split(".ipynb")[0]+"-";
   let assignmentTitle = req.body.title;
   let filename =  assignmentTitle+ dateTime + randomNumber + ".ipynb"
   let dirPathMain = "./public/notebookAssignment/";
@@ -233,8 +230,8 @@ exports.exportNotebookFile = async (req, res) => {
 
 
   fileExport = new Array()
-   var notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssignmentID, "cells");
-   var notebookAssignment = JSON.parse(notebookAssignmentRedis)
+   let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssignmentID, "cells");
+   let notebookAssignment = JSON.parse(notebookAssignmentRedis)
    let metadata = {}
 
   //  for (x in notebookAssignment){

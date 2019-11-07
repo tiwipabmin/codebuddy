@@ -28,7 +28,7 @@ function addBlock() {
  */
 var projectFiles = JSON.parse(document.getElementById("projectFiles").value);
 var notebookAssingmentId = document.getElementById("notebookAssingmentId").value;
-console.log("notebookAssingmentId", notebookAssingmentId)
+// console.log("notebookAssingmentId", notebookAssingmentId)
 
 
 
@@ -290,7 +290,23 @@ function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
   })
   
 }
-$("#alert-modal").modal({
-  closable: false,
-  transition: "fade up"
+// <<<<<<< HEAD
+// $("#alert-modal").modal({
+//   closable: false,
+//   transition: "fade up"
+// });
+// =======
+
+/**
+ * If user exit or going elsewhere which can be caused this project window closed
+ * `beforeunload` event will fired and sending client disconnection to the server
+ */
+$(window).on("beforeunload", () => {
+  let pid = document.getElementById("pid").value;
+  socket.emit("save code", {
+    notebookAssingmentId: notebookAssingmentId,
+    pid: pid
+  });
+  socket.disconnect();
 });
+
