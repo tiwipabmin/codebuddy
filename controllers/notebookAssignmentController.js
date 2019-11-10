@@ -234,16 +234,6 @@ exports.exportNotebookFile = async (req, res) => {
    let notebookAssignment = JSON.parse(notebookAssignmentRedis)
    let metadata = {}
 
-  //  for (x in notebookAssignment){
-  //   cell_type = notebookAssignment[x]["cellType"];
-  //   let outputs = {}
-  //    if(cell_type != 'markdown'){
-  //         console.log(notebookAssignment[x]["outputs"][0]["text"])
-              
-  //    }
-
-  //  }
-// console.log("text array " , text)
 
      for (x in notebookAssignment) {
       cell_type = notebookAssignment[x]["cellType"];
@@ -346,6 +336,32 @@ console.log("fileNotebook " ,  fileNotebook)
     res.send({ status: status });
 
 }
+
+exports.exportNotebookFileStudent = async (req, res) => {
+
+  console.log("exportNotebookFileStudent")
+
+    dirPath = req.body.dirPath
+      let information = fs.readFileSync(dirPath, "utf8");
+    let notebookAssignment = JSON.parse(information);
+    fileName = dirPath.split("/")[5].split("-")[0]
+    console.log("filename = " , fileName)
+    
+    fs.writeFileSync(fileName+".ipynb", JSON.stringify(notebookAssignment), 'utf8', err =>  {
+
+
+    // throws an error, you could also catch it here
+    if (err) throw err;
+
+    // success case, the file was saved
+    console.log("testFile.ipynb " + " has been saved!");
+
+  });
+
+  status = "Export File Complete!!";
+  res.send({ status: status });
+}
+
 
 exports.deleteAssignment = async (req, res) => {
   let assignment_is_selected = req.body.assignment_is_selected;

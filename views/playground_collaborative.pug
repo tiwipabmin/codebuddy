@@ -1,0 +1,78 @@
+extends layout/layout.pug
+
+block script
+  script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+  link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+  link(rel='stylesheet' href='/css/main.css')
+  link(rel='stylesheet' href='/codemirror/lib/codemirror.css')
+  link(rel='stylesheet' href='/codemirror/addon/selection/active-line.js')
+  link(rel='stylesheet' href='/codemirror/theme/blackboard.css')
+  link(rel='stylesheet' href='/codemirror/theme/seti.css')
+  link(rel='stylesheet' href='/codemirror/theme/material.css')
+
+  style.
+    @media (min-height: 200px) {
+    .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+    position: fixed;
+    margin-top: 20px;
+    bottom: 0;
+    width: 100%;
+    }
+    }
+
+block content
+  +assignmentModal()
+  +alertModal()
+
+  .ui.segment.container.notebook_app.command_mode
+    .ui.two.column.grid
+      .middle.aligned.column
+        h1.ui.header !{dataSets.origins.notebookAssignment.title}
+          .right.aligned.column
+            button.ui.icon.button.pink.float-right(id='exportNotebookFileStudent' onClick='exportNotebookFileStudent("'+dirPath+'")' data-tooltip="Export" data-inverted="")
+                i.fa.fa-folder.icon
+            button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
+                i.plus.icon
+          //- .ui.button.approve.grey#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.notebookAssignment}`+')') Edit
+
+
+    .ui
+      .column(style="display: flex;")
+        .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")
+          - for (var i=0 ; i < `${cells.length}` ; i++)
+            if `${cells[i]["cellType"]}` === "markdown"
+              .cell.text_cell.rendered
+                  .inner_cell
+                    .text_cell_render.rendered_html(style="padding-left:8em; padding-right:25px; margin-top: 25px;")
+                      
+                          p !{cells[i]["source"]} 
+                          textarea(id=i style="display:none;").show      
+            else if `${cells[i]["cellType"]}` === "code"
+              .cell.code_cell.rendered
+                .input
+                  .prompt_container
+                    .prompt.input_prompt(id=i+'-in')
+                      bdi In &nbsp; 
+                      bdi [!{cells[i]["executionCount"]}]:
+                  .inner_cell
+                    .input_area(style="margin-top: 25px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px; background: #f7f7f7;")
+                      textarea(id=i).show 
+                        //- - for(var y = 0; y < `${cells[i]["source"].length}`; y++)
+                        //-   | !{cells[i]["source"][y]}   
+                .output(id="file"+'-div-output')
+                  .output_area
+                    .output_subarea.output_text(style="margin-top: 10px; padding-left:8em; padding-right:25px;")
+                      - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
+                          | !{cells[i]["outputs"][y]["text"]}   
+              input(type='hidden' id='projectFiles' value=`${JSON.stringify(cells)}`)
+              input(type='hidden' id='notebookAssingmentId' value=`${dataSets.origins.notebookAssignment.notebook_assignment_id}`)
+             
+    a.button.ui.labeled.icon.button(href='/classroom?section_id='+dataSets.origins.section.section_id, style='margin-top:20px;')
+      i.reply.icon
+      font Back
+  
+  
+  script(src='/js/static/socket.io.min.js')
+  script(src='/codemirror/lib/codemirror.js')
+  script(src='/codemirror/mode/python/python.js')
+  script(src='/js/app/notebookAssignment.js')

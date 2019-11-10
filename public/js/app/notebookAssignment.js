@@ -290,6 +290,35 @@ function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
   })
   
 }
+
+function exportNotebookFileStudent(dirPath){
+
+
+
+  console.log(" exportNotebookFile dirpath = " + dirPath)
+
+
+  const options = {
+    dirPath : dirPath 
+    };
+
+  // console.log('notebookAssingmentId: ', options.body.getAll('notebookAssingmentId'))
+   
+
+  $.post("/notebookAssignment/StudentExport", options ,  function(data){
+    const status = data.status;
+    if (status == "Export File Complete!!") {
+      $("#alert-header").text("Export File");
+      $("#alert-message").text(status);
+      $("#alert-modal").modal("show");
+      // alert(status);
+    }
+
+
+    console.log("status  " ,  status)
+  })
+  
+}
 // <<<<<<< HEAD
 // $("#alert-modal").modal({
 //   closable: false,
