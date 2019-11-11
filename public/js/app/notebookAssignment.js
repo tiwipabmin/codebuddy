@@ -291,7 +291,7 @@ function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
   
 }
 
-function exportNotebookFileStudent(dirPath){
+function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 
 
 
@@ -299,7 +299,8 @@ function exportNotebookFileStudent(dirPath){
 
 
   const options = {
-    dirPath : dirPath 
+    dirPath : dirPath ,
+    notebookAssingmentId : notebookAssingmentId
     };
 
   // console.log('notebookAssingmentId: ', options.body.getAll('notebookAssingmentId'))

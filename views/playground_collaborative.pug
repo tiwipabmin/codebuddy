@@ -22,12 +22,14 @@ block script
 
 block content
   +assignmentModal()
+  +alertModal()
+
   .ui.segment.container.notebook_app.command_mode
     .ui.two.column.grid
       .middle.aligned.column
         h1.ui.header !{dataSets.origins.notebookAssignment.title}
         .right.aligned.column
-          button.ui.icon.button.pink.float-right(id='exportNotebookFile' onClick='exportNotebookFile("'+dataSets.origins.notebookAssignment.notebook_assignment_id+'","'+dataSets.origins.notebookAssignment.title+'")' data-tooltip="Export" data-inverted="")
+          button.ui.icon.button.pink.float-right(id='exportNotebookFileStudent' onClick='exportNotebookFileStudent("'+dirPath+'","'+dataSets.origins.notebookAssignment.notebook_assignment_id+'")' data-tooltip="Export" data-inverted="")
               i.fa.fa-folder.icon
           button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
               i.plus.icon

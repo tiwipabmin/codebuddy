@@ -93,6 +93,7 @@ async function getFilePath (notebookAssingmentId){
 }
 
 async function getFileNotebook(notebookAssingmentId){
+  console.log("getFileNotebook")
   fileExport = new Array()
   let metadata = {}
   let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");

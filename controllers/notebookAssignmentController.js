@@ -288,7 +288,7 @@ exports.exportNotebookFile = async (req, res) => {
 
         } 
 
-        console.log("fileExport ---------" , fileExport)
+        // console.log("fileExport ---------" , fileExport)
 
  let fileNotebook = 
  {
@@ -316,9 +316,9 @@ exports.exportNotebookFile = async (req, res) => {
     "nbformat_minor": 2
 
  }
- console.log("fileNotebook ---------------------------------")
+//  console.log("fileNotebook ---------------------------------")
 
-console.log("fileNotebook " ,  fileNotebook)
+// console.log("fileNotebook " ,  fileNotebook)
  var filePath = "./public/notebookAssignment/";
 
     fs.writeFileSync(notebookAssignmentTitle, JSON.stringify(fileNotebook), 'utf8', err =>  {
@@ -337,24 +337,116 @@ console.log("fileNotebook " ,  fileNotebook)
 
 }
 
-exports.exportNotebookFileStudent = async (req, res) => {
+async function getFileNotebook(notebookAssingmentId){
+  console.log("getFileNotebook")
+  console.log("notebookAssingmentId " , notebookAssingmentId)
 
+  fileExport = new Array()
+  let metadata = {}
+  let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
+  let notebookAssignment = JSON.parse(notebookAssignmentRedis)
+
+
+  for (x in notebookAssignment) {
+    cell_type = notebookAssignment[x]["cellType"];
+    var html2Md = []
+        if ( cell_type == 'markdown') {
+            splitMD = notebookAssignment[x]["source"].split("\n")
+            for (y in splitMD) {
+              sourceInfo = html2markdown(splitMD[y]);   
+              html2Md.push(sourceInfo)   
+              source = html2Md 
+            }
+            let fileInfo = {
+              cell_type,
+            metadata,
+            source
+            } 
+            fileExport.push(fileInfo)
+        }
+          else{
+            source = notebookAssignment[x]["source"]; 
+            source = source.replace("\n","\n,,").split(",,")
+            let execution_count = null
+            let outputs = []
+
+            let fileInfo = {
+            cell_type,
+            execution_count,
+            metadata,
+            outputs,
+            source
+            } 
+
+            fileExport.push(fileInfo)
+
+          }
+
+      } 
+  
+  let fileNotebook = 
+    {
+      "cells": fileExport,
+      "metadata": {
+        "kernelspec": {
+        "display_name": "Python 3",
+        "language": "python",
+        "name": "python3"
+        },
+        "language_info": {
+          "codemirror_mode": {
+          "name": "ipython",
+          "version": 3
+          },
+          "file_extension": ".py",
+          "mimetype": "text/x-python",
+          "name": "python",
+          "nbconvert_exporter": "python",
+          "pygments_lexer": "ipython3",
+          "version": "3.7.3"
+        }
+        },
+        "nbformat": 4,
+        "nbformat_minor": 2
+    }
+  
+  return JSON.stringify(fileNotebook)
+}
+
+ exports.exportNotebookFileStudent = async (req, res) => {
+
+  
   console.log("exportNotebookFileStudent")
 
     dirPath = req.body.dirPath
-      let information = fs.readFileSync(dirPath, "utf8");
+    notebookAssingmentId = cryptr.decrypt(req.body.notebookAssingmentId)
+    console.log("dirPath = " , dirPath)
+    console.log("notebookAssingmentID " , notebookAssingmentId)
+    fileNotebook = await getFileNotebook(notebookAssingmentId)
+
+    console.log("fileNotebook = " , fileNotebook)
+    fs.writeFileSync(dirPath, fileNotebook, 'utf8', err =>  {
+      // throws an error, you could also catch it here
+      if (err) throw err;
+  
+      // success case, the file was saved
+      // console.log(filePath + " has been saved!");
+  
+    });
+
+    let information = fs.readFileSync(dirPath, "utf8");
     let notebookAssignment = JSON.parse(information);
     fileName = dirPath.split("/")[5].split("-")[0]
-    console.log("filename = " , fileName)
-    
-    fs.writeFileSync(fileName+".ipynb", JSON.stringify(notebookAssignment), 'utf8', err =>  {
+    // filePath = "C:/Users/user/Desktop/"+fileName+".ipynb"
+    console.log("__dirname = " , __dirname+"../../../Downloads/"+fileName+".ipynb" )
 
+    fs.writeFileSync(__dirname+"../../../"+fileName+".ipynb", JSON.stringify(notebookAssignment), 'utf8', err =>  {
 
     // throws an error, you could also catch it here
     if (err) throw err;
 
     // success case, the file was saved
-    console.log("testFile.ipynb " + " has been saved!");
+    console.log("./Downloads/"+fileName+".ipynb" + " has been saved!");
 
   });
 
