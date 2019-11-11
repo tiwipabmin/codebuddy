@@ -221,10 +221,9 @@ async function saveFileToRedis(cells, notebookAssingmentId){
 exports.exportNotebookFile = async (req, res) => {
 
   console.log("exportNotebookFile " )
-  reqBody = Object.keys(req.body)
-  splitBody = reqBody[0].split(",")
-  notebookAssignmentID = cryptr.decrypt(splitBody[0])
-  notebookAssignmentTitle = splitBody[1]+".ipynb"
+
+  notebookAssignmentID = cryptr.decrypt(Object.values(req.body)[0])
+  notebookAssignmentTitle = Object.values(req.body)[1]+".ipynb"
   console.log("notebookAssignmentID" , notebookAssignmentID);
   console.log("notebookAssignmentTitle" , notebookAssignmentTitle);
 
@@ -234,7 +233,6 @@ exports.exportNotebookFile = async (req, res) => {
    let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssignmentID, "cells");
    let notebookAssignment = JSON.parse(notebookAssignmentRedis)
    let metadata = {}
-   let fileInfo
 
 
      for (x in notebookAssignment) {
@@ -257,8 +255,24 @@ exports.exportNotebookFile = async (req, res) => {
             else{
               source = notebookAssignment[x]["source"]; 
               source = source.replace("\n","\n,,").split(",,")
-              let execution_count = null
-              let outputs = []
+              let execution_count = notebookAssignment[x]["executionCount"]
+              if(notebookAssignment[x]["outputs"].length != 0){
+                let name = "stdout"
+                let output_type = "stream"
+                key = "text"
+                let text =  notebookAssignment[x]["outputs"][0][key]
+                  outputs = [{
+                  name , 
+                  output_type,
+                  text
+                }]
+                // outputs = notebookAssignment[x]["outputs"]
+                // console.log(outputs)
+
+              }else{
+                outputs = []
+              }
+
 
               let fileInfo = {
               cell_type,
@@ -273,6 +287,8 @@ exports.exportNotebookFile = async (req, res) => {
             }
 
         } 
+
+        // console.log("fileExport ---------" , fileExport)
 
  let fileNotebook = 
  {
@@ -300,11 +316,11 @@ exports.exportNotebookFile = async (req, res) => {
     "nbformat_minor": 2
 
  }
+//  console.log("fileNotebook ---------------------------------")
 
+// console.log("fileNotebook " ,  fileNotebook)
  var filePath = "./public/notebookAssignment/";
 
- console.log("fileNotebook ", fileNotebook)
- console.log("fileNotebook JSON.stringify " , JSON.stringify(fileNotebook))
     fs.writeFileSync(notebookAssignmentTitle, JSON.stringify(fileNotebook), 'utf8', err =>  {
 
 
@@ -316,8 +332,128 @@ exports.exportNotebookFile = async (req, res) => {
 
   });
 
+  status = "Export File Complete!!";
+    res.send({ status: status });
 
 }
+
+async function getFileNotebook(notebookAssingmentId){
+  console.log("getFileNotebook")
+  console.log("notebookAssingmentId " , notebookAssingmentId)
+
+  fileExport = new Array()
+  let metadata = {}
+  let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
+  let notebookAssignment = JSON.parse(notebookAssignmentRedis)
+
+
+  for (x in notebookAssignment) {
+    cell_type = notebookAssignment[x]["cellType"];
+    var html2Md = []
+        if ( cell_type == 'markdown') {
+            splitMD = notebookAssignment[x]["source"].split("\n")
+            for (y in splitMD) {
+              sourceInfo = html2markdown(splitMD[y]);   
+              html2Md.push(sourceInfo)   
+              source = html2Md 
+            }
+            let fileInfo = {
+              cell_type,
+            metadata,
+            source
+            } 
+            fileExport.push(fileInfo)
+        }
+          else{
+            source = notebookAssignment[x]["source"]; 
+            source = source.replace("\n","\n,,").split(",,")
+            let execution_count = null
+            let outputs = []
+
+            let fileInfo = {
+            cell_type,
+            execution_count,
+            metadata,
+            outputs,
+            source
+            } 
+
+            fileExport.push(fileInfo)
+
+          }
+
+      } 
+  
+  let fileNotebook = 
+    {
+      "cells": fileExport,
+      "metadata": {
+        "kernelspec": {
+        "display_name": "Python 3",
+        "language": "python",
+        "name": "python3"
+        },
+        "language_info": {
+          "codemirror_mode": {
+          "name": "ipython",
+          "version": 3
+          },
+          "file_extension": ".py",
+          "mimetype": "text/x-python",
+          "name": "python",
+          "nbconvert_exporter": "python",
+          "pygments_lexer": "ipython3",
+          "version": "3.7.3"
+        }
+        },
+        "nbformat": 4,
+        "nbformat_minor": 2
+    }
+  
+  return JSON.stringify(fileNotebook)
+}
+
+ exports.exportNotebookFileStudent = async (req, res) => {
+
+  
+  console.log("exportNotebookFileStudent")
+
+    dirPath = req.body.dirPath
+    notebookAssingmentId = cryptr.decrypt(req.body.notebookAssingmentId)
+    console.log("dirPath = " , dirPath)
+    console.log("notebookAssingmentID " , notebookAssingmentId)
+    fileNotebook = await getFileNotebook(notebookAssingmentId)
+
+    console.log("fileNotebook = " , fileNotebook)
+    fs.writeFileSync(dirPath, fileNotebook, 'utf8', err =>  {
+      // throws an error, you could also catch it here
+      if (err) throw err;
+  
+      // success case, the file was saved
+      // console.log(filePath + " has been saved!");
+  
+    });
+
+    let information = fs.readFileSync(dirPath, "utf8");
+    let notebookAssignment = JSON.parse(information);
+    fileName = dirPath.split("/")[5].split("-")[0]
+    // filePath = "C:/Users/user/Desktop/"+fileName+".ipynb"
+    console.log("__dirname = " , __dirname+"../../../Downloads/"+fileName+".ipynb" )
+
+    fs.writeFileSync(__dirname+"../../../"+fileName+".ipynb", JSON.stringify(notebookAssignment), 'utf8', err =>  {
+
+    // throws an error, you could also catch it here
+    if (err) throw err;
+
+    // success case, the file was saved
+    console.log("./Downloads/"+fileName+".ipynb" + " has been saved!");
+
+  });
+
+  status = "Export File Complete!!";
+  res.send({ status: status });
+}
+
 
 exports.deleteAssignment = async (req, res) => {
   let assignment_is_selected = req.body.assignment_is_selected;

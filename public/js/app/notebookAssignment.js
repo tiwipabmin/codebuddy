@@ -267,28 +267,65 @@ function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
 
   console.log(" exportNotebookFile " + notebookAssingmentId + "  " + notebookAssingmenTitle)
 
-  var formData = new FormData();
-  formData.append('notebookAssingmentId',notebookAssingmentId);
-  formData.append('notebookAssingmenTitle', notebookAssingmenTitle);
 
   const options = {
-    method: 'POST',
-    body: formData
+    notebookAssingmentId : notebookAssingmentId , 
+    notebookAssingmenTitle : notebookAssingmenTitle
   };
 
   // console.log('notebookAssingmentId: ', options.body.getAll('notebookAssingmentId'))
    
 
-  $.post("/notebookAssignment/export", notebookAssingmentId +","+ notebookAssingmenTitle)
-  // $.ajax({
-  //   url: "/notebookAssignment/export",
-  //   type: "post",
-  //   data: formData,
-  //   success: function(res) {
-  //   }});
+  $.post("/notebookAssignment/export", options ,  function(data){
+    const status = data.status;
+    if (status == "Export File Complete!!") {
+      $("#alert-header").text("Export File");
+      $("#alert-message").text(status);
+      $("#alert-modal").modal("show");
+      // alert(status);
+    }
 
-  // fetch('/notebookAssignment/export', options);
+
+    console.log("status  " ,  status)
+  })
+  
 }
+
+function exportNotebookFileStudent(dirPath , notebookAssingmentId){
+
+
+
+  console.log(" exportNotebookFile dirpath = " + dirPath)
+
+
+  const options = {
+    dirPath : dirPath ,
+    notebookAssingmentId : notebookAssingmentId
+    };
+
+  // console.log('notebookAssingmentId: ', options.body.getAll('notebookAssingmentId'))
+   
+
+  $.post("/notebookAssignment/StudentExport", options ,  function(data){
+    const status = data.status;
+    if (status == "Export File Complete!!") {
+      $("#alert-header").text("Export File");
+      $("#alert-message").text(status);
+      $("#alert-modal").modal("show");
+      // alert(status);
+    }
+
+
+    console.log("status  " ,  status)
+  })
+  
+}
+// <<<<<<< HEAD
+// $("#alert-modal").modal({
+//   closable: false,
+//   transition: "fade up"
+// });
+// =======
 
 /**
  * If user exit or going elsewhere which can be caused this project window closed

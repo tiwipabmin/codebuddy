@@ -170,7 +170,7 @@ exports.getPlayground = async (req, res) => {
     
 
     console.log("dataSets : ", dataSets.origins.project.pid)
-    res.render("notebookAssignment", { dataSets, title: title , cells : JSON.parse(cells)});
+    res.render("playground_collaborative", { dataSets, title: title , cells : JSON.parse(cells) , dirPath:dirPath });
   };
 }
 
