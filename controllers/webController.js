@@ -240,6 +240,16 @@ function readFileNotebookAssignment(filePath){
             cells.push(cell)
         }
       }
+      
+      for(x  in cells){
+        for (y in cells[x]["outputs"]){
+          for(z in cells[x]["outputs"][y]["text"]){
+            cells[x]["outputs"][y]["text"][z] = cells[x]["outputs"][y]["text"][z] + "<br>"
+            console.log("aew -------------- " , cells[x]["outputs"][y]["text"][z])
+          }
+        }
+          
+      }
 
       return JSON.stringify(cells)
 }

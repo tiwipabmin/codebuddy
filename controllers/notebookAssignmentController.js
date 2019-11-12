@@ -37,7 +37,17 @@ exports.getNotebookAssignment = async (req, res) => {
     };
   
     var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(req.query.notebook_assignment_id), "cells");
+  
     let cells = JSON.parse(cellsRedis)
+    for(x  in cells){
+      for (y in cells[x]["outputs"]){
+        for(z in cells[x]["outputs"][y]["text"]){
+          cells[x]["outputs"][y]["text"][z] = cells[x]["outputs"][y]["text"][z] + "<br>"
+          console.log("aew -------------- " , cells[x]["outputs"][y]["text"][z])
+        }
+      }
+        
+    }
       res.render("notebookAssignment", { dataSets, title: title , cells : cells });
   };
 

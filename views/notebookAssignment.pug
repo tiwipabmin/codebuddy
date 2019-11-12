@@ -65,7 +65,8 @@ block content
                   .output_area
                     .output_subarea.output_text(style="margin-top: 10px; padding-left:8em; padding-right:25px;")
                       - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
-                          | !{cells[i]["outputs"][y]["text"]}   
+                        - for (var z = 0; z < `${cells[i]["outputs"][y]["text"].length}`; z++)
+                            | !{cells[i]["outputs"][y]["text"][z]}   
               input(type='hidden' id='projectFiles' value=`${JSON.stringify(cells)}`)
               input(type='hidden' id='notebookAssingmentId' value=`${dataSets.origins.notebookAssignment.notebook_assignment_id}`)
              
