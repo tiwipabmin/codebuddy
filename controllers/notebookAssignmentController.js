@@ -108,7 +108,7 @@ exports.uploadAssignment = async (req, res) => {
       req.body.description,
       req.body.week,
       filename,
-      "Interactive"
+      "Collaborative"
     ]
   ]
  
@@ -126,7 +126,7 @@ exports.uploadAssignment = async (req, res) => {
   notebookAssignment.title = req.body.title;
   notebookAssignment.week = req.body.week;
   notebookAssignment.description = req.body.description
-  notebookAssignment.programming_style = "Interactive"
+  notebookAssignment.programming_style = "Collaborative"
   notebookAssignment.filename = filename
   dataSets = {
     origins: { notebookAssignment: notebookAssignment, section: section },
@@ -224,10 +224,6 @@ exports.exportNotebookFile = async (req, res) => {
 
   notebookAssignmentID = cryptr.decrypt(Object.values(req.body)[0])
   notebookAssignmentTitle = Object.values(req.body)[1]+".ipynb"
-  console.log("notebookAssignmentID" , notebookAssignmentID);
-  console.log("notebookAssignmentTitle" , notebookAssignmentTitle);
-
-
 
   fileExport = new Array()
    let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssignmentID, "cells");
@@ -266,8 +262,6 @@ exports.exportNotebookFile = async (req, res) => {
                   output_type,
                   text
                 }]
-                // outputs = notebookAssignment[x]["outputs"]
-                // console.log(outputs)
 
               }else{
                 outputs = []
@@ -288,7 +282,6 @@ exports.exportNotebookFile = async (req, res) => {
 
         } 
 
-        // console.log("fileExport ---------" , fileExport)
 
  let fileNotebook = 
  {
@@ -316,10 +309,7 @@ exports.exportNotebookFile = async (req, res) => {
     "nbformat_minor": 2
 
  }
-//  console.log("fileNotebook ---------------------------------")
 
-// console.log("fileNotebook " ,  fileNotebook)
- var filePath = "./public/notebookAssignment/";
 
     fs.writeFileSync(notebookAssignmentTitle, JSON.stringify(fileNotebook), 'utf8', err =>  {
 
@@ -358,29 +348,42 @@ async function getFileNotebook(notebookAssingmentId){
               source = html2Md 
             }
             let fileInfo = {
-              cell_type,
+            cell_type,
             metadata,
             source
             } 
             fileExport.push(fileInfo)
         }
-          else{
-            source = notebookAssignment[x]["source"]; 
-            source = source.replace("\n","\n,,").split(",,")
-            let execution_count = null
-            let outputs = []
-
-            let fileInfo = {
-            cell_type,
-            execution_count,
-            metadata,
-            outputs,
-            source
-            } 
-
-            fileExport.push(fileInfo)
-
+        else{
+          source = notebookAssignment[x]["source"]; 
+          source = source.replace("\n","\n,,").split(",,")
+          let execution_count = notebookAssignment[x]["executionCount"]
+          if(notebookAssignment[x]["outputs"].length != 0){
+            let name = "stdout"
+            let output_type = "stream"
+            key = "text"
+            let text =  notebookAssignment[x]["outputs"][0][key]
+              outputs = [{
+              name , 
+              output_type,
+              text
+            }]
+          }else{
+            outputs = []
           }
+
+
+          let fileInfo = {
+          cell_type,
+          execution_count,
+          metadata,
+          outputs,
+          source
+          } 
+
+          fileExport.push(fileInfo)
+
+        }
 
       } 
   
@@ -409,7 +412,6 @@ async function getFileNotebook(notebookAssingmentId){
         "nbformat": 4,
         "nbformat_minor": 2
     }
-  
   return JSON.stringify(fileNotebook)
 }
 
@@ -421,23 +423,23 @@ async function getFileNotebook(notebookAssingmentId){
     dirPath = req.body.dirPath
     notebookAssingmentId = cryptr.decrypt(req.body.notebookAssingmentId)
     console.log("dirPath = " , dirPath)
-    console.log("notebookAssingmentID " , notebookAssingmentId)
+    // console.log("notebookAssingmentID " , notebookAssingmentId)
     fileNotebook = await getFileNotebook(notebookAssingmentId)
 
-    console.log("fileNotebook = " , fileNotebook)
+    console.log("fileNotebook = " , JSON.parse(fileNotebook))
     fs.writeFileSync(dirPath, fileNotebook, 'utf8', err =>  {
       // throws an error, you could also catch it here
       if (err) throw err;
   
       // success case, the file was saved
-      // console.log(filePath + " has been saved!");
+      console.log(filePath + " has been saved!");
   
     });
 
     let information = fs.readFileSync(dirPath, "utf8");
     let notebookAssignment = JSON.parse(information);
     fileName = dirPath.split("/")[5].split("-")[0]
-    // filePath = "C:/Users/user/Desktop/"+fileName+".ipynb"
+    filePath = "C:/Users/user/Desktop/"+fileName+".ipynb"
     console.log("__dirname = " , __dirname+"../../../Downloads/"+fileName+".ipynb" )
 
     fs.writeFileSync(__dirname+"../../../"+fileName+".ipynb", JSON.stringify(notebookAssignment), 'utf8', err =>  {
