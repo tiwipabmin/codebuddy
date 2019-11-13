@@ -33,6 +33,8 @@ block content
               i.fa.fa-folder.icon
           button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
               i.plus.icon
+          button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
+              i.play.icon
         input(type='hidden' id='pid' value=`${dataSets.origins.project.pid}`)
 
     .ui
@@ -62,7 +64,8 @@ block content
                   .output_area
                     .output_subarea.output_text(style="margin-top: 10px; padding-left:8em; padding-right:25px;")
                       - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
-                          | !{cells[i]["outputs"][y]["text"]}   
+                        - for (var z = 0; z < `${cells[i]["outputs"][y]["text"].length}`; z++)
+                            | !{cells[i]["outputs"][y]["text"][z]}  
               input(type='hidden' id='projectFiles' value=`${JSON.stringify(cells)}`)
               input(type='hidden' id='notebookAssingmentId' value=`${dataSets.origins.notebookAssignment.notebook_assignment_id}`)
              
@@ -75,3 +78,5 @@ block content
   script(src='/codemirror/lib/codemirror.js')
   script(src='/codemirror/mode/python/python.js')
   script(src='/js/app/notebookAssignment.js')
+  script(src='/js/app/playgroundInteractive.js')
+

@@ -261,35 +261,7 @@ socket.on("init state", payload => {
   code = payload.editor;
 });
 
-function exportNotebookFile(notebookAssingmentId , notebookAssingmenTitle){
 
-
-
-  console.log(" exportNotebookFile " + notebookAssingmentId + "  " + notebookAssingmenTitle)
-
-
-  const options = {
-    notebookAssingmentId : notebookAssingmentId , 
-    notebookAssingmenTitle : notebookAssingmenTitle
-  };
-
-  // console.log('notebookAssingmentId: ', options.body.getAll('notebookAssingmentId'))
-   
-
-  $.post("/notebookAssignment/export", options ,  function(data){
-    const status = data.status;
-    if (status == "Export File Complete!!") {
-      $("#alert-header").text("Export File");
-      $("#alert-message").text(status);
-      $("#alert-modal").modal("show");
-      // alert(status);
-    }
-
-
-    console.log("status  " ,  status)
-  })
-  
-}
 
 function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 

@@ -37,7 +37,16 @@ exports.getNotebookAssignment = async (req, res) => {
     };
   
     var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(req.query.notebook_assignment_id), "cells");
+  
     let cells = JSON.parse(cellsRedis)
+    for(x  in cells){
+      for (y in cells[x]["outputs"]){
+        for(z in cells[x]["outputs"][y]["text"]){
+          cells[x]["outputs"][y]["text"][z] = cells[x]["outputs"][y]["text"][z] + "<br>"
+        }
+      }
+        
+    }
       res.render("notebookAssignment", { dataSets, title: title , cells : cells });
   };
 
@@ -218,124 +227,6 @@ async function saveFileToRedis(cells, notebookAssingmentId){
     );
 }
 
-exports.exportNotebookFile = async (req, res) => {
-
-  console.log("exportNotebookFile " )
-
-  notebookAssignmentID = cryptr.decrypt(Object.values(req.body)[0])
-  notebookAssignmentTitle = Object.values(req.body)[1]+".ipynb"
-  console.log("notebookAssignmentID" , notebookAssignmentID);
-  console.log("notebookAssignmentTitle" , notebookAssignmentTitle);
-
-
-
-  fileExport = new Array()
-   let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssignmentID, "cells");
-   let notebookAssignment = JSON.parse(notebookAssignmentRedis)
-   let metadata = {}
-
-
-     for (x in notebookAssignment) {
-      cell_type = notebookAssignment[x]["cellType"];
-      var html2Md = []
-          if ( cell_type == 'markdown') {
-              splitMD = notebookAssignment[x]["source"].split("\n")
-              for (y in splitMD) {
-                sourceInfo = html2markdown(splitMD[y]);   
-                html2Md.push(sourceInfo)   
-                source = html2Md 
-              }
-              let fileInfo = {
-                cell_type,
-              metadata,
-              source
-              } 
-              fileExport.push(fileInfo)
-          }
-            else{
-              source = notebookAssignment[x]["source"]; 
-              source = source.replace("\n","\n,,").split(",,")
-              let execution_count = notebookAssignment[x]["executionCount"]
-              if(notebookAssignment[x]["outputs"].length != 0){
-                let name = "stdout"
-                let output_type = "stream"
-                key = "text"
-                let text =  notebookAssignment[x]["outputs"][0][key]
-                  outputs = [{
-                  name , 
-                  output_type,
-                  text
-                }]
-                // outputs = notebookAssignment[x]["outputs"]
-                // console.log(outputs)
-
-              }else{
-                outputs = []
-              }
-
-
-              let fileInfo = {
-              cell_type,
-              execution_count,
-              metadata,
-              outputs,
-              source
-              } 
-
-              fileExport.push(fileInfo)
-
-            }
-
-        } 
-
-        // console.log("fileExport ---------" , fileExport)
-
- let fileNotebook = 
- {
-   "cells": fileExport,
-   "metadata": {
-    "kernelspec": {
-     "display_name": "Python 3",
-     "language": "python",
-     "name": "python3"
-    },
-    "language_info": {
-      "codemirror_mode": {
-       "name": "ipython",
-       "version": 3
-      },
-      "file_extension": ".py",
-      "mimetype": "text/x-python",
-      "name": "python",
-      "nbconvert_exporter": "python",
-      "pygments_lexer": "ipython3",
-      "version": "3.7.3"
-     }
-    },
-    "nbformat": 4,
-    "nbformat_minor": 2
-
- }
-//  console.log("fileNotebook ---------------------------------")
-
-// console.log("fileNotebook " ,  fileNotebook)
- var filePath = "./public/notebookAssignment/";
-
-    fs.writeFileSync(notebookAssignmentTitle, JSON.stringify(fileNotebook), 'utf8', err =>  {
-
-
-    // throws an error, you could also catch it here
-    if (err) throw err;
-
-    // success case, the file was saved
-    console.log("testFile.ipynb " + " has been saved!");
-
-  });
-
-  status = "Export File Complete!!";
-    res.send({ status: status });
-
-}
 
 async function getFileNotebook(notebookAssingmentId){
   console.log("getFileNotebook")
@@ -409,6 +300,8 @@ async function getFileNotebook(notebookAssingmentId){
         "nbformat": 4,
         "nbformat_minor": 2
     }
+
+    console.log(" getFileNotebook " , JSON.stringify(fileNotebook))
   
   return JSON.stringify(fileNotebook)
 }
@@ -472,6 +365,8 @@ exports.deleteAssignment = async (req, res) => {
     }
   }
 
+  
+
   if (count === max_length) {
     let section_id = cryptr.decrypt(assignment_is_selected[0].section_id);
     let select_pairing_session_by_section_id =
@@ -483,7 +378,7 @@ exports.deleteAssignment = async (req, res) => {
     );
 
     let select_assignment_by_section_id =
-      "SELECT * FROM notebook_assignment_id; WHERE section_id = " + section_id;
+      "SELECT * FROM notebook_assignment_id WHERE section_id = " + section_id;
     let assignments = await conMysql.selectAssignment(
       select_assignment_by_section_id
     );
