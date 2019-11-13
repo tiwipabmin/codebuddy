@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../public/project_files/wYZ6eP6tT8/playgroundInteractive2.js"></script>
+
+     <script>
+         $(()=>{
+            var socket = io();
+
+            socket.on('markdown', (msg)=>{
+                $('#markdown').append($(msg));
+
+            })
+
+           socket.on('code', (msg)=>{
+                // $('#code').append(msg);
+            $('#code').append($('<p>').text(msg));
+
+            })
+            
+        });
+    </script>
+</head>
+<body>
+    <ul id='markdown'></ul>
+    <ul id='code'></ul>
+    <!-- <button id="addBlock" onClick="addBlock()"> click </button>     -->
+    <button> test</button>
+
+</body>
+</html>

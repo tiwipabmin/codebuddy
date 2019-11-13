@@ -87,7 +87,7 @@ exports.getPlayground = async (req, res) => {
   branch_type = await conMysql.selectBranchType(queryBranch_type)
 
   if(branch_type[0]["branch_type"] == "IT"){
-    console.log("OK Playground IT")
+    console.log("OK IT")
     if ("creator" == userRole && project.programming_style !== "Individual") {
       partner_obj = await User.findOne({ _id: project.collaborator_id });
     } else if (
@@ -137,7 +137,6 @@ exports.getPlayground = async (req, res) => {
     }
   
   }else if(branch_type[0]["branch_type"] == "DSBA"){
-    console.log("OK Playground DSBA")
     const select_notebookAssignment_by_notebookAssignment_id =
       "SELECT * FROM notebook_assignment WHERE notebook_assignment_id = " +
       cryptr.decrypt(project.files[0]);
@@ -170,7 +169,7 @@ exports.getPlayground = async (req, res) => {
     
     
 
-    console.log("dataSets : ", dataSets)
+    console.log("dataSets : ", dataSets.origins.project.pid)
     res.render("playground_collaborative", { dataSets, title: title , cells : JSON.parse(cells) , dirPath:dirPath });
   };
 }
@@ -607,11 +606,11 @@ console.log("projects find", projects)
   }
 
   if (!pairingSessions.length){
-    console.log("pairingSessions == 0")
+    // console.log("pairingSessions == 0")
     pairingSessions = [{ pairing_session_id: -1, status: -1 }];
   }
   if (occupation == "teacher") {
-    console.log("occupation == teacher")
+    // console.log("occupation == teacher")
     occupation = 0;
 
     dataSets = {
@@ -696,7 +695,6 @@ console.log("projects find", projects)
       }
     };
   }
-  console.log("dataSets ", dataSets)
   console.log("projects", dataSets.reforms.projects)
   // console.log("dataSets.reforms.pairingSessions", dataSets.reforms.pairingSessions)
     res.render("collaberative",{ dataSets, title: section.course_name })
@@ -2499,7 +2497,7 @@ exports.downloadFile = async (req, res) => {
 };
 
 exports.assignAssignment = async (req, res) => {
-  console.log("assign Assignment")
+
   const selectEnrollmentBySectionId =
     "SELECT * FROM enrollment WHERE section_id = " +
     cryptr.decrypt(req.body.assignment_set[0].section_id);
@@ -2620,10 +2618,8 @@ exports.assignAssignment = async (req, res) => {
   if (
     proStyle === "Remote" ||
     proStyle === "Co-located" ||
-    proStyle === "Interactive" ||
-    proStyle === "Collaborative"
+    proStyle === "Interactive"
   ) {
-    console.log("proStyle ", proStyle)
     // console.log(`proStyle === Remote || 
     // proStyle === Co-located ||
     // proStyle === Interactive`)
@@ -2659,8 +2655,7 @@ exports.assignAssignment = async (req, res) => {
       if (
         proStyle === "Remote" ||
         proStyle === "Co-located" ||
-        proStyle === "Interactive"||
-        proStyle === "Collaborative"
+        proStyle === "Interactive"
       ) {
         if(branch_type[0]["branch_type"] == "IT"){
           /*
@@ -2839,8 +2834,7 @@ exports.assignAssignment = async (req, res) => {
       if (
         proStyle === "Remote" ||
         proStyle === "Co-located" ||
-        proStyle === "Interactive" ||
-        proStyle === "Collaborative"
+        proStyle === "Interactive"
       ) {
         collaborator = cloneStudents[partnerKeys[key]].username;
       } else if (proStyle !== "Individual") {
@@ -2857,8 +2851,7 @@ exports.assignAssignment = async (req, res) => {
         if (
           proStyle === "Remote" ||
           proStyle === "Co-located" ||
-          proStyle === "Interactive" ||
-          proStyle === "Collaborative"
+          proStyle === "Interactive"
         ) {
           collaborator = await User.findOne({ username: collaborator });
 
@@ -2995,7 +2988,7 @@ exports.assignAssignment = async (req, res) => {
           if (err) throw err;
       
           // success case, the file was saved
-          console.log(filename + " has been saved!");
+          // console.log(filename + " has been saved!");
         });
 
       }

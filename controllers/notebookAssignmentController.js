@@ -108,7 +108,7 @@ exports.uploadAssignment = async (req, res) => {
       req.body.description,
       req.body.week,
       filename,
-      "Collaborative"
+      "Interactive"
     ]
   ]
  
@@ -126,7 +126,7 @@ exports.uploadAssignment = async (req, res) => {
   notebookAssignment.title = req.body.title;
   notebookAssignment.week = req.body.week;
   notebookAssignment.description = req.body.description
-  notebookAssignment.programming_style = "Collaborative"
+  notebookAssignment.programming_style = "Interactive"
   notebookAssignment.filename = filename
   dataSets = {
     origins: { notebookAssignment: notebookAssignment, section: section },

@@ -6,15 +6,18 @@ var comments = [];
 
 function addBlock() {
     console.log("addbolock jj")
-    console.log("detectFocusBlock ", detectFocusBlock )
     /**
      * random block id
      **/
-    socket.emit("add block below", {
-      blockId: detectFocusBlock+1,
-      // allBlockId: editors.map(function(obj) {
-      //   return obj.blockId;
-      // })
+    var random = Math.random()
+      .toString(36)
+      .substr(2, 9);
+    socket.emit("add block", {
+      blockId: random,
+      index: detectFocusBlock + 1,
+      allBlockId: editors.map(function(obj) {
+        return obj.blockId;
+      })
     });
   }
 
@@ -43,6 +46,7 @@ for(var i = 0; i < projectFiles.length; i++){
 
 
 function newEditorFacade(fileName, cellType) {
+  console.log("newEditorFacade")
   setEditor(fileName, cellType);
   setOnChangeEditer(fileName);
   // setOnDoubleClickEditor(fileName);
@@ -127,6 +131,7 @@ function setEditor(fileName, cellType) {
     console.log(`Detect focus block!! ${detectFocusBlock}`);
   });
   editors.push({ blockId: fileName, editor: cm });
+  console.log("editors", editors)
 }
 
 function setOnChangeEditer(fileName) {
@@ -139,7 +144,7 @@ function setOnChangeEditer(fileName) {
 
   blockObj.editor.on("change", (ins, data) => {
     var text = data.text.toString().charCodeAt(0);
-    // console.log("data.text.toString() : " + data.text.toString());
+    console.log("data.text.toString() : " + data.text.toString());
     var enterline = parseInt(data.to.line) + 1;
     var remove = data.removed;
     var isEnter = false;
@@ -191,6 +196,8 @@ function setOnChangeEditer(fileName) {
     //     obj.editor.setValue(test);
     //   }
     // });
+    console.log("data",  data)
+    console.log("blockObj.editor.getValue()",  blockObj.editor.getValue())
     // editors.set()
     socket.emit("code change", {
       code: data,
@@ -223,141 +230,8 @@ socket.on("editor update", payload => {
  */
 socket.emit("load playground", { programming_style: "Collaborative" });
 socket.emit("join project", {
-  notebookAssingmentId: notebookAssingmentId,
-  pid: getParameterByName("pid")
+  notebookAssingmentId: notebookAssingmentId
 });
-
-/**
- * Update block when add
- */
-socket.on("update blockd", payload => {
-  console.log("update block")
-  // let blockId = payload.blockId;
-  // let index = payload.blockId;
-  // let action = payload.action;
-
-  // if (action == "add") {
-  //   var divisionCodeBlock = document.createElement("div");
-  //   var html =
-  //     '<div class="input">' +
-  //     '<div id="' +
-  //     blockId +
-  //     '-in">In [&nbsp;&nbsp;]:</div>' +
-  //     '<div><textarea id="' +
-  //     blockId +
-  //     '"></textarea></div>' +
-  //     "</div>" +
-  //     '<div id="file"' +
-  //     '-div-output" class="code-block">' +
-  //     "<div></div>" +
-  //     "</div>";
-
-  //   divisionCodeBlock.className = "cell-code_cell-rendered";
-  //   divisionCodeBlock.setAttribute("id", blockId + "-div");
-  //   divisionCodeBlock.innerHTML = html;
-
-  //   segmentCodeBlock.insertBefore(
-  //     divisionCodeBlock,
-  //     segmentCodeBlock.children[index]
-  //   );
-
-  //   /**
-  //    * TODO: refactor setEditor with index parameter
-  //    * add codemirror of new into editors array
-  //    **/
-  //   var cm = CodeMirror.fromTextArea(
-  //     document.getElementById(blockId),
-  //     {
-  //       lineNumbers: true,
-  //       mode: {
-  //         name: "python",
-  //         version: 3,
-  //         singleLineStringErrors: false,
-  //         styleActiveLine: true,
-  //         lineNumbers: true,
-  //         lineWrapping: true
-  //       },
-  //       theme: "material",
-  //       indentUnit: 4,
-  //       matchBrackets: true
-  //     }
-  //   );
-
-  //   cm.addKeyMap({
-  //     "Alt-R": function(cm) {
-  //       runCode();
-  //     },
-  //     "Alt-N": function(cm) {
-  //       addBlock();
-  //     },
-  //     "Alt-D": function(cm) {
-  //       deleteBlock();
-  //     },
-  //     "Alt-Up": function(cm) {
-  //       moveBlock("up");
-  //     },
-  //     "Alt-Down": function(cm) {
-  //       moveBlock("down");
-  //     }
-  //   });
-
-  //   cm.on("focus", cm => {
-  //     var prevFocusBlock = detectFocusBlock;
-
-  //     /**
-  //      * find index of focusing codemirror in editors array.
-  //      **/
-  //     detectFocusBlock = editors
-  //       .map(function(obj) {
-  //         return obj.editor;
-  //       })
-  //       .indexOf(cm);
-
-  //     socket.emit("codemirror on focus", {
-  //       prevFocus: prevFocusBlock,
-  //       newFocus: detectFocusBlock
-  //     });
-  //   });
-
-  //   editors.splice(index, 0, { blockId: blockId, editor: cm });
-   
-  //   projectFiles.splice(index, 0, blockId);
-  //   setOnChangeEditer(blockId);
-  //   // setOnDoubleClickEditor(blockId);
-
-  //   // switch (roles.user) {
-  //   //   case "coder":
-  //   //     cm.setOption("readOnly", false); // show cursor
-  //   //     break;
-  //   //   case "reviewer":
-  //   //     cm.setOption("readOnly", "nocursor"); // no cursor
-  //   //     break;
-  //   // }
-  // } 
-  // else {
-  //   var divisionCodeBlock = document.getElementById(blockId + "-div");
-  //   divisionCodeBlock.remove();
-
-  //   editors.splice(detectFocusBlock, 1);
-  //   projectFiles.splice(detectFocusBlock, 1);
-  // }
-});
-
-/**
- * get query parameter from URL
- * @param {String} name parameter name that you want to get value from
- * http://stackoverflow.com/a/901144/4181203
- */
-function getParameterByName(name) {
-  const url = window.location.href;
-  const param = name.replace(/[\[\]]/g, "\\$&");
-  const regex = new RegExp("[?&]" + param + "(=([^&#]*)|&|#|$)");
-  const results = regex.exec(url);
-
-  if (!results) return null;
-  if (!results[2]) return "";
-  return decodeURIComponent(results[2].replace(/\+/g, " "));
-}
 
 socket.on("init state", payload => {
   if (payload.editor != null) {
@@ -379,6 +253,7 @@ socket.on("init state", payload => {
         return obj.blockId == fileName;
       });
       blockObj.editor.setValue(editorValues[fileName]["source"]);
+      console.log("editorValues[fileName]", editorValues[fileName]["source"])
       currentFileName = fileName;
     }
   }

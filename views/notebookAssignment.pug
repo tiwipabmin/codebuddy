@@ -62,7 +62,7 @@ block content
                   .output_area
                     .output_subarea.output_text(style="margin-top: 10px; padding-left:8em; padding-right:25px;")
                       - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
-                          div(style="background-color: #f5f5f5; margin-top: 25px;margin-right: 10em; padding-left:12px; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
+                          div(style="background-color: #f5f5f5; margin-top: 25px;margin-right: 12em; padding-left:12px; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
                             | !{cells[i]["outputs"][y]["text"]}   
               input(type='hidden' id='projectFiles' value=`${JSON.stringify(cells)}`)
               input(type='hidden' id='notebookAssingmentId' value=`${dataSets.origins.notebookAssignment.notebook_assignment_id}`)
