@@ -498,8 +498,8 @@ function set_item_pagination_in_first_container(
                 assignment.notebook_assignment_id +
                 "_is_selected\")'><p style='padding-left:15px; padding-right:15px;'>" +
                 assignment.description +
-                "</p><p style='padding-left:15px; padding-right:15px;'>Programming Style :Interactive"+
-                // assignment.programming_style +
+                "</p><p style='padding-left:15px; padding-right:15px;'>Programming Style : "+
+                assignment.programming_style +
                 "</p></div>"
             );
             two_wide_column = $("<div class='two wide column'></div>");
