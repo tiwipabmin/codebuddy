@@ -2350,6 +2350,8 @@ exports.createAssignment = async (req, res) => {
       week
     ]
   ];
+
+  console.log('Values, ', values)
   const assignment_id = await conMysql.insertAssignment(
     insertAssignment,
     values
