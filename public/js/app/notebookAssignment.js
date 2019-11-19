@@ -3,15 +3,10 @@ var detectFocusBlock = 0;
 var editors = [];
 var comments = [];
 
-
 function addBlock() {
-    console.log("addbolock jj")
-    console.log("detectFocusBlock ", detectFocusBlock )
-    /**
-     * random block id
-     **/
     socket.emit("add block below", {
-      blockId: detectFocusBlock+1,
+      blockId: Object.keys(projectFiles).length+1,
+      index:  detectFocusBlock+1,
       // allBlockId: editors.map(function(obj) {
       //   return obj.blockId;
       // })
@@ -116,6 +111,7 @@ function setEditor(fileName, cellType) {
      **/
     detectFocusBlock = editors
       .map(function(obj) {
+        // console.log("obj ", obj)
         return obj.editor;
       })
       .indexOf(cm);
@@ -234,7 +230,8 @@ socket.emit("join project", {
 socket.on("update block", payload => {
   console.log("update block")
   let blockId = payload.blockId;
-  let index = payload.blockId;
+  let index = payload.index;
+
   let action = payload.action;
   console.log("blockId : ", blockId)
   if (action == "add") {
@@ -266,11 +263,12 @@ socket.on("update block", payload => {
     divisionCodeBlock.setAttribute("id", blockId + "-div");
     divisionCodeBlock.innerHTML = html;
 
-    // segmentCodeBlock.insertBefore(
-    //   divisionCodeBlock,
-    //   segmentCodeBlock.children[blockId]
-    // );
-    $( divisionCodeBlock ).insertBefore( "#"+blockId+"-div" );
+    segmentCodeBlock.insertBefore(
+      divisionCodeBlock,
+      segmentCodeBlock.children[index]
+    );
+    // console.log("INDEX: ", index)
+    // $( divisionCodeBlock ).insertBefore( "#"+index+"-div" );
 
     /**
      * TODO: refactor setEditor with index parameter
@@ -334,17 +332,18 @@ socket.on("update block", payload => {
     });
 
     
-    editors.splice(blockId, 0, { blockId: blockId, editor: cm });
-    projectFiles.splice(blockId, 0, {cellType: "code", executionCount: null, outputs: Array(0), source: "", blockId: blockId.toString()});
-    for(i in editors){
-      if(i > blockId ){
-        editors[i]["blockId"] = parseInt(i)
-        projectFiles[i]["blockId"]= i
-        
-      }
-    }
+    editors.splice(index, 0, { blockId: blockId, editor: cm });
     console.log("editors ", editors)
-    console.log("projectFiles ", projectFiles)
+    projectFiles.splice(index, 0, {cellType: "code", executionCount: null, outputs: Array(0), source: "", blockId: blockId.toString()});
+    // for(i in editors){
+    //   if(i > blockId ){
+    //     editors[i]["blockId"] = parseInt(i)
+    //     projectFiles[i]["blockId"]= i
+        
+    //   }
+    // }
+    // console.log("editors ", editors)
+    // console.log("projectFiles ", projectFiles)
     // console.log("projectFiles ", projectFiles)
     // projectFiles.splice(blockId, 0, blockId);
     setOnChangeEditer(blockId);
@@ -388,7 +387,7 @@ socket.on("init state", payload => {
   if (payload.editor != null) {
    
     var editorValues = JSON.parse(payload.editor);
-     console.log("editorValues", editorValues)
+    //  console.log("editorValues", editorValues)
 
     for(var i = 0; i < editorValues.length; i++){
       // if(editorValues[i]["cellType"] == "code"){

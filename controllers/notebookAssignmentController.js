@@ -38,6 +38,7 @@ exports.getNotebookAssignment = async (req, res) => {
   
     var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(req.query.notebook_assignment_id), "cells");
     let cells = JSON.parse(cellsRedis)
+   
       res.render("notebookAssignment", { dataSets, title: title , cells : cells });
   };
 
@@ -143,7 +144,6 @@ function readFileNotebookAssignment(filePath){
    
   let information_cells = information_obj["cells"];
 
-    // console.log("information_cells", information_cells)
     cells = new Array()
     codeCellId = []
     for (x in information_cells) {

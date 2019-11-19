@@ -170,7 +170,8 @@ exports.getPlayground = async (req, res) => {
     
     
 
-    console.log("dataSets : ", dataSets)
+    // console.log("dataSets : ", dataSets)
+    console.log("Cells : ", cells);
     res.render("playground_collaborative", { dataSets, title: title , cells : JSON.parse(cells) , dirPath:dirPath });
   };
 }
