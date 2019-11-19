@@ -9,7 +9,7 @@ var executingBlock;
  */
 function runCode() {
 
-  console.log("function run code in notebookass.js")
+  console.log("function run code in notebookass.js" , getCodeFocusBlock())
   socket.emit("run code", {
     codeFocusBlock: getCodeFocusBlock(),
     focusBlock: detectFocusBlock
@@ -17,6 +17,11 @@ function runCode() {
   // socket.emit("save lines of code", {
   //   uid: uid
   // });
+}
+
+function getCodeFocusBlock() {
+  var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
+  return codeFocusBlock;
 }
 
 socket.on("show output", payload => {

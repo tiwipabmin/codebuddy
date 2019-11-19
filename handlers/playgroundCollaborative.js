@@ -97,32 +97,33 @@ module.exports = (io, client,redis, Projects) => {
     // io.in(projectId).emit("focus block", focusBlock);
     io.emit("focus block", focusBlock);
 
-    // fs.writeFile(
-    //   "./public/notebookAssignment/" + "55-2019-11-13_15-41-957.ipynb" + "/main.py",
-    //   codeFocusBlock,
-    //   err => {
-    //     if (err) throw err;
-    //   }
-    // );
 
     setTimeout(execCode, 100);
 
-    async function execCode() {
+   async function execCode() {
 
-      let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
-      let notebookAssignment = JSON.parse(notebookAssignmentRedis)
-      source = notebookAssignment[2]["source"]; 
-      source = source.replace("\n","\n,,").split(",,")
-        console.log("source -------------- " , source)
-      
+      filePath = await getFilePath(notebookAssingmentId)
+    
+      fs.writeFile(
+        "./public/notebookAssignment/" + filePath+"/"+projectId + "/main.py",
+        codeFocusBlock,
+        err => {
+          if (err) throw err;
+        }
+      );
+    
       /**
        * built-in functions of python version 3
-       */
-      test  = 'print("aew")'
+      //  */
+      console.log("pid " , projectId)
 
       pythonProcess.stdin.write(
-        "exec('"+source+"')\n"
+        "exec(open('./public/notebookAssignment/" +
+        filePath +
+          "/"+projectId+"/main.py').read())\n"
       );
+
+      
 
 
     }

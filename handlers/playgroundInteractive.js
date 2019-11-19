@@ -812,13 +812,13 @@ module.exports = (io, client, redis, projects) => {
 
     io.in(projectId).emit("focus block", focusBlock);
 
-    // fs.writeFile(
-    //   "./public/project_files/" + projectId + "/main.py",
-    //   codeFocusBlock,
-    //   err => {
-    //     if (err) throw err;
-    //   }
-    // );
+    fs.writeFile(
+      "./public/project_files/" + projectId + "/main.py",
+      codeFocusBlock,
+      err => {
+        if (err) throw err;
+      }
+    );
 
     setTimeout(execCode, 100);
 
