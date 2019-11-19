@@ -2,7 +2,49 @@ const socket = io();
 var detectFocusBlock = 0;
 var editors = [];
 var comments = [];
+var executingBlock;
 
+/**
+ * Run code
+ */
+function runCode() {
+
+  console.log("function run code in notebookass.js")
+  socket.emit("run code", {
+    codeFocusBlock: getCodeFocusBlock(),
+    focusBlock: detectFocusBlock
+  });
+  // socket.emit("save lines of code", {
+  //   uid: uid
+  // });
+}
+
+socket.on("show output", payload => {
+  // var textOutput = document.createTextNode(payload);
+  var blockId = editors[executingBlock].blockId;
+  console.log(" blockId aew -----------------" , blockId)
+  console.log("Output : " + payload);
+  // if (blockId in output) {
+  //   output[blockId] = textOutput;
+  //   var preformattedText = document.getElementById(blockId + "-pre");
+  //   preformattedText.removeChild(preformattedText.childNodes[0]);
+  //   preformattedText.appendChild(output[blockId]);
+  // } else {
+  //   output[blockId] = textOutput;
+  //   addDivOutput(output[blockId], blockId);
+  //   console.log("Output : " + payload);
+  // }
+});
+
+function getCodeFocusBlock() {
+  var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
+  return codeFocusBlock;
+}
+socket.on("update execution count", payload => {
+  var blockId = editors[executingBlock].blockId;
+  console.log(" aew --------------- " , blockId)
+  // document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
+});
 
 function addBlock() {
     console.log("addbolock jj")
@@ -204,6 +246,22 @@ function setOnChangeEditer(fileName) {
     });
   });
 }
+
+/**
+ * Update focus block of both user
+ **/
+socket.on("focus block", payload => {
+  executingBlock = payload;
+  if (executingBlock != editors.length - 1) {
+    detectFocusBlock += 1;
+    socket.emit("codemirror on focus", {
+      prevFocus: detectFocusBlock - 1,
+      newFocus: detectFocusBlock
+    });
+    editors[detectFocusBlock].editor.focus();
+    editors[detectFocusBlock].editor.setCursor(0, 0);
+  }
+});
 
 /**
  * Recieve new changes editor value from server and applied them to local editor

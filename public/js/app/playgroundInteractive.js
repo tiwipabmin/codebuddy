@@ -610,6 +610,7 @@ socket.on("show output", payload => {
 
 socket.on("update execution count", payload => {
   var blockId = editors[executingBlock].blockId;
+  console.log("update execution count ---- " , blockId)
   document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
 });
 
@@ -645,13 +646,16 @@ socket.on("focus block", payload => {
  * Run code
  */
 function runCode() {
+  console.log("runCode  1 in js")
+
   socket.emit("run code", {
     codeFocusBlock: getCodeFocusBlock(),
-    focusBlock: detectFocusBlock
+    focusBlock: detectFocusBlock ,
+
   });
-  socket.emit("save lines of code", {
-    uid: uid
-  });
+  // socket.emit("save lines of code", {
+  //   uid: uid
+  // });
 }
 
 /**

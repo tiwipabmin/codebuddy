@@ -141,7 +141,7 @@ exports.uploadAssignment = async (req, res) => {
     origins: { notebookAssignment: notebookAssignment, section: section },
     reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
   };
-  console.log("dataSets", dataSets)
+  // console.log("dataSets", dataSets)
   res.redirect("/notebookAssignment?section_id=" +  cryptr.encrypt(section_id)+"&notebook_assignment_id="+cryptr.encrypt(notebookAssignment_id));
  
 };

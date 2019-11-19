@@ -6,6 +6,8 @@ const conMysql = require("../mySql");
 const html2markdown = require('html2markdown');
 const fs = require("fs");
 const Project = mongoose.model("Project");
+const childprocess = require("child_process");
+
 
 module.exports = (io, client,redis, Projects) => {
   /**
@@ -13,7 +15,14 @@ module.exports = (io, client,redis, Projects) => {
    **/
   let projectId = "";
   let notebookAssingmentId = "";
+  let pythonProcess = null;
+  let focusBlock = null;
+  let bufferOutput = { output: "", error: "" };
+  let isSpawnText = false;
+  let executionCount = 0;
 
+  spawnPython();
+  detectOutput();
   winston.info("Client connected");
 
   client.on("join project", async payload => {
@@ -76,6 +85,120 @@ module.exports = (io, client,redis, Projects) => {
     });
   });
 
+  /**
+   * `run code` event fired when user click on run button from front-end
+   * @param {Object} payload code from editor
+   */
+  client.on("run code", payload => {
+    var codeFocusBlock = payload.codeFocusBlock;
+    focusBlock = payload.focusBlock;
+    isSpawnText = false;
+
+    // io.in(projectId).emit("focus block", focusBlock);
+    io.emit("focus block", focusBlock);
+
+    // fs.writeFile(
+    //   "./public/notebookAssignment/" + "55-2019-11-13_15-41-957.ipynb" + "/main.py",
+    //   codeFocusBlock,
+    //   err => {
+    //     if (err) throw err;
+    //   }
+    // );
+
+    setTimeout(execCode, 100);
+
+    async function execCode() {
+
+      let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
+      let notebookAssignment = JSON.parse(notebookAssignmentRedis)
+      source = notebookAssignment[2]["source"]; 
+      source = source.replace("\n","\n,,").split(",,")
+        console.log("source -------------- " , source)
+      
+      /**
+       * built-in functions of python version 3
+       */
+      test  = 'print("aew")'
+
+      pythonProcess.stdin.write(
+        "exec('"+source+"')\n"
+      );
+
+
+    }
+
+    /**
+     * display In[*]
+     */
+    // io.in(projectId).emit("update execution count", "*");
+      io.emit("update execution count", "*");
+
+  });
+
+  function spawnPython() {
+    pythonProcess = childprocess.spawn("python", ["-i"], {});
+    isSpawnText = true;
+  }
+
+  function detectOutput() {
+    /**
+     * detection output is a execution code
+     */
+    pythonProcess.stdout.on("data", data => {
+      if (bufferOutput.error == "" && data.toString() != "") {
+        bufferOutput.output = data.toString();
+      }
+    });
+    /**
+     * detection code execute error
+     */
+    pythonProcess.stderr.on("data", data => {
+      output = data.toString();
+
+      var arrowLocation = output.indexOf(">>>");
+      var drawArrow = "";
+
+      if (arrowLocation == 0) {
+        drawArrow = output.slice(0, 3);
+      } else {
+        drawArrow = output.slice(arrowLocation, arrowLocation + 3);
+        output = output.slice(0, arrowLocation - 1);
+      }
+
+      if (output.indexOf("Error") != -1) {
+        bufferOutput.error += output;
+      } else if (drawArrow != ">>>" && !isSpawnText) {
+        bufferOutput.error = bufferOutput.error + output + "\n";
+      }
+
+      /**
+       * execute code process finised
+       */
+      if (drawArrow == ">>>" && !isSpawnText) {
+        if (bufferOutput.error == "" && bufferOutput.output != "") {
+          output = bufferOutput.output;
+        } else {
+          output = bufferOutput.error;
+        }
+
+        if (output != "") {
+          // io.in(projectId).emit("show output", output);
+          io.emit("show output", output);
+
+        }
+
+        bufferOutput.output = "";
+        bufferOutput.error = "";
+
+        /**
+         * increment execution count
+         */
+        // io.in(projectId).emit("update execution count", ++executionCount);
+        io.emit("update execution count", ++executionCount);
+
+      }
+    });
+  }
   /**
    * `add block` event  when user add new block
    * @param {Object} payload blockId
