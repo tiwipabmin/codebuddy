@@ -20,6 +20,7 @@ module.exports = (io, client,redis, Projects) => {
     try {
         notebookAssingmentId = cryptr.decrypt(payload.notebookAssingmentId),
         projectId = payload.pid;
+        client.join(projectId);
         initRemainder();
     } catch (e) {
     
@@ -91,13 +92,13 @@ module.exports = (io, client,redis, Projects) => {
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
 
-    for(i in notebookAssignment){
-      // console.log("index ", i)
-      if(i >=  payload.blockId){
-        notebookAssignment[i]["blockId"] = (parseInt(i) + 1).toString()
-        // console.log("notebookAssignment[i] " , notebookAssignment[i])
-      }
-    }
+    // for(i in notebookAssignment){
+    //   console.log("index ", i)
+    //   if(i >=  payload.index){
+    //     notebookAssignment[i]["blockId"] = (parseInt(i) + 1).toString()
+    //     // console.log("notebookAssignment[i] " , notebookAssignment[i])
+    //   }
+    // }
 
    
 
@@ -106,18 +107,22 @@ module.exports = (io, client,redis, Projects) => {
       executionCount: null,
       outputs: [],
       source:"",
-      blockId:payload.blockId
+      blockId:payload.blockId.toString()
     }
 
-    notebookAssignment.splice(payload.blockId, 0 , item)
-    
+    notebookAssignment.splice(payload.index, 0 , item)
+    console.log("notebookAssignment ", notebookAssignment)
     /**
      * save file to redis
      **/
     redis.hset("notebookAssignment:"+notebookAssingmentId, "cells", JSON.stringify(notebookAssignment));
-    console.log("DSBA PROjectid ", projectId)
+    // console.log("DSBA PROjectid ", projectId)
+    
+   
+
     io.in(projectId).emit("update block", {
       blockId: payload.blockId,
+      index: payload.index,
       action: "add"
     });
   });
@@ -225,6 +230,17 @@ module.exports = (io, client,redis, Projects) => {
       )
     });
   }
+
+  client.on("codemirror on focus", payload => {
+    console.log("codemirror on focus")
+    console.log("payload.prevFocus ", payload.prevFocus)
+    console.log("payload.newFocus ", payload.newFocus)
+    io.in(projectId).emit("update block highlight", {
+      prevFocus: payload.prevFocus,
+      newFocus: payload.newFocus
+    });
+  });
+  
 
   client.on("disconnect", () => {
     try {
