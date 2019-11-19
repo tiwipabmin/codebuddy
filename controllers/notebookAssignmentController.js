@@ -144,6 +144,7 @@ exports.uploadAssignment = async (req, res) => {
   };
   // console.log("En, ", section.section_id, ', De, ', section_id)
   res.redirect("/classroom?section_id=" + section.section_id);
+
 };
 
 function readFileNotebookAssignment(filePath){

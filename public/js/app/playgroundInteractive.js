@@ -34,14 +34,14 @@ const roles = {
 var comments = [];
 var code = null;
 
-// var webrtc = new SimpleWebRTC({
-//   // the id/element dom element that will hold "our" video
-//   localVideoEl: 'localVideo',
-//   // the id/element dom element that will hold remote videos
-//   remoteVideosEl: 'remoteVideo',
-//   // immediately ask for camera access
-//   autoRequestMedia: true
-// });
+var webrtc = new SimpleWebRTC({
+  // the id/element dom element that will hold "our" video
+  localVideoEl: 'localVideo',
+  // the id/element dom element that will hold remote videos
+  remoteVideosEl: 'remoteVideo',
+  // immediately ask for camera access
+  autoRequestMedia: true
+});
 
 /**
  * get query parameter from URL
@@ -170,11 +170,11 @@ socket.emit("join project", {
   username: user
 });
 
-// webrtc.on("readyToCall", function() {
-//   // you can name it anything
-//   webrtc.createRoom(getParameterByName("pid"));
-//   webrtc.joinRoom(getParameterByName("pid"));
-// });
+webrtc.on("readyToCall", function() {
+  // you can name it anything
+  webrtc.createRoom(getParameterByName("pid"));
+  webrtc.joinRoom(getParameterByName("pid"));
+});
 
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
@@ -614,6 +614,7 @@ socket.on("show output", payload => {
 
 socket.on("update execution count", payload => {
   var blockId = editors[executingBlock].blockId;
+  console.log("update execution count ---- " , blockId)
   document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
 });
 
@@ -649,13 +650,16 @@ socket.on("focus block", payload => {
  * Run code
  */
 function runCode() {
+  console.log("runCode  1 in js")
+
   socket.emit("run code", {
     codeFocusBlock: getCodeFocusBlock(),
-    focusBlock: detectFocusBlock
+    focusBlock: detectFocusBlock ,
+
   });
-  socket.emit("save lines of code", {
-    uid: uid
-  });
+  // socket.emit("save lines of code", {
+  //   uid: uid
+  // });
 }
 
 /**

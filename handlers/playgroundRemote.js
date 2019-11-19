@@ -822,7 +822,6 @@ module.exports = (io, client, redis, projects) => {
           detectInput = "empty@Codebuddy";
         }
       }
-
       io.in(projectId).emit("term update", data);
     });
     // setTimeout(pythonProcess.kill.bind(pythonProcess), 1000);

@@ -805,6 +805,7 @@ module.exports = (io, client, redis, projects) => {
    * @param {Object} payload code from editor
    */
   client.on("run code", payload => {
+    console.log(" run code 2 ")
     var codeFocusBlock = payload.codeFocusBlock;
     console.log("codeFocusBlock ", codeFocusBlock)
     focusBlock = payload.focusBlock;
@@ -862,6 +863,7 @@ module.exports = (io, client, redis, projects) => {
 
   function spawnPython() {
     pythonProcess = childprocess.spawn("python", ["-i"], {});
+    console.log(" spawnPython pythonProcess " , pythonProcess)
     isSpawnText = true;
   }
 
@@ -1072,13 +1074,13 @@ module.exports = (io, client, redis, projects) => {
 
     Object.keys(code).forEach(function(key) {
       args.push("./public/project_files/" + projectId + "/" + key + ".py");
-      fs.writeFile(
-        "./public/project_files/" + projectId + "/" + key + ".py",
-        code[key],
-        err => {
-          if (err) throw err;
-        }
-      );
+      // fs.writeFile(
+      //   "./public/project_files/" + projectId + "/" + key + ".py",
+      //   code[key],
+      //   err => {
+      //     if (err) throw err;
+      //   }
+      // );
     });
 
     if (process.platform === "win32") {
