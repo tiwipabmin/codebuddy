@@ -132,9 +132,8 @@ exports.uploadAssignment = async (req, res) => {
     origins: { notebookAssignment: notebookAssignment, section: section },
     reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
   };
-  console.log("dataSets", dataSets)
-  res.redirect("/notebookAssignment?section_id=" +  cryptr.encrypt(section_id)+"&notebook_assignment_id="+cryptr.encrypt(notebookAssignment_id));
- 
+  // console.log("En, ", section.section_id, ', De, ', section_id)
+  res.redirect("/classroom?section_id=" + section.section_id);
 };
 
 function readFileNotebookAssignment(filePath){

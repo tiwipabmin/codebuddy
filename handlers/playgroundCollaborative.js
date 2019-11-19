@@ -20,6 +20,7 @@ module.exports = (io, client,redis, Projects) => {
     try {
         notebookAssingmentId = cryptr.decrypt(payload.notebookAssingmentId),
         projectId = payload.pid;
+        client.join(projectId);
         initRemainder();
     } catch (e) {
     
@@ -116,6 +117,9 @@ module.exports = (io, client,redis, Projects) => {
      **/
     redis.hset("notebookAssignment:"+notebookAssingmentId, "cells", JSON.stringify(notebookAssignment));
     console.log("DSBA PROjectid ", projectId)
+    
+   
+
     io.in(projectId).emit("update block", {
       blockId: payload.blockId,
       action: "add"
@@ -225,6 +229,17 @@ module.exports = (io, client,redis, Projects) => {
       )
     });
   }
+
+  client.on("codemirror on focus", payload => {
+    console.log("codemirror on focus")
+    console.log("payload.prevFocus ", payload.prevFocus)
+    console.log("payload.newFocus ", payload.newFocus)
+    io.in(projectId).emit("update block highlight", {
+      prevFocus: payload.prevFocus,
+      newFocus: payload.newFocus
+    });
+  });
+  
 
   client.on("disconnect", () => {
     try {

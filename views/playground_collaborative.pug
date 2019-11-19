@@ -40,7 +40,7 @@ block content
         .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")
           - for (var i=0 ; i < `${cells.length}` ; i++)
             if `${cells[i]["cellType"]}` === "markdown"
-              .cell.text_cell.rendered
+              .cell.text_cell.rendered(id=i+'-div')
                   .inner_cell
                     .text_cell_render.rendered_html(style="padding-left:8em; padding-right:25px; margin-top: 25px;")
                       

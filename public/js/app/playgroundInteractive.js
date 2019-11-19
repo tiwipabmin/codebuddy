@@ -227,6 +227,8 @@ socket.on("init reviews", payload => {
 socket.on("update block", payload => {
   var blockId = payload.blockId;
   var index = payload.index;
+  console.log("index ", index)
+  console.log("blockId ", blockId)
   var action = payload.action;
 
   if (action == "add") {
@@ -313,7 +315,9 @@ socket.on("update block", payload => {
       });
     });
 
+    console.log("editors ", editors)
     editors.splice(index, 0, { blockId: blockId, editor: cm });
+    console.log("editors splice ", editors)
     projectFiles.splice(index, 0, blockId);
     setOnChangeEditer(blockId);
     setOnDoubleClickEditor(blockId);

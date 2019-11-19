@@ -209,6 +209,7 @@ function setOnChangeEditer(fileName) {
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on("editor update", payload => {
+  console.log("editor update")
   var blockObj = editors.find(obj => {
     return obj.blockId == payload.fileName;
   });
@@ -232,108 +233,132 @@ socket.emit("join project", {
  */
 socket.on("update block", payload => {
   console.log("update block")
-  // let blockId = payload.blockId;
-  // let index = payload.blockId;
-  // let action = payload.action;
+  let blockId = payload.blockId;
+  let index = payload.blockId;
+  let action = payload.action;
+  console.log("blockId : ", blockId)
+  if (action == "add") {
+    let divisionCodeBlock = document.createElement("div");
+    let html =
+      '<div class="input">' +
+        '<div class="prompt_container" >'+
+          '<div class="prompt input_prompt" id="'+blockId + '-in">'+
+            '<bdi> In &nbsp;</bdi>'+
+            '<bdi>[]</bdi>'+
+          '</div>'+
+        '</div>'+
+        
+        '<div class="inner_cell" >'+
+          '<div class="input_area" style="margin-top: 25px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
+            '<textarea class="show" id="'+blockId+'" > </textarea>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      
+      '<div class="output" id="file-div-output">'+
+        '<div class="output_area">'+
+          '<div class="output_subarea output_text" style="margin-top: 10px; padding-left:8em; padding-right:25px;">'+
+          '</div>'+
+        '</div>'+
+      '</div>'  
 
-  // if (action == "add") {
-  //   var divisionCodeBlock = document.createElement("div");
-  //   var html =
-  //     '<div class="input">' +
-  //     '<div id="' +
-  //     blockId +
-  //     '-in">In [&nbsp;&nbsp;]:</div>' +
-  //     '<div><textarea id="' +
-  //     blockId +
-  //     '"></textarea></div>' +
-  //     "</div>" +
-  //     '<div id="file"' +
-  //     '-div-output" class="code-block">' +
-  //     "<div></div>" +
-  //     "</div>";
+    divisionCodeBlock.className = "cell code_cell rendered";
+    divisionCodeBlock.setAttribute("id", blockId + "-div");
+    divisionCodeBlock.innerHTML = html;
 
-  //   divisionCodeBlock.className = "cell-code_cell-rendered";
-  //   divisionCodeBlock.setAttribute("id", blockId + "-div");
-  //   divisionCodeBlock.innerHTML = html;
+    // segmentCodeBlock.insertBefore(
+    //   divisionCodeBlock,
+    //   segmentCodeBlock.children[blockId]
+    // );
+    $( divisionCodeBlock ).insertBefore( "#"+blockId+"-div" );
 
-  //   segmentCodeBlock.insertBefore(
-  //     divisionCodeBlock,
-  //     segmentCodeBlock.children[index]
-  //   );
+    /**
+     * TODO: refactor setEditor with index parameter
+     * add codemirror of new into editors array
+     **/
+    var cm = CodeMirror.fromTextArea(
+      document.getElementById(blockId),
+      {
+        lineNumbers: true,
+        mode: {
+          name: "python",
+          version: 3,
+          singleLineStringErrors: false,
+          styleActiveLine: true,
+          lineNumbers: true,
+          lineWrapping: true
+        },
+        theme: "material",
+        indentUnit: 4,
+        matchBrackets: true
+      }
+    );
 
-  //   /**
-  //    * TODO: refactor setEditor with index parameter
-  //    * add codemirror of new into editors array
-  //    **/
-  //   var cm = CodeMirror.fromTextArea(
-  //     document.getElementById(blockId),
-  //     {
-  //       lineNumbers: true,
-  //       mode: {
-  //         name: "python",
-  //         version: 3,
-  //         singleLineStringErrors: false,
-  //         styleActiveLine: true,
-  //         lineNumbers: true,
-  //         lineWrapping: true
-  //       },
-  //       theme: "material",
-  //       indentUnit: 4,
-  //       matchBrackets: true
-  //     }
-  //   );
+    cm.addKeyMap({
+      "Alt-R": function(cm) {
+        runCode();
+      },
+      "Alt-N": function(cm) {
+        addBlock();
+      },
+      "Alt-D": function(cm) {
+        deleteBlock();
+      },
+      "Alt-Up": function(cm) {
+        moveBlock("up");
+      },
+      "Alt-Down": function(cm) {
+        moveBlock("down");
+      }
+    });
 
-  //   cm.addKeyMap({
-  //     "Alt-R": function(cm) {
-  //       runCode();
-  //     },
-  //     "Alt-N": function(cm) {
-  //       addBlock();
-  //     },
-  //     "Alt-D": function(cm) {
-  //       deleteBlock();
-  //     },
-  //     "Alt-Up": function(cm) {
-  //       moveBlock("up");
-  //     },
-  //     "Alt-Down": function(cm) {
-  //       moveBlock("down");
-  //     }
-  //   });
+    cm.on("focus", cm => {
+      var prevFocusBlock = detectFocusBlock;
 
-  //   cm.on("focus", cm => {
-  //     var prevFocusBlock = detectFocusBlock;
+      /**
+       * find index of focusing codemirror in editors array.
+       **/
+      detectFocusBlock = editors
+        .map(function(obj) {
+          return obj.editor;
+        })
+        .indexOf(cm);
 
-  //     /**
-  //      * find index of focusing codemirror in editors array.
-  //      **/
-  //     detectFocusBlock = editors
-  //       .map(function(obj) {
-  //         return obj.editor;
-  //       })
-  //       .indexOf(cm);
+      console.log("prevFocusBlock ", prevFocusBlock)
+      console.log("detectFocusBlock ", detectFocusBlock)
+      socket.emit("codemirror on focus", {
+        prevFocus: prevFocusBlock,
+        newFocus: detectFocusBlock
+      });
+      console.log(`Detect focus block!! ${detectFocusBlock}`);
+    });
 
-  //     socket.emit("codemirror on focus", {
-  //       prevFocus: prevFocusBlock,
-  //       newFocus: detectFocusBlock
-  //     });
-  //   });
+    
+    editors.splice(blockId, 0, { blockId: blockId, editor: cm });
+    projectFiles.splice(blockId, 0, {cellType: "code", executionCount: null, outputs: Array(0), source: "", blockId: blockId.toString()});
+    for(i in editors){
+      if(i > blockId ){
+        editors[i]["blockId"] = parseInt(i)
+        projectFiles[i]["blockId"]= i
+        
+      }
+    }
+    console.log("editors ", editors)
+    console.log("projectFiles ", projectFiles)
+    // console.log("projectFiles ", projectFiles)
+    // projectFiles.splice(blockId, 0, blockId);
+    setOnChangeEditer(blockId);
+    // setOnDoubleClickEditor(blockId);
 
-  //   editors.splice(index, 0, { blockId: blockId, editor: cm });
-   
-  //   projectFiles.splice(index, 0, blockId);
-  //   setOnChangeEditer(blockId);
-  //   // setOnDoubleClickEditor(blockId);
-
-  //   // switch (roles.user) {
-  //   //   case "coder":
-  //   //     cm.setOption("readOnly", false); // show cursor
-  //   //     break;
-  //   //   case "reviewer":
-  //   //     cm.setOption("readOnly", "nocursor"); // no cursor
-  //   //     break;
-  //   // }
-  // } 
+    // switch (roles.user) {
+    //   case "coder":
+    //     cm.setOption("readOnly", false); // show cursor
+    //     break;
+    //   case "reviewer":
+    //     cm.setOption("readOnly", "nocursor"); // no cursor
+    //     break;
+    // }
+  } 
   // else {
   //   var divisionCodeBlock = document.getElementById(blockId + "-div");
   //   divisionCodeBlock.remove();
@@ -361,8 +386,10 @@ function getParameterByName(name) {
 
 socket.on("init state", payload => {
   if (payload.editor != null) {
-    // console.log("payload.editor", payload.editor)
+   
     var editorValues = JSON.parse(payload.editor);
+     console.log("editorValues", editorValues)
+
     for(var i = 0; i < editorValues.length; i++){
       // if(editorValues[i]["cellType"] == "code"){
         setEditorValue(i)
@@ -428,9 +455,6 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
     notebookAssingmentId : notebookAssingmentId
     };
 
-  // console.log('notebookAssingmentId: ', options.body.getAll('notebookAssingmentId'))
-   
-
   $.post("/notebookAssignment/StudentExport", options ,  function(data){
     const status = data.status;
     if (status == "Export File Complete!!") {
@@ -451,6 +475,19 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 //   transition: "fade up"
 // });
 // =======
+
+socket.on("update block highlight", payload => {
+  console.log("update block highlight")
+  // document.getElementById(
+  //   editors[payload.prevFocus].blockId + "-div"
+  // ).style.border = "";
+  // document.getElementById(
+  //   editors[payload.newFocus].blockId + "-div"
+  // ).style.border = "thin solid #2185d0";
+  // document.getElementById(
+  //   editors[payload.newFocus].blockId + "-div"
+  // ).style.borderLeft = "thick solid #2185d0";
+});
 
 /**
  * If user exit or going elsewhere which can be caused this project window closed
