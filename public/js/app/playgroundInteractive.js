@@ -131,6 +131,8 @@ function setEditor(fileName) {
       prevFocus: prevFocusBlock,
       newFocus: detectFocusBlock
     });
+    var divisionCodeBlock = document.getElementById("main-div-output").value;
+    console.log(" divisionCodeBlock" , divisionCodeBlock)
     console.log(`Detect focus block!! ${detectFocusBlock}`);
   });
   editors.push({ blockId: fileName, editor: cm });
@@ -586,6 +588,7 @@ socket.on("is typing", payload => {
 
 function addDivOutput(textOutput, blockId) {
   var divisionCodeBlock = document.getElementById(blockId + "-div-output");
+  console.log(" divisionCodeBlock" , divisionCodeBlock)
   var divisionOutput = document.createElement("div");
   var prefomattedText = document.createElement("pre");
 
@@ -598,6 +601,7 @@ function addDivOutput(textOutput, blockId) {
 }
 
 socket.on("show output", payload => {
+
   var textOutput = document.createTextNode(payload);
   var blockId = editors[executingBlock].blockId;
   if (blockId in output) {
@@ -605,10 +609,14 @@ socket.on("show output", payload => {
     var preformattedText = document.getElementById(blockId + "-pre");
     preformattedText.removeChild(preformattedText.childNodes[0]);
     preformattedText.appendChild(output[blockId]);
+    console.log("if -------------------")
+
   } else {
     output[blockId] = textOutput;
     addDivOutput(output[blockId], blockId);
     console.log("Output : " + payload);
+    console.log("else -------------------")
+
   }
 });
 
@@ -670,6 +678,7 @@ function reKernel() {
 }
 
 socket.on("restart a kernel", payload => {
+
   /**
    * remove output div
    **/

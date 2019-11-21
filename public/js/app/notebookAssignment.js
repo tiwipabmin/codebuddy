@@ -3,13 +3,21 @@ var detectFocusBlock = 0;
 var editors = [];
 var comments = [];
 var executingBlock;
+var output = {};
+var sizeOutputObjects = 0;
+
+
+function getCodeFocusBlock() {
+  var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
+  return codeFocusBlock;
+}
+
 
 /**
  * Run code
  */
 function runCode() {
 
-  console.log("function run code in notebookass.js" , getCodeFocusBlock())
   socket.emit("run code", {
     codeFocusBlock: getCodeFocusBlock(),
     focusBlock: detectFocusBlock
@@ -19,27 +27,45 @@ function runCode() {
   // });
 }
 
-function getCodeFocusBlock() {
-  var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
-  return codeFocusBlock;
-}
-
 socket.on("show output", payload => {
-  // var textOutput = document.createTextNode(payload);
   var blockId = editors[executingBlock].blockId;
-  console.log(" blockId aew -----------------" , blockId)
+  checkOutput = document.getElementById(blockId + "-div-output")
+  console.log(" show output func")
+  if(checkOutput == null){
+    addDivOutput(payload , blockId)
+  }else{
+    document.getElementById(blockId + "-div-output").innerHTML = payload;
+    console.log("else")
+  }
+
   console.log("Output : " + payload);
-  // if (blockId in output) {
-  //   output[blockId] = textOutput;
-  //   var preformattedText = document.getElementById(blockId + "-pre");
-  //   preformattedText.removeChild(preformattedText.childNodes[0]);
-  //   preformattedText.appendChild(output[blockId]);
-  // } else {
-  //   output[blockId] = textOutput;
-  //   addDivOutput(output[blockId], blockId);
-  //   console.log("Output : " + payload);
-  // }
+
+  
 });
+
+function addDivOutput(textOutput, blockId) {
+  var divisionRun = document.getElementById(blockId + "-div-output");
+  console.log(" divisionRun" , divisionRun)
+  let divisionCodeBlock = document.createElement("div");
+  let html =
+
+        '<div id="'+
+        blockId+
+        '-div-output" style="background-color: #f5f5f5; margin-top: 25px;margin-right: 12em; padding-left:12px; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
+        '</div>'
+
+  divisionCodeBlock.className = "output_subarea output_text";
+  divisionCodeBlock.setAttribute("id", blockId + "-div");
+  divisionCodeBlock.innerHTML = html;
+
+  segmentCodeBlock.insertBefore(
+    divisionCodeBlock,
+    segmentCodeBlock.children[5]
+  );
+
+  document.getElementById(blockId + "-div-output").innerHTML = textOutput;
+
+}
 
 function getCodeFocusBlock() {
   var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
@@ -47,7 +73,6 @@ function getCodeFocusBlock() {
 }
 socket.on("update execution count", payload => {
   var blockId = editors[executingBlock].blockId;
-  console.log(" aew --------------- " , blockId)
   // document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
 });
 
@@ -316,8 +341,8 @@ socket.on("update block", payload => {
         '</div>'+
       '</div>'+
       
-      '<div class="output" id="file-div-output">'+
-        '<div class="output_area">'+
+      // '<div class="output" id="file-div-output">'+
+      //   '<div class="output_area">'+
           '<div class="output_subarea output_text" style="margin-top: 10px; padding-left:8em; padding-right:25px;">'+
           '</div>'+
         '</div>'+
