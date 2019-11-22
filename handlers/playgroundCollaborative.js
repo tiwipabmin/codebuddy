@@ -3,9 +3,16 @@ const mongoose = require("mongoose");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
 const conMysql = require("../mySql");
-const html2markdown = require('html2markdown');
 const fs = require("fs");
 const Project = mongoose.model("Project");
+
+// Import Turndown module
+const TurndownService = require('turndown');
+
+// Create an instance of the turndown service
+let turndownService = new TurndownService();
+
+
 
 module.exports = (io, client,redis, Projects) => {
   /**
@@ -43,7 +50,6 @@ module.exports = (io, client,redis, Projects) => {
       editorName = payload.fileName;
       redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
        function(err, obj) {
-        // console.log("TypeOf obj, ", typeof(obj), ', Values, ', obj)
         let cells = {};
         if (obj.cells != undefined) {
           cells = JSON.parse(obj.cells);
@@ -70,9 +76,8 @@ module.exports = (io, client,redis, Projects) => {
     fs.writeFileSync(filePath, fileNotebook, 'utf8', err =>  {
       // throws an error, you could also catch it here
       if (err) throw err;
-  
       // success case, the file was saved
-      // console.log(filePath + " has been saved!");
+      console.log(filePath + " has been saved!");
   
     });
   });
@@ -82,25 +87,9 @@ module.exports = (io, client,redis, Projects) => {
    * @param {Object} payload blockId
    */
   client.on("add block below", async payload => {
-    console.log("add block payload")
-    /**
-     * add new blockId to selected index
-     **/
-    console.log("projectId ", projectId)
-    // console.log("notebookAssingmentId ", notebookAssingmentId)
-
+ 
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
-
-    // for(i in notebookAssignment){
-    //   console.log("index ", i)
-    //   if(i >=  payload.index){
-    //     notebookAssignment[i]["blockId"] = (parseInt(i) + 1).toString()
-    //     // console.log("notebookAssignment[i] " , notebookAssignment[i])
-    //   }
-    // }
-
-   
 
     item = {
       cellType: 'code',
@@ -111,15 +100,12 @@ module.exports = (io, client,redis, Projects) => {
     }
 
     notebookAssignment.splice(payload.index, 0 , item)
-    console.log("notebookAssignment ", notebookAssignment)
+   
     /**
      * save file to redis
      **/
     redis.hset("notebookAssignment:"+notebookAssingmentId, "cells", JSON.stringify(notebookAssignment));
-    // console.log("DSBA PROjectid ", projectId)
-    
-   
-
+  
     io.in(projectId).emit("update block", {
       blockId: payload.blockId,
       index: payload.index,
@@ -140,17 +126,16 @@ module.exports = (io, client,redis, Projects) => {
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
 
-
     for (x in notebookAssignment) {
       cell_type = notebookAssignment[x]["cellType"];
       var html2Md = []
           if ( cell_type == 'markdown') {
-              splitMD = notebookAssignment[x]["source"].split("\n")
-              for (y in splitMD) {
-                sourceInfo = html2markdown(splitMD[y]);   
-                html2Md.push(sourceInfo)   
-                source = html2Md 
-              }
+              
+              // Use the turndown method from the created instance
+              // to convert the first argument (HTML string) to Markdown
+              sourceInfo = turndownService.turndown(notebookAssignment[x]["source"])
+              html2Md.push(sourceInfo)   
+              source = html2Md 
               let fileInfo = {
                 cell_type,
               metadata,
@@ -232,9 +217,6 @@ module.exports = (io, client,redis, Projects) => {
   }
 
   client.on("codemirror on focus", payload => {
-    console.log("codemirror on focus")
-    console.log("payload.prevFocus ", payload.prevFocus)
-    console.log("payload.newFocus ", payload.newFocus)
     io.in(projectId).emit("update block highlight", {
       prevFocus: payload.prevFocus,
       newFocus: payload.newFocus
