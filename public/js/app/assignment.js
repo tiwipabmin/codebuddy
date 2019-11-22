@@ -75,7 +75,6 @@ function showDeleteModal() {
 }
 
 function showAssignmentModal(assignment) {
-  console.log("showAssingmentModel")
   $(`#ps${assignment.programming_style}`).attr('checked', 'true')
   $(`#assTitle`).val(assignment.title)
   $(`#assWeek`).val(assignment.week)
@@ -132,7 +131,7 @@ function createAssignment() {
   $("#confirmToCreateAssBtn").click();
 }
 
-function updateAssignment() {
+ function updateAssignment() {
   $("#assignmentForm").attr({
     action: "/assignment/updateAssignment",
     method: "POST"
@@ -157,7 +156,7 @@ function updateAssignment() {
   $("#confirmToCreateAssBtn").click();
 }
 
-function createNotebookAssignment(){
+async function createNotebookAssignment(){
   console.log("createNotebookAssignemnt")
   var formData = new FormData();
   formData.append('title', $('input[id=assTitle]')[0].value );
@@ -171,9 +170,12 @@ function createNotebookAssignment(){
     body: formData
   };
 
-  // console.log('Files: ', options.body.getAll('file'))
-  
-  fetch('/classroom/uploadAssignment', options);
-
+  fetch('/classroom/uploadAssignment', options)
+  .then((resp) => resp.json()) // Transform the data into json
+  .then(function(response) {
+    if (response.redirect_path) { //optional check to see if a redirect path exists
+      location.href = response.redirect_path;
+    }
+  })
 
 }
