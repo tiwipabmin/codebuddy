@@ -165,13 +165,14 @@ exports.getPlayground = async (req, res) => {
 
     let filePath = notebookAssignment.filePath;
     let dirPath = "./public/notebookAssignment/" + filePath.split(".ipynb")[0]+"/"+ project.pid+"/"+ filePath;
+    console.log("filepath ", dirPath)
     let cells = readFileNotebookAssignment(dirPath)
     saveFileToRedis(cells, notebookAssignment.notebook_assignment_id)
     
     
 
     // console.log("dataSets : ", dataSets)
-    console.log("Cells : ", cells);
+    // console.log("Cells : ", JSON.parse(cells)[9]["outputs"]);
     res.render("playground_collaborative", { dataSets, title: title , cells : JSON.parse(cells) , dirPath:dirPath });
   };
 }
@@ -182,11 +183,9 @@ function readFileNotebookAssignment(filePath){
   let information_obj = JSON.parse(information);
    
   let information_cells = information_obj["cells"];
-
     cells = new Array()
     codeCellId = []
     for (x in information_cells) {
-        // console.log("---------Cells  [" + x + "]----------");
         if (information_cells[x]["cell_type"] == "markdown") {
           // let lines = []
           let lines = ""
@@ -208,7 +207,6 @@ function readFileNotebookAssignment(filePath){
       
         } else {
             codeCellId.push(x)
-            // let linesSource = []
             let linesSource = ""
             let outputs = []
             for (y in information_cells[x]["source"]) {
@@ -243,16 +241,6 @@ function readFileNotebookAssignment(filePath){
         }
       }
       
-      for(x  in cells){
-        for (y in cells[x]["outputs"]){
-          for(z in cells[x]["outputs"][y]["text"]){
-            cells[x]["outputs"][y]["text"][z] = cells[x]["outputs"][y]["text"][z] + "<br>"
-            console.log("aew -------------- " , cells[x]["outputs"][y]["text"][z])
-          }
-        }
-          
-      }
-
       return JSON.stringify(cells)
 }
 
