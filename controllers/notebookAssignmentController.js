@@ -6,7 +6,12 @@ const Redis = require("ioredis");
 var fs = require("fs");
 var markdown = require("markdown").markdown;
 const redis = new Redis();
-const html2markdown = require('html2markdown');
+
+// Import Turndown module
+const TurndownService = require('turndown');
+
+// Create an instance of the turndown service
+let turndownService = new TurndownService();
 
 
 
@@ -39,16 +44,7 @@ exports.getNotebookAssignment = async (req, res) => {
     var cellsRedis = await redis.hget( "notebookAssignment:"+cryptr.decrypt(req.query.notebook_assignment_id), "cells");
   
     let cells = JSON.parse(cellsRedis)
-    for(x  in cells){
-      for (y in cells[x]["outputs"]){
-        for(z in cells[x]["outputs"][y]["text"]){
-          cells[x]["outputs"][y]["text"][z] = cells[x]["outputs"][y]["text"][z] + "<br>"
-        }
-      }
-        
-    }
-
-      res.render("notebookAssignment", { dataSets, title: title , cells : cells });
+    res.render("notebookAssignment", { dataSets, title: title , cells : cells });
   };
 
 
@@ -245,12 +241,12 @@ exports.exportNotebookFile = async (req, res) => {
       cell_type = notebookAssignment[x]["cellType"];
       var html2Md = []
           if ( cell_type == 'markdown') {
-              splitMD = notebookAssignment[x]["source"].split("\n")
-              for (y in splitMD) {
-                sourceInfo = html2markdown(splitMD[y]);   
-                html2Md.push(sourceInfo)   
-                source = html2Md 
-              }
+              // Use the turndown method from the created instance
+              // to convert the first argument (HTML string) to Markdown
+              sourceInfo = turndownService.turndown(notebookAssignment[x]["source"])
+              html2Md.push(sourceInfo)   
+              source = html2Md 
+
               let fileInfo = {
                 cell_type,
               metadata,
@@ -351,12 +347,12 @@ async function getFileNotebook(notebookAssingmentId){
     cell_type = notebookAssignment[x]["cellType"];
     var html2Md = []
         if ( cell_type == 'markdown') {
-            splitMD = notebookAssignment[x]["source"].split("\n")
-            for (y in splitMD) {
-              sourceInfo = html2markdown(splitMD[y]);   
-              html2Md.push(sourceInfo)   
-              source = html2Md 
-            }
+            // Use the turndown method from the created instance
+            // to convert the first argument (HTML string) to Markdown
+            sourceInfo = turndownService.turndown(notebookAssignment[x]["source"])
+            html2Md.push(sourceInfo)   
+            source = html2Md 
+
             let fileInfo = {
             cell_type,
             metadata,
@@ -432,11 +428,8 @@ async function getFileNotebook(notebookAssingmentId){
 
     dirPath = req.body.dirPath
     notebookAssingmentId = cryptr.decrypt(req.body.notebookAssingmentId)
-    console.log("dirPath = " , dirPath)
-    // console.log("notebookAssingmentID " , notebookAssingmentId)
     fileNotebook = await getFileNotebook(notebookAssingmentId)
 
-    console.log("fileNotebook = " , JSON.parse(fileNotebook))
     fs.writeFileSync(dirPath, fileNotebook, 'utf8', err =>  {
       // throws an error, you could also catch it here
       if (err) throw err;
@@ -450,8 +443,6 @@ async function getFileNotebook(notebookAssingmentId){
     let notebookAssignment = JSON.parse(information);
     fileName = dirPath.split("/")[5].split("-")[0]
     filePath = "C:/Users/user/Desktop/"+fileName+".ipynb"
-    console.log("__dirname = " , __dirname+"../../../Downloads/"+fileName+".ipynb" )
-
     fs.writeFileSync(__dirname+"../../../"+fileName+".ipynb", JSON.stringify(notebookAssignment), 'utf8', err =>  {
 
     // throws an error, you could also catch it here
@@ -469,14 +460,12 @@ async function getFileNotebook(notebookAssingmentId){
 
 exports.deleteAssignment = async (req, res) => {
   let assignment_is_selected = req.body.assignment_is_selected;
-  console.log("req.body.assignment_is_selected " , req.body.assignment_is_selected)
   let max_length = assignment_is_selected.length;
   let count = 0;
   for (_index in assignment_is_selected) {
     let deleteAssignment =
       "DELETE FROM notebook_assignment WHERE notebook_assignment_id = " +
       cryptr.decrypt(assignment_is_selected[_index].notebook_assignment_id);
-      console.log("deleteAssignment " , deleteAssignment)
 
     let res_status = await conMysql.deleteAssignment(deleteAssignment);
     if (res_status === "delete this assignment complete.") {

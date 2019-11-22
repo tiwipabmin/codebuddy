@@ -4,10 +4,9 @@ const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
 const moment = require("moment");
 const Redis = require("ioredis");
-var markdown = require("markdown").markdown;
-var html2markdown = require('html2markdown');
+const markdown = require("markdown").markdown;
 
-var fs = require("fs");
+const fs = require("fs");
 
 const Project = mongoose.model("Project");
 const Message = mongoose.model("Message");
@@ -167,11 +166,7 @@ exports.getPlayground = async (req, res) => {
     let dirPath = "./public/notebookAssignment/" + filePath.split(".ipynb")[0]+"/"+ project.pid+"/"+ filePath;
     let cells = readFileNotebookAssignment(dirPath)
     saveFileToRedis(cells, notebookAssignment.notebook_assignment_id)
-    
-    
 
-    // console.log("dataSets : ", dataSets)
-    console.log("Cells : ", cells);
     res.render("playground_collaborative", { dataSets, title: title , cells : JSON.parse(cells) , dirPath:dirPath });
   };
 }
@@ -182,18 +177,13 @@ function readFileNotebookAssignment(filePath){
   let information_obj = JSON.parse(information);
    
   let information_cells = information_obj["cells"];
-
     cells = new Array()
     codeCellId = []
     for (x in information_cells) {
-        // console.log("---------Cells  [" + x + "]----------");
         if (information_cells[x]["cell_type"] == "markdown") {
-          // let lines = []
           let lines = ""
           for (y in information_cells[x]["source"]) {
-            // console.log(markdown.toHTML(information_cells[x]["source"][y]));
             let line = markdown.toHTML(information_cells[x]["source"][y]);
-            // lines.push(line)
             lines += line+"\n"
           }
 
@@ -208,13 +198,11 @@ function readFileNotebookAssignment(filePath){
       
         } else {
             codeCellId.push(x)
-            // let linesSource = []
             let linesSource = ""
             let outputs = []
             for (y in information_cells[x]["source"]) {
               let lineSource = information_cells[x]["source"][y]
-                // linesSource.push(lineSource)
-                 linesSource+= lineSource
+              linesSource+= lineSource
             }
 
             
@@ -243,16 +231,6 @@ function readFileNotebookAssignment(filePath){
         }
       }
       
-      for(x  in cells){
-        for (y in cells[x]["outputs"]){
-          for(z in cells[x]["outputs"][y]["text"]){
-            cells[x]["outputs"][y]["text"][z] = cells[x]["outputs"][y]["text"][z] + "<br>"
-            console.log("aew -------------- " , cells[x]["outputs"][y]["text"][z])
-          }
-        }
-          
-      }
-
       return JSON.stringify(cells)
 }
 
@@ -408,10 +386,8 @@ exports.getSection = async (req, res) => {
 
   let dataSets = {};
   let section_id = parseInt(cryptr.decrypt(req.query.section_id));
-  console.log(section_id)
   let occupation = req.user.info.occupation;
-  
-  // jj author
+
   let queryBranch_type = "SELECT branch_type FROM branch WHERE section_id = " + section_id;
   let branch_type = [];
   branch_type = await conMysql.selectBranchType(queryBranch_type)
@@ -506,7 +482,7 @@ exports.getSection = async (req, res) => {
         }
       ]
     }).sort({ createdAt: -1 });
-console.log("projects find", projects)
+
     /**
      * projects change data type from array to object
      */
@@ -521,7 +497,7 @@ console.log("projects find", projects)
     for (i in cloneAssignments) {
       let checkProjectFromAssignmentId =
         cloneProjects[cryptr.decrypt(cloneAssignments[i].assignment_id)];
-        console.log("checkProjectFromAssignmentId", checkProjectFromAssignmentId)
+       
       if (checkProjectFromAssignmentId !== undefined) {
         let element = Object.assign({}, checkProjectFromAssignmentId);
         if (element._doc.available_project) {
@@ -557,10 +533,6 @@ console.log("projects find", projects)
     };
   }
 
-  console.log("projects", dataSets.reforms.projects)
-  // console.log("dataSets", dataSets)
-  // console.log("dataSets.reforms.pairingSessions", dataSets.reforms.pairingSessions)
-  
   res.render("classroom", { dataSets, title: section.course_name });
   }else{
     console.log("OK DSBA")
@@ -587,7 +559,7 @@ console.log("projects find", projects)
   students = await conMysql.selectStudent(queryStudent);
   assignments = await conMysql.selectAssignment(queryAssignment);
   pairingSessions = await conMysql.selectPairingSession(queryPairingSession);
-  // console.log("pairingSessions+pairingSessions ", pairingSessions)
+  
   if (!section.length) section = [];
   else {
     section = section[0];
@@ -596,10 +568,8 @@ console.log("projects find", projects)
 
   if (!students.length) students = [];
   if (!assignments.length) {
-    // console.log("assignment = 0")
     assignments = [];
   } else if (assignments.length) {
-    // console.log("assignment != 0 " + assignments.length)
     for (_index in assignments) {
       assignments[_index].notebook_assignment_id = cryptr.encrypt(
         assignments[_index].notebook_assignment_id
@@ -618,11 +588,10 @@ console.log("projects find", projects)
   }
 
   if (!pairingSessions.length){
-    console.log("pairingSessions == 0")
+  
     pairingSessions = [{ pairing_session_id: -1, status: -1 }];
   }
   if (occupation == "teacher") {
-    console.log("occupation == teacher")
     occupation = 0;
 
     dataSets = {
@@ -657,7 +626,7 @@ console.log("projects find", projects)
         }
       ]
     }).sort({ createdAt: -1 });
-    console.log("projects find", projects)
+    
     /**
      * projects change data type from array to object
      */
@@ -666,8 +635,6 @@ console.log("projects find", projects)
       cloneProjects[project.assignment_id] = project;
     });
     
-    console.log("cloneAssignments", cloneAssignments)
-
     projects = [];
     assignments = [];
     weeks = [];
@@ -707,9 +674,7 @@ console.log("projects find", projects)
       }
     };
   }
-  console.log("dataSets ", dataSets)
-  console.log("projects", dataSets.reforms.projects)
-  // console.log("dataSets.reforms.pairingSessions", dataSets.reforms.pairingSessions)
+  
     res.render("collaberative",{ dataSets, title: section.course_name })
   }
 

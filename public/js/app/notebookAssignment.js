@@ -529,24 +529,18 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
   })
   
 }
-// <<<<<<< HEAD
-// $("#alert-modal").modal({
-//   closable: false,
-//   transition: "fade up"
-// });
-// =======
 
 socket.on("update block highlight", payload => {
-  console.log("update block highlight")
-  // document.getElementById(
-  //   editors[payload.prevFocus].blockId + "-div"
-  // ).style.border = "";
-  // document.getElementById(
-  //   editors[payload.newFocus].blockId + "-div"
-  // ).style.border = "thin solid #2185d0";
-  // document.getElementById(
-  //   editors[payload.newFocus].blockId + "-div"
-  // ).style.borderLeft = "thick solid #2185d0";
+ 
+  document.getElementById(
+    editors[payload.prevFocus].blockId + "-div"
+  ).style.border = "";
+  document.getElementById(
+    editors[payload.newFocus].blockId + "-div"
+  ).style.border = "thin solid #2185d0";
+  document.getElementById(
+    editors[payload.newFocus].blockId + "-div"
+  ).style.borderLeft = "thick solid #2185d0";
 });
 
 /**
