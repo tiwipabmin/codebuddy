@@ -137,7 +137,6 @@ module.exports = (io, client,redis, Projects) => {
     /**
      * display In[*]
      */
-    // io.in(projectId).emit("update execution count", "*");
       io.emit("update execution count", "*");
 
   });

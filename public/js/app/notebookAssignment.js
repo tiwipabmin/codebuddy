@@ -28,6 +28,7 @@ function runCode() {
 }
 
 socket.on("show output", payload => {
+   index = payload.index;
   var blockId = editors[executingBlock].blockId;
   checkOutput = document.getElementById(blockId + "-div-output")
   console.log(" show output func")
@@ -37,30 +38,30 @@ socket.on("show output", payload => {
     document.getElementById(blockId + "-div-output").innerHTML = payload;
     console.log("else")
   }
+  console.log("index  "   , index)
 
   console.log("Output : " + payload);
 
   
 });
 
-function addDivOutput(textOutput, blockId) {
-  var divisionRun = document.getElementById(blockId + "-div-output");
-  console.log(" divisionRun" , divisionRun)
+function addDivOutput(textOutput, blockId , index) {
+
   let divisionCodeBlock = document.createElement("div");
   let html =
-
+        '<div output_subarea output_text style="padding-left:8em; padding-right:25px; margin-right: 8em; ">'+
         '<div id="'+
         blockId+
         '-div-output" style="background-color: #f5f5f5; margin-top: 25px;margin-right: 12em; padding-left:12px; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
-        '</div>'
-
-  divisionCodeBlock.className = "output_subarea output_text";
+        '</div>'+'</div>'
+  divisionCodeBlock.className = "cell code_cell rendered";
   divisionCodeBlock.setAttribute("id", blockId + "-div");
   divisionCodeBlock.innerHTML = html;
+  console.log("detectFocusBlock    "   , detectFocusBlock)
 
   segmentCodeBlock.insertBefore(
     divisionCodeBlock,
-    segmentCodeBlock.children[5]
+    segmentCodeBlock.children[detectFocusBlock]
   );
 
   document.getElementById(blockId + "-div-output").innerHTML = textOutput;
