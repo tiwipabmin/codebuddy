@@ -45,23 +45,28 @@ socket.on("show output", payload => {
   
 });
 
-function addDivOutput(textOutput, blockId , index) {
+function addDivOutput(textOutput, blockId) {
+
+  console.log("detectFocusBlock " , detectFocusBlock)
+  console.log("blockId " , blockId)
+  let input_codeblock = document.getElementById(blockId+'-div')
+  // let detectFocusBlock_output = detectFocusBlock+1
 
   let divisionCodeBlock = document.createElement("div");
   let html =
-        '<div output_subarea output_text style="padding-left:8em; padding-right:25px; margin-right: 8em; ">'+
+        '<div output_subarea output_text style="padding-left:8em; padding-right:25px; ">'+
         '<div id="'+
-        blockId+
-        '-div-output" style="background-color: #f5f5f5; margin-top: 25px;margin-right: 12em; padding-left:12px; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
+        blockId +
+        '-div-output" style="background-color: #f5f5f5; margin-top: 25px;margin-bottom: 1em; padding-left:2em;padding-top:1em;padding-bottom:1em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
         '</div>'+'</div>'
-  divisionCodeBlock.className = "cell code_cell rendered";
-  divisionCodeBlock.setAttribute("id", blockId + "-div");
+  divisionCodeBlock.className = "output";
+  // divisionCodeBlock.setAttribute("id", blockId + "-input");
   divisionCodeBlock.innerHTML = html;
   console.log("detectFocusBlock    "   , detectFocusBlock)
 
-  segmentCodeBlock.insertBefore(
+  input_codeblock.insertBefore(
     divisionCodeBlock,
-    segmentCodeBlock.children[detectFocusBlock]
+    input_codeblock.children[detectFocusBlock]
   );
 
   document.getElementById(blockId + "-div-output").innerHTML = textOutput;
