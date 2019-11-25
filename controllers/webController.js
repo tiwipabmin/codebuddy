@@ -182,10 +182,18 @@ function readFileNotebookAssignment(filePath){
     for (x in information_cells) {
         if (information_cells[x]["cell_type"] == "markdown") {
           let lines = ""
+            String.prototype.replaceAll = function(search, replacement) {
+            var target = this;
+            return target.split(search).join(replacement);
+          };
           for (y in information_cells[x]["source"]) {
             let line = markdown.toHTML(information_cells[x]["source"][y]);
+        
+            line = line.replace(new RegExp('&lt;', 'g'), '<').replace(new RegExp('&gt;', 'g'), '>')
+            
             lines += line+"\n"
           }
+
 
           let cellType = "markdown"
           let source = lines

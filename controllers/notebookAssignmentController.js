@@ -152,14 +152,13 @@ function readFileNotebookAssignment(filePath){
     cells = new Array()
     codeCellId = []
     for (x in information_cells) {
-        // console.log("---------Cells  [" + x + "]----------");
         if (information_cells[x]["cell_type"] == "markdown") {
-          // let lines = []
           let lines = ""
           for (y in information_cells[x]["source"]) {
-            // console.log(markdown.toHTML(information_cells[x]["source"][y]));
             let line = markdown.toHTML(information_cells[x]["source"][y]);
-            // lines.push(line)
+            line = line.replace(new RegExp('&lt;', 'g'), '<').replace(new RegExp('&gt;', 'g'), '>')
+            
+
             lines += line+"\n"
           }
 
@@ -208,7 +207,6 @@ function readFileNotebookAssignment(filePath){
             cells.push(cell)
         }
       }
-      // console.log("cells",JSON.stringify(cells) )
       return JSON.stringify(cells)
 }
 
@@ -242,7 +240,9 @@ exports.exportNotebookFile = async (req, res) => {
           if ( cell_type == 'markdown') {
               // Use the turndown method from the created instance
               // to convert the first argument (HTML string) to Markdown
-              sourceInfo = turndownService.turndown(notebookAssignment[x]["source"])
+              let sourceX = notebookAssignment[x]["source"];
+              sourceX = sourceX.replace(new RegExp('<', 'g'), '&lt;').replace(new RegExp('>', 'g'), '&gt;')
+              sourceInfo = turndownService.turndown(sourceX)
               html2Md.push(sourceInfo)   
               source = html2Md 
 
@@ -346,9 +346,12 @@ async function getFileNotebook(notebookAssingmentId){
     cell_type = notebookAssignment[x]["cellType"];
     var html2Md = []
         if ( cell_type == 'markdown') {
+          let sourceX = notebookAssignment[x]["source"];
+          sourceX = sourceX.replace(new RegExp('<', 'g'), '&lt;').replace(new RegExp('>', 'g'), '&gt;')
+              
             // Use the turndown method from the created instance
             // to convert the first argument (HTML string) to Markdown
-            sourceInfo = turndownService.turndown(notebookAssignment[x]["source"])
+            sourceInfo = turndownService.turndown(sourceX)
             html2Md.push(sourceInfo)   
             source = html2Md 
 

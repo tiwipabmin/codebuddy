@@ -130,10 +130,12 @@ module.exports = (io, client,redis, Projects) => {
       cell_type = notebookAssignment[x]["cellType"];
       var html2Md = []
           if ( cell_type == 'markdown') {
-              
+            let sourceX = notebookAssignment[x]["source"];
+            sourceX = sourceX.replace(new RegExp('<', 'g'), '&lt;').replace(new RegExp('>', 'g'), '&gt;')
+                
               // Use the turndown method from the created instance
               // to convert the first argument (HTML string) to Markdown
-              sourceInfo = turndownService.turndown(notebookAssignment[x]["source"])
+              sourceInfo = turndownService.turndown(sourceX)
               html2Md.push(sourceInfo)   
               source = html2Md 
               let fileInfo = {
