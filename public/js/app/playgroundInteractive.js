@@ -34,14 +34,14 @@ const roles = {
 var comments = [];
 var code = null;
 
-// var webrtc = new SimpleWebRTC({
-//   // the id/element dom element that will hold "our" video
-//   localVideoEl: 'localVideo',
-//   // the id/element dom element that will hold remote videos
-//   remoteVideosEl: 'remoteVideo',
-//   // immediately ask for camera access
-//   autoRequestMedia: true
-// });
+var webrtc = new SimpleWebRTC({
+  // the id/element dom element that will hold "our" video
+  localVideoEl: 'localVideo',
+  // the id/element dom element that will hold remote videos
+  remoteVideosEl: 'remoteVideo',
+  // immediately ask for camera access
+  autoRequestMedia: true
+});
 
 /**
  * get query parameter from URL
@@ -131,6 +131,8 @@ function setEditor(fileName) {
       prevFocus: prevFocusBlock,
       newFocus: detectFocusBlock
     });
+    var divisionCodeBlock = document.getElementById("main-div-output").value;
+    console.log(" divisionCodeBlock" , divisionCodeBlock)
     console.log(`Detect focus block!! ${detectFocusBlock}`);
   });
   editors.push({ blockId: fileName, editor: cm });
@@ -170,11 +172,11 @@ socket.emit("join project", {
   username: user
 });
 
-// webrtc.on("readyToCall", function() {
-//   // you can name it anything
-//   webrtc.createRoom(getParameterByName("pid"));
-//   webrtc.joinRoom(getParameterByName("pid"));
-// });
+webrtc.on("readyToCall", function() {
+  // you can name it anything
+  webrtc.createRoom(getParameterByName("pid"));
+  webrtc.joinRoom(getParameterByName("pid"));
+});
 
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
@@ -586,6 +588,7 @@ socket.on("is typing", payload => {
 
 function addDivOutput(textOutput, blockId) {
   var divisionCodeBlock = document.getElementById(blockId + "-div-output");
+  console.log(" divisionCodeBlock" , divisionCodeBlock)
   var divisionOutput = document.createElement("div");
   var prefomattedText = document.createElement("pre");
 
@@ -598,6 +601,7 @@ function addDivOutput(textOutput, blockId) {
 }
 
 socket.on("show output", payload => {
+
   var textOutput = document.createTextNode(payload);
   var blockId = editors[executingBlock].blockId;
   if (blockId in output) {
@@ -605,15 +609,20 @@ socket.on("show output", payload => {
     var preformattedText = document.getElementById(blockId + "-pre");
     preformattedText.removeChild(preformattedText.childNodes[0]);
     preformattedText.appendChild(output[blockId]);
+    console.log("if -------------------")
+
   } else {
     output[blockId] = textOutput;
     addDivOutput(output[blockId], blockId);
     console.log("Output : " + payload);
+    console.log("else -------------------")
+
   }
 });
 
 socket.on("update execution count", payload => {
   var blockId = editors[executingBlock].blockId;
+  console.log("update execution count ---- " , blockId)
   document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
 });
 
@@ -649,13 +658,16 @@ socket.on("focus block", payload => {
  * Run code
  */
 function runCode() {
+  console.log("runCode  1 in js")
+
   socket.emit("run code", {
     codeFocusBlock: getCodeFocusBlock(),
-    focusBlock: detectFocusBlock
+    focusBlock: detectFocusBlock ,
+
   });
-  socket.emit("save lines of code", {
-    uid: uid
-  });
+  // socket.emit("save lines of code", {
+  //   uid: uid
+  // });
 }
 
 /**
@@ -666,6 +678,7 @@ function reKernel() {
 }
 
 socket.on("restart a kernel", payload => {
+
   /**
    * remove output div
    **/

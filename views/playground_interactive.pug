@@ -260,7 +260,7 @@ block content
             p You
             #counts_min_sec.ui.red.circular.label active time: 00:00 min
             .videoContainer
-              //- video#localVideo(style='height: 150px; transform: scaleX(-1);' oncontextmenu='return false;')
+              video#localVideo(style='height: 150px; transform: scaleX(-1);' oncontextmenu='return false;')
               canvas(id="canvas" width="320" height="240" style="transform: scaleX(-1);")
               #localVolume.volume_bar
       .twelve.wide.column.right
@@ -298,7 +298,7 @@ block content
                     .nowrap(id=file+'-in') In [&nbsp;&nbsp;]:
                     div
                       textarea(id=file+'-text').show
-                  .code-block(id=file+'-div-output')
+                  .code-block(id=file+'-div-output' value="aew")
                     div
           input(type='hidden' id='projectFiles' value=dataSets.origins.project.files)
         .ui.small.modal#filename-modal
@@ -402,8 +402,8 @@ block content
 
   script(src='/codemirror/lib/codemirror.js')
   script(src='/codemirror/mode/python/python.js')
-  //- script(src='/js/static/simplewebrtc.bundle.js')
-  //- script(src='/js/static/webrtc.js')
+  script(src='/js/static/simplewebrtc.bundle.js')
+  script(src='/js/static/webrtc.js')
   script(src='/js/static/socket.io.min.js')
   script(src='/xterm/xterm.js')
   script(src='/xterm/addons/fit/fit.js')

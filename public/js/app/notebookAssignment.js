@@ -2,6 +2,85 @@ const socket = io();
 var detectFocusBlock = 0;
 var editors = [];
 var comments = [];
+var executingBlock;
+var output = {};
+var sizeOutputObjects = 0;
+
+
+function getCodeFocusBlock() {
+  var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
+  return codeFocusBlock;
+}
+
+
+/**
+ * Run code
+ */
+function runCode() {
+
+  socket.emit("run code", {
+    codeFocusBlock: getCodeFocusBlock(),
+    focusBlock: detectFocusBlock
+  });
+  // socket.emit("save lines of code", {
+  //   uid: uid
+  // });
+}
+
+socket.on("show output", payload => {
+   index = payload.index;
+  var blockId = editors[executingBlock].blockId;
+  checkOutput = document.getElementById(blockId + "-div-output")
+  console.log(" show output func")
+  if(checkOutput == null){
+    addDivOutput(payload , blockId)
+  }else{
+    document.getElementById(blockId + "-div-output").innerHTML = payload;
+    console.log("else")
+  }
+  console.log("index  "   , index)
+
+  console.log("Output : " + payload);
+
+  
+});
+
+function addDivOutput(textOutput, blockId) {
+
+  console.log("detectFocusBlock " , detectFocusBlock)
+  console.log("blockId " , blockId)
+  let input_codeblock = document.getElementById(blockId+'-div')
+  // let detectFocusBlock_output = detectFocusBlock+1
+
+  let divisionCodeBlock = document.createElement("div");
+  let html =
+        '<div output_subarea output_text style="padding-left:8em; padding-right:25px; ">'+
+        '<div id="'+
+        blockId +
+        '-div-output" style="background-color: #f5f5f5; margin-top: 25px;margin-bottom: 1em; padding-left:2em;padding-top:1em;padding-bottom:1em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
+        '</div>'+'</div>'
+  divisionCodeBlock.className = "output";
+  // divisionCodeBlock.setAttribute("id", blockId + "-input");
+  divisionCodeBlock.innerHTML = html;
+  console.log("detectFocusBlock    "   , detectFocusBlock)
+
+  input_codeblock.insertBefore(
+    divisionCodeBlock,
+    input_codeblock.children[detectFocusBlock]
+  );
+
+  document.getElementById(blockId + "-div-output").innerHTML = textOutput;
+
+}
+
+function getCodeFocusBlock() {
+  var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
+  return codeFocusBlock;
+}
+socket.on("update execution count", payload => {
+  var blockId = editors[executingBlock].blockId;
+  // document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
+});
 
 function addBlock() {
     socket.emit("add block below", {
@@ -202,6 +281,22 @@ function setOnChangeEditer(fileName) {
 }
 
 /**
+ * Update focus block of both user
+ **/
+socket.on("focus block", payload => {
+  executingBlock = payload;
+  if (executingBlock != editors.length - 1) {
+    detectFocusBlock += 1;
+    socket.emit("codemirror on focus", {
+      prevFocus: detectFocusBlock - 1,
+      newFocus: detectFocusBlock
+    });
+    editors[detectFocusBlock].editor.focus();
+    editors[detectFocusBlock].editor.setCursor(0, 0);
+  }
+});
+
+/**
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on("editor update", payload => {
@@ -252,8 +347,8 @@ socket.on("update block", payload => {
         '</div>'+
       '</div>'+
       
-      '<div class="output" id="file-div-output">'+
-        '<div class="output_area">'+
+      // '<div class="output" id="file-div-output">'+
+      //   '<div class="output_area">'+
           '<div class="output_subarea output_text" style="margin-top: 10px; padding-left:8em; padding-right:25px;">'+
           '</div>'+
         '</div>'+

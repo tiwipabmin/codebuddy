@@ -129,6 +129,9 @@ function createAssignment() {
     type: "submit"
   });
   $("#confirmToCreateAssBtn").click();
+  $("#confirmToCreateAssBtn").attr({
+    type: "button"
+  });
 }
 
  function updateAssignment() {
@@ -154,6 +157,9 @@ function createAssignment() {
     type: "submit"
   });
   $("#confirmToCreateAssBtn").click();
+  $("#confirmToCreateAssBtn").attr({
+    type: "button"
+  });
 }
 
 async function createNotebookAssignment(){

@@ -139,7 +139,6 @@ exports.uploadAssignment = async (req, res) => {
     reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
   };
   res.send({redirect_path: "/classroom?section_id=" + section.section_id});
-  
 };
 
 function readFileNotebookAssignment(filePath){
