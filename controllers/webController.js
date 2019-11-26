@@ -179,6 +179,9 @@ function readFileNotebookAssignment(filePath){
   let information_cells = information_obj["cells"];
     cells = new Array()
     codeCellId = []
+
+    // console.log(" output text ------------------" , information_cells[51]["outputs"][0]["text"].length)
+
     for (x in information_cells) {
         if (information_cells[x]["cell_type"] == "markdown") {
           let lines = ""
