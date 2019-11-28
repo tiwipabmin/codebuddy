@@ -26,7 +26,7 @@ $(document).ready(function() {
 /**
  * Dependencies declaration
  */
-const socket = io();
+const socket = io('', {secure: true});
 const roles = {
   user: "",
   partner: ""

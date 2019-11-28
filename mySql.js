@@ -6,7 +6,7 @@ const chalk = require('chalk')
 const conMysql = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "codebuddy",
   database: "classroom_management_system"
 })
 
