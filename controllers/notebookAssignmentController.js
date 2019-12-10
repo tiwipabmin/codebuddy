@@ -474,7 +474,6 @@ exports.deleteAssignment = async (req, res) => {
     }
   }
 
-  
 
   if (count === max_length) {
     let section_id = cryptr.decrypt(assignment_is_selected[0].section_id);
@@ -482,15 +481,19 @@ exports.deleteAssignment = async (req, res) => {
       "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
       section_id +
       " ORDER BY ps.pairing_session_id DESC";
-    let pairingSessions = await conMysql.selectPairingSession(
+      let pairingSessions = await conMysql.selectPairingSession(
       select_pairing_session_by_section_id
     );
+    
 
     let select_assignment_by_section_id =
-      "SELECT * FROM notebook_assignment_id WHERE section_id = " + section_id;
+      "SELECT * FROM notebook_assignment WHERE section_id = " + section_id;
+     
+
     let assignments = await conMysql.selectAssignment(
       select_assignment_by_section_id
     );
+  
 
     let weeks = [];
     if (!assignments.length) {
@@ -530,6 +533,7 @@ exports.deleteAssignment = async (req, res) => {
     res.send({ dataSets: dataSets });
     return;
   }
+
   res.send({
     dataSets: { origins: { status: "Found error while is be processing!" } }
   });

@@ -163,7 +163,7 @@ function createAssignment() {
 }
 
 async function createNotebookAssignment(){
-  console.log("createNotebookAssignemnt")
+
   var formData = new FormData();
   formData.append('title', $('input[id=assTitle]')[0].value );
   formData.append('week', $('input[id=assWeek]')[0].value);
@@ -173,7 +173,7 @@ async function createNotebookAssignment(){
   
   const options = {
     method: 'POST',
-    body: formData
+    body: formData,
   };
 
   fetch('/classroom/uploadAssignment', options)
