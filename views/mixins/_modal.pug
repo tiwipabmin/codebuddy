@@ -360,6 +360,14 @@ mixin newClassroomModal()
               select.ui.dropdown.timeEndAp(name='time_end_ap')
                 option(value='am.')  am.
                 option(value='pm.')  pm.
+          b Branch :
+
+          div.form-selectBranch
+              input(type='radio', name='branch', value='IT',style='margin-left:30px;')#wnr1
+              label(for='   IT  ',style='margin-left:30px;') IT 
+              input(type='radio', name='branch', value='DSBA' , style='margin-left:30px;')#wnr2  
+              label(for='   DSBA   ' , style='margin-left:30px;') DSBA
+          div
         .ui.basic.center.aligned.segment
           .actions
             button.ui.button.approve.green(type='submit') Create

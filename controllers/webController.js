@@ -717,6 +717,7 @@ exports.createSection = async (req, res) => {
     req.body.time_end_mm +
     "" +
     req.body.time_end_ap;
+
   const sectionValues = [
     [
       courseId,
@@ -728,7 +729,24 @@ exports.createSection = async (req, res) => {
       timeEnd
     ]
   ];
+
+
   const sections = await conMysql.insertSection(querySection, sectionValues);
+
+  const queryBranch = "INSERT INTO branch (section_id , branch_type) VALUES ?"
+  const querySectionId = "SELECT section_id FROM section WHERE course_id = "+courseId + " AND section = "+req.body.section + " AND room = " + req.body.room
+  const section_id = await conMysql.selectSectionID(querySectionId)
+  console.log(" querySectionId " , querySectionId )
+
+  const branch_type = req.body.branch
+  console.log(" section_id " ,  typeof section_id[0].section_id)
+  const branchValues = [
+    [
+      section_id[0].section_id , branch_type
+    ]
+  ]
+  const branch = await conMysql.insertBranch(queryBranch , branchValues)
+
   res.redirect("lobby");
 };
 
