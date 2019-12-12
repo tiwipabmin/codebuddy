@@ -13,7 +13,7 @@ const TurndownService = require('turndown');
 
 // Create an instance of the turndown service
 let turndownService = new TurndownService();
-
+var maxExecution;
 
 
 module.exports = (io, client,redis, Projects) => {
@@ -193,8 +193,9 @@ module.exports = (io, client,redis, Projects) => {
               let cellValue = cells.find(member => {
                 return member.blockId == focusBlock
               })
-              
+              cellValue.executionCount = maxExecution
               cellValue.outputs = [ { text: output}]
+              console.log("currentExe " , maxExecution)
               cells[cellValue.blockId] = cellValue;
             }
             redis.hset(
@@ -203,7 +204,8 @@ module.exports = (io, client,redis, Projects) => {
                 JSON.stringify(cells)
             );
           });
-        }else {
+        }
+        else {
           output = bufferOutput.error;
         }
         
@@ -292,10 +294,31 @@ module.exports = (io, client,redis, Projects) => {
 
     }
     let maxExe = Math.max.apply(Math, listExe);
-    var maxExecution = maxExe
-    io.emit("update execution count", ++maxExecution);
+     maxExecution = maxExe
 
+    // redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
+    //       function(err, obj) {
+    //         let cells = {};
+    //         if (obj.cells != undefined) {
+    //           cells = JSON.parse(obj.cells);
+    //           let cellValue = cells.find(member => {
+    //             return member.blockId == focusBlock
+    //           })
+              
+    //           cellValue.outputs = [ { text: output}]
+    //           console.log("currentExe " , currentExe)
+    //           cellValue.executionCount = maxExe+1
+    //         }
+    //         redis.hset(
+    //             "notebookAssignment:"+ notebookAssingmentId,
+    //             "cells",
+    //             JSON.stringify(cells)
+    //         );
+    //       });
     console.log("listExe = " , maxExe)
+    io.in(projectId).emit("update execution count", ++maxExecution);
+
+
   }
 
   async function getFilePath (notebookAssingmentId){
