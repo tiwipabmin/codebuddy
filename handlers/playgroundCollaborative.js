@@ -26,7 +26,7 @@ module.exports = (io, client,redis, Projects) => {
   let focusBlock = null;
   let bufferOutput = { output: "", error: "" };
   let isSpawnText = false;
-  let executionCount = 0;
+  let executionCount;
 
   spawnPython();
   detectOutput();
@@ -129,7 +129,7 @@ module.exports = (io, client,redis, Projects) => {
      * display In[*]
      */
     //ดูวิธีเรียกตรงนี้อีกที คิดว่าต้องใช้ io.in
-      io.emit("update execution count", "*");
+    getCurrentExecute(notebookAssingmentId)
 
   });
 
@@ -142,6 +142,8 @@ module.exports = (io, client,redis, Projects) => {
     /**
      * detection output is a execution code
      */
+
+
     pythonProcess.stdout.on("data", data => {
       if (bufferOutput.error == "" && data.toString() != "") {
         bufferOutput.output = data.toString();
@@ -226,6 +228,7 @@ module.exports = (io, client,redis, Projects) => {
                   JSON.stringify(cells)
               );
             });
+
             io.in(projectId).emit("show output", output);
            
         }
@@ -237,9 +240,11 @@ module.exports = (io, client,redis, Projects) => {
          * increment execution count
          */
         // io.in(projectId).emit("update execution count", ++executionCount);
-        io.emit("update execution count", ++executionCount);
 
       }
+      // getCurrentExecute(notebookAssingmentId)
+      // io.emit("update execution count", ++executionCount);
+
     });
   }
   /**
@@ -272,6 +277,26 @@ module.exports = (io, client,redis, Projects) => {
       action: "add"
     });
   });
+
+  async function getCurrentExecute (notebookAssingmentId){
+    console.log("getCurrentExecute")
+    listExe = []
+    let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
+    let notebookAssignment = JSON.parse(notebookAssignmentRedis)
+    for (x in notebookAssignment) {
+      cell_type = notebookAssignment[x]["cellType"];
+      if ( cell_type != 'markdown') {
+         execution_count = notebookAssignment[x]["executionCount"]
+          listExe.push(execution_count)
+      }
+
+    }
+    let maxExe = Math.max.apply(Math, listExe);
+    var maxExecution = maxExe
+    io.emit("update execution count", ++maxExecution);
+
+    console.log("listExe = " , maxExe)
+  }
 
   async function getFilePath (notebookAssingmentId){
     const queryNotebookAssignment =
