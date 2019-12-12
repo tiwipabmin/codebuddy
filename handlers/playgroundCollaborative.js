@@ -95,21 +95,14 @@ module.exports = (io, client,redis, Projects) => {
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("run code", payload => {
-    var codeFocusBlock = payload.codeFocusBlock;
+  client.on("run code", async payload => {
+    let codeFocusBlock = payload.codeFocusBlock;
     focusBlock = payload.focusBlock;
     isSpawnText = false;
 
-    // io.in(projectId).emit("focus block", focusBlock);
-    io.emit("focus block", focusBlock);
+    io.in(projectId).emit("focus block", focusBlock);
 
-
-    setTimeout(execCode, 100);
-
-   async function execCode() {
-
-      filePath = await getFilePath(notebookAssingmentId)
-    
+    filePath = await getFilePath(notebookAssingmentId)
       fs.writeFile(
         "./public/notebookAssignment/" + filePath+"/"+projectId + "/main.py",
         codeFocusBlock,
@@ -117,26 +110,25 @@ module.exports = (io, client,redis, Projects) => {
           if (err) throw err;
         }
       );
-    
+
+      
+    setTimeout(execCode, 100);
+    function execCode() {
       /**
        * built-in functions of python version 3
       //  */
-      console.log("pid " , projectId)
 
       pythonProcess.stdin.write(
         "exec(open('./public/notebookAssignment/" +
         filePath +
           "/"+projectId+"/main.py').read())\n"
       );
-
-      
-
-
-    }
+      }
 
     /**
      * display In[*]
      */
+    //ดูวิธีเรียกตรงนี้อีกที คิดว่าต้องใช้ io.in
       io.emit("update execution count", "*");
 
   });
@@ -183,14 +175,59 @@ module.exports = (io, client,redis, Projects) => {
       if (drawArrow == ">>>" && !isSpawnText) {
         if (bufferOutput.error == "" && bufferOutput.output != "") {
           output = bufferOutput.output;
-        } else {
+          output = output.split("\n")
+              for (i  in output) {
+                output[i] = output[i].replace(new RegExp('\r', 'g'), '\n')
+                if(output[i] == ''){
+                  output.pop();
+                }
+              }
+  
+          redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
+          function(err, obj) {
+            let cells = {};
+            if (obj.cells != undefined) {
+              cells = JSON.parse(obj.cells);
+              let cellValue = cells.find(member => {
+                return member.blockId == focusBlock
+              })
+              
+              cellValue.outputs = [ { text: output}]
+              cells[cellValue.blockId] = cellValue;
+            }
+            redis.hset(
+                "notebookAssignment:"+ notebookAssingmentId,
+                "cells",
+                JSON.stringify(cells)
+            );
+          });
+        }else {
           output = bufferOutput.error;
         }
-
+        
         if (output != "") {
-          // io.in(projectId).emit("show output", output);
-          io.emit("show output", output);
-
+          io.in(projectId).emit("show output", output);
+        }else {
+            output = []
+            redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
+            function(err, obj) {
+              let cells = {};
+              if (obj.cells != undefined) {
+                cells = JSON.parse(obj.cells);
+                let cellValue = cells.find(member => {
+                  return member.blockId == focusBlock
+                })
+                cellValue.outputs = output
+                cells[cellValue.blockId] = cellValue;
+              }
+              redis.hset(
+                  "notebookAssignment:"+ notebookAssingmentId,
+                  "cells",
+                  JSON.stringify(cells)
+              );
+            });
+            io.in(projectId).emit("show output", output);
+           
         }
 
         bufferOutput.output = "";

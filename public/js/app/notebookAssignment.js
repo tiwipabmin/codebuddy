@@ -28,27 +28,35 @@ function runCode() {
 }
 
 socket.on("show output", payload => {
-   index = payload.index;
-  var blockId = editors[executingBlock].blockId;
-  checkOutput = document.getElementById(blockId + "-div-output")
-  console.log(" show output func")
-  if(checkOutput == null){
-    addDivOutput(payload , blockId)
-  }else{
-    document.getElementById(blockId + "-div-output").innerHTML = payload;
-    console.log("else")
+  let blockId = editors[executingBlock].blockId;
+  
+ // output is null but interface has old output
+  if(payload.length == 0){
+    console.log("length ",payload.length)
+    console.log(blockId + "-div-output")
+    checkOutput = document.getElementById(blockId + "-div-output")
+    if(checkOutput != null){
+      $("div").remove("#"+blockId + "-div-output");
+    }
+  }else {
+    let outputs = ""
+    for(i in payload){
+      outputs += payload[i].replace('\n','<br>') 
+    }
+    
+    checkOutput = document.getElementById(blockId + "-div-output")
+    if(checkOutput == null){
+      addDivOutput(outputs , blockId)
+    }else{
+      document.getElementById(blockId + "-div-output").innerHTML = outputs;
+      console.log("checkOutput != null")
+    }
   }
-  console.log("index  "   , index)
-
-  console.log("Output : " + payload);
-
   
 });
 
 function addDivOutput(textOutput, blockId) {
 
-  console.log("detectFocusBlock " , detectFocusBlock)
-  console.log("blockId " , blockId)
   let input_codeblock = document.getElementById(blockId+'-div')
   // let detectFocusBlock_output = detectFocusBlock+1
 
