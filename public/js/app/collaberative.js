@@ -1737,7 +1737,7 @@ function showStudentList(
             "' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
             students[key].img +
             "'></img><div class='content'><div class='header'>" +
-            students[key].username +
+            students[key].first_name +
             " " +
             students[key].last_name +
             "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score " +
