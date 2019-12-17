@@ -87,7 +87,7 @@ function getCodeFocusBlock() {
 }
 socket.on("update execution count", payload => {
   var blockId = editors[executingBlock].blockId;
-  // document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
+  document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
 });
 
 function addBlock() {

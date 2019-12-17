@@ -13,7 +13,7 @@ const TurndownService = require('turndown');
 
 // Create an instance of the turndown service
 let turndownService = new TurndownService();
-
+var maxExecution;
 
 
 module.exports = (io, client,redis, Projects) => {
@@ -26,7 +26,7 @@ module.exports = (io, client,redis, Projects) => {
   let focusBlock = null;
   let bufferOutput = { output: "", error: "" };
   let isSpawnText = false;
-  let executionCount = 0;
+  let executionCount;
 
   spawnPython();
   detectOutput();
@@ -128,7 +128,7 @@ module.exports = (io, client,redis, Projects) => {
      * display In[*]
      */
     //ดูวิธีเรียกตรงนี้อีกที คิดว่าต้องใช้ io.in
-      io.emit("update execution count", "*");
+    getCurrentExecute(notebookAssingmentId)
 
   });
 
@@ -141,6 +141,8 @@ module.exports = (io, client,redis, Projects) => {
     /**
      * detection output is a execution code
      */
+
+
     pythonProcess.stdout.on("data", data => {
       if (bufferOutput.error == "" && data.toString() != "") {
         bufferOutput.output = data.toString();
@@ -190,8 +192,9 @@ module.exports = (io, client,redis, Projects) => {
               let cellValue = cells.find(member => {
                 return member.blockId == focusBlock
               })
-              
+              cellValue.executionCount = maxExecution
               cellValue.outputs = [ { text: output}]
+              console.log("currentExe " , maxExecution)
               cells[cellValue.blockId] = cellValue;
             }
             redis.hset(
@@ -200,7 +203,8 @@ module.exports = (io, client,redis, Projects) => {
                 JSON.stringify(cells)
             );
           });
-        }else {
+        }
+        else {
           output = bufferOutput.error;
         }
         
@@ -225,6 +229,7 @@ module.exports = (io, client,redis, Projects) => {
                   JSON.stringify(cells)
               );
             });
+
             io.in(projectId).emit("show output", output);
            
         }
@@ -236,9 +241,11 @@ module.exports = (io, client,redis, Projects) => {
          * increment execution count
          */
         // io.in(projectId).emit("update execution count", ++executionCount);
-        io.emit("update execution count", ++executionCount);
 
       }
+      // getCurrentExecute(notebookAssingmentId)
+      // io.emit("update execution count", ++executionCount);
+
     });
   }
   /**
@@ -271,6 +278,47 @@ module.exports = (io, client,redis, Projects) => {
       action: "add"
     });
   });
+
+  async function getCurrentExecute (notebookAssingmentId){
+    console.log("getCurrentExecute")
+    listExe = []
+    let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
+    let notebookAssignment = JSON.parse(notebookAssignmentRedis)
+    for (x in notebookAssignment) {
+      cell_type = notebookAssignment[x]["cellType"];
+      if ( cell_type != 'markdown') {
+         execution_count = notebookAssignment[x]["executionCount"]
+          listExe.push(execution_count)
+      }
+
+    }
+    let maxExe = Math.max.apply(Math, listExe);
+     maxExecution = maxExe
+
+    // redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
+    //       function(err, obj) {
+    //         let cells = {};
+    //         if (obj.cells != undefined) {
+    //           cells = JSON.parse(obj.cells);
+    //           let cellValue = cells.find(member => {
+    //             return member.blockId == focusBlock
+    //           })
+              
+    //           cellValue.outputs = [ { text: output}]
+    //           console.log("currentExe " , currentExe)
+    //           cellValue.executionCount = maxExe+1
+    //         }
+    //         redis.hset(
+    //             "notebookAssignment:"+ notebookAssingmentId,
+    //             "cells",
+    //             JSON.stringify(cells)
+    //         );
+    //       });
+    console.log("listExe = " , maxExe)
+    io.in(projectId).emit("update execution count", ++maxExecution);
+
+
+  }
 
   async function getFilePath (notebookAssingmentId){
     const queryNotebookAssignment =
