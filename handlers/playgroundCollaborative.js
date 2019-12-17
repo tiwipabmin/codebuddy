@@ -55,7 +55,7 @@ module.exports = (io, client,redis, Projects) => {
     if (origin) {
       // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
       payload.code.fileName = payload.fileName;
-      client.to(notebookAssingmentId).emit("editor update", payload.code);
+      client.to(projectId).emit("editor update", payload.code);
       editorName = payload.fileName;
       redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
        function(err, obj) {
@@ -99,7 +99,6 @@ module.exports = (io, client,redis, Projects) => {
     let codeFocusBlock = payload.codeFocusBlock;
     focusBlock = payload.focusBlock;
     isSpawnText = false;
-
     io.in(projectId).emit("focus block", focusBlock);
 
     filePath = await getFilePath(notebookAssingmentId)
