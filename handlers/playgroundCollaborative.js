@@ -22,6 +22,7 @@ module.exports = (io, client,redis, Projects) => {
    **/
   let projectId = "";
   let notebookAssingmentId = "";
+  let blockId = ""
   let pythonProcess = null;
   let focusBlock = null;
   let bufferOutput = { output: "", error: "" };
@@ -46,8 +47,9 @@ module.exports = (io, client,redis, Projects) => {
   
 
 
-  client.on("code change", payload => {
+  client.on("code change",  payload => {
     const origin = !!payload.code.origin && payload.code.origin !== "setValue";
+    // console.log("detectFocusBlock: ", payload.detectFocusBlock)
     // winston.info("origin", payload.code.origin)
     /**
      * origin mustn't be an `undefined` or `setValue` type
@@ -57,16 +59,23 @@ module.exports = (io, client,redis, Projects) => {
       payload.code.fileName = payload.fileName;
       client.to(projectId).emit("editor update", payload.code);
       editorName = payload.fileName;
+      console.log("editorName: ", editorName)
       redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
        function(err, obj) {
         let cells = {};
         if (obj.cells != undefined) {
           cells = JSON.parse(obj.cells);
+          // console.log("celss test: ", cells)
           let cellValue = cells.find(member => {
             return member.blockId == editorName
           })
+          // console.log("[cellValue.blockId]: ", [cellValue.blockId])
           cellValue.source = payload.editor
-          cells[cellValue.blockId] = cellValue;
+          // console.log("cellValue: ", cellValue)
+          cells[payload.detectFocusBlock] = cellValue;
+        }
+        else{
+          console.log("undefind")
         }
         redis.hset(
             "notebookAssignment:"+ notebookAssingmentId,
@@ -74,6 +83,7 @@ module.exports = (io, client,redis, Projects) => {
             JSON.stringify(cells)
         );
       });
+     
     }
   });
 
@@ -96,6 +106,8 @@ module.exports = (io, client,redis, Projects) => {
    * @param {Object} payload code from editor
    */
   client.on("run code", async payload => {
+
+    blockId = payload.blockId
     let codeFocusBlock = payload.codeFocusBlock;
     focusBlock = payload.focusBlock;
     isSpawnText = false;
@@ -141,7 +153,6 @@ module.exports = (io, client,redis, Projects) => {
     /**
      * detection output is a execution code
      */
-
 
     pythonProcess.stdout.on("data", data => {
       if (bufferOutput.error == "" && data.toString() != "") {
@@ -190,12 +201,13 @@ module.exports = (io, client,redis, Projects) => {
             if (obj.cells != undefined) {
               cells = JSON.parse(obj.cells);
               let cellValue = cells.find(member => {
-                return member.blockId == focusBlock
+                return member.blockId == blockId
               })
+
               cellValue.executionCount = maxExecution
               cellValue.outputs = [ { text: output}]
-              console.log("currentExe " , maxExecution)
-              cells[cellValue.blockId] = cellValue;
+              cells[focusBlock] = cellValue;
+              
             }
             redis.hset(
                 "notebookAssignment:"+ notebookAssingmentId,
@@ -217,12 +229,14 @@ module.exports = (io, client,redis, Projects) => {
               let cells = {};
               if (obj.cells != undefined) {
                 cells = JSON.parse(obj.cells);
+               
                 let cellValue = cells.find(member => {
-                  return member.blockId == focusBlock
+                  return member.blockId == blockId
                 })
                 cellValue.outputs = output
-                cells[cellValue.blockId] = cellValue;
+                cells[focusBlock] = cellValue;
               }
+
               redis.hset(
                   "notebookAssignment:"+ notebookAssingmentId,
                   "cells",
@@ -256,7 +270,7 @@ module.exports = (io, client,redis, Projects) => {
  
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
-
+    
     item = {
       cellType: 'code',
       executionCount: null,
@@ -272,6 +286,7 @@ module.exports = (io, client,redis, Projects) => {
      **/
     redis.hset("notebookAssignment:"+notebookAssingmentId, "cells", JSON.stringify(notebookAssignment));
   
+
     io.in(projectId).emit("update block", {
       blockId: payload.blockId,
       index: payload.index,
@@ -284,6 +299,7 @@ module.exports = (io, client,redis, Projects) => {
     listExe = []
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
+    // console.log("notebookAssignment: ", notebookAssignment)
     for (x in notebookAssignment) {
       cell_type = notebookAssignment[x]["cellType"];
       if ( cell_type != 'markdown') {
@@ -295,25 +311,6 @@ module.exports = (io, client,redis, Projects) => {
     let maxExe = Math.max.apply(Math, listExe);
      maxExecution = maxExe
 
-    // redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
-    //       function(err, obj) {
-    //         let cells = {};
-    //         if (obj.cells != undefined) {
-    //           cells = JSON.parse(obj.cells);
-    //           let cellValue = cells.find(member => {
-    //             return member.blockId == focusBlock
-    //           })
-              
-    //           cellValue.outputs = [ { text: output}]
-    //           console.log("currentExe " , currentExe)
-    //           cellValue.executionCount = maxExe+1
-    //         }
-    //         redis.hset(
-    //             "notebookAssignment:"+ notebookAssingmentId,
-    //             "cells",
-    //             JSON.stringify(cells)
-    //         );
-    //       });
     console.log("listExe = " , maxExe)
     io.in(projectId).emit("update execution count", ++maxExecution);
 
