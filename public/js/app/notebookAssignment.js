@@ -17,10 +17,10 @@ function getCodeFocusBlock() {
  * Run code
  */
 function runCode() {
-
   socket.emit("run code", {
     codeFocusBlock: getCodeFocusBlock(),
-    focusBlock: detectFocusBlock
+    focusBlock: detectFocusBlock,
+    blockId: editors[detectFocusBlock].blockId
   });
   // socket.emit("save lines of code", {
   //   uid: uid
@@ -91,6 +91,7 @@ socket.on("update execution count", payload => {
 });
 
 function addBlock() {
+  console.log("editors 1 ", editors)
     socket.emit("add block below", {
       blockId: Object.keys(projectFiles).length+1,
       index:  detectFocusBlock+1,
@@ -207,12 +208,25 @@ function setEditor(fileName, cellType) {
       prevFocus: prevFocusBlock,
       newFocus: detectFocusBlock
     });
-    console.log(`Detect focus block!! ${detectFocusBlock}`);
+
+    document.getElementById(
+      editors[prevFocusBlock].blockId + "-div"
+    ).style.border = "";
+    document.getElementById(
+      editors[detectFocusBlock].blockId + "-div"
+    ).style.border = "thin solid #2185d0";
+    document.getElementById(
+      editors[detectFocusBlock].blockId + "-div"
+    ).style.borderLeft = "thick solid #2185d0";
+
+
+    console.log(`SET Detect focus block!! ${detectFocusBlock}`);
   });
   editors.push({ blockId: fileName, editor: cm });
 }
 
 function setOnChangeEditer(fileName) {
+
   /**
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
@@ -275,10 +289,11 @@ function setOnChangeEditer(fileName) {
     //   }
     // });
     // editors.set()
+
     socket.emit("code change", {
       code: data,
       editor: blockObj.editor.getValue(),
-      // user: user,
+      detectFocusBlock: detectFocusBlock,
       enterline: enterline,
       isEnter: isEnter,
       isDelete: isDelete,
@@ -294,7 +309,7 @@ function setOnChangeEditer(fileName) {
 socket.on("focus block", payload => {
   executingBlock = payload;
   if (executingBlock != editors.length - 1) {
-    detectFocusBlock += 1;
+    // detectFocusBlock += 1;
     socket.emit("codemirror on focus", {
       prevFocus: detectFocusBlock - 1,
       newFocus: detectFocusBlock
@@ -331,6 +346,7 @@ socket.emit("join project", {
  * Update block when add
  */
 socket.on("update block", payload => {
+  
   console.log("update block")
   let blockId = payload.blockId;
   let index = payload.index;
@@ -427,16 +443,25 @@ socket.on("update block", payload => {
 
       console.log("prevFocusBlock ", prevFocusBlock)
       console.log("detectFocusBlock ", detectFocusBlock)
-      socket.emit("codemirror on focus", {
-        prevFocus: prevFocusBlock,
-        newFocus: detectFocusBlock
-      });
-      console.log(`Detect focus block!! ${detectFocusBlock}`);
+      // socket.emit("codemirror on focus", {
+      //   prevFocus: prevFocusBlock,
+      //   newFocus: detectFocusBlock
+      // });
+      document.getElementById(
+        editors[prevFocusBlock].blockId + "-div"
+      ).style.border = "";
+      document.getElementById(
+        editors[detectFocusBlock].blockId + "-div"
+      ).style.border = "thin solid #2185d0";
+      document.getElementById(
+        editors[detectFocusBlock].blockId + "-div"
+      ).style.borderLeft = "thick solid #2185d0";
+      console.log(`update Detect focus block!! ${detectFocusBlock}`);
     });
 
     
     editors.splice(index, 0, { blockId: blockId, editor: cm });
-    console.log("editors ", editors)
+   
     projectFiles.splice(index, 0, {cellType: "code", executionCount: null, outputs: Array(0), source: "", blockId: blockId.toString()});
     // for(i in editors){
     //   if(i > blockId ){
