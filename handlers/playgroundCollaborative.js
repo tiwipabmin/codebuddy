@@ -233,6 +233,8 @@ module.exports = (io, client,redis, Projects) => {
                 let cellValue = cells.find(member => {
                   return member.blockId == blockId
                 })
+                cellValue.executionCount = maxExecution
+
                 cellValue.outputs = output
                 cells[focusBlock] = cellValue;
               }
