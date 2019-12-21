@@ -30,10 +30,9 @@ function runCode() {
 socket.on("show output", payload => {
   let blockId = editors[executingBlock].blockId;
   
- // output is null but interface has old output
+ 
   if(payload.length == 0){
-    console.log("length ",payload.length)
-    console.log(blockId + "-div-output")
+    // output is null but interface has old output
     checkOutput = document.getElementById(blockId + "-div-output")
     if(checkOutput != null){
       $("div").remove("#"+blockId + "-div-output");
@@ -45,20 +44,19 @@ socket.on("show output", payload => {
     }
     
     checkOutput = document.getElementById(blockId + "-div-output")
+    
     if(checkOutput == null){
+      // output is not null and interface has old output
       addDivOutput(outputs , blockId)
     }else{
+       // output is not null and interface don't has old output
       document.getElementById(blockId + "-div-output").innerHTML = outputs;
-      console.log("checkOutput != null")
     }
   }
   
 });
 
 function addDivOutput(textOutput, blockId) {
-
-  let input_codeblock = document.getElementById(blockId+'-div')
-  // let detectFocusBlock_output = detectFocusBlock+1
 
   let divisionCodeBlock = document.createElement("div");
   let html =
@@ -67,18 +65,18 @@ function addDivOutput(textOutput, blockId) {
         blockId +
         '-div-output" style="background-color: #f5f5f5; margin-top: 25px;margin-bottom: 1em; padding-left:2em;padding-top:1em;padding-bottom:1em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
         '</div>'+'</div>'
-  divisionCodeBlock.className = "output";
-  // divisionCodeBlock.setAttribute("id", blockId + "-input");
+  divisionCodeBlock.className = blockId+"-output";
+
   divisionCodeBlock.innerHTML = html;
-  console.log("detectFocusBlock    "   , detectFocusBlock)
-
-  input_codeblock.insertBefore(
-    divisionCodeBlock,
-    input_codeblock.children[detectFocusBlock]
-  );
-
+ 
+  $(divisionCodeBlock).insertAfter('div#'+blockId+'-input.input');
+ 
   document.getElementById(blockId + "-div-output").innerHTML = textOutput;
 
+}
+
+function insertAfter(el, referenceNode) {
+  referenceNode.parentNode.insertBefore(el, referenceNode.nextSibling);
 }
 
 function getCodeFocusBlock() {
@@ -310,10 +308,10 @@ socket.on("focus block", payload => {
   executingBlock = payload;
   if (executingBlock != editors.length - 1) {
     // detectFocusBlock += 1;
-    socket.emit("codemirror on focus", {
-      prevFocus: detectFocusBlock - 1,
-      newFocus: detectFocusBlock
-    });
+    // socket.emit("codemirror on focus", {
+    //   prevFocus: detectFocusBlock - 1,
+    //   newFocus: detectFocusBlock
+    // });
     editors[detectFocusBlock].editor.focus();
     editors[detectFocusBlock].editor.setCursor(0, 0);
   }
@@ -352,11 +350,11 @@ socket.on("update block", payload => {
   let index = payload.index;
 
   let action = payload.action;
-  console.log("blockId : ", blockId)
+  
   if (action == "add") {
     let divisionCodeBlock = document.createElement("div");
     let html =
-      '<div class="input">' +
+      '<div id="'+blockId+'-input" class="input">' +
         '<div class="prompt_container" >'+
           '<div class="prompt input_prompt" id="'+blockId + '-in">'+
             '<bdi> In &nbsp;</bdi>'+
@@ -369,14 +367,12 @@ socket.on("update block", payload => {
             '<textarea class="show" id="'+blockId+'" > </textarea>'+
           '</div>'+
         '</div>'+
-      '</div>'+
+      '</div>'
       
-      // '<div class="output" id="file-div-output">'+
-      //   '<div class="output_area">'+
-          '<div class="output_subarea output_text" style="margin-top: 10px; padding-left:8em; padding-right:25px;">'+
-          '</div>'+
-        '</div>'+
-      '</div>'  
+      // '<div id="'+blockId+'-output" class="output">'+
+      //     '<div class="output_subarea output_text" style="padding-left:8em; padding-right:25px;">'+
+      //     '</div>'+
+      // '</div>'  
 
     divisionCodeBlock.className = "cell code_cell rendered";
     divisionCodeBlock.setAttribute("id", blockId + "-div");
@@ -443,10 +439,11 @@ socket.on("update block", payload => {
 
       console.log("prevFocusBlock ", prevFocusBlock)
       console.log("detectFocusBlock ", detectFocusBlock)
-      // socket.emit("codemirror on focus", {
-      //   prevFocus: prevFocusBlock,
-      //   newFocus: detectFocusBlock
-      // });
+      //update focus block when after user addblock and focus that block
+      socket.emit("codemirror on focus", {
+        prevFocus: prevFocusBlock,
+        newFocus: detectFocusBlock
+      });
       document.getElementById(
         editors[prevFocusBlock].blockId + "-div"
       ).style.border = "";

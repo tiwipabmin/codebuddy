@@ -50,7 +50,7 @@ block content
                           textarea(id=`${cells[i]["blockId"]}` style="display:none;").show      
             else if `${cells[i]["cellType"]}` === "code"
               .cell.code_cell.rendered(id=`${cells[i]["blockId"]}-div`)
-                .input
+                .input(id=`${cells[i]["blockId"]}-input`)
                   .prompt_container
                     .prompt.input_prompt(id=`${cells[i]["blockId"]}-in`)
                       bdi In &nbsp; 
@@ -59,7 +59,7 @@ block content
                     .input_area(style="margin-top: 25px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
                       textarea(id=`${cells[i]["blockId"]}`).show      
                 if `${cells[i]["outputs"].length}` != 0
-                  .output
+                  .output(id=`${cells[i]["blockId"]}-output`)
                     .output_subarea.output_text(style="padding-left:8em; padding-right:25px;")
                       - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
                           if `${cells[i]["outputs"][y]["text"].length}` != 0
