@@ -425,6 +425,7 @@ socket.on("update block", payload => {
       }
     });
 
+    
     cm.on("focus", cm => {
       var prevFocusBlock = detectFocusBlock;
 
@@ -454,7 +455,18 @@ socket.on("update block", payload => {
         editors[detectFocusBlock].blockId + "-div"
       ).style.borderLeft = "thick solid #2185d0";
       console.log(`update Detect focus block!! ${detectFocusBlock}`);
+      let c = cm.getCursor();
+      let lineText = cm.getRange({line: c.line, ch: 0}, {line: c.line, ch: c.ch});
+      let SPACES_REGEXP = /^( +$)/;
+      // Detecting whether the lineText contains only spaces.
+      let m = SPACES_REGEXP.exec(lineText);
+      if (m) {
+        // If only spaces, deleting at most 4 spaces.
+        let numDelete = m[1].length < 4 ? m[1].length : 4;
+        cm.replaceRange('', {line: c.line, ch: 0}, {line: c.line, ch: numDelete});
+      } 
     });
+
 
     
     editors.splice(index, 0, { blockId: blockId, editor: cm });
@@ -490,6 +502,8 @@ socket.on("update block", payload => {
   //   editors.splice(detectFocusBlock, 1);
   //   projectFiles.splice(detectFocusBlock, 1);
   // }
+
+ 
 });
 
 /**
