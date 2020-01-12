@@ -156,10 +156,10 @@ exports.getPlayground = async (req, res) => {
       notebookAssignment.title = notebookAssignment.title;
       notebookAssignment.description = notebookAssignment.description;
     }
-
+   
     dataSets = {
       origins: { notebookAssignment: notebookAssignment, section: section,  project: project },
-      reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
+      reforms: { notebookAssignment: JSON.stringify(notebookAssignment) , messages: messages }
     };
 
     let filePath = notebookAssignment.filePath;
