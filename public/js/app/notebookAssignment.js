@@ -425,6 +425,77 @@ socket.on("update block", payload => {
       }
     });
 
+    function sendMessage() {
+      if (document.getElementById("inputMessage").value != "") {
+        socket.emit("send message", {
+          uid: uid,
+          message: document.getElementById("inputMessage").value
+        });
+      }
+    }
+
+/**
+ * attach ready event -- Video Toggle
+ **/
+$(document).ready(function() {
+  $(".ui.video.toggle.button").state({
+    text: {
+      inactive: '<i class="pause circle icon"/>',
+      active: '<i class="play video icon"/>'
+    }
+  });
+  $(".ui.mute.toggle.button").state({
+    text: {
+      inactive: '<i class="mute icon"/>',
+      active: '<i class="unmute icon"/>'
+    }
+  });
+  $("#inputMessage").keydown(function() {
+    socket.emit("is typing", {
+      uid: uid,
+      text: `${user} is typing...`
+    });
+    clearTimeout(parseInt($("#inputMessage").attr("data-timeId")));
+  });
+  $("#inputMessage").keyup(function() {
+    let timeId = setTimeout(function() {
+      socket.emit("is typing", {
+        uid: uid,
+        text: ""
+      });
+    }, 5000);
+    $("#inputMessage").attr("data-timeId", timeId);
+  });
+  $("#inputMessage").keydown(function(e) {
+    if (e.keyCode == 13) {
+      sendMessage();
+    }
+  });
+  updateScroll();
+});
+    
+/**
+ * Update message
+ */
+socket.on("update message", payload => {
+  updateScroll();
+  if (payload.user._id === uid) {
+    $(".message-list").append(
+      "<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>" +
+        payload.message.message +
+        "</p></div></li>"
+    );
+    $("#inputMessage").val("");
+  } else {
+    $(".message-list").append(
+      "<li class='ui item'><a class='ui avatar image'><img src='" +
+        payload.user.img +
+        "'></a><div class='description curve-box'><p>" +
+        payload.message.message +
+        "</p></div></li>"
+    );
+  }
+});
     
     cm.on("focus", cm => {
       var prevFocusBlock = detectFocusBlock;
