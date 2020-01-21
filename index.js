@@ -49,9 +49,27 @@ new Redis().on('error', (err) => {
  * Start server and initiate socket.io server
  */
 const app = require('./server')
+const fs = require('fs');
+const https = require('https');
 
-const server = app.listen(process.env.PORT || 8080, () => {
-  winston.info('[%s] Listening on 127.0.0.1:%s', chalk.green('✓'), chalk.blue(server.address().port))
-})
+try {
+  const privateKey  = fs.readFileSync('sslcert/server.key', 'utf8');
+  const certificate = fs.readFileSync('sslcert/server.crt', 'utf8');
 
-require('./handlers/socket')(server)
+  const credentials = {key: privateKey, cert: certificate};
+
+  const httpsServer = https.createServer(credentials, app);
+
+  httpsServer.listen(process.env.PORT || 8080, () => {
+    winston.info('[%s] Listening on 127.0.0.1:%s', chalk.green('✓'), chalk.blue(httpsServer.address().port))
+  })
+
+  require('./handlers/socket')(httpsServer)
+} catch (err) {
+
+  const httpServer = app.listen(process.env.PORT || 8080, () => {
+    winston.info('[%s] Listening on 127.0.0.1:%s', chalk.green('✓'), chalk.blue(httpServer.address().port))
+  })
+
+  require('./handlers/socket')(httpServer)
+}
