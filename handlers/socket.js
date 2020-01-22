@@ -6,7 +6,7 @@ const Redis = require('ioredis')
  */
 module.exports = (server) => {
   // Initiate socket.io conection
-  const io = socketio(server, {secure: true})
+  const io = socketio(server)
 
   // Initiate redis connection for persist data
   const redis = new Redis()
