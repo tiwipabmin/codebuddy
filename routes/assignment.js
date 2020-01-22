@@ -15,7 +15,7 @@ const router = express.Router()
  * @method {GET} return rendered `assignment.pug`
  * @method {POST} handle create new assignment form on `assignment.pug` page
  */
-router.get('/', auth.isSignedIn, auth.validateSection, catchErrors(webController.getAssignment))
+router.get('/:assignment_id/section/:section_id', auth.isSignedIn, auth.validateSection, catchErrors(webController.getAssignment))
 router.post('/', auth.isSignedIn, catchErrors(webController.createAssignment))
 
 router.post('/updateAssignment', auth.isSignedIn, catchErrors(webController.updateAssignment))

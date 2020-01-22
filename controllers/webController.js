@@ -66,14 +66,14 @@ exports.getCounter = async (req, res) => {
 
 exports.getPlayground = async (req, res) => {
   let dataSets = {};
-  if (!req.query.pid) res.redirect("/lobby");
-  const userRole = req.query.user_role;
-  var section_id = req.query.section_id;
+  if (!req.params.pid) res.redirect("/lobby");
+  const userRole = req.params.user_role;
+  var section_id = req.params.section_id;
   var section = {};
   section.section_id = section_id;
   let partner_obj = "";
-  const project = await Project.findOne({ pid: req.query.pid });
-  const messages = await Message.find({ pid: req.query.pid }).sort({
+  const project = await Project.findOne({ pid: req.params.pid });
+  const messages = await Message.find({ pid: req.params.pid }).sort({
     createdAt: 1
   });
   if ("creator" == userRole && project.programming_style !== "Individual") {
@@ -264,7 +264,7 @@ exports.getProfileByTeacher = async (req, res) => {
 
 exports.getSection = async (req, res) => {
   let dataSets = {};
-  let section_id = parseInt(cryptr.decrypt(req.query.section_id));
+  let section_id = parseInt(cryptr.decrypt(req.params.section_id));
   let occupation = req.user.info.occupation;
   let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
@@ -1931,10 +1931,10 @@ exports.getWeeklyAssignments = async (req, res) => {
 };
 
 exports.getAssignment = async (req, res) => {
-  const section_id = req.query.section_id;
+  const section_id = req.params.section_id;
   const select_assignment_by_assignment_id =
     "SELECT * FROM assignment WHERE assignment_id = " +
-    cryptr.decrypt(req.query.assignment_id);
+    cryptr.decrypt(req.params.assignment_id);
   let assignment = await conMysql.selectAssignment(
     select_assignment_by_assignment_id
   );

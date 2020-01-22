@@ -179,7 +179,7 @@ $(document).ready(function() {
 function showAssingmentModal() {
   $("#confirmToCreateAssBtn").attr({
     onclick: "createAssignment()"
-  })
+  });
   $("#assignment-modal").modal("show");
 }
 
@@ -1846,10 +1846,10 @@ function set_item_pagination_in_first_container(
               "<div class='item' id='a" + assignment.assignment_id + "'></div>"
             );
             content = $(
-              "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/assignment?section_id=" +
-                assignment.section_id +
-                "&assignment_id=" +
+              "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/assignment/" +
                 assignment.assignment_id +
+                "/section/" +
+                assignment.section_id +
                 "'>" +
                 assignment.title +
                 "</b></div>"
@@ -1894,10 +1894,11 @@ function set_item_pagination_in_first_container(
                 "<div class='item' style='padding-top:10px; padding-bottom:10px;'></div>"
               );
               div_a = $(
-                "<a href='/project?pid=" +
+                "<a href='/project/" +
                   project.pid +
-                  "&user_role=creator&section_id=" +
+                  "/section/" +
                   section_id +
+                  "/role/creator" +
                   "' class='ui tiny image' ></a>"
               );
               img1 = $(
@@ -1911,10 +1912,11 @@ function set_item_pagination_in_first_container(
               content = $("<div class='content'></div>");
               grid = $("<div class='ui grid'></div>");
               eleven_wide_column = $(
-                "<div class='eleven wide column'><b style='font-size:1.2em;'><a class='header' href='/project?pid=" +
+                "<div class='eleven wide column'><b style='font-size:1.2em;'><a class='header' href='/project/" +
                   project.pid +
-                  "&user_role=creator&section_id=" +
+                  "/section/" +
                   section_id +
+                  "/role/creator" +
                   "'>" +
                   project.title +
                   "</a></b></div>"
@@ -1940,10 +1942,11 @@ function set_item_pagination_in_first_container(
             } else {
               item = $("<div class='item' style='padding-top:10px;'></div>");
               div_a = $(
-                "<a class='ui tiny image' href='/project?pid=" +
+                "<a class='ui tiny image' href='/project/" +
                   project.pid +
-                  "&user_role=collaborator&section_id=" +
+                  "/section/" +
                   section_id +
+                  "/role/collaborator" +
                   "'></a>"
               );
               img1 = $(
@@ -1958,10 +1961,11 @@ function set_item_pagination_in_first_container(
                 "<img class='img-partner ui avatar image' src='/images/user_img_4.jpg', style='width:30px; height:30px; top:-10px;'/>"
               );
               content = $(
-                "<div class='content'><b style='font-size:1.2em;'><a href='/project?pid=" +
+                "<div class='content'><b style='font-size:1.2em;'><a href='/project/" +
                   project.pid +
-                  "&user_role=collaborator&section_id=" +
+                  "/section/" +
                   section_id +
+                  "/role/collaborator" +
                   "'>" +
                   project.title +
                   "</a></b></div>"
@@ -2317,10 +2321,10 @@ function set_item_pagination_in_third_container(
             item = $("<div class='item'></div>");
             content = $("<div class='content'></div>");
             tag_a = $(
-              "<a href='/assignment?section_id=" +
-                section_id +
-                "&assignment_id=" +
+              "<a href='/assignment/" +
                 assignment.assignment_id +
+                "/section/" +
+                section_id +
                 "'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'>" +
                 assignment.title +
                 "</b></a>"

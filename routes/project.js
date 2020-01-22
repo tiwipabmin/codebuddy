@@ -1,13 +1,13 @@
 /**
  * Module dependencies
  */
-const express = require('express')
+const express = require("express");
 
-const auth = require('../middlewares/auth')
-const webController = require('../controllers/webController')
-const { catchErrors } = require('../handlers/errorHandlers')
+const auth = require("../middlewares/auth");
+const webController = require("../controllers/webController");
+const { catchErrors } = require("../handlers/errorHandlers");
 
-const router = express.Router()
+const router = express.Router();
 
 /**
  * `Project` route used as `/project`
@@ -15,18 +15,20 @@ const router = express.Router()
  * @method {GET} return rendered `playground.pug`
  * @method {POST} handle create new project form on `dashboard` page
  */
-router
-  .use(auth.isSignedIn)
-  .route('/')
-  .get(webController.getPlayground)
-  .post(catchErrors(webController.createProject))
+
+router.get(
+  "/:pid/section/:section_id/role/:user_role",
+  auth.isSignedIn,
+  auth.validateSection,
+  catchErrors(webController.getPlayground)
+);
 
 router
   .use(auth.isSignedIn)
-  .route('/getCode/:pid')
-  .get(catchErrors(webController.getEditorCode))
+  .route("/getCode/:pid")
+  .get(catchErrors(webController.getEditorCode));
 
 /**
  * Expose `router`
  */
-module.exports = router
+module.exports = router;

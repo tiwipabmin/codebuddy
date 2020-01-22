@@ -35,9 +35,10 @@ module.exports = (io, client, redis, projects) => {
    */
   client.on("join project", async payload => {
     try {
+      console.log('Payload , ', payload)
       projectId = payload.pid;
       curUser = payload.username;
-      winston.info(`User ${payload.username} joined at pid: ${payload.pid}`);
+      winston.info(`User ${curUser} joined at pid: ${projectId}`);
       client.join(projectId);
 
       let allcomment = await Comment.find(
