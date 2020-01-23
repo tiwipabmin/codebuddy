@@ -1525,39 +1525,37 @@ function onClickAddPartnerButton(
 
 function showStudentList(
   command,
-  partnerKeys,
-  pairingObjectives,
   pairingSessionId,
   sectionId
 ) {
+  
   let parameter = {
-    partnerKeys: JSON.stringify(partnerKeys),
-    pairingObjectives: JSON.stringify(pairingObjectives),
-    sectionId: sectionId,
+    section_id: sectionId,
     pairingSessionId: pairingSessionId,
     command: command
   };
-  $.get("/classroom/getStudentsFromSection", parameter, function(data) {
-    let count = 0;
-    const students = data.students;
-    const partnerKeys = data.partnerKeys;
-    const pairingObjectives = data.pairingObjectives;
-    const pairingSessionStatus = data.pairingSessionStatus;
-    const command = data.command;
-    let addPartnerButton = "";
 
-    let filtered = false;
-    let elementMoved = false;
+  console.log("parameter", parameter)
+  $.get("/dsbaClass/getStudentsFromSection", parameter , function(data) {
+    let count = 0;
+    let students = data.students
+    let command = data.command
+    let collaborativeSessionStatus = data.collaborativeSessionStatus
+    
+    
+
+    // let filtered = false;
+    // let elementMoved = false;
 
     if (command == "pair") {
-      if (pairingSessionStatus == 1) {
+      if (collaborativeSessionStatus == 1) {
         $("#changePair").show();
       } else {
         $("#changePair").hide();
         $("#autoPairing").show();
       }
     } else if (command == "view") {
-      if (pairingSessionStatus == 1) {
+      if (collaborativeSessionStatus == 1) {
         $("#changePair").show();
       } else {
         $("#changePair").hide();
@@ -1567,22 +1565,22 @@ function showStudentList(
     $(".student-container").empty();
 
     // when click pair
-    for (key in partnerKeys) {
-      if (partnerKeys[key] < 0) {
+    for (key in students) {
+      if (students[key] < 0) {
         console.log("relax 2 partnerKeys[key]")
 
         $(".student-container").append(
           "<li id='" +
             key +
             "' class='ui segment'>"+
-            "<table><tr><td colspan='2' rowspan='2' >"+ "Create Group"+
-            // "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
-            // students[key].first_name  + " " +
-            // students[key].last_name +
+            "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+            "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
+            students[key].first_name  + " " +
+            students[key].last_name + "<br> <div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton()'>add</div>" +
             "</td>"+
-            "<td> <div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton()'>add</div>" +
-            "</td></tr>"+
-            "<tr><td>2222 <br></td></tr></table>"+
+            "<td > <font color='grey'>Empty </font>" +
+            "</td>  </tr>"+
+            "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
             "</li>"
         );
       } else {
@@ -1599,84 +1597,26 @@ function showStudentList(
             '",' +
             pairingSessionId +
             ", " +
-            JSON.stringify(partnerKeys) +
-            ", " +
-            JSON.stringify(pairingObjectives) +
+
             ",1)'>Add</div>";
         }
-        let pairing_objective_str = pairingObjectives[key];
-        if (
-          pairing_objective_str == "quality" ||
-          pairing_objective_str == "expertWithExpert"
-        ) {
-          pairing_objective_str = "<i class='line chart icon'></i>";
-        } else if (
-          pairing_objective_str == "experience" ||
-          pairing_objective_str == "noviceWithNovice"
-        ) {
-          pairing_objective_str = "<i class='line idea icon'></i>";
-        } else if (
-          pairing_objective_str == "train" ||
-          pairing_objective_str == "expertWithNovice"
-        ) {
-          pairing_objective_str = "<i class='line student icon'></i>";
-        } else if (pairing_objective_str == "scoreDiff") {
-          pairing_objective_str = "<i class='superscript icon'></i>";
-        } else {
-          pairing_objective_str = "<i class='search icon'></i>";
-        }
+       
 
         console.log("relax 2")
-        //when select partner
+        // when select partner
         $(".student-container").append(
           "<li id='" +
             key +
-            "' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
-            students[key].img +
-            "'></img><div class='content'><div class='header'>" +
-            students[key].first_name +
-            " " +
-            students[key].last_name +
-            "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score " +
-            parseFloat(students[key].avg_score).toFixed(2) +
-            "</a></div><div style='font-size: 12px;'>total active time: " +
-            pad(parseInt(students[key].total_time / 3600)) +
-            ":" +
-            pad(
-              parseInt(
-                (students[key].total_time -
-                  parseInt(students[key].total_time / 3600) * 3600) /
-                  60
-              )
-            ) +
-            ":" +
-            pad(parseInt(students[key].total_time % 60)) +
-            "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
-            students[partnerKeys[key]].img +
-            "'></img><div class='content'><div class='right floated content'>" +
-            addPartnerButton +
-            "</div><div class='header'>" +
-            students[partnerKeys[key]].first_name +
-            " " +
-            students[partnerKeys[key]].last_name +
-            "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score " +
-            parseFloat(students[partnerKeys[key]].avg_score).toFixed(2) +
-            "</a></div><div style='font-size: 12px;'>total active time: " +
-            pad(parseInt(students[partnerKeys[key]].total_time / 3600)) +
-            ":" +
-            pad(
-              parseInt(
-                (students[partnerKeys[key]].total_time -
-                  parseInt(students[partnerKeys[key]].total_time / 3600) *
-                    3600) /
-                  60
-              )
-            ) +
-            ":" +
-            pad(parseInt(students[partnerKeys[key]].total_time % 60)) +
-            "</div></div></div></div></div></div></div><div class='ui vertical divider'> " +
-            pairing_objective_str +
-            " </div></li>"
+            "' class='ui segment'>"+
+            "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+            "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
+            students[key].first_name  + " " +
+            students[key].last_name + "<br> <div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton()'>add</div>" +
+            "</td>"+
+            "<td > <font color='grey'>Empty </font>" +
+            "</td>  </tr>"+
+            "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
+            "</li>"
         );
       }
       count++;
@@ -1694,9 +1634,9 @@ function showStudentList(
     } else {
       parameters = {
         pairingSessionId: pairingSessionId,
-        sectionId: sectionId,
-        partnerKeys: JSON.stringify(partnerKeys),
-        pairingObjectives: JSON.stringify(pairingObjectives)
+        sectionId: sectionId
+        // partnerKeys: JSON.stringify(partnerKeys),
+        // pairingObjectives: JSON.stringify(pairingObjectives)
       };
       $("#confirm-pairing").attr(
         "onclick",
@@ -1731,14 +1671,13 @@ function showStudentList(
 }
 
 function onClickCreateSession(
-  pairing_session_id,
-  section_id,
-  pairing_session_status
+  collaborative_session_id,
+  section_id
 ) {
-  console.log("onClickCreateSession IT")
+  console.log("onClickCreateSession DSBA")
   if ($("#newPairingSession").attr("value") <= 0) {
-    pairingOrViewingisHided("pair");
-    showStudentList("pair", {}, {}, pairing_session_id, section_id);
+    pairingOrViewingisHided("pair"); //stduent or teacher view
+    showStudentList("pair", collaborative_session_id, section_id);
   } else {
     $("#alert-header").text("Pairing session");
     $("#alert-message").text(
@@ -2084,13 +2023,6 @@ function onClickPartnerSelectionMethod(id) {
     .addClass("active");
 }
 
-function onClickAutoPairingSelectionMethod(id) {
-  $(".apsm").removeClass("active");
-  $("#" + id).addClass("active");
-  $("div")
-    .find("." + id)
-    .addClass("active");
-}
 
 function on_click_button_in_uspm(id) {
   // console.log('element_id_in_uspm, ', id)

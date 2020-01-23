@@ -8,7 +8,7 @@ const conMysql = mysql.createConnection({
   user: "root",
   password: "",
   database: "classroom_management_system",
-  port: 3308
+  port: 3306
 })
 
 conMysql.connect(function(err){
@@ -220,6 +220,15 @@ exports.deletePairingRecord = (query) => {
 }
 
 exports.selectPairingSession = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function(err, res){
+      if(err) reject(err);
+      else resolve(res);
+    })
+  })
+}
+
+exports.selectCollaborativeSession = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
       if(err) reject(err);
