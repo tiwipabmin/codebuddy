@@ -29,7 +29,7 @@ mixin collaborativeStudent()
             //-   i.line.chart.icon
       .ui.basic.center.aligned.segment
         .actions
-          button.ui.button.approve.blue#create-group(type='submit', value='selectGroup' onclick='onClickAddPartnerButton()') Create
+          button.ui.button.approve.blue#create-group(type='submit', value='selectGroup') Create
           button.ui.button.approve.green#confirm-pairing(type='submit', value='create') Confirm
           .ui.button.approve.red#cancel-pairing(data-value='cancel' onclick='on_click_cancel_pairing_button()') Cancel
 
@@ -40,14 +40,15 @@ mixin collaborativeStudent()
         a.item.active.psm#search(data-tab="search", onclick='onClickPartnerSelectionMethod('+`$(this).attr('id')`+')') Student list
     
       .ui.bottom.attached.tab.segment.active.psm.search(data-tab="search")
-        .ui.grid
-          .six.wide.column
-            .ui.two.column.very.relaxed.grid
-              .row
-                .ten.wide.column
-                  p aew aew
-                .two.wide.column
-                  input.checkbox-input(type='checkbox', name= 'studen-1', value= '1', id='1' , float='left')
+      
+        //- .ui.grid
+        //-   .six.wide.column
+        //-     .ui.two.column.very.relaxed.grid
+        //-       .row
+        //-         .ten.wide.column
+        //-           p aew aew
+        //-         .two.wide.column
+        //-           input.checkbox-input(type='checkbox', name= 'studen-1', value= '1', id='1' , float='left')
 
             //- .ui.category.search
             //-   .ui.icon.input
@@ -62,3 +63,7 @@ mixin collaborativeStudent()
             button.ui.labeled.icon.button#back-to-student-list-modal
               i.reply.icon
               font Back
+            
+
+
+

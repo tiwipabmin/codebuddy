@@ -1515,23 +1515,46 @@ function searchStudent(
   });
 }
 
-function onClickAddPartnerButton(
+function onClickAddPartnerButton(studentsGroup) {
+  // console.log("onClickAddPartnerButton studentsGroup ", studentsGroup)
+  
+  for(let student in studentsGroup.students){
+    if (student.status != -1){
+      console.log("student " , student)
+      console.log("studentsGroup.students[student] " , studentsGroup.students[student])
 
-) {
-  $(".user-list").append(
-    "<li id='" +
-    key +
-    "' class='ui segment'>"+
-    "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
-    "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
-    students[key].first_name  + " " +
-    students[key].last_name + 
-    "</td>"+
-    "<td > <font color='grey'>Empty </font>" +
-    "</td>  </tr>"+
-    "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
-    "</li>"
-  )
+        $(".search").append(
+          '<div class="ui grid">'+
+            '<div class="six wide column">'+
+                '<div class="ui two column very relaxed grid">'+
+                    '<div class="row">'+
+                        '<div class="ten wide column">'+
+                          ' <p>'+ studentsGroup.students[student].first_name + " " +studentsGroup.students[student].last_name+'</p>'+
+                        '</div>'+
+                      '<div class="two wide column"><input class="checkbox-input" type="checkbox" name="" value="1" id="1" float="left" /></div>'+
+                    '</div>'+
+                '</div>'+
+            '</div>'+
+        '</div>'
+      )
+    } 
+  }
+  
+
+  // $(".user-list").append(
+  //   "<li id='" +
+  //   key +
+  //   "' class='ui segment'>"+
+  //   "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+  //   "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
+  //   students[key].first_name  + " " +
+  //   students[key].last_name + 
+  //   "</td>"+
+  //   "<td > <font color='grey'>Empty </font>" +
+  //   "</td>  </tr>"+
+  //   "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
+  //   "</li>"
+  // )
   
       $("#partner_selection_modal").modal("show");
     
@@ -1650,14 +1673,15 @@ function showStudentList(
         "onclick",
         "on_click_confirm_pairing_button(" + JSON.stringify(parameters) + ")"
       );
-      $("#alphabeticalFilter").attr(
-        "onclick",
-        "onClickAlphabeticalFilterButton(" + JSON.stringify(students) + ")"
-      );
-      $("#avgScoreFilter").attr(
-        "onclick",
-        "onClickAvgScoreFilterButton(" + JSON.stringify(students) + ")"
-      );
+      // $("#alphabeticalFilter").attr(
+      //   "onclick",
+      //   "onClickAlphabeticalFilterButton(" + JSON.stringify(students) + ")"
+      // );
+      // $("#avgScoreFilter").attr(
+      //   "onclick",
+      //   "onClickAvgScoreFilterButton(" + JSON.stringify(students) + ")"
+      // );
+
 
       let activeFilter = $("#activeFilter").attr("value");
       if (activeFilter == "A-Z") {
@@ -1670,6 +1694,16 @@ function showStudentList(
         sort100to1(students, filtered, elementMoved);
       }
     }
+
+    let studentsGroup = {
+      students:students,
+      group: group
+    }
+
+    $("#create-group").attr(
+      "onclick",
+      "onClickAddPartnerButton(" + JSON.stringify(studentsGroup) +")"
+    );
     if (students.length > 0) {
       $("#student_list_modal").modal("show");
 
