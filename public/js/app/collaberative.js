@@ -1518,6 +1518,21 @@ function searchStudent(
 function onClickAddPartnerButton(
 
 ) {
+  $(".user-list").append(
+    "<li id='" +
+    key +
+    "' class='ui segment'>"+
+    "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+    "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
+    students[key].first_name  + " " +
+    students[key].last_name + 
+    "</td>"+
+    "<td > <font color='grey'>Empty </font>" +
+    "</td>  </tr>"+
+    "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
+    "</li>"
+  )
+  
       $("#partner_selection_modal").modal("show");
     
   }
@@ -1539,6 +1554,7 @@ function showStudentList(
   $.get("/dsbaClass/getStudentsFromSection", parameter , function(data) {
     let count = 0;
     let students = data.students
+    let group = []
     let command = data.command
     let collaborativeSessionStatus = data.collaborativeSessionStatus
     
@@ -1565,64 +1581,56 @@ function showStudentList(
     $(".student-container").empty();
 
     // when click pair
-    for (key in students) {
-      if (students[key] < 0) {
+    
+      if (group.length < 1) {
         console.log("relax 2 partnerKeys[key]")
 
         $(".student-container").append(
-          "<li id='" +
-            key +
-            "' class='ui segment'>"+
-            "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
-            "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
-            students[key].first_name  + " " +
-            students[key].last_name + "<br> <div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton()'>add</div>" +
-            "</td>"+
-            "<td > <font color='grey'>Empty </font>" +
-            "</td>  </tr>"+
-            "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
-            "</li>"
+          "<h1 style='color:grey'><center>No Group .</center></h1>"
         );
       } else {
-        if (command == "pair") {
-          addPartnerButton =
-            "<div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton(" +
-            students[key].enrollment_id +
-            "," +
-            students[key].avg_score +
-            ',"' +
-            students[key].username.toString() +
-            '","' +
-            sectionId +
-            '",' +
-            pairingSessionId +
-            ", " +
+        for (key in students) {
+          if (command == "pair") {
+            addPartnerButton =
+              "<div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton(" +
+              students[key].enrollment_id +
+              "," +
+              students[key].avg_score +
+              ',"' +
+              students[key].username.toString() +
+              '","' +
+              sectionId +
+              '",' +
+              pairingSessionId +
+              ", " +
 
-            ",1)'>Add</div>";
+              ",1)'>Add</div>";
+          }
+        
+
+          console.log("relax 2")
+          // when select partner
+          $(".student-container").append(
+            // "<h1><center>No Group Session.</center></h1>"
+            + "<li id='" +
+              key +
+              "' class='ui segment'>"+
+              "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+              "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
+              students[key].first_name  + " " +
+              students[key].last_name + 
+              "</td>"+
+              "<td > <font color='grey'>Empty </font>" +
+              "</td>  </tr>"+
+              "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
+              "</li>"
+          );
+          
         }
-       
-
-        console.log("relax 2")
-        // when select partner
-        $(".student-container").append(
-          "<li id='" +
-            key +
-            "' class='ui segment'>"+
-            "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
-            "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
-            students[key].first_name  + " " +
-            students[key].last_name + "<br> <div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton()'>add</div>" +
-            "</td>"+
-            "<td > <font color='grey'>Empty </font>" +
-            "</td>  </tr>"+
-            "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
-            "</li>"
-        );
       }
-      count++;
-    }
+   
 
-    if (!count) {
+    if (!students.length) {
       console.log("No student.")
 
       $("#alert-header").text("Create Session");
@@ -1662,7 +1670,7 @@ function showStudentList(
         sort100to1(students, filtered, elementMoved);
       }
     }
-    if (count > 0) {
+    if (students.length > 0) {
       $("#student_list_modal").modal("show");
 
     }

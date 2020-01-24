@@ -29,6 +29,7 @@ mixin collaborativeStudent()
             //-   i.line.chart.icon
       .ui.basic.center.aligned.segment
         .actions
+          button.ui.button.approve.blue#create-group(type='submit', value='selectGroup' onclick='onClickAddPartnerButton()') Create
           button.ui.button.approve.green#confirm-pairing(type='submit', value='create') Confirm
           .ui.button.approve.red#cancel-pairing(data-value='cancel' onclick='on_click_cancel_pairing_button()') Cancel
 

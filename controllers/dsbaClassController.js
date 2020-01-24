@@ -48,6 +48,7 @@ exports.getStudentsFromSection = async (req, res) => {
         
         if (user !== null) {
           resStudents[index].img = user.img;
+          resStudents[index].status = -1;
         } else {
           console.log("User instance is null in getStudentsFromSection function");
         }
@@ -57,7 +58,7 @@ exports.getStudentsFromSection = async (req, res) => {
       // for (let index in resStudents) {
       //   students[resStudents[index].enrollment_id] = resStudents[index];
       // }
-      // console.log("test ", students[168].enrollment_id)
+      console.log("resStudents ", resStudents)
       if (!resCollaborativeSessions.length) resCollaborativeSessions = [{ status: -1 }];
     
     res.send({
