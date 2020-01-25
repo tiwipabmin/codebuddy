@@ -17,7 +17,7 @@ exports.isLoggedOut = (req, res, next) => {
 }
 
 exports.validateSection = async (req, res, next) => {
-  //console.log('section_id : ' + req.query.section_id)
+  // console.log('section_id : ' + req.query.section_id)
   var occupation = req.user.info.occupation
   var query;
   var res_object;

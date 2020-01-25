@@ -156,10 +156,10 @@ exports.getPlayground = async (req, res) => {
       notebookAssignment.title = notebookAssignment.title;
       notebookAssignment.description = notebookAssignment.description;
     }
-
+   
     dataSets = {
       origins: { notebookAssignment: notebookAssignment, section: section,  project: project },
-      reforms: { notebookAssignment: JSON.stringify(notebookAssignment) }
+      reforms: { notebookAssignment: JSON.stringify(notebookAssignment) , messages: messages }
     };
 
     let filePath = notebookAssignment.filePath;
@@ -558,9 +558,9 @@ exports.getSection = async (req, res) => {
   let queryAssignment =
     "SELECT * FROM notebook_assignment WHERE section_id = " + section_id;
   let queryPairingSession =
-    "SELECT * FROM pairing_session AS ps WHERE ps.section_id = " +
+    "SELECT * FROM collaborative_session AS cs WHERE cs.section_id = " +
     section_id +
-    " ORDER BY ps.pairing_session_id DESC";
+    " ORDER BY cs.collaborative_session_id DESC";
   let section = [];
   let students = [];
   let assignments = [];
@@ -1015,6 +1015,7 @@ exports.searchStudentByPurpose = async (req, res) => {
   const purpose = req.query.purpose;
   let students = [];
   let users = [];
+
   if ("quality" == purpose) {
     users = await User.find({
       avgScore: { $lte: avgScore + 10, $gte: avgScore - 10 },
@@ -1044,7 +1045,11 @@ exports.searchStudentByPurpose = async (req, res) => {
       users[index].username +
       "' AND e.section_id = " +
       sectionId;
+
+      console.log("queryStudent " , queryStudent)
     let resStudent = await conMysql.selectStudent(queryStudent);
+
+    console.log("resStudent " , resStudent)
     if (resStudent.length && resStudent instanceof Array) {
       students[count] = resStudent[0];
       students[count].avg_score = users[index].avgScore;
@@ -1052,6 +1057,7 @@ exports.searchStudentByPurpose = async (req, res) => {
       students[count].total_time = users[index].totalTime;
       count++;
     }
+
   }
   res.send({
     studentId: studentId,
@@ -2150,6 +2156,7 @@ exports.getStudentsFromSection = async (req, res) => {
   let partnerKeys = JSON.parse(req.query.partnerKeys);
   let pairingObjectives = JSON.parse(req.query.pairingObjectives);
   let pairingSessionId = req.query.pairingSessionId;
+  console.log("pairingSessionId ", pairingSessionId)
   let command = req.query.command;
   let sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
   let queryStudent =
@@ -2239,7 +2246,10 @@ exports.getStudentsFromSection = async (req, res) => {
   for (let index in resStudents) {
     students[resStudents[index].enrollment_id] = resStudents[index];
   }
+  console.log("resPairingSessions ", resPairingSessions)
   if (!resPairingSessions.length) resPairingSessions = [{ status: -1 }];
+
+  console.log("partnerKeys ", partnerKeys)
   res.send({
     students: students,
     partnerKeys: partnerKeys,

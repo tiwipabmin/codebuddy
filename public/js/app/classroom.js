@@ -289,7 +289,7 @@ function on_click_ui_purpose_tab(
               JSON.stringify(partnerKeys) +
               ", " +
               JSON.stringify(pairingObjectives) +
-              ",2)'>Add</div></div><img class='ui avatar image' src='" +
+              ",2)'>Add2</div></div><img class='ui avatar image' src='" +
               student.img +
               "'><div class='content'><div class='header'>" +
               student.first_name +
@@ -311,7 +311,8 @@ function on_click_ui_purpose_tab(
               pad(parseInt(student.total_time % 60)) +
               "</div></div></div></div>"
           );
-        } else {
+        } 
+        else {
           $(".user-purpose-list").append(
             "<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton(" +
               studentId +
@@ -327,7 +328,7 @@ function on_click_ui_purpose_tab(
               JSON.stringify(partnerKeys) +
               ", " +
               JSON.stringify(pairingObjectives) +
-              ",2)'>Add</div></div><img class='ui avatar image' src='" +
+              ",2)'>Add 4</div></div><img class='ui avatar image' src='" +
               student.img +
               "'><div class='content'><div class='header'>" +
               student.first_name +
@@ -853,7 +854,7 @@ function searchStudent(
               JSON.stringify(partnerKeys) +
               ", " +
               JSON.stringify(pairingObjectives) +
-              ",2)'>Add</div></div><img class='ui avatar image' src='" +
+              ",2)'>Add </div></div><img class='ui avatar image' src='" +
               student.img +
               "'><div class='content'><div class='header'>" +
               student.first_name +
@@ -1005,6 +1006,10 @@ function onClickAddPartnerButton(
       // partner_id is value in partner_keys
       // ex. partner_keys = {0: 1, 2: 3} expected {0: -1, 2: 1, 3: -1}
       // pair student_id = 2 with partner_id = 1 will make undefined
+      //partner_keys is enrollment id : status  (-1 is )
+
+      console.log("partner_keys " , partner_keys)
+      console.log("partner_keys[partner_id] " , partner_keys[partner_id])
       if (partner_keys[partner_id] === undefined) {
         key = Object.keys(partner_keys).find(
           key => partner_keys[key] === partner_id
@@ -1136,7 +1141,8 @@ function showStudentList(
             JSON.stringify(partnerKeys) +
             ", " +
             JSON.stringify(pairingObjectives) +
-            ", 1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: " +
+            //when partner is empty
+            ", 1)'>Adddddddd</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: " + 
             pad(parseInt(0 / 3600)) +
             ":" +
             pad(parseInt((0 - parseInt(0 / 3600) * 3600) / 60)) +
@@ -1163,7 +1169,7 @@ function showStudentList(
             JSON.stringify(partnerKeys) +
             ", " +
             JSON.stringify(pairingObjectives) +
-            ",1)'>Add</div>";
+            ",1)'>Add 3</div>";
         }
         let pairing_objective_str = pairingObjectives[key];
         if (
@@ -1288,6 +1294,7 @@ function onClickCreateSession(
   if ($("#newPairingSession").attr("value") <= 0) {
     pairingOrViewingisHided("pair");
     showStudentList("pair", {}, {}, pairing_session_id, section_id);
+   
   } else {
     $("#alert-header").text("Pairing session");
     $("#alert-message").text(
