@@ -127,15 +127,15 @@ exports.getPlayground = async (req, res) => {
 exports.getHistory = async (req, res) => {
   const redis = new Redis();
   var code = await redis.hget(
-    `project:${req.query.pid}`,
+    `project:${req.params.pid}`,
     "editor",
     (err, ret) => ret
   );
 
-  const project = await Project.findOne({ pid: req.query.pid });
+  const project = await Project.findOne({ pid: req.params.pid });
   let creator = project.creator;
   let collaborator = project.collaborator;
-  let curUser = req.query.curUser;
+  let curUser = req.params.curUser;
   let userRole = null;
   let curUser_obj = null;
   let partner_obj = null;
@@ -150,10 +150,10 @@ exports.getHistory = async (req, res) => {
     userRole = "collaborator";
   }
 
-  const histories = await History.find({ pid: req.query.pid });
+  const histories = await History.find({ pid: req.params.pid });
 
   dataSets = {
-    origins: { section_id: req.query.section_id, userRole: userRole }
+    origins: { section_id: req.params.section_id, userRole: userRole }
   };
   res.render("history", {
     histories,

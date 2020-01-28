@@ -50,13 +50,14 @@ var webrtc = new SimpleWebRTC({
  */
 function getParameterByName(name) {
   const url = window.location.href;
-  const param = name.replace(/[\[\]]/g, "\\$&");
-  const regex = new RegExp("[?&]" + param + "(=([^&#]*)|&|#|$)");
-  const results = regex.exec(url);
-
-  if (!results) return null;
-  if (!results[2]) return "";
-  return decodeURIComponent(results[2].replace(/\+/g, " "));
+  const terms = url.split('\/')
+  const index = terms.indexOf(name)
+  try {
+    const result = terms[index+1]
+    return result
+  } catch (err) {
+    return null;
+  }
 }
 
 /**
@@ -164,14 +165,14 @@ function changeTheme() {
  */
 socket.emit("load playground", { programming_style: "Interactive" });
 socket.emit("join project", {
-  pid: getParameterByName("pid"),
+  pid: getParameterByName("project"),
   username: user
 });
 
 webrtc.on("readyToCall", function() {
   // you can name it anything
-  webrtc.createRoom(getParameterByName("pid"));
-  webrtc.joinRoom(getParameterByName("pid"));
+  webrtc.createRoom(getParameterByName("project"));
+  webrtc.joinRoom(getParameterByName("project"));
 });
 
 /**
@@ -367,7 +368,7 @@ socket.on("confirm role change", payload => {
     $("#header_serm").text("เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ");
     $("#reviewer_button").attr("style", "display:none;");
     socket.emit("join project", {
-      pid: getParameterByName("pid"),
+      pid: getParameterByName("project"),
       username: user
     });
   } else if (

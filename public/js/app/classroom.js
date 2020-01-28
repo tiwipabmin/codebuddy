@@ -2108,7 +2108,7 @@ function set_item_pagination_in_second_container(
             student.enrollment_id +
             "' style='padding-left:15px; padding-right:15px;'></div>"
         );
-        img = $("<img class='ui avatar image' src='images/user_img_0.jpg'/>");
+        img = $("<img class='ui avatar image' src='/images/user_img_0.jpg'/>");
         switch (occupation) {
           case "teacher":
             let right_floated_content = null;

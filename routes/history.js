@@ -14,7 +14,7 @@ const router = express.Router()
  * Finding user projects from database and pass results to the dashboard file
  * @method {GET} return rendered `dashboard.pug`
  */
-router.get('/', auth.isSignedIn, catchErrors(webController.getHistory))
+router.get('/:pid/user/:curUser/section/:section_id', auth.isSignedIn, catchErrors(webController.getHistory))
 
 /**
  * Expose `router`

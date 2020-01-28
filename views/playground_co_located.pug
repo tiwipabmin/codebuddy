@@ -20,7 +20,7 @@ block content
     .content
       .actions
         center
-          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom?section_id='+`${dataSets.origins.section.section_id}`)
+          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom/'+`${dataSets.origins.section.section_id}`)
             i.check.icon
             |       ตกลง
 
@@ -139,7 +139,6 @@ block content
         .ui.grid
           .sixteen.wide.column
             p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") project score : 0
-            //- a.ui.label(style='margin-left:10px;' href='/history?pid='+project.pid+'&curUser='+curUser) view history
             button.ui.icon.button.orange.float-right(id='submitCode' onClick='submitCode()' data-tooltip="Alt+V" data-inverted="")
               i.unhide.icon
             button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Alt+R" data-inverted="")
