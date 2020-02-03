@@ -790,6 +790,8 @@ $(document).ready(function() {
   //     }
   //   })
   // })
+
+
   $("#student_list_modal").modal({
     closable: false
   });
@@ -1514,9 +1516,7 @@ function searchStudent(
     }
   });
 }
-
 function onClickAddPartnerButton(studentsGroup) {
-  // console.log("onClickAddPartnerButton studentsGroup ", studentsGroup)
   
   for(let student in studentsGroup.students){
     if (student.status != -1){
@@ -1531,7 +1531,7 @@ function onClickAddPartnerButton(studentsGroup) {
                         '<div class="ten wide column">'+
                           ' <p>'+ studentsGroup.students[student].first_name + " " +studentsGroup.students[student].last_name+'</p>'+
                         '</div>'+
-                      '<div class="two wide column"><input class="checkbox-input" type="checkbox" name="" value="1" id="1" float="left" /></div>'+
+                      '<div class="two wide column"><input type="checkbox" name="student" value='+studentsGroup.students[student].first_name+' id="student" float="left" /></div>'+
                     '</div>'+
                 '</div>'+
             '</div>'+
@@ -1540,6 +1540,14 @@ function onClickAddPartnerButton(studentsGroup) {
     } 
   }
   
+  $("#group-student").click(function() {
+    console.log("group-student ")
+    console.log(Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value))
+    // if (document.getElementById('student').checked) {
+    //     rate_value = document.getElementById('student').value;
+    //     console.log("rate_value " , rate_value)
+    // }
+  });
 
   // $(".user-list").append(
   //   "<li id='" +
@@ -1556,8 +1564,10 @@ function onClickAddPartnerButton(studentsGroup) {
   //   "</li>"
   // )
   
+
       $("#partner_selection_modal").modal("show");
-    
+    // console.log(document.getElementById("1").value)
+
   }
 
 
