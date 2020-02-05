@@ -2156,7 +2156,6 @@ exports.getStudentsFromSection = async (req, res) => {
   let partnerKeys = JSON.parse(req.query.partnerKeys);
   let pairingObjectives = JSON.parse(req.query.pairingObjectives);
   let pairingSessionId = req.query.pairingSessionId;
-  console.log("pairingSessionId ", pairingSessionId)
   let command = req.query.command;
   let sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
   let queryStudent =
@@ -2197,6 +2196,7 @@ exports.getStudentsFromSection = async (req, res) => {
       partnerKeys[resStudents[index].enrollment_id] = -1;
       pairingObjectives[resStudents[index].enrollment_id] = -1;
     }
+    console.log("partnerKeys ", partnerKeys)
   } else if (command == "view") {
     let queryPairingRecord =
       "SELECT * FROM pairing_record WHERE pairing_session_id = " +
