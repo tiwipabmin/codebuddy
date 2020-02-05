@@ -1517,7 +1517,9 @@ function searchStudent(
   });
 }
 function onClickAddPartnerButton(studentsGroup) {
-  
+
+  // console.log("onClickAddPartnerButton studentsGroup ", studentsGroup)
+  $(".search").empty()
   for(let student in studentsGroup.students){
     if (student.status != -1){
       console.log("student " , student)
