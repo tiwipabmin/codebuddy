@@ -1533,7 +1533,7 @@ function onClickAddPartnerButton(studentsGroup) {
                         '<div class="ten wide column">'+
                           ' <p>'+ studentsGroup.students[student].first_name + " " +studentsGroup.students[student].last_name+'</p>'+
                         '</div>'+
-                      '<div class="two wide column"><input type="checkbox" name="student" value='+studentsGroup.students[student].first_name+' id="student" float="left" /></div>'+
+                      '<div class="two wide column"><input type="checkbox" name="student" value='+JSON.stringify(studentsGroup.students[student]) +' id="student" float="left" /></div>'+
                     '</div>'+
                 '</div>'+
             '</div>'+
@@ -1543,28 +1543,43 @@ function onClickAddPartnerButton(studentsGroup) {
   }
   
   $("#group-student").click(function() {
-    console.log("group-student ")
-    console.log(Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value))
-    // if (document.getElementById('student').checked) {
-    //     rate_value = document.getElementById('student').value;
-    //     console.log("rate_value " , rate_value)
-    // }
+    // console.log("studentsGroup" , studentsGroup)
+    select_student = Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value)
+
+    let x = JSON.parse(select_student[0])
+    console.log("select_student " , JSON.parse(select_student[0]) )
+    group = select_student
+    let fullName = []
+    let img = []
+    for (let i = 0 ;  i < 3 ; i++){
+      if(select_student[i] != null ){
+        student = JSON.parse(select_student[i])
+        fullName.push(student["username"].replace(":", " "))
+        img.push(student["img"])
+
+      }else{
+        fullName.push("Empty")
+        img.push("/images/user_empty.jpg")
+      }
+    }
+    $("#student_list_modal").modal("show");
+    $(".student-container").empty()
+    $(".student-container").append(
+        "<li id='" +
+        "' class='ui segment'>"+
+        "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+        "<img class='ui avatar image' src='" +img[0] +"'></img>" +"  " + 
+        fullName[0]+ 
+        "</td>"+
+        "<td > "+   "<img class='ui avatar image' src='" +img[1] +"'></img>" +"<font color='grey'> "+fullName[1]+" </font>" +
+        "</td>  </tr>"+
+        "<tr><td>"+  "<img class='ui avatar image' src='" +img[2] +"'></img>" +" <font color='grey'> "+fullName[2]+" </font> <br></td></tr></table>"+
+        "</li>"
+        );
+    
   });
 
-  // $(".user-list").append(
-  //   "<li id='" +
-  //   key +
-  //   "' class='ui segment'>"+
-  //   "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
-  //   "<img class='ui avatar image' src='" +students[key].img +"'></img>" +
-  //   students[key].first_name  + " " +
-  //   students[key].last_name + 
-  //   "</td>"+
-  //   "<td > <font color='grey'>Empty </font>" +
-  //   "</td>  </tr>"+
-  //   "<tr><td> <font color='grey'> Empty </font> <br></td></tr></table>"+
-  //   "</li>"
-  // )
+ 
   
 
       $("#partner_selection_modal").modal("show");

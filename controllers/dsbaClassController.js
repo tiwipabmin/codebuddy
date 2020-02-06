@@ -52,7 +52,9 @@ exports.getStudentsFromSection = async (req, res) => {
         } else {
           console.log("User instance is null in getStudentsFromSection function");
         }
+        resStudents[index].fullName = resStudents[index].first_name + ":" + resStudents[index].last_name
       }
+
 
       // let students = {};
       // for (let index in resStudents) {
