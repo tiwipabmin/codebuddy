@@ -1518,6 +1518,9 @@ function searchStudent(
 }
 function onClickAddPartnerButton(studentsGroup) {
 
+  console.log("#group-student onClickAddPartnerButton" , studentsGroup["group"])
+
+
   $(".search").empty()
   for(let index in studentsGroup.students){
     console.log("student.status " , studentsGroup.students[index].status)
@@ -1540,11 +1543,20 @@ function onClickAddPartnerButton(studentsGroup) {
       )
     } 
   }
+ 
 
-  $("#group-student").click(function() {
+      $("#partner_selection_modal").modal("show");
+
+      $("#group-student").attr(
+        "onclick",
+        "showGroup(" + JSON.stringify(studentsGroup)+ ")"
+        ); 
+  }
+  function showGroup(studentsGroup){
 
 
     select_student = Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value)
+    console.log("#group-student group" , studentsGroup["group"])
 
     let fullName = []
     let studentId = []
@@ -1559,26 +1571,22 @@ function onClickAddPartnerButton(studentsGroup) {
       else{
         fullName.push("Empty")
         img.push("/images/user_empty.jpg")
+        }
       }
-
-     
-      }
-      console.log("studentId " , studentId)
 
       for (let i = 0 ;  i < Object.keys(studentsGroup["students"]).length ; i++){
-        console.log("-------------------" , studentsGroup["students"][i]["student_id"])
 
         if(studentId.includes(studentsGroup["students"][i]["student_id"])){
-          console.log("true" , studentsGroup["students"][i]["student_id"])
 
            studentsGroup["students"][i]["status"] = 0
         }
       }
-     
-    
+
+      // groupStudent["group"].push(fullName)
+      console.log("type group = " ,  typeof studentsGroup["group"])
+      studentsGroup["group"].push(studentId)
 
     $("#student_list_modal").modal("show");
-    $(".student-container").empty()
 
     $(".student-container").append(
         "<li id='" +
@@ -1594,15 +1602,9 @@ function onClickAddPartnerButton(studentsGroup) {
         );
 
         console.log(" studentsGroup group-student " , studentsGroup)
+        groupStudent(studentsGroup )
 
-
-  });
-      console.log(" studentsGroup onclick " , studentsGroup)
-      $("#partner_selection_modal").modal("show");
-
-      
   }
-
 
 function showStudentList(
   command,
@@ -1617,9 +1619,11 @@ function showStudentList(
   };
 
       $.get("/dsbaClass/getStudentsFromSection", parameter , function(data) {
+
         let count = 0;
         let students = data.students
         let group = []
+
         let command = data.command
         let collaborativeSessionStatus = data.collaborativeSessionStatus
         
@@ -1645,13 +1649,8 @@ function showStudentList(
     
         // when click pair
         
-          if (group.length < 1) {
-    
-            $(".student-container").append(
-              "<h1 style='color:grey'><center>No Group .</center></h1>"
-            );
-          } 
-         
+          
+
     
         if (!students.length) {
           console.log("No student.")
@@ -1673,20 +1672,28 @@ function showStudentList(
           $("#student_list_modal").modal("show");
     
         }
-        $("#create-group").attr(
-          "onclick",
-          "onClickAddPartnerButton(" + JSON.stringify(studentsGroup) +")"
-        );  
+
+        groupStudent(studentsGroup)
+
     
       });
     
  
 }
 
-  // groupStudent(){
-  //   onClickAddPartnerButton
-  // }
+function groupStudent(studentsGroup){
 
+  // if (studentsGroup["group"].length < 1) {
+    
+  //   $(".student-container").append(
+  //     "<h1 style='color:grey'><center>No Group .</center></h1>"
+  //   );
+  // }
+    $("#create-group").attr(
+      "onclick",
+      "onClickAddPartnerButton(" + JSON.stringify(studentsGroup)+ ")"
+    ); 
+  }
 
 
 function onClickCreateSession(
