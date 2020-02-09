@@ -210,6 +210,15 @@ exports.insertPairingRecord = (query, values) => {
   })
 }
 
+exports.insertGroupRecord = (query, values) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, [values], function(err, res){
+      if(err) reject('Create failed.');
+      else resolve('Create completed.');
+    })
+  })
+}
+
 exports.deletePairingRecord = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
@@ -246,6 +255,14 @@ exports.insertPairingSession = (query, values) => {
   })
 }
 
+exports.insertGroupSession = (query, values) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, [values], function(err, res){
+      if(err) reject('Create group session date time fail!');
+      else resolve(res.insertId);
+    })
+  })
+}
 exports.updatePairingSession = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
