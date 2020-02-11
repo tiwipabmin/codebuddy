@@ -242,10 +242,11 @@ function set_item_pagination_in_third_container(
   occupation
 ) {
 
-  console.log(" objects " , objects)
   let res_obj = get_items_of_week(objects, 5, "-1week");
   objects = res_obj.items_of_week;
   let pagination = res_obj.pagination;
+
+  console.log(" res_obj ============= " , res_obj)
 
   let item = null;
   let content = null;
@@ -282,7 +283,7 @@ function set_item_pagination_in_third_container(
             let tag_b = null;
             let five_wide_column = null;
             let button = null;
-            let pairing_session = objects[_index_o];
+            let collaborative_session = objects[_index_o];
             item = $(
               "<div class='item' style='padding-top:10px; padding-bottom:10px; padding-left:15px; padding-right:15px;'></div>"
             );
@@ -290,7 +291,7 @@ function set_item_pagination_in_third_container(
             grid = $("<div class='ui grid'></div>");
             eleven_wide_column = $("<div class='eleven wide column'></div>");
             five_wide_column = $("<div class='five wide column'></div>");
-            if (pairing_session.status == 0) {
+            if (collaborative_session.status == 0) {
               // console.log('pairing_session.status, ', pairing_session.status)
               tag_b = $(
                 "<b style='font-size:1.5em;'><header style='color:#5D5D5D;'> Session : " +
@@ -299,14 +300,14 @@ function set_item_pagination_in_third_container(
               );
               description = $(
                 "<p><b style='color:#5D5D5D'> Start at : </b><font style='color:#5D5D5D'>" +
-                  pairing_session.time_start +
+                collaborative_session.time_start +
                   "</font><br><b style='color:#5D5D5D'> End at : </b><font style='color:#5D5D5D'>" +
-                  pairing_session.time_end +
+                  collaborative_session.time_end +
                   "</font></p>"
               );
               button = $(
                 "<div class='ui right floated alignedvertical animated button' onclick='onClickViewPairingRecord(" +
-                  pairing_session.pairing_session_id +
+                collaborative_session.collaborative_session_id +
                   ', "' +
                   section_id +
                   "\")'><div class='hidden content' style='color:#5D5D5D;'> View </div><div class='visible content'><i class='eye icon'/></div></div>"
@@ -322,18 +323,18 @@ function set_item_pagination_in_third_container(
               );
               description = $(
                 "<p><b> Start at : </b><font>" +
-                  pairing_session.time_start +
+                collaborative_session.time_start +
                   "</font><br><b> End at : </b><font>" +
-                  pairing_session.time_end +
+                  collaborative_session.time_end +
                   "</font></p>"
               );
               button = $(
                 "<div class='ui top right floated pointing dropdown button blue' ><font color='white'> Select </font><div class='menu'><div class='item' onclick='onClickViewPairingRecord(" +
-                  pairing_session.pairing_session_id +
+                collaborative_session.collaborative_session_id +
                   ', "' +
                   section_id +
                   "\")'> View </div><div class='item' onclick='onClickCompletedSessionMenu(" +
-                  pairing_session.collaborative_session_id +
+                  collaborative_session.collaborative_session_id +
                   ', "' +
                   section_id +
                   "\")'> Completed </div></div></div>"
@@ -916,7 +917,7 @@ function on_click_cancel_button() {
   if (message == "Are you sure you want to cancel pairing?") {
     $("#student_list_modal").modal("show");
   } else if (
-    message == "Are you sure you want to create new pairing session?"
+    message == "Are you sure you want to create new group session?"
   ) {
     $("#student_list_modal").modal("show");
   }
@@ -1258,26 +1259,33 @@ function groupStudent(studentsGroup){
 
         $.get("/dsbaClass/createGroupRecord", parameters , function(data) {
           const status = data.status;
+          const groupSession = JSON.parse(data.groupSession);
+          const sectionId = data.sectionId;
           collaborativeSessionId = data.collaborativeSessionId
-          console.log(" collaborativeSessionId " , collaborativeSessionId )
+          console.log(" status " , status )
 
-           if (status == "Please pair all students!") {
+           if (status == "Please group all students!") {
             alert(status);
             $("#student_list_modal").modal("show");
-          }else{
-            $("#no_session").empty();
-            // set_item_pagination_in_third_container(
-            //   objects,
-            //   parameters["section_id"],
-            //   "teacher"
-            // );
           }
-          
-          // $("#global_loader").attr({
-          //   style: "display: none; position: fixed;"
-          // });
+          else if(status == "Confirm completed.") {
+
+            $("#no_session").empty();
+            
+            set_item_pagination_in_third_container(
+              groupSession,
+              sectionId,
+              "teacher"
+            );
+            $(".ui.pointing.dropdown").dropdown();
+         
+          }
         });
+
+
+            
       } 
+      
       else if (
         message == "Are you sure you want to complete this group session?"
       ) {
@@ -1319,225 +1327,14 @@ function groupStudent(studentsGroup){
 
         console.log("/dsbaClass/assignAssignment 2")
 
-        // var res_status = data.res_status;
-        // if (
-        //   res_status == "Please pair all students before assign the assignment!"
-        // ) {
-        //   alert(res_status);
-        // } else if (res_status == "You already assigned these assignments!") {
-        //   alert(res_status);
-        // } else if (res_status == "Successfully assigned this assignment!") {
-        //   alert(res_status);
-        // } else if (res_status == "Completed test!") {
-        //   alert(res_status);
-        // } else {
-        //   alert(res_status);
-        // }
-        $("#global_loader").attr({
-          style: "display: none; position: fixed;"
-        });
       });
-    } 
-      // else if (
-      //   session_status == 1 &&
-      //   $("#confirm-pairing").attr("value") == "change"
-      // ) {
-      //   $("#global_loader").attr({
-      //     style: "display: block; position: fixed;"
-      //   });
-      //   $("#autoPairing").hide();
-      //   parameters = {
-      //     partnerKeys: JSON.parse(parameters.partner_keys),
-      //     pairingObjectives: JSON.parse(parameters.pairing_objective),
-      //     pairingSessionId: parameters.pairing_session_id,
-      //     sectionId: parameters.section_id
-      //   };
-      //   $.ajax({
-      //     url: "/classroom/updatePairing",
-      //     type: "put",
-      //     data: parameters,
-      //     success: function(data) {
-      //       var status = data.status;
-      //       $("#loader").attr("style", "display: none");
-      //       if (status == "Update pairing successfully") {
-      //         pairingOrViewingisHided("view");
-      //         $("#confirm-pairing").attr("value", "create");
-      //         alert(status);
-      //       } else if (status == "Please pair all students!") {
-      //         alert(status);
-      //         $("#confirm-header").text("Student pairing");
-      //         $("#confirm-message").text(
-      //           "Are you sure you want to cancel pairing?"
-      //         );
-      //         $("#confirm-message").attr(
-      //           "value",
-      //           "Are you sure you want to cancel pairing?"
-      //         );
-      //         $("#student_list_modal").modal("show");
-      //       } else {
-      //         $("#confirm-pairing").attr("value", "create");
-      //         alert(status);
-      //       }
-      //       $("#global_loader").attr({
-      //         style: "display: none; position: fixed;"
-      //       });
-      //     }
-      //   });
-      // } 
-      // else {
-      //   $("#alert-header").text("Pairing session");
-      //   $("#alert-message").text("You can't create session!");
-      //   $("#alert-modal").modal("show");
-      // }
-    // } 
-    // else if (message == "Are you sure you want to cancel pairing?") {
-    //   $("#alphabeticalFilter").attr("class", "ui button");
-    //   $("#alphabeticalFilter").attr("value", "A-Z");
-    //   $("#alphabeticalFilter").text("A-Z");
+    }
   
-    //   $("#avgScoreFilter").attr("class", "ui button");
-    //   $("#avgScoreFilter").attr("value", "1-100");
-    //   $("#avgScoreFilter").text("1-100");
-  
-    //   $("#activeFilter").attr("value", "");
-    //   $("#confirm-pairing").attr("value", "create");
-  
-    //   $("#autoPairing").hide();
-    // } 
-
-    
-    // else if (
-    //   message ==
-    //   "Are you sure you want to remove the student from this classroom?"
-    // ) {
-    //   $("#global_loader").attr({
-    //     style: "display: block; position: fixed;"
-    //   });
-    //   $.ajax({
-    //     url: "/api/removeStudent",
-    //     type: "delete",
-    //     data: parameters,
-    //     success: function(res) {
-    //       if (
-    //         res.resStatus == "Remove the student from the classroom completed."
-    //       ) {
-    //         $("#" + res.enrollment_id).remove();
-    //         alert(res.resStatus);
-    //       } else {
-    //         alert(res.resStatus);
-    //       }
-    //       $("#global_loader").attr({
-    //         style: "display: none; position: fixed;"
-    //       });
-    //     }
-    //   });
-    // }
-    //  else if (message == "Are you sure you want to delete these assignment?") {
-    //   $("#global_loader").attr({
-    //     style: "display: block; position: fixed;"
-    //   });
-    //   $.ajax({
-    //     url: "/notebookAssignment/deleteAssignment",
-    //     type: "delete",
-    //     data: parameters,
-    //     success: function(res) {
-    //       let status = res.dataSets.origins.status;
-    //       let assignments = JSON.parse(res.dataSets.reforms.assignments);
-    //       let username = res.dataSets.origins.username;
-    //       let img = res.dataSets.origins.img;
-    //       let pairing_session_id = res.dataSets.origins.pairing_session_id;
-    //       let opt = 0;
-    //       let weeks = res.dataSets.origins.weeks;
-    //       let data_for_weeks_dropdown_function = {
-    //         assignments: JSON.stringify(assignments),
-    //         username: username,
-    //         img: img,
-    //         weeks: weeks
-    //       };
-    //       if (status == "Delete all of these assignment successfully.") {
-    //         $("#menu_week").empty();
-    //         create_weeks_dropdown(
-    //           "#menu_week",
-    //           pairing_session_id,
-    //           data_for_weeks_dropdown_function
-    //         );
-    //         $("#weeks").dropdown();
-    //         on_click_weeks_dropdown(
-    //           "-1week",
-    //           assignments,
-    //           username,
-    //           img,
-    //           pairing_session_id,
-    //           opt
-    //         );
-    //         $("#clear_checkbox").attr(
-    //           "onclick",
-    //           "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 0)"
-    //         );
-    //         $("#check_all_of_box").attr(
-    //           "onclick",
-    //           "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 1)"
-    //         );
-    //         alert(status);
-    //       } else {
-    //         alert(status);
-    //       }
-    //       $("#global_loader").attr({
-    //         style: "display: none; position: fixed;"
-    //       });
-    //     }
-    //   });
-    // } 
-    // else if (
-    //   message == "Are you sure you want to disable assignments on this week?"
-    // ) {
-    //   $("#global_loader").attr({
-    //     style: "display: block; position: fixed;"
-    //   });
-    //   $.ajax({
-    //     url: "/classroom/manageAssignment",
-    //     type: "put",
-    //     data: parameters,
-    //     success: function(res) {
-    //       let status = res.status;
-    //       if (status == "Disable assignments successfully.") {
-    //         alert(status);
-    //       } else {
-    //         alert(status);
-    //       }
-    //       $("#global_loader").attr({
-    //         style: "display: none; position: fixed;"
-    //       });
-    //     }
-    //   });
-    // } 
-    // else if (
-    //   message == "Are you sure you want to enable assignments on this week?"
-    // ) {
-    //   $("#global_loader").attr({
-    //     style: "display: block; position: fixed;"
-    //   });
-    //   $.ajax({
-    //     url: "/classroom/manageAssignment",
-    //     type: "put",
-    //     data: parameters,
-    //     success: function(res) {
-    //       let status = res.status;
-    //       if (status == "Enable assignments successfully.") {
-    //         alert(status);
-    //       } else {
-    //         alert(status);
-    //       }
-    //       $("#global_loader").attr({
-    //         style: "display: none; position: fixed;"
-    //       });
-    //     }
-    //   });
-    // } 
 
   
     $("#confirm-message").attr("value", "Something message.");
   }
+
 function onClickCreateSession(
   collaborative_session_id,
   section_id
@@ -1590,9 +1387,10 @@ function pairingOrViewingisHided(command) {
   }
 }
 
-function onClickViewPairingRecord(pairing_session_id, section_id) {
+function onClickViewPairingRecord(collaborative_session_id, section_id) {
+  console.log(" onClickViewPairingRecord  " , onClickViewPairingRecord)
   pairingOrViewingisHided("view");
-  showStudentList("view", {}, {}, pairing_session_id, section_id);
+  showStudentList("view", collaborative_session_id, section_id);
 }
 
 function onClickAssign(

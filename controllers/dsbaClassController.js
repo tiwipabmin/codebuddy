@@ -83,16 +83,17 @@ exports.createGroupRecord = async (req, res) => {
         values
       );
 
-      const querycollaborativeSession = "SELECT collaborative_session_id FROM collaborative_session WHERE section_id = " +sectionId 
+      const querycollaborativeSession = "SELECT * FROM collaborative_session WHERE section_id = " +sectionId + " ORDER BY collaborative_session_id DESC";
 
       collaborativeSession = await conMysql.selectCollaborativeSession(querycollaborativeSession);
+
+      console.log(" collaborativeSession ------ " , collaborativeSession)
+
       // collaborativeSession = JSON.stringify(collaborativeSession)
       collaborativeSessionId = collaborativeSession[0].collaborative_session_id
 
       for(i = 0 ; i < group.length ; i++){
-        console.log(" i = " , group[i])
         for(index = 0 ; index < group[i].length ; index++){
-          console.log(" group " , group[i][index])
             groupRecords = [
               [
                 parseInt(collaborativeSessionId),
@@ -111,10 +112,13 @@ exports.createGroupRecord = async (req, res) => {
 
       }
       res.send({ status: status ,
-        collaborativeSessionId : collaborativeSessionId});
+        collaborativeSessionId : collaborativeSessionId ,
+        groupSession : JSON.stringify(collaborativeSession),
+        sectionId : sectionId
+      });
     }
     else {
-      res.send({ status: "Please pair all students!" });
+      res.send({ status: "Please group all students!" });
 
     }
 
@@ -139,7 +143,7 @@ exports.completeGroupSession = async (req, res) => {
   );
 
   if (resStatus != "Update completed.") {
-    resStatus = "Update a pairing date time status failed.";
+    resStatus = "Update a group date time status failed.";
 
   } 
 

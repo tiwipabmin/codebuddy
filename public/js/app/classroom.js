@@ -431,47 +431,47 @@ function on_click_confirm_button(parameters) {
         } else if (status == "Update completed.") {
           $("#no_session").empty();
           $("#menu_week").empty();
-          create_weeks_dropdown(
-            "#menu_week",
-            pairingSessions[0].pairing_session_id,
-            weeklyDatas
-          );
-          $("#weeks").dropdown();
-          on_click_weeks_dropdown(
-            "-1week",
-            JSON.parse(weeklyDatas.assignments),
-            weeklyDatas.username,
-            weeklyDatas.img,
-            pairingSessions[0].pairing_session_id,
-            0
-          );
+          // create_weeks_dropdown(
+          //   "#menu_week",
+          //   pairingSessions[0].pairing_session_id,
+          //   weeklyDatas
+          // );
+          // $("#weeks").dropdown();
+          // on_click_weeks_dropdown(
+          //   "-1week",
+          //   JSON.parse(weeklyDatas.assignments),
+          //   weeklyDatas.username,
+          //   weeklyDatas.img,
+          //   pairingSessions[0].pairing_session_id,
+          //   0
+          // );
           set_item_pagination_in_third_container(
             pairingSessions,
             sectionId,
             "teacher"
           );
-          on_click_page_number_in_third_container(1);
-          $("#changePair").attr(
-            "onclick",
-            "onClickChangePairButton(" +
-              pairingSessions[0].pairing_session_id +
-              ', "' +
-              sectionId +
-              '")'
-          );
+          // on_click_page_number_in_third_container(1);
+          // $("#changePair").attr(
+          //   "onclick",
+          //   "onClickChangePairButton(" +
+          //     pairingSessions[0].pairing_session_id +
+          //     ', "' +
+          //     sectionId +
+          //     '")'
+          // );
           $(".ui.pointing.dropdown").dropdown();
-          $("#newPairingSession").attr(
-            "onclick",
-            "onClickCreateSession(" +
-              pairingSessions[0].pairing_session_id +
-              ', "' +
-              sectionId +
-              '", ' +
-              pairingSessions[0].status +
-              ")"
-          );
-          $("#newPairingSession").attr("value", 1);
-          $("#autoPairing").hide();
+          // $("#newPairingSession").attr(
+          //   "onclick",
+          //   "onClickCreateSession(" +
+          //     pairingSessions[0].pairing_session_id +
+          //     ', "' +
+          //     sectionId +
+          //     '", ' +
+          //     pairingSessions[0].status +
+          //     ")"
+          // );
+          // $("#newPairingSession").attr("value", 1);
+          // $("#autoPairing").hide();
         } else {
           alert(status);
         }
@@ -2086,6 +2086,7 @@ function set_item_pagination_in_second_container(
   students = res_obj.items_of_week;
   let pagination = res_obj.pagination;
 
+
   let item = null;
   let student = null;
   let content = null;
@@ -2219,6 +2220,8 @@ function set_item_pagination_in_third_container(
   let res_obj = get_items_of_week(objects, 5, "-1week");
   objects = res_obj.items_of_week;
   let pagination = res_obj.pagination;
+
+  console.log(" res_obj " , res_obj)
 
   let item = null;
   let content = null;

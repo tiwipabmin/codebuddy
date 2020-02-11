@@ -610,13 +610,12 @@ exports.getSection = async (req, res) => {
 
   if (!pairingSessions.length){
   
-    pairingSessions = [{ pairing_session_id: -1, status: -1 }];
+    pairingSessions = [{ collaborative_session_id: -1, status: -1 }];
   }
 
 
   if (occupation == "teacher") {
     occupation = 0;
-
     dataSets = {
       origins: {
         occupation: occupation,
@@ -2092,6 +2091,7 @@ exports.createPairingRecord = async (req, res) => {
       queryPairingSession
     );
 
+    console.log(" pairingSessions ------ " , pairingSessions)
     let queryBranchType = "SELECT branch_type FROM branch where section_id = " +  sectionId;
     let branch_type = await conMysql.selectBranchType(queryBranchType);
     if(branch_type[0]["branch_type"] == "IT"){
