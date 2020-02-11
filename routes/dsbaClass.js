@@ -16,6 +16,7 @@ const router = express.Router()
  */
 
 router.get('/getStudentsFromSection', auth.isSignedIn, auth.validateSection, catchErrors(dsbaClassController.getStudentsFromSection))
+router.get('/createGroupRecord', auth.isSignedIn, auth.validateSection, catchErrors(dsbaClassController.createGroupRecord))
 
 /**
  * Expose `router`

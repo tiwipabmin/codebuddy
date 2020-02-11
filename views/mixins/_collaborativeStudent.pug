@@ -30,7 +30,7 @@ mixin collaborativeStudent()
       .ui.basic.center.aligned.segment
         .actions
           button.ui.button.approve.blue#create-group(type='submit', value='selectGroup') Create
-          button.ui.button.approve.green#confirm-pairing(type='submit', value='create') Confirm
+          button.ui.button.approve.green#confirm-group(type='submit', value='create') Confirm
           .ui.button.approve.red#cancel-pairing(data-value='cancel' onclick='on_click_cancel_pairing_button()') Cancel
 
   .ui.small.modal#partner_selection_modal
