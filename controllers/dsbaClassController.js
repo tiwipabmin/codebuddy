@@ -44,6 +44,7 @@ exports.getStudentsFromSection = async (req, res) => {
         if (user !== null) {
           resStudents[index].img = user.img;
           resStudents[index].status = -1;
+          resStudents[index].partner_id="";
         } else {
           console.log("User instance is null in getStudentsFromSection function");
         }
@@ -60,15 +61,17 @@ exports.getStudentsFromSection = async (req, res) => {
 
 
 }
+
 exports.createGroupRecord = async (req, res) => {
   console.log(" createGroupRecord  back")
 
-
-  const studentsGroup = req.query;
+  const studentsGroup = req.body;
   const group = studentsGroup["group"]
   const sectionId = parseInt(cryptr.decrypt(studentsGroup["section_id"]));
   let status = "Confirm completed.";
-
+  
+  console.log("group", group)
+  console.log("sectionId", sectionId)
 
   date = getCurrentTime()
   
@@ -83,7 +86,8 @@ exports.createGroupRecord = async (req, res) => {
         values
       );
 
-      const querycollaborativeSession = "SELECT collaborative_session_id FROM collaborative_session WHERE section_id = " +sectionId 
+      const querycollaborativeSession = "SELECT * FROM collaborative_session WHERE section_id = " +sectionId +
+      " ORDER BY collaborative_session_id DESC";
 
       collaborativeSession = await conMysql.selectCollaborativeSession(querycollaborativeSession);
       // collaborativeSession = JSON.stringify(collaborativeSession)
@@ -95,7 +99,7 @@ exports.createGroupRecord = async (req, res) => {
           console.log(" group " , group[i][index])
             groupRecords = [
               [
-                parseInt(collaborativeSessionId),
+                parseInt(collaborativeSession[0].collaborative_session_id),
                 i+1,
                 parseInt(group[i][index])
               ]
@@ -110,8 +114,47 @@ exports.createGroupRecord = async (req, res) => {
         }
 
       }
-      res.send({ status: status ,
-        collaborativeSessionId : collaborativeSessionId});
+
+    // jj
+    let queryNotebookAssignment =
+    "SELECT * FROM notebook_assignment WHERE section_id = " + sectionId;
+    assignments = await conMysql.selectAssignment(queryNotebookAssignment);
+
+    let weeks = [];
+    if (!assignments.length) {
+      assignments = [];
+    } else if (assignments.length) {
+      for (let index in assignments) {
+        assignments[index].notebook_assignment_id = cryptr.encrypt(
+          assignments[index].notebook_assignment_id
+        );
+        assignments[index].section_id = cryptr.encrypt(
+          assignments[index].section_id
+        );
+        assignments[index].title = assignments[index].title;
+
+        assignments[index].description = assignments[index].description;
+
+        weeks.indexOf(assignments[index].week) == -1
+          ? weeks.push(assignments[index].week)
+          : null;
+      }
+    }
+
+    let weeklyDatas = {
+      assignments: JSON.stringify(assignments),
+      username: req.user.info.username,
+      img: req.user.img,
+      weeks: weeks
+    };
+    let data = {
+      status: status,
+      collaborativeSession: JSON.stringify(collaborativeSession),
+      sectionId: cryptr.encrypt(sectionId),
+      weeklyDatas: JSON.stringify(weeklyDatas)
+    }
+
+    res.send(data);
     }
     else {
       res.send({ status: "Please pair all students!" });
@@ -122,14 +165,15 @@ exports.createGroupRecord = async (req, res) => {
 
 exports.completeGroupSession = async (req, res) => {
   
-  console.log(" completeGroupSession  back")
-  const collaborativeSessionId = req.query.collaborative_session_id
-  
+  console.log("req ", req.body)
+  let collaborativeSessionId = req.body.collaborative_session_id
+  let section_id = parseInt(cryptr.decrypt(req.body.section_id))
+  let status = req.body.status;
   timeEnd = getCurrentTime()
 
   const update_group_session_status =
     "UPDATE collaborative_session SET status = " +
-    0 +
+    status +
     ", time_end = '" +
     timeEnd +
     "' WHERE collaborative_session_id = " +
@@ -137,17 +181,25 @@ exports.completeGroupSession = async (req, res) => {
   let resStatus = await conMysql.updateGroupSession(
     update_group_session_status
   );
-
-  if (resStatus != "Update completed.") {
+if(resStatus == "Update completed."){
+  let queryCollaborativeSession =
+  "SELECT * FROM collaborative_session  WHERE section_id = " +
+  section_id +
+  " ORDER BY collaborative_session_id DESC";
+  console.log(queryCollaborativeSession)
+  collaborativeSession = await conMysql.selectCollaborativeSession(queryCollaborativeSession);
+  console.log("collaborativeSession", collaborativeSession)
+}else {
     resStatus = "Update a pairing date time status failed.";
 
-  } 
+} 
 
   res.send({
     resStatus: resStatus,
-    sectionId: req.query.section_id
+    collaborativeSession: JSON.stringify(collaborativeSession),
+    sectionId: cryptr.encrypt(section_id)
   });
-}
+};
 
 exports.assignAssignment = async (req, res) => {
   // console.log("assign Assignment" , req.body.assignment_set)
@@ -169,6 +221,7 @@ exports.assignAssignment = async (req, res) => {
 
 }
 function getCurrentTime(){
+  console.log("getCurrentTime")
   var dateTime = new Date();
   var strDataTime = dateTime.toString();
   var splitDataTime = strDataTime.split(" ");

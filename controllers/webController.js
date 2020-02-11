@@ -610,7 +610,7 @@ exports.getSection = async (req, res) => {
 
   if (!pairingSessions.length){
   
-    pairingSessions = [{ pairing_session_id: -1, status: -1 }];
+    pairingSessions = [{ collaborative_session_id: -1, status: -1 }];
   }
 
 
@@ -949,6 +949,7 @@ exports.updatePairingSession = async (req, res) => {
       sectionId +
       " ORDER BY ps.pairing_session_id DESC";
     pairingSessions = await conMysql.selectPairingSession(queryPairingSession);
+    console.log("pairingSessions ", pairingSessions)
   } else {
     resStatus = "Update a pairing date time status failed.";
   }

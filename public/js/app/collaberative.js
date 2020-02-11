@@ -1145,6 +1145,8 @@ function showStudentList(
     command: command
   };
 
+  console.log("parameter ",parameter)
+
       $.get("/dsbaClass/getStudentsFromSection", parameter , function(data) {
 
         let count = 0;
@@ -1247,7 +1249,7 @@ function groupStudent(studentsGroup){
   }
 
   function on_click_confirm_button(parameters) {
-
+    console.log("parameters", parameters)
     const message = $("#confirm-message").attr("value");
   
     if (message == "Are you sure you want to create new group session?") {
@@ -1256,21 +1258,56 @@ function groupStudent(studentsGroup){
         //   style: "display: block; position: fixed;"
         // });
 
-        $.get("/dsbaClass/createGroupRecord", parameters , function(data) {
-          const status = data.status;
-          collaborativeSessionId = data.collaborativeSessionId
-          console.log(" collaborativeSessionId " , collaborativeSessionId )
+        $.post("/dsbaClass/createGroupRecord", parameters , function(data) {
+          console.log("data ", data)
+          let status = data.status;
+          let collaborativeSession = JSON.parse(data.collaborativeSession)
+          let sectionId = data.sectionId;
+          let weeklyDatas = JSON.parse(data.weeklyDatas);
+          
 
-           if (status == "Please pair all students!") {
+          if (status == "Please pair all students!") {
             alert(status);
             $("#student_list_modal").modal("show");
-          }else{
+          }else if(status == "Confirm completed."){
             $("#no_session").empty();
-            // set_item_pagination_in_third_container(
-            //   objects,
-            //   parameters["section_id"],
-            //   "teacher"
-            // );
+            $("#menu_week").empty();
+            create_weeks_dropdown(
+              "#menu_week",
+              collaborativeSession[0].collaborative_session_id,
+              weeklyDatas
+            );
+            $("#weeks").dropdown();
+            on_click_weeks_dropdown(
+              "-1week",
+              JSON.parse(weeklyDatas.assignments),
+              weeklyDatas.username,
+              weeklyDatas.img,
+              collaborativeSession[0].collaborative_session_id,
+              0
+            );
+
+            set_item_pagination_in_third_container(
+              collaborativeSession,
+              sectionId,
+              "teacher"
+            );
+            on_click_page_number_in_third_container(1);
+
+            $(".ui.pointing.dropdown").dropdown();
+
+            $("#newPairingSession").attr(
+              "onclick",
+              "onClickCreateSession(" +
+              collaborativeSession[0].collaborative_session_id +
+                ', "' +
+                sectionId +
+                '", ' +
+                collaborativeSession[0].status +
+                ")"
+            );
+            $("#newPairingSession").attr("value", 1);
+
           }
           
           // $("#global_loader").attr({
@@ -1281,32 +1318,36 @@ function groupStudent(studentsGroup){
       else if (
         message == "Are you sure you want to complete this group session?"
       ) {
-        console.log("parameters  " ,parameters )
-        // $("#global_loader").attr({
-        //   style: "display: block; position: fixed;"
-        // });
-        $.get("/dsbaClass/completeGroupSession", parameters , function(data) {
-
+        console.log("parameters 2 " ,parameters )
+        $("#global_loader").attr({
+          style: "display: block; position: fixed;"
+        });
+        $.ajax({
+          url: "/dsbaClass/completeGroupSession",
+          type: "put",
+          data: parameters,
+          success: function(data) {
             let resStatus = data.resStatus;
+            let collaborativeSession = JSON.parse(data.collaborativeSession);
             let sectionId = data.sectionId;
-            console.log("resStatus " , resStatus)
             if (resStatus == "Update completed.") {
-              // set_item_pagination_in_third_container(
-              //   pairingSessions,
-              //   sectionId,
-              //   "teacher"
-              // );
-              // on_click_page_number_in_third_container(1);
-              // $("#newPairingSession").attr("value", 0);
-              // $("#confirm-pairing").attr("value", "create");
-            } 
-            // else {
-            //   alert(resStatus);
-            // }
-            // $("#global_loader").attr({
-            //   style: "display: none; position: fixed;"
-            // });
-          });
+              set_item_pagination_in_third_container(
+                collaborativeSession,
+                sectionId,
+                "teacher"
+              );
+              on_click_page_number_in_third_container(1);
+              $("#newPairingSession").attr("value", 0);
+              $("#confirm-pairing").attr("value", "create");
+            } else {
+              alert(resStatus);
+            }
+            $("#global_loader").attr({
+              style: "display: none; position: fixed;"
+            });
+          }
+        });
+        
         
       } 
       else if (
@@ -1563,6 +1604,7 @@ function onClickCompletedSessionMenu(collaborative_session_id, section_id) {
     section_id: section_id,
     status: 0
   });
+ 
   $("#confirm-button").attr(
     "onclick",
     "on_click_confirm_button(" + parameters + ")"
