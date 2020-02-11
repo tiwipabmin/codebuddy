@@ -122,7 +122,7 @@ block content
             .right.column
               if user.info.occupation === 'teacher'
                 a.right
-                  button.ui.button.approve.green#newPairingSession(style='float: right;' onclick='onClickCreateSession('+dataSets.origins.pairingSessions[0].pairing_session_id+', \''+dataSets.origins.section.section_id+'\' '+')', value=`${dataSets.origins.pairingSessions[0].status}`) Create Session
+                  button.ui.button.approve.green#newPairingSession(style='float: right;' onclick='onClickCreateSession('+dataSets.origins.pairingSessions[0].collaborative_session_id+', \''+dataSets.origins.section.section_id+'\' '+')', value=`${dataSets.origins.pairingSessions[0].status}`) Create Session
           if user.info.occupation === 'teacher'
             if dataSets.origins.pairingSessions.length > 0 && dataSets.origins.pairingSessions[0].status >= 0
               script(type='text/javascript').

@@ -460,6 +460,8 @@ exports.getSection = async (req, res) => {
   if (!pairingSessions.length)
     pairingSessions = [{ pairing_session_id: -1, status: -1 }];
 
+    console.log(" pairingSessions IT ----------------" )
+
   if (occupation == "teacher") {
     occupation = 0;
 
@@ -544,8 +546,16 @@ exports.getSection = async (req, res) => {
     };
   }
 
+  console.log("  pairingSessions classroom" , pairingSessions)
+
   res.render("classroom", { dataSets, title: section.course_name });
-  }else{
+  }
+  /// branch type = DSBA
+  
+  else{
+
+    console.log("aew DSBA -----------------" )
+
     console.log("OK DSBA")
     let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
@@ -602,6 +612,8 @@ exports.getSection = async (req, res) => {
   
     pairingSessions = [{ pairing_session_id: -1, status: -1 }];
   }
+
+
   if (occupation == "teacher") {
     occupation = 0;
 
@@ -685,7 +697,7 @@ exports.getSection = async (req, res) => {
       }
     };
   }
-  
+
     res.render("collaberative",{ dataSets, title: section.course_name })
   }
 
@@ -2516,7 +2528,7 @@ exports.downloadFile = async (req, res) => {
 };
 
 exports.assignAssignment = async (req, res) => {
-  console.log("assign Assignment")
+  console.log("assign Assignment req" , req.query.assignment_set[0])
   const selectEnrollmentBySectionId =
     "SELECT * FROM enrollment WHERE section_id = " +
     cryptr.decrypt(req.body.assignment_set[0].section_id);
@@ -2565,7 +2577,8 @@ exports.assignAssignment = async (req, res) => {
         assignmentSet[_index];
     }
     
-  }else if(branch_type[0]["branch_type"] == "DSBA"){
+  }
+  else if(branch_type[0]["branch_type"] == "DSBA"){
     for (_index in assignmentSet) {
       assignmentSet[_index].notebook_assignment_id = cryptr.decrypt(
         assignmentSet[_index].notebook_assignment_id
