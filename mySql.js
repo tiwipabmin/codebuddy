@@ -272,6 +272,15 @@ exports.updatePairingSession = (query) => {
   })
 }
 
+exports.updateGroupSession = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function(err, res){
+      if(err) reject('Update failed.');
+      resolve('Update completed.');
+    })
+  })
+}
+
 exports.selectStudent = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
