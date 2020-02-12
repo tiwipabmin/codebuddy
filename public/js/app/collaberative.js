@@ -146,7 +146,7 @@ function set_item_pagination_in_second_container(
             student.enrollment_id +
             "' style='padding-left:15px; padding-right:15px;'></div>"
         );
-        img = $("<img class='ui avatar image' src='images/user_img_0.jpg'/>");
+        img = $("<img class='ui avatar image' src='/images/user_img_0.jpg'/>");
         switch (occupation) {
           case "teacher":
             let right_floated_content = null;
@@ -533,10 +533,11 @@ function set_item_pagination_in_first_container(
                 "<div class='item' style='padding-top:10px; padding-bottom:10px;'></div>"
               );
               div_a = $(
-                "<a href='/project?pid=" +
+                "<a href='/project/" +
                   project.pid +
-                  "&user_role=creator&section_id=" +
+                  "/section/" +
                   section_id +
+                  "/role/creator" +
                   "' class='ui tiny image' ></a>"
               );
               img1 = $(
@@ -550,10 +551,11 @@ function set_item_pagination_in_first_container(
               content = $("<div class='content'></div>");
               grid = $("<div class='ui grid'></div>");
               eleven_wide_column = $(
-                "<div class='eleven wide column'><b style='font-size:1.2em;'><a class='header' href='/project?pid=" +
+                "<div class='eleven wide column'><b style='font-size:1.2em;'><a class='header' href='/project/" +
                   project.pid +
-                  "&user_role=creator&section_id=" +
+                  "/section/" +
                   section_id +
+                  "/role/creator" +
                   "'>" +
                   project.title +
                   "</a></b></div>"
@@ -579,11 +581,12 @@ function set_item_pagination_in_first_container(
             } else {
               item = $("<div class='item' style='padding-top:10px;'></div>");
               div_a = $(
-                "<a class='ui tiny image' href='/project?pid=" +
+                "<a href='/project/" +
                   project.pid +
-                  "&user_role=collaborator&section_id=" +
+                  "/section/" +
                   section_id +
-                  "'></a>"
+                  "/role/creator" +
+                  "' class='ui tiny image' ></a>"
               );
               img1 = $(
                 "<img src='/images/yellow-folder.png', style='position: absolute;'/>"
@@ -597,10 +600,11 @@ function set_item_pagination_in_first_container(
                 "<img class='img-partner ui avatar image' src='/images/user_img_4.jpg', style='width:30px; height:30px; top:-10px;'/>"
               );
               content = $(
-                "<div class='content'><b style='font-size:1.2em;'><a href='/project?pid=" +
+                "<div class='content'><b style='font-size:1.2em;'><a href='/project/" +
                   project.pid +
-                  "&user_role=collaborator&section_id=" +
+                  "/section/" +
                   section_id +
+                  "/role/creator" +
                   "'>" +
                   project.title +
                   "</a></b></div>"

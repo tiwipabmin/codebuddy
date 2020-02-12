@@ -16,8 +16,8 @@ const router = express.Router()
  * @method {GET} return rendered `notebookAssignment.pug`
  * @method {POST} handle create new assignment form on `notebookAssignment.pug` page
  */
-router.get('/', auth.isSignedIn, auth.validateSection, catchErrors(notebookAssignmentController.getNotebookAssignment))
-router.get('/StudentExport', auth.isSignedIn, auth.validateSection, catchErrors(notebookAssignmentController.exportNotebookFileStudent))
+router.get('/', auth.isSignedIn, catchErrors(notebookAssignmentController.getNotebookAssignment))
+router.get('/StudentExport', auth.isSignedIn, catchErrors(notebookAssignmentController.exportNotebookFileStudent))
 router.post('/StudentExport', auth.isSignedIn, catchErrors(notebookAssignmentController.exportNotebookFileStudent))
 router.delete('/deleteAssignment', auth.isSignedIn, catchErrors(notebookAssignmentController.deleteAssignment))
 

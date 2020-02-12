@@ -15,7 +15,7 @@ const router = express.Router()
  * @method {POST} handle create new class form on `collaborative.pug` page
  */
 
-router.get('/getStudentsFromSection', auth.isSignedIn, auth.validateSection, catchErrors(dsbaClassController.getStudentsFromSection))
+router.get('/getStudentsFromSection', auth.isSignedIn, catchErrors(dsbaClassController.getStudentsFromSection))
 router.post('/createGroupRecord', auth.isSignedIn, catchErrors(dsbaClassController.createGroupRecord))
 router.put('/completeGroupSession', auth.isSignedIn,  catchErrors(dsbaClassController.completeGroupSession))
 router.post('/assignAssignment', auth.isSignedIn, catchErrors(dsbaClassController.assignAssignment))
