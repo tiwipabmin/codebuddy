@@ -1058,8 +1058,7 @@ module.exports = (io, client, redis, projects) => {
        * so the score of project must to save once.
        * The line of process is 757 to 903
        **/
-      if (
-        (!empty &&
+      if ((!empty &&
           score == 0 &&
           data.indexOf("(syntax-error)") != -1 &&
           count_error == 0 &&
@@ -1268,7 +1267,12 @@ module.exports = (io, client, redis, projects) => {
           }
         });
       }
-      io.in(projectId).emit("term update", data);
+      console.log('index of U', data.indexOf("U"))
+      if (data.indexOf(".pylintrc") == -1 &&
+      data.indexOf("U") != 16
+      ) {
+        io.in(projectId).emit("term update", data);
+      }
     });
   });
 
