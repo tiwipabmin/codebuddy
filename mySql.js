@@ -38,6 +38,15 @@ exports.isDuplicateClassCode = () => {
   })
 }
 
+exports.selectSectionID = (query) => {
+  return new Promise(function(resolve, reject) {
+    conMysql.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
+  })
+}
+
 exports.selectSection = (query) => {
   return new Promise(function(resolve, reject) {
     conMysql.query(query, function(err, res){
@@ -52,6 +61,15 @@ exports.insertSection = (query, values) => {
     conMysql.query(query, [values], function(err, res){
       if(err) reject(err);
       resolve('Create section complete.')
+    })
+  })
+}
+
+exports.insertBranch = (query, values) => {
+  return new Promise(function(resolve, reject) {
+    conMysql.query(query, [values], function(err, res){
+      if(err) reject(err);
+      resolve('Insert branch type complete.')
     })
   })
 }
@@ -191,6 +209,15 @@ exports.insertPairingRecord = (query, values) => {
   })
 }
 
+exports.insertGroupRecord = (query, values) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, [values], function(err, res){
+      if(err) reject('Create failed.');
+      else resolve('Create completed.');
+    })
+  })
+}
+
 exports.deletePairingRecord = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
@@ -209,6 +236,15 @@ exports.selectPairingSession = (query) => {
   })
 }
 
+exports.selectCollaborativeSession = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function(err, res){
+      if(err) reject(err);
+      else resolve(res);
+    })
+  })
+}
+
 exports.insertPairingSession = (query, values) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, [values], function(err, res){
@@ -218,7 +254,24 @@ exports.insertPairingSession = (query, values) => {
   })
 }
 
+exports.insertGroupSession = (query, values) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, [values], function(err, res){
+      if(err) reject('Create group session date time fail!');
+      else resolve(res.insertId);
+    })
+  })
+}
 exports.updatePairingSession = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function(err, res){
+      if(err) reject('Update failed.');
+      resolve('Update completed.');
+    })
+  })
+}
+
+exports.updateGroupSession = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
       if(err) reject('Update failed.');
@@ -262,5 +315,16 @@ exports.selectTeacher = (query) => {
     })
   })
 }
+
+
+exports.selectBranchType = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
+  })
+}
+
 
 exports.connect = conMysql

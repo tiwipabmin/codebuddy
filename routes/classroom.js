@@ -5,7 +5,12 @@ const express = require('express')
 
 const auth = require('../middlewares/auth')
 const webController = require('../controllers/webController')
+const notebookAssignmentController = require('../controllers/notebookAssignmentController')
 const { catchErrors } = require('../handlers/errorHandlers')
+
+const multer = require('multer')
+
+const upload = multer();
 
 const router = express.Router()
 
@@ -33,6 +38,8 @@ router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
 router.post('/assignAssignment', auth.isSignedIn, catchErrors(webController.assignAssignment))
 router.post('/createPairingRecord', auth.isSignedIn, catchErrors(webController.createPairingRecord))
+router.post('/uploadAssignment',upload.single('file'), auth.isSignedIn, catchErrors(notebookAssignmentController.uploadAssignment))
+
 
 /**
  * Expose `router`

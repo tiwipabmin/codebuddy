@@ -106,6 +106,7 @@ function transformValueTextarea(textarea, func, separator) {
 }
 
 function createAssignment() {
+  console.log("createAssignment")
   $("#assignmentForm").attr({
     action: "/assignment",
     method: "POST"
@@ -133,7 +134,7 @@ function createAssignment() {
   });
 }
 
-function updateAssignment() {
+ function updateAssignment() {
   $("#assignmentForm").attr({
     action: "/assignment/updateAssignment",
     method: "POST"
@@ -159,4 +160,28 @@ function updateAssignment() {
   $("#confirmToCreateAssBtn").attr({
     type: "button"
   });
+}
+
+async function createNotebookAssignment(){
+
+  var formData = new FormData();
+  formData.append('title', $('input[id=assTitle]')[0].value );
+  formData.append('week', $('input[id=assWeek]')[0].value);
+  formData.append('description', $('textarea[id=assignmentDesc]')[0].value);
+  formData.append('file', $('input[id=file_assignment')[0].files[0])
+  formData.append('section_id', $('input[name=sectionId]')[0].value)
+  
+  const options = {
+    method: 'POST',
+    body: formData,
+  };
+
+  fetch('/classroom/uploadAssignment', options)
+  .then((resp) => resp.json()) // Transform the data into json
+  .then(function(response) {
+    if (response.redirect_path) { //optional check to see if a redirect path exists
+      location.href = response.redirect_path;
+    }
+  })
+
 }

@@ -23,6 +23,8 @@ module.exports = (server) => {
         require('./playgroundRemote.js')(io, client, redis, projects)
       } else if(payload.programming_style == 'Individual') {
         require('./playgroundIndividual.js')(io, client, redis, projects)
+      }else if(payload.programming_style == 'Collaborative'){
+        require('./playgroundCollaborative.js')(io, client, redis, projects)
       }
     })
   })

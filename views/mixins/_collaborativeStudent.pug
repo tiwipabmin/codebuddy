@@ -1,0 +1,57 @@
+mixin collaborativeStudent()
+  style.
+    th, td {
+    padding: 10px;
+    border: 1px solid #333;
+    }
+  .ui.small.modal#student_list_modal
+    i.close.icon#close_student_list
+    .header Student List
+    .content
+      input#activeFilter(type='hidden', value='')
+      //- button.ui.active.button#alphabeticalFilter(style="font-size:7px;", value='A-Z') A-Z
+      //- button.ui.button#avgScoreFilter(style="font-size:7px;", value='1-100') 1-100
+      button.ui.right.floated.button#changePair(style='margin-bottom:20px;' onclick='onClickChangePairButton('+dataSets.origins.pairingSessions[0].pairing_session_id+', \"'+dataSets.origins.section.section_id+'\")') Change pair
+      //- button.ui.right.floated.button#autoPairing(style='margin-bottom:20px; display:none;' onclick='onClickAutoPairingBtn(\"pair\", '+dataSets.origins.pairingSessions[0].pairing_session_id+', \"'+dataSets.origins.section.section_id+'\")') Auto Pairing
+      .ui.fluid.container.segment.student-list-container.box
+        .ui.middle.aligned.list.student-container
+          //- .ui.segment
+            //- .ui.two.column.very.relaxed.grid
+          table
+            tr
+              td(colspan='2' rowspan='2') Rows 1-2 Columns 1-2
+              td Row 1 Column 3
+            tr
+              td Row 2 Column 3
+
+                //- font No student.
+            //- .ui.vertical.divider
+            //-   i.line.chart.icon
+      .ui.basic.center.aligned.segment
+        .actions
+          button.ui.button.approve.blue#create-group(type='submit', value='selectGroup') Create
+          button.ui.button.approve.green#confirm-group(type='submit', value='create') Confirm
+          .ui.button.approve.red#cancel-pairing(data-value='cancel' onclick='on_click_cancel_pairing_button()') Cancel
+
+  .ui.small.modal#partner_selection_modal
+    .header Select partner
+    .content
+      .ui.top.attached.tabular.menu
+        a.item.active.psm#search(data-tab="search", onclick='onClickPartnerSelectionMethod('+`$(this).attr('id')`+')') Student list
+    
+      .ui.bottom.attached.tab.segment.active.psm.search(data-tab="search")
+
+      .item
+        .content
+          .description
+            button.ui.labeled.icon.button#back-to-student-list-modal
+              i.reply.icon
+              font Back
+            button.ui.labeled.icon.button#group-student
+              i.reply.icon
+              font Group
+      
+            
+
+
+

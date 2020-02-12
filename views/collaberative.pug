@@ -1,41 +1,39 @@
 extends layout/layout.pug
 
 block script
-  script(src='/js/app/classroom.js')
+  script(src="/js/app/collaberative.js")
   script(src='/js/app/assignment.js')
   script(src='//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js') 
   script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
   link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
   link(rel='stylesheet' href='/css/main.css')
-  script(type='text/javascript').
-    $(document).ready(function () {
-      setClassroomDetail('!{dataSets.origins.section.day}', '!{dataSets.origins.section.time_start}', '!{dataSets.origins.section.time_end}')
-    });
+  //- script(type='text/javascript').
+  //-   $(document).ready(function () {
+  //-     setClassroomDetail('!{dataSets.origins.section.day}', '!{dataSets.origins.section.time_start}', '!{dataSets.origins.section.time_end}')
+  //-   });
 
   style.
     @media (min-height: 200px) {
-      .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-        position: fixed;
-        margin-top: 20px;
-        bottom: 0;
-        width: 100%;
-      }
+    .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+    position: fixed;
+    margin-top: 20px;
+    bottom: 0;
+    width: 100%;
+    }
     }
 
+    
 block content
   if user.info.occupation === 'teacher'
-    +pairStudent(user, dataSets.origins.students, dataSets.origins.pairingSessions, dataSets.origins.section)
-    +alertModal()
+    +notebookassignmentModal()
+    +collaborativeStudent(user, dataSets.origins.students, dataSets.origins.pairingSessions, dataSets.origins.section)
     +confirmModal()
     +assignmentManagementModal()
-    +assignmentEndTimeModal()
-    +settingsModal()
-    +assignmentModal()
-    +pairingSettingsModal()
+    +alertModal()
 
   .ui.raised.very.padded.container
     .ui.centered.grid(style='padding-top:20px;')
-      +detailSection()
+      +detailCollaborativeSection()
       .ten.wide.column#first_container
         .ui.segment#segment_in_first_container
           .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_first_container(style='padding-top:20px; margin-bottom:20px;')
@@ -67,29 +65,18 @@ block content
                   $('#weeks').dropdown();
           if user.info.occupation === 'teacher'
             .ui.secondary.pointing.menu#uspm
-              a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Setting
-              a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
+              a.item.active.uspm#c_r_u_d(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Notebook Assignment
               a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Manage Assignment
-              //- a.item.uspm#uploadNotebookAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Upload Notebook Assignment
-
+          
             .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
-              button.ui.button.blue(onclick='showAssingmentModal()') Create
+              button.ui.button.blue(onclick='showNotebookAssingmentModal()') Create
               button.ui.button.approve.blue#delete_assignment_button Delete
-
-            .ui.segment.uspm#action_checkbox_segment(style='display: none')
-              button.ui.button.approve.blue#check_all_of_box(onclick='checkbox_event('+`${dataSets.reforms.assignments}`+', \"-1week\", 1)') Check All Box
-              button.ui.button.approve.blue#clear_checkbox(onclick='checkbox_event('+`${dataSets.reforms.assignments}`+', \"-1week\", 0)') Clear Checkbox
 
             .ui.segment.uspm#manageAssignment_segment(style='display: none')
               button.ui.button.approve.blue#assign_button Assign
-              button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_assignment_button()') Enable Assignment
-              button.ui.button.approve.blue#disable_assignment(onclick='on_click_disable_assignment_button()') Disable Assignment
-            
-            //- form(action="/classroom/uploadAssignment",enctype="multipart/form-data" , method="post")
-            //-   .ui.segment.uspm#uploadNotebookAssignment_segment(style='display: none')
-            //-     input(type="file", name="file" id='file_assignment' )
-            //-     button.ui.button.approve.blue#upload_nb_assignment(type="submit" Upload a file) Upload
-              
+              //- button.ui.button.approve.blue#enable_assignment(onclick='on_click_enable_notebook_assignment_button()') Enable Assignment
+              //- button.ui.button.approve.blue#disable_assignment Disable Assignment
+
             .ui.section.divider#divider_in_first_container
 
             if dataSets.origins.assignments.length > 0
@@ -128,15 +115,14 @@ block content
           .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_third_container(style='padding-top:20px; margin-bottom:20px;')
             .column
               if user.info.occupation === 'teacher'
-                h1.ui.header#headerContainer Pairing Session
+                h1.ui.header#headerContainer Group Session
               else
                 h1.ui.header#headerContainer Assignment
-            //- .column
-            //-   .ui.button.approve.teal#resetPair-button Reset Pair
+          
             .right.column
               if user.info.occupation === 'teacher'
                 a.right
-                  button.ui.button.approve.green#newPairingSession(style='float: right;' onclick='onClickCreateSession('+dataSets.origins.pairingSessions[0].pairing_session_id+', \''+dataSets.origins.section.section_id+'\', '+dataSets.origins.pairingSessions[0].status+')', value=`${dataSets.origins.pairingSessions[0].status}`) Create Session
+                  button.ui.button.approve.green#newPairingSession(style='float: right;' onclick='onClickCreateSession('+dataSets.origins.pairingSessions[0].collaborative_session_id+', \''+dataSets.origins.section.section_id+'\' '+')', value=`${dataSets.origins.pairingSessions[0].status}`) Create Session
           if user.info.occupation === 'teacher'
             if dataSets.origins.pairingSessions.length > 0 && dataSets.origins.pairingSessions[0].status >= 0
               script(type='text/javascript').
@@ -145,7 +131,7 @@ block content
                   on_click_page_number_in_third_container(1)
                   $('.ui.pointing.dropdown').dropdown();
                 })
-
+          
             else
               p.text-center#no_session No session.
           else
@@ -160,4 +146,3 @@ block content
                 })
             else
               p.text-center No assignment.
-      <br><br><br>

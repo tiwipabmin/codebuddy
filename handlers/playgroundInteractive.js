@@ -104,7 +104,7 @@ module.exports = (io, client, redis, projects) => {
           active_user: active_user
         };
         client.emit("role selection", { partner: partner });
-
+        console.log("line 107 : call initRemainder")
         initRemainder();
       } else {
         if (projects[projectId].active_user[curUser] === undefined) {
@@ -540,6 +540,7 @@ module.exports = (io, client, redis, projects) => {
         var editorJson = {};
         if (obj.editor != undefined) {
           var editorJson = JSON.parse(obj.editor);
+          console.log("editorJson", editorJson)
         }
         editorJson[editorName] = payload.editor;
         redis.hset(
@@ -804,12 +805,16 @@ module.exports = (io, client, redis, projects) => {
    * @param {Object} payload code from editor
    */
   client.on("run code", payload => {
+    console.log(" run code 2 ")
     var codeFocusBlock = payload.codeFocusBlock;
+    console.log("codeFocusBlock ", codeFocusBlock)
     focusBlock = payload.focusBlock;
+    console.log("focusBlock ", focusBlock)
     isSpawnText = false;
 
     io.in(projectId).emit("focus block", focusBlock);
 
+    // save code
     fs.writeFile(
       "./public/project_files/" + projectId + "/main.py",
       codeFocusBlock,
@@ -834,6 +839,7 @@ module.exports = (io, client, redis, projects) => {
           projectId +
           "/main.py').read())\n"
       );
+      console.log("pythonProcess: ", pythonProcess)
     }
 
     // setTimeout(runpty.kill.bind(runpty), 3000);
@@ -848,6 +854,7 @@ module.exports = (io, client, redis, projects) => {
    * restart a kernel when user click on reKernel from front-end
    */
   client.on("restart a kernel", payload => {
+    console.log("restart a kernel")
     executionCount = 0;
     spawnPython();
     detectOutput();
@@ -856,10 +863,12 @@ module.exports = (io, client, redis, projects) => {
 
   function spawnPython() {
     pythonProcess = childprocess.spawn("python", ["-i"], {});
+    console.log(" spawnPython pythonProcess " , pythonProcess)
     isSpawnText = true;
   }
 
   function detectOutput() {
+    console.log("detectOutput()")
     /**
      * detection output is a execution code
      */
@@ -894,6 +903,7 @@ module.exports = (io, client, redis, projects) => {
        * execute code process finised
        */
       if (drawArrow == ">>>" && !isSpawnText) {
+        console.log(" execute code process finised")
         if (bufferOutput.error == "" && bufferOutput.output != "") {
           output = bufferOutput.output;
         } else {
@@ -1064,13 +1074,13 @@ module.exports = (io, client, redis, projects) => {
 
     Object.keys(code).forEach(function(key) {
       args.push("./public/project_files/" + projectId + "/" + key + ".py");
-      fs.writeFile(
-        "./public/project_files/" + projectId + "/" + key + ".py",
-        code[key],
-        err => {
-          if (err) throw err;
-        }
-      );
+      // fs.writeFile(
+      //   "./public/project_files/" + projectId + "/" + key + ".py",
+      //   code[key],
+      //   err => {
+      //     if (err) throw err;
+      //   }
+      // );
     });
 
     if (process.platform === "win32") {

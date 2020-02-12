@@ -18,6 +18,9 @@ router.use('/notifications', require('./notifications'))
 router.use('/history', require('./history'))
 router.use('/api', require('./api'))
 router.use('/assignment', require('./assignment'))
+router.use('/notebookAssignment', require('./notebookAssignment'))
+router.use('/dsbaClass', require('./dsbaClass'))
+
 
 router.get('/editprofile', (req, res) => {
   res.render('editprofile')

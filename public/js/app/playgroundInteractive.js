@@ -64,6 +64,8 @@ function getParameterByName(name) {
  * Initiate local editor
  */
 var projectFiles = JSON.parse(document.getElementById("projectFiles").value);
+console.log("projectFiles")
+console.log(projectFiles)
 var currentTab = "main";
 var partnerTab = "main";
 var isCloseTab = false;
@@ -130,6 +132,8 @@ function setEditor(fileName) {
       prevFocus: prevFocusBlock,
       newFocus: detectFocusBlock
     });
+    var divisionCodeBlock = document.getElementById("main-div-output").value;
+    console.log(" divisionCodeBlock" , divisionCodeBlock)
     console.log(`Detect focus block!! ${detectFocusBlock}`);
   });
   editors.push({ blockId: fileName, editor: cm });
@@ -180,17 +184,20 @@ webrtc.on("readyToCall", function() {
  */
 socket.on("init state", payload => {
   if (payload.editor != null) {
+    // console.log("payload.editor ", payload.editor )
     var editorValues = JSON.parse(payload.editor);
+    // console.log("editorValues", editorValues)
     projectFiles.forEach(setEditorValue);
   } else {
     editors[0].editor.setValue("");
   }
-
+ 
   function setEditorValue(fileName) {
     if (editorValues != null) {
       var blockObj = editors.find(obj => {
         return obj.blockId == fileName;
       });
+      console.log("editors", editors)
       blockObj.editor.setValue(editorValues[fileName]);
       currentFileName = fileName;
     }
@@ -223,6 +230,8 @@ socket.on("init reviews", payload => {
 socket.on("update block", payload => {
   var blockId = payload.blockId;
   var index = payload.index;
+  console.log("index ", index)
+  console.log("blockId ", blockId)
   var action = payload.action;
 
   if (action == "add") {
@@ -309,7 +318,9 @@ socket.on("update block", payload => {
       });
     });
 
+    console.log("editors ", editors)
     editors.splice(index, 0, { blockId: blockId, editor: cm });
+    console.log("editors splice ", editors)
     projectFiles.splice(index, 0, blockId);
     setOnChangeEditer(blockId);
     setOnDoubleClickEditor(blockId);
@@ -578,6 +589,7 @@ socket.on("is typing", payload => {
 
 function addDivOutput(textOutput, blockId) {
   var divisionCodeBlock = document.getElementById(blockId + "-div-output");
+  console.log(" divisionCodeBlock" , divisionCodeBlock)
   var divisionOutput = document.createElement("div");
   var prefomattedText = document.createElement("pre");
 
@@ -590,6 +602,7 @@ function addDivOutput(textOutput, blockId) {
 }
 
 socket.on("show output", payload => {
+
   var textOutput = document.createTextNode(payload);
   var blockId = editors[executingBlock].blockId;
   if (blockId in output) {
@@ -597,15 +610,20 @@ socket.on("show output", payload => {
     var preformattedText = document.getElementById(blockId + "-pre");
     preformattedText.removeChild(preformattedText.childNodes[0]);
     preformattedText.appendChild(output[blockId]);
+    console.log("if -------------------")
+
   } else {
     output[blockId] = textOutput;
     addDivOutput(output[blockId], blockId);
     console.log("Output : " + payload);
+    console.log("else -------------------")
+
   }
 });
 
 socket.on("update execution count", payload => {
   var blockId = editors[executingBlock].blockId;
+  console.log("update execution count ---- " , blockId)
   document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
 });
 
@@ -641,13 +659,16 @@ socket.on("focus block", payload => {
  * Run code
  */
 function runCode() {
+  console.log("runCode  1 in js")
+
   socket.emit("run code", {
     codeFocusBlock: getCodeFocusBlock(),
-    focusBlock: detectFocusBlock
+    focusBlock: detectFocusBlock ,
+
   });
-  socket.emit("save lines of code", {
-    uid: uid
-  });
+  // socket.emit("save lines of code", {
+  //   uid: uid
+  // });
 }
 
 /**
@@ -658,6 +679,7 @@ function reKernel() {
 }
 
 socket.on("restart a kernel", payload => {
+
   /**
    * remove output div
    **/
@@ -1215,9 +1237,12 @@ function setOnChangeEditer(fileName) {
   var blockObj = editors.find(obj => {
     return obj.blockId == fileName;
   });
+
+  console.log("blockObj", blockObj)
   blockObj.editor.on("change", (ins, data) => {
     var text = data.text.toString().charCodeAt(0);
-    console.log("data.text.toString() : " + data.text.toString());
+    console.log("data.text.toString() : " + data.text.toString())
+    console.log("data.text.toString() : " + text)
     var enterline = parseInt(data.to.line) + 1;
     var remove = data.removed;
     var isEnter = false;
@@ -1350,6 +1375,7 @@ function getCodeFocusBlock() {
 }
 
 function newEditorFacade(fileName) {
+  console.log("fileName", fileName)
   setEditor(fileName);
   setOnChangeEditer(fileName);
   setOnDoubleClickEditor(fileName);

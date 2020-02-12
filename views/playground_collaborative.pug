@@ -1,0 +1,139 @@
+extends layout/layout.pug
+
+block script
+  script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
+  link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
+  link(rel='stylesheet' href='/css/main.css')
+  link(rel='stylesheet' href='/codemirror/lib/codemirror.css')
+  link(rel='stylesheet' href='/codemirror/addon/selection/active-line.js')
+  link(rel='stylesheet' href='/codemirror/theme/blackboard.css')
+  link(rel='stylesheet' href='/codemirror/theme/seti.css')
+  link(rel='stylesheet' href='/codemirror/theme/material.css')
+
+  //- style.
+  //-   @media (min-height: 200px) {
+  //-   .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+  //-   position: fixed;
+  //-   margin-top: 20px;
+  //-   bottom: 0;
+  //-   width: 100%;
+  //-   }
+  //-   }
+
+block content
+  +assignmentModal()
+  +alertModal()
+
+  .ui.segment.container.notebook_app.command_mode
+    .ui.two.column.grid
+      .middle.aligned.column
+        h1.ui.header !{dataSets.origins.notebookAssignment.title}
+        .right.aligned.column
+          button.ui.icon.button.pink.float-right(id='exportNotebookFileStudent' onClick='exportNotebookFileStudent("'+dirPath+'","'+dataSets.origins.notebookAssignment.notebook_assignment_id+'")' data-tooltip="Export" data-inverted="")
+              i.fa.fa-folder.icon
+          button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
+              i.plus.icon
+          button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
+              i.play.icon
+        input(type='hidden' id='pid' value=`${dataSets.origins.project.pid}`)
+
+    .ui
+      .column(style="display: flex;")
+        .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")
+          - for (var i=0 ; i < `${cells.length}` ; i++)
+            if `${cells[i]["cellType"]}` === "markdown"
+              .cell.text_cell.rendered(id=`${cells[i]["blockId"]}-div`)
+                  .inner_cell
+                    .text_cell_render.rendered_html(style="padding-left:8em; padding-right:25px; margin-top: 25px;")
+                      
+                          p !{cells[i]["source"]} 
+                          textarea(id=`${cells[i]["blockId"]}` style="display:none;").show      
+            else if `${cells[i]["cellType"]}` === "code"
+              .cell.code_cell.rendered(id=`${cells[i]["blockId"]}-div`)
+                .input(id=`${cells[i]["blockId"]}-input`)
+                  .prompt_container
+                    .prompt.input_prompt(id=`${cells[i]["blockId"]}-in`)
+                      bdi In &nbsp; 
+                      bdi [!{cells[i]["executionCount"]}]:
+                  .inner_cell
+                    .input_area(style="margin-top: 25px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
+                      textarea(id=`${cells[i]["blockId"]}`).show      
+                if `${cells[i]["outputs"].length}` != 0
+                  .output(id=`${cells[i]["blockId"]}-output`)
+                    .output_subarea.output_text(style="padding-left:8em; padding-right:25px;")
+                      - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
+                          if `${cells[i]["outputs"][y]["text"].length}` != 0
+                            div(id=i+'-div-output' style="background-color: #f5f5f5; margin-top: 25px;margin-bottom: 1em; padding-left:2em;padding-top:1em;padding-bottom:1em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
+                                - for(let z = 0; z < `${cells[i]["outputs"][y]["text"].length}`; z++)
+                                  | !{cells[i]["outputs"][y]["text"][z]} <br>  
+          input(type='hidden' id='projectFiles' value=`${JSON.stringify(cells)}`)
+          input(type='hidden' id='notebookAssingmentId' value=`${dataSets.origins.notebookAssignment.notebook_assignment_id}`)
+          //- p !{cells[51]["outputs"][0]["data"]}
+
+
+    .ui.chatbox(id="live-chat")
+        header.clearfix
+          eight.wide.column(style="float: left;")
+            i.comments.icon(style="float: left;")
+            p Chat
+          eight.wide.column(style="float: right;")
+            i.angle.up.icon(id="angle-up")
+        .chat
+          .chat-history
+            .ui.items.message-list(id="chatheight")
+              if dataSets.reforms.messages.length == 0
+                .ui.item
+                | Send message to your pair.
+              else
+                each message in dataSets.reforms.messages
+                  .ui.item
+                    if (message.uid != user._id)
+                      img.ui.avatar.image(src=partner_img)
+                      .curve-box #{message.message}
+                    else
+                      //- img.ui.avatar.image(src=`${user.img}`)
+                      .content
+                      .curve-box-user #{message.message}
+                      //- a.header Thara
+
+          .ui.chatbottom
+            p#show-is-typing
+              .ui.form(action='/project' method='POST')
+                .field
+                  .ui.grid
+                    .twelve.wide.column
+                      input.ui.input(type='text' id="inputMessage" name='message' placeholder='Type here')
+                    .four.wide.column
+                      button.ui.button.icon(type='submit' onClick='sendMessage()')
+                        i.send.icon
+          .twelve.wide.column.right
+
+    a.button.ui.labeled.icon.button(href='/classroom?section_id='+dataSets.origins.section.section_id, style='margin-top:20px;')
+      i.reply.icon
+      font Back
+
+  style(type="text/css").
+    .CodeMirror {
+      border: 1px solid #eee;
+      height: auto;
+      overflow: hidden;
+    }
+
+    .CodeMirror-scroll {
+      height: auto;
+    }
+
+    .CodeMirror-gutters {
+      min-height: auto;
+    }
+
+    .CodeMirror-gutter {
+      height: auto;
+    }
+
+  script(src='/js/static/socket.io.min.js')
+  script(src='/xterm/xterm.js')
+  script(src='/codemirror/lib/codemirror.js')
+  script(src='/codemirror/mode/python/python.js')
+  script(src='/js/app/notebookAssignment.js')
+

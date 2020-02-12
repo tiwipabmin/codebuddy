@@ -94,3 +94,18 @@ $RECYCLE.BIN/
 handlers/socket.js
 
 \.idea/
+package-lock.json
+
+public/notebookAssignment/nb_2019-11-03_14-31-80225.ipynb
+public/notebookAssignment/nb_2019-11-03_14-41-6786.ipynb
+public/notebookAssignment/nb_2019-11-03_16-9-15874.ipynb
+public/project_files/rqVLZvjvPV/g13tky8b6.py
+public/project_files/rqVLZvjvPV/x7ddsijif.py
+package-lock.json
+package-lock.json
+public/project_files/icBpyHyop9/main.py
+public/project_files/iUSlxbz5K/main.py
+public/project_files/oYDxw0O76S/main.py
+*.ipynb
+*.py
+mySql.js
