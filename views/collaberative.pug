@@ -82,7 +82,7 @@ block content
             if dataSets.origins.assignments.length > 0
               script(type='text/javascript').
                 $(document).ready(function() {
-                  on_click_weeks_dropdown('-1week', !{dataSets.reforms.assignments}, `!{user.username}`, `!{user.img}`, `!{dataSets.origins.pairingSessions[0].pairing_session_id}`, 0)
+                  on_click_weeks_dropdown('-1week', !{dataSets.reforms.assignments}, `!{user.username}`, `!{user.img}`, `!{dataSets.origins.pairingSessions[0].collaborative_session_id}`, 0)
                 })
             else
               p.text-center#no_assignment No assignment.
@@ -91,7 +91,7 @@ block content
             if dataSets.origins.projects.length > 0
               script(type='text/javascript').
                 $(document).ready(function() {
-                  on_click_weeks_dropdown('-1week', !{dataSets.reforms.projects}, `!{user.username}`, `!{user.img}`, `!{dataSets.origins.pairingSessions[0].pairing_session_id}`, 1)
+                  on_click_weeks_dropdown('-1week', !{dataSets.reforms.projects}, `!{user.username}`, `!{user.img}`, `!{dataSets.origins.pairingSessions[0].collaborative_session_id}`, 1)
                 })
             else
               p.text-center No project.  

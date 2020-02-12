@@ -580,6 +580,8 @@ function on_click_confirm_button(parameters) {
     $("#global_loader").attr({
       style: "display: block; position: fixed;"
     });
+
+   
     $.post("/classroom/assignAssignment", parameters, function(data) {
       var res_status = data.res_status;
       if (
@@ -1074,6 +1076,9 @@ function showStudentList(
     pairingSessionId: pairingSessionId,
     command: command
   };
+
+  console.log("parameter ", parameter)
+
   $.get("/classroom/getStudentsFromSection", parameter, function(data) {
     let count = 0;
     const students = data.students;
@@ -1290,7 +1295,14 @@ function onClickCreateSession(
   section_id,
   pairing_session_status
 ) {
+
+  //pairing_session_status ไม่ได้ใช้
   console.log("onClickCreateSession IT")
+
+  console.log("pairing_session_id ", pairing_session_id)
+  console.log("section_id ", section_id)
+  console.log("pairing_session_status ", pairing_session_status)
+
   if ($("#newPairingSession").attr("value") <= 0) {
     pairingOrViewingisHided("pair");
     showStudentList("pair", {}, {}, pairing_session_id, section_id);

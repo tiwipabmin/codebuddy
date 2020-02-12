@@ -948,6 +948,7 @@ exports.updatePairingSession = async (req, res) => {
       sectionId +
       " ORDER BY ps.pairing_session_id DESC";
     pairingSessions = await conMysql.selectPairingSession(queryPairingSession);
+    console.log("pairingSessions ", pairingSessions)
   } else {
     resStatus = "Update a pairing date time status failed.";
   }
@@ -2168,7 +2169,6 @@ exports.getStudentsFromSection = async (req, res) => {
   let partnerKeys = JSON.parse(req.query.partnerKeys);
   let pairingObjectives = JSON.parse(req.query.pairingObjectives);
   let pairingSessionId = req.query.pairingSessionId;
-  console.log("pairingSessionId ", pairingSessionId)
   let command = req.query.command;
   let sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
   let queryStudent =
@@ -2209,6 +2209,7 @@ exports.getStudentsFromSection = async (req, res) => {
       partnerKeys[resStudents[index].enrollment_id] = -1;
       pairingObjectives[resStudents[index].enrollment_id] = -1;
     }
+    console.log("partnerKeys ", partnerKeys)
   } else if (command == "view") {
     let queryPairingRecord =
       "SELECT * FROM pairing_record WHERE pairing_session_id = " +
@@ -2528,7 +2529,7 @@ exports.downloadFile = async (req, res) => {
 };
 
 exports.assignAssignment = async (req, res) => {
-  console.log("assign Assignment req" , req.query.assignment_set[0])
+  console.log("assign Assignment req" , req.body)
   const selectEnrollmentBySectionId =
     "SELECT * FROM enrollment WHERE section_id = " +
     cryptr.decrypt(req.body.assignment_set[0].section_id);
@@ -2622,6 +2623,7 @@ exports.assignAssignment = async (req, res) => {
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = " +
     pairingSessionId;
   var students = await conMysql.selectStudent(selectStudent);
+  console.log("students ", students)
   var creator = "username@Codebuddy";
   var collaborator = "examiner@codebuddy";
   var cloneStudents = {};
@@ -2646,6 +2648,7 @@ exports.assignAssignment = async (req, res) => {
     cloneStudents[students[_index].enrollment_id] = students[_index];
   }
 
+  console.log("cloneStudents ", cloneStudents)
   tempStudents = Object.assign({}, cloneStudents);
   if (
     proStyle === "Remote" ||
@@ -2657,6 +2660,9 @@ exports.assignAssignment = async (req, res) => {
     // console.log(`proStyle === Remote || 
     // proStyle === Co-located ||
     // proStyle === Interactive`)
+    
+    console.log("tempStudents ", tempStudents)
+
     for (key in tempStudents) {
       if (tempStudents[key].role == "host") {
         partnerKeys[key] = tempStudents[key].partner_id;
@@ -2681,6 +2687,7 @@ exports.assignAssignment = async (req, res) => {
     }
   }
 
+console.log("partnerKeys ", partnerKeys)
   let findProject = {};
 
   let count = 0;
@@ -2696,6 +2703,9 @@ exports.assignAssignment = async (req, res) => {
           /*
           * assignment is a remote pair-programming or conventional pair-programming.
           */
+         console.log(" cloneStudents[key].username ",  cloneStudents[key])
+         console.log("assignmentSet[_index].notebook_assignment_id ", assignmentSet[_index].assignment_id)
+
           findProject = await Project.findOne({
             $or: [
               {
@@ -2724,6 +2734,7 @@ exports.assignAssignment = async (req, res) => {
               }
             ]
           });
+          console.log("key ", key)
             if (findProject == null) {
               count++;
               assignment_of_each_pair[key].push(
@@ -2731,6 +2742,9 @@ exports.assignAssignment = async (req, res) => {
               );
             } 
           
+            console.log("assignment_of_each_pair", assignment_of_each_pair)
+
+            
         }else if(branch_type[0]["branch_type"] == "DSBA"){
           /*
           * assignment is a interactive.
@@ -2769,6 +2783,7 @@ exports.assignAssignment = async (req, res) => {
               assignmentSet[_index].notebook_assignment_id
             );
           }
+
         
         }
         
@@ -2776,6 +2791,7 @@ exports.assignAssignment = async (req, res) => {
         /*
          * assignment is a individual pair-programming.
          */
+        
         findProject = await Project.findOne({
           $or: [
             {
@@ -2790,7 +2806,7 @@ exports.assignAssignment = async (req, res) => {
             }
           ]
         });
-
+      
         if (findProject == null) {
           count++;
           assignment_of_each_pair[key].push(
@@ -2804,6 +2820,7 @@ exports.assignAssignment = async (req, res) => {
     }
   }
 
+  console.log("findProject ", findProject)
   let date_time = new Date();
   let str_date_time = date_time.toString();
   let split_date_time = str_date_time.split(" ");

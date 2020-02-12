@@ -12,10 +12,10 @@ function on_click_weeks_dropdown(
   assignment_set,
   username,
   img,
-  pairing_session_id,
+  collaborative_session_id,
   opt
 ) {
-  // console.log('pairing_session_id, ', pairing_session_id)
+  console.log('collaborative_session_id, ', collaborative_session_id)
   assignment_set = assignment_set;
   let res_obj = get_items_of_week(assignment_set, 5, id);
   let assignment_of_week_ = res_obj.items_of_week;
@@ -35,13 +35,13 @@ function on_click_weeks_dropdown(
     "on_click_assign_button(" +
       JSON.stringify(JSON.stringify(assignment_of_week_)) +
       ", " +
-      pairing_session_id +
+      collaborative_session_id +
       ")"
   );
-  $("#delete_assignment_button").attr(
-    "onclick",
-    "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
-  );
+  // $("#delete_assignment_button").attr(
+  //   "onclick",
+  //   "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
+  // );
   $("div").remove("#assignment_pagination");
   if (pagination[pagination.length - 1] == 1) {
     pagination = [];
@@ -1146,9 +1146,10 @@ function showStudentList(
     command: command
   };
 
+  console.log("parameter ",parameter)
+
       $.get("/dsbaClass/getStudentsFromSection", parameter , function(data) {
 
-        let count = 0;
         let students = data.students
         let group = []
 
@@ -1248,7 +1249,7 @@ function groupStudent(studentsGroup){
   }
 
   function on_click_confirm_button(parameters) {
-
+    console.log("parameters 4", parameters)
     const message = $("#confirm-message").attr("value");
   
     if (message == "Are you sure you want to create new group session?") {
@@ -1257,28 +1258,57 @@ function groupStudent(studentsGroup){
         //   style: "display: block; position: fixed;"
         // });
 
-        $.get("/dsbaClass/createGroupRecord", parameters , function(data) {
-          const status = data.status;
-          const groupSession = JSON.parse(data.groupSession);
-          const sectionId = data.sectionId;
-          collaborativeSessionId = data.collaborativeSessionId
-          console.log(" status " , status )
 
-           if (status == "Please group all students!") {
+        $.post("/dsbaClass/createGroupRecord", parameters , function(data) {
+          console.log("data ", data)
+          let status = data.status;
+          let collaborativeSession = JSON.parse(data.collaborativeSession)
+          let sectionId = data.sectionId;
+          let weeklyDatas = JSON.parse(data.weeklyDatas);
+          
+
+          if (status == "Please pair all students!") {
             alert(status);
             $("#student_list_modal").modal("show");
-          }
-          else if(status == "Confirm completed.") {
-
+          }else if(status == "Confirm completed."){
             $("#no_session").empty();
-            
+            $("#menu_week").empty();
+            create_weeks_dropdown(
+              "#menu_week",
+              collaborativeSession[0].collaborative_session_id,
+              weeklyDatas
+            );
+            $("#weeks").dropdown();
+            on_click_weeks_dropdown(
+              "-1week",
+              JSON.parse(weeklyDatas.assignments),
+              weeklyDatas.username,
+              weeklyDatas.img,
+              collaborativeSession[0].collaborative_session_id,
+              0
+            );
+
             set_item_pagination_in_third_container(
-              groupSession,
+              collaborativeSession,
               sectionId,
               "teacher"
             );
+            on_click_page_number_in_third_container(1);
+
             $(".ui.pointing.dropdown").dropdown();
-         
+
+            $("#newPairingSession").attr(
+              "onclick",
+              "onClickCreateSession(" +
+              collaborativeSession[0].collaborative_session_id +
+                ', "' +
+                sectionId +
+                '", ' +
+                collaborativeSession[0].status +
+                ")"
+            );
+            $("#newPairingSession").attr("value", 1);
+
           }
         });
 
@@ -1289,32 +1319,36 @@ function groupStudent(studentsGroup){
       else if (
         message == "Are you sure you want to complete this group session?"
       ) {
-        console.log("parameters  " ,parameters )
-        // $("#global_loader").attr({
-        //   style: "display: block; position: fixed;"
-        // });
-        $.get("/dsbaClass/completeGroupSession", parameters , function(data) {
-
+        console.log("parameters 2 " ,parameters )
+        $("#global_loader").attr({
+          style: "display: block; position: fixed;"
+        });
+        $.ajax({
+          url: "/dsbaClass/completeGroupSession",
+          type: "put",
+          data: parameters,
+          success: function(data) {
             let resStatus = data.resStatus;
+            let collaborativeSession = JSON.parse(data.collaborativeSession);
             let sectionId = data.sectionId;
-            console.log("resStatus " , resStatus)
             if (resStatus == "Update completed.") {
-              // set_item_pagination_in_third_container(
-              //   pairingSessions,
-              //   sectionId,
-              //   "teacher"
-              // );
-              // on_click_page_number_in_third_container(1);
-              // $("#newPairingSession").attr("value", 0);
-              // $("#confirm-pairing").attr("value", "create");
-            } 
-            // else {
-            //   alert(resStatus);
-            // }
-            // $("#global_loader").attr({
-            //   style: "display: none; position: fixed;"
-            // });
-          });
+              set_item_pagination_in_third_container(
+                collaborativeSession,
+                sectionId,
+                "teacher"
+              );
+              on_click_page_number_in_third_container(1);
+              $("#newPairingSession").attr("value", 0);
+              $("#confirm-pairing").attr("value", "create");
+            } else {
+              alert(resStatus);
+            }
+            $("#global_loader").attr({
+              style: "display: none; position: fixed;"
+            });
+          }
+        });
+        
         
       } 
       else if (
@@ -1360,6 +1394,7 @@ function onClickCompletedSessionMenu(collaborative_session_id, section_id) {
     section_id: section_id,
     status: 0
   });
+ 
   $("#confirm-button").attr(
     "onclick",
     "on_click_confirm_button(" + parameters + ")"
@@ -1421,10 +1456,10 @@ function onClickAssign(
   $("#confirm-modal").modal("show");
 }
 
-function on_click_assign_button(assignment_of_week, pairing_session_id) {
+function on_click_assign_button(assignment_of_week, collaborative_session_id) {
   
   console.log(" on_click_assign_button " ,assignment_of_week )
-  console.log(" pairing_session_id " ,pairing_session_id )
+  console.log(" pairing_session_id " ,collaborative_session_id )
 
   assignment_of_week = JSON.parse(assignment_of_week);
   let assignment_is_selected = [];
@@ -1440,8 +1475,9 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
   if (assignment_is_selected.length) {
     let parameters = JSON.stringify({
       assignment_set: assignment_is_selected,
-      pairing_session_id: pairing_session_id
+      collaborative_session_id: collaborative_session_id
     });
+    
     $("#confirm-button").attr(
       "onclick",
       "on_click_confirm_button(" + parameters + ")"
@@ -1703,7 +1739,10 @@ function on_click_button_in_uspm(id) {
   });
 }
 
-function create_weeks_dropdown(id, pairing_session_id, dataSets) {
+function create_weeks_dropdown(id, collaborative_session_id, dataSets) {
+ console.log("dataSets ", dataSets)
+ console.log("id ", id)
+ console.log("collaborative_session_id ", collaborative_session_id)
   $("" + id).append(
     "<div class='item' id='-1week' data-value='-1' onclick='on_click_weeks_dropdown(\"-1week\", " +
       dataSets.assignments +
@@ -1712,7 +1751,7 @@ function create_weeks_dropdown(id, pairing_session_id, dataSets) {
       '", "' +
       dataSets.img +
       '", ' +
-      pairing_session_id +
+      collaborative_session_id +
       ", 0)'>All</div>"
   );
   dataSets.weeks.forEach(function(e) {
@@ -1730,7 +1769,7 @@ function create_weeks_dropdown(id, pairing_session_id, dataSets) {
         '", "' +
         dataSets.img +
         '", ' +
-        pairing_session_id +
+        collaborative_session_id +
         ", 0)'>" +
         e +
         "</div>"
