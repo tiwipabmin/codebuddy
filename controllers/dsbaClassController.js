@@ -4,10 +4,11 @@ const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
 const Redis = require("ioredis");
 const redis = new Redis();
+const markdown = require("markdown").markdown;
 
+const fs = require("fs");
 const Project = mongoose.model("Project");
-
-
+const Score = mongoose.model("Score");
 const User = mongoose.model("User");
 
 exports.getStudentsFromSection = async (req, res) => {
@@ -22,7 +23,7 @@ exports.getStudentsFromSection = async (req, res) => {
     let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
     section_id +
-    " ORDER BY st.first_name ASC";
+    " ORDER BY st.student_id ASC";
     
     let resStudents = await conMysql.selectStudent(queryStudent);
     let queryCollaborativeSession =
@@ -221,7 +222,7 @@ exports.assignAssignment = async (req, res) => {
       assignmentSet[_index];
   }
 
-  console.log("assignmentSet ", assignmentSet)
+  console.log("assignmentSet ======================================", assignmentSet)
  
   let collaborative_session_id = req.body.collaborative_session_id;
   let selectStudent =
@@ -230,6 +231,8 @@ exports.assignAssignment = async (req, res) => {
   let students = await conMysql.selectStudent(selectStudent);
   console.log("students ", students)
 
+  let swaptime = "1";
+  let language = "0";
   let creator = "username@Codebuddy";
   let collaborator = "examiner@codebuddy";
   let cloneStudents = {};
@@ -273,7 +276,7 @@ exports.assignAssignment = async (req, res) => {
     }
 
 }
-console.log("group ", group)
+console.log("group ----------------------------------------------------", group)
 let findProject = {};
 let count = 0;
 
@@ -342,8 +345,8 @@ for (let _index in assignmentSet) {
         console.log( "key-------", key)
         console.log("assignment_of_each_pair[key] ", assignment_of_each_pair[key])
         console.log(" _index", _index)
+        console.log("cloneAssignmentSet ", cloneAssignmentSet)
         assignment_id = assignment_of_each_pair[key][_index];
-       Console.log(" assignment_id ", assignment_id)
         project = new Project();
         project.title = cloneAssignmentSet[assignment_id].title;
         project.description = cloneAssignmentSet[assignment_id].description;
@@ -361,21 +364,21 @@ for (let _index in assignmentSet) {
         project.files.pop();
         project.files.push(cryptr.encrypt(cloneAssignmentSet[assignment_id].notebook_assignment_id)) 
        
-  
+        console.log(" cloneStudents ", cloneStudents )
         creator = cloneStudents[key].username;
-       
-        collaborator = cloneStudents[partnerKeys[key]].username;
-        
+        console.log("group[cloneStudents[key].group_id[1]] ", group[cloneStudents[key].group_id][1])
+        collaborator = cloneStudents[group[cloneStudents[key].group_id][1]].username;
+        console.log(" collaborator ", collaborator )
         project.creator = creator;
         project.collaborator = collaborator;
         creator = await User.findOne({ username: creator });
         console.log("project ", project)
         let isCreatePro = false;
         if (creator != null) {
+          console.log("creator != null ")
             collaborator = await User.findOne({ username: collaborator });
-  
+            console.log(" collaborator ", collaborator)
             if (collaborator != null) {
-              // console.log("collaborator != null")
                 project = await project.save();
                 await Project.updateOne(
                   {
@@ -392,11 +395,13 @@ for (let _index in assignmentSet) {
                     if (err) throw err;
                   }
                 );
-           
               // timeoutHandles.push(project._id)
   
               // Insert score records
+              console.log("creator._id ", creator._id)
+              console.log(" collaborator._id ", collaborator._id)
               const uids = [creator._id, collaborator._id];
+              console.log("project.pid ", project.pid)
               uids.forEach(function(uid) {
                 const scoreModel = {
                   pid: project.pid,
@@ -421,16 +426,16 @@ for (let _index in assignmentSet) {
         } else {
           console.log("error", "Can't find @" + creator);
         }
-  
-          console.log("Project : ", project)
+        console.log("project.pid ", project.pid)
           let dirPathMain = "./public/notebookAssignment/";
           let dirPathSub  = dirPathMain +  cloneAssignmentSet[assignment_id].filePath.split(".ipynb")[0]+"/"+project.pid;
           let filePath = dirPathSub+"/" +  cloneAssignmentSet[assignment_id].filePath;
           let filePathRead = dirPathMain+cloneAssignmentSet[assignment_id].filePath.split(".ipynb")[0]+"/" +cloneAssignmentSet[assignment_id].filePath
+          console.log("filePathRead ", filePathRead)
+        
           let information = fs.readFileSync(filePathRead, "utf8");
   
           let cells = JSON.parse(information);
-          // console.log("information_obj", information_obj)
           let dataStr = JSON.stringify(cells)
   
           // Create folder path
@@ -441,7 +446,7 @@ for (let _index in assignmentSet) {
           if (!fs.existsSync(dirPathSub)) {
             fs.mkdirSync(dirPathSub);
           }
-  
+          console.log("filePath ", filePath)
           fs.writeFileSync(filePath, dataStr, 'utf8', err =>  {
             // throws an error, you could also catch it here
             if (err) throw err;
@@ -459,6 +464,7 @@ for (let _index in assignmentSet) {
     }
 
 }
+
 function getCurrentTime(){
   console.log("getCurrentTime")
   var dateTime = new Date();

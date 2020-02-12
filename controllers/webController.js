@@ -482,6 +482,8 @@ exports.getSection = async (req, res) => {
       }
     };
   } else {
+    console.log("req.user.username IT", req.user.username)
+
     occupation = 1;
     let cloneAssignments = Object.assign({}, assignments);
     let projects = await Project.find({
@@ -496,6 +498,8 @@ exports.getSection = async (req, res) => {
       ]
     }).sort({ createdAt: -1 });
 
+    
+    console.log("projects 2 ", projects)
     /**
      * projects change data type from array to object
      */
@@ -557,6 +561,7 @@ exports.getSection = async (req, res) => {
     console.log("aew DSBA -----------------" )
 
     console.log("OK DSBA")
+    console.log("section_id ", section_id)
     let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
     section_id +
@@ -589,8 +594,10 @@ exports.getSection = async (req, res) => {
 
   if (!students.length) students = [];
   if (!assignments.length) {
+    console.log("!assignments.length")
     assignments = [];
   } else if (assignments.length) {
+    console.log("assignments.length ", assignments.length)
     for (_index in assignments) {
       assignments[_index].notebook_assignment_id = cryptr.encrypt(
         assignments[_index].notebook_assignment_id
@@ -638,6 +645,8 @@ exports.getSection = async (req, res) => {
     console.log("occupation == student")
     occupation = 1;
     let cloneAssignments = Object.assign({}, assignments);
+    console.log("cloneAssignments ", cloneAssignments)
+    console.log("req.user.username ", req.user.username)
     let projects = await Project.find({
       $and: [
         { status: { $ne: "pending" } },
@@ -650,6 +659,7 @@ exports.getSection = async (req, res) => {
       ]
     }).sort({ createdAt: -1 });
     
+    console.log("projects ", projects)
     /**
      * projects change data type from array to object
      */
@@ -696,6 +706,8 @@ exports.getSection = async (req, res) => {
         pairingSessions: JSON.stringify(pairingSessions)
       }
     };
+
+    console.log("dataSets ", dataSets)
   }
 
     res.render("collaberative",{ dataSets, title: section.course_name })
