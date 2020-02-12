@@ -5,6 +5,7 @@ const cryptr = new Cryptr("codebuddy");
 const Redis = require("ioredis");
 const redis = new Redis();
 
+const Project = mongoose.model("Project");
 
 
 const User = mongoose.model("User");
@@ -202,22 +203,282 @@ if(resStatus == "Update completed."){
 };
 
 exports.assignAssignment = async (req, res) => {
-  // console.log("assign Assignment" , req.body.assignment_set)
-  const assignmentSet = req.body.assignment_set;
+  console.log("assign Assignment" , req.body)
+
+  let proStyles = [];
+  let cloneAssignmentSet = {};
+
+  let assignmentSet = req.body.assignment_set;
   for (_index in assignmentSet) {
     assignmentSet[_index].notebook_assignment_id = cryptr.decrypt(
       assignmentSet[_index].notebook_assignment_id
     );
-    // let programmingStyle = assignmentSet[_index].programming_style;
-    // if (proStyles.indexOf(programmingStyle)) {
-    //   proStyles.push(programmingStyle);
-    // }
+    
   }
-
+ 
   for (let _index in assignmentSet) {
     cloneAssignmentSet[assignmentSet[_index].notebook_assignment_id] =
       assignmentSet[_index];
   }
+
+  console.log("assignmentSet ", assignmentSet)
+ 
+  let collaborative_session_id = req.body.collaborative_session_id;
+  let selectStudent =
+    "SELECT * FROM student  AS st JOIN collaborative_record AS cr  on (st.student_id  =  cr.student_id )INNER JOIN enrollment AS e ON (st.student_id = e.student_id) where collaborative_session_id = " +
+    collaborative_session_id;
+  let students = await conMysql.selectStudent(selectStudent);
+  console.log("students ", students)
+
+  let creator = "username@Codebuddy";
+  let collaborator = "examiner@codebuddy";
+  let cloneStudents = {};
+  let project = new Project();
+  let programming_style = "Collaborative";
+  let group = {};
+  let tempStudents = {};
+  let assignment_id = 1;
+  let assignment_of_each_pair = {};
+  
+  let queryCollaborativeSession =
+    "SELECT * FROM collaborative_session WHERE collaborative_session_id = " +
+    collaborative_session_id;
+  let CollaborativeSession = await conMysql.selectCollaborativeSession(
+    queryCollaborativeSession
+  );
+
+  let timeStart = CollaborativeSession[0].time_start;
+  timeStart = timeStart.split(" ");
+  timeStart = timeStart[0];
+    console.log("timeStart ", timeStart)
+  for (let _index in students) {
+    cloneStudents[students[_index].enrollment_id] = students[_index];
+  }
+
+  console.log("cloneStudents ", cloneStudents )
+
+  tempStudents = Object.assign({}, cloneStudents);
+  
+ 
+
+// แก้
+ for (key in tempStudents) {
+
+    if(group[tempStudents[key].group_id] == undefined){
+      group[tempStudents[key].group_id] = []
+      group[tempStudents[key].group_id].push(tempStudents[key].enrollment_id)
+    }else{
+
+      group[tempStudents[key].group_id].push(tempStudents[key].enrollment_id)
+    }
+
+}
+console.log("group ", group)
+let findProject = {};
+let count = 0;
+
+for (let _index in assignmentSet) {
+  for (let key in group) {
+    console.log("key ",group[ key][0])
+    console.log(cloneStudents[group[key][0]])
+    console.log("assignmentSet[_index].notebook_assignment_id ", assignmentSet[_index].notebook_assignment_id)
+        /*
+        * assignment is a interactive.
+        */
+        findProject = await Project.findOne({
+          $or: [
+            {
+              assignment_id: assignmentSet[_index].notebook_assignment_id,
+              creator: cloneStudents[group[key][0]].username,
+              collaborator: cloneStudents[group[key][1]].username,
+              createdAt: { $gt: new Date(timeStart) }
+            },
+            {
+              assignment_id: assignmentSet[_index].notebook_assignment_id,
+              creator: cloneStudents[group[key][0]].username,
+              collaborator: cloneStudents[group[key][1]].username,
+              createdAt: { $lt: new Date(timeStart) }
+            },
+            {
+              assignment_id: assignmentSet[_index].notebook_assignment_id,
+              creator: cloneStudents[group[key][1]].username,
+              collaborator: cloneStudents[group[key][0]].username,
+              createdAt: { $gt: new Date(timeStart) }
+            },
+            {
+              assignment_id: assignmentSet[_index].notebook_assignment_id,
+              creator: cloneStudents[group[key][1]].username,
+              collaborator: cloneStudents[group[key][0]].username,
+              createdAt: { $lt: new Date(timeStart) }
+            }
+          ]
+        });
+
+        console.log("findProject", findProject)
+        console.log("group[key][0] ", group[key][0])
+        if (findProject == null) {
+          console.log("findProject null")
+          console.log("assignmentSet[_index].notebook_assignment_id ", assignmentSet[_index].notebook_assignment_id)
+          count++;
+          console.log("assignment_of_each_pair ", assignment_of_each_pair)
+
+          assignment_of_each_pair[group[key][0]].push(assignmentSet[_index].notebook_assignment_id);
+        }
+        console.log("assignment_of_each_pair ", assignment_of_each_pair)
+
+    
+  }
+}
+
+
+
+let date_time = new Date();
+  let str_date_time = date_time.toString();
+  let split_date_time = str_date_time.split(" ");
+  let slice_date_time = split_date_time.slice(1, 5);
+  let month = {
+    Jan: "01",
+    Feb: "02",
+    Mar: "03",
+    Apr: "04",
+    May: "05",
+    Jun: "06",
+    Jul: "07",
+    Aug: "08",
+    Sep: "09",
+    Oct: "10",
+    Nov: "11",
+    Dec: "12"
+  };
+  let num_month = month[slice_date_time[0]];
+  num_month === undefined ? (num_month = "13") : null;
+  let start_time =
+    slice_date_time[2] +
+    "-" +
+    num_month +
+    "-" +
+    slice_date_time[1] +
+    "T" +
+    slice_date_time[3] +
+    "Z";
+
+  for (let key in assignment_of_each_pair) {
+      for (let _index in assignment_of_each_pair[key]) {
+        assignment_id = assignment_of_each_pair[key][_index];
+       
+        project = new Project();
+        project.title = cloneAssignmentSet[assignment_id].title;
+        project.description = cloneAssignmentSet[assignment_id].description;
+        project.programming_style =
+          cloneAssignmentSet[assignment_id].programming_style;
+        project.language = language;
+        project.swaptime = swaptime;
+        project.status = "";
+        project.week = cloneAssignmentSet[assignment_id].week;
+        // project.end_time = new Date(end_time)
+        project.available_project = true;
+        project.createdAt = start_time;
+        
+        
+        project.files.pop();
+        project.files.push(cryptr.encrypt(cloneAssignmentSet[assignment_id].notebook_assignment_id)) 
+       
+  
+        creator = cloneStudents[key].username;
+       
+        collaborator = cloneStudents[partnerKeys[key]].username;
+        
+        project.creator = creator;
+        project.collaborator = collaborator;
+        creator = await User.findOne({ username: creator });
+        
+        let isCreatePro = false;
+        if (creator != null) {
+            collaborator = await User.findOne({ username: collaborator });
+  
+            if (collaborator != null) {
+              // console.log("collaborator != null")
+                project = await project.save();
+                await Project.updateOne(
+                  {
+                    _id: project._id
+                  },
+                  {
+                    $set: {
+                      creator_id: creator._id,
+                      collaborator_id: collaborator._id,
+                      assignment_id: assignment_id
+                    }
+                  },
+                  err => {
+                    if (err) throw err;
+                  }
+                );
+           
+              // timeoutHandles.push(project._id)
+  
+              // Insert score records
+              const uids = [creator._id, collaborator._id];
+              uids.forEach(function(uid) {
+                const scoreModel = {
+                  pid: project.pid,
+                  uid: uid,
+                  score: 0,
+                  time: 0,
+                  lines_of_code: 0,
+                  error_count: 0,
+                  participation: {
+                    enter: 0,
+                    pairing: 0
+                  },
+                  createdAt: Date.now()
+                };
+                new Score(scoreModel).save();
+              });
+              isCreatePro = true;
+            } else {
+              console.log("error", "Can't find @" + collaborator);
+            }
+          
+        } else {
+          console.log("error", "Can't find @" + creator);
+        }
+  
+          console.log("Project : ", project)
+          let dirPathMain = "./public/notebookAssignment/";
+          let dirPathSub  = dirPathMain +  cloneAssignmentSet[assignment_id].filePath.split(".ipynb")[0]+"/"+project.pid;
+          let filePath = dirPathSub+"/" +  cloneAssignmentSet[assignment_id].filePath;
+          let filePathRead = dirPathMain+cloneAssignmentSet[assignment_id].filePath.split(".ipynb")[0]+"/" +cloneAssignmentSet[assignment_id].filePath
+          let information = fs.readFileSync(filePathRead, "utf8");
+  
+          let cells = JSON.parse(information);
+          // console.log("information_obj", information_obj)
+          let dataStr = JSON.stringify(cells)
+  
+          // Create folder path
+          if (!fs.existsSync(dirPathMain)) {
+            fs.mkdirSync(dirPathMain);
+          }
+         
+          if (!fs.existsSync(dirPathSub)) {
+            fs.mkdirSync(dirPathSub);
+          }
+  
+          fs.writeFileSync(filePath, dataStr, 'utf8', err =>  {
+            // throws an error, you could also catch it here
+            if (err) throw err;
+        
+            // success case, the file was saved
+            console.log(filename + " has been saved!");
+          });
+      }
+    }
+
+    if (!count) {
+      res.send({ res_status: "You already assigned these assignments!" });
+    } else {
+      res.send({ res_status: "Successfully assigned this assignment!" });
+    }
 
 }
 function getCurrentTime(){

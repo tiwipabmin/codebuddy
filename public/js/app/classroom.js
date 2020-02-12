@@ -580,6 +580,8 @@ function on_click_confirm_button(parameters) {
     $("#global_loader").attr({
       style: "display: block; position: fixed;"
     });
+
+   
     $.post("/classroom/assignAssignment", parameters, function(data) {
       var res_status = data.res_status;
       if (
