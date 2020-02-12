@@ -317,55 +317,33 @@ for (let _index in assignmentSet) {
         console.log("findProject", findProject)
         console.log("group[key][0] ", group[key][0])
         if (findProject == null) {
-          console.log("findProject null")
-          console.log("assignmentSet[_index].notebook_assignment_id ", assignmentSet[_index].notebook_assignment_id)
+          // console.log("findProject null")
+          // console.log("assignmentSet[_index].notebook_assignment_id ", assignmentSet[_index].notebook_assignment_id)
           count++;
-          console.log("assignment_of_each_pair ", assignment_of_each_pair)
-
+          // console.log("assignment_of_each_pair ", assignment_of_each_pair)
+          if(assignment_of_each_pair[group[key][0]] == undefined){
+            assignment_of_each_pair[group[key][0]] = []
           assignment_of_each_pair[group[key][0]].push(assignmentSet[_index].notebook_assignment_id);
+          }else{
+            assignment_of_each_pair[group[key][0]].push(assignmentSet[_index].notebook_assignment_id);
+
+          }
+          
         }
         console.log("assignment_of_each_pair ", assignment_of_each_pair)
-
-    
   }
 }
 
-
-
-let date_time = new Date();
-  let str_date_time = date_time.toString();
-  let split_date_time = str_date_time.split(" ");
-  let slice_date_time = split_date_time.slice(1, 5);
-  let month = {
-    Jan: "01",
-    Feb: "02",
-    Mar: "03",
-    Apr: "04",
-    May: "05",
-    Jun: "06",
-    Jul: "07",
-    Aug: "08",
-    Sep: "09",
-    Oct: "10",
-    Nov: "11",
-    Dec: "12"
-  };
-  let num_month = month[slice_date_time[0]];
-  num_month === undefined ? (num_month = "13") : null;
-  let start_time =
-    slice_date_time[2] +
-    "-" +
-    num_month +
-    "-" +
-    slice_date_time[1] +
-    "T" +
-    slice_date_time[3] +
-    "Z";
-
+  let start_time  = getCurrentTime()
+    
+  console.log("start_time ", start_time)
   for (let key in assignment_of_each_pair) {
       for (let _index in assignment_of_each_pair[key]) {
+        console.log( "key-------", key)
+        console.log("assignment_of_each_pair[key] ", assignment_of_each_pair[key])
+        console.log(" _index", _index)
         assignment_id = assignment_of_each_pair[key][_index];
-       
+       Console.log(" assignment_id ", assignment_id)
         project = new Project();
         project.title = cloneAssignmentSet[assignment_id].title;
         project.description = cloneAssignmentSet[assignment_id].description;
@@ -391,7 +369,7 @@ let date_time = new Date();
         project.creator = creator;
         project.collaborator = collaborator;
         creator = await User.findOne({ username: creator });
-        
+        console.log("project ", project)
         let isCreatePro = false;
         if (creator != null) {
             collaborator = await User.findOne({ username: collaborator });
