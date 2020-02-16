@@ -517,11 +517,21 @@ const term = new Terminal({
   rows: 10,
   cursorBlink: true
 });
+// const term = new Terminal({
+//   cursorBlink: true
+// })
+// const fitAddon = require('xterm-addon-fit')
+// term.loadAddon(fitAddon)
 term.open(document.getElementById("xterm-container"), false);
 term._initialized = true;
+// fitAddon.fit()
 
-var shellprompt = "\033[1;3;31m$ \033[0m";
-var inputTerm = "input@codebuddy";
+function resizeTerm(newHeight) {
+  term.fit()
+}
+
+let shellprompt = "\033[1;3;31m$ \033[0m";
+let inputTerm = "input@codebuddy";
 
 term.prompt = function() {
   term.write("\r\n" + shellprompt);

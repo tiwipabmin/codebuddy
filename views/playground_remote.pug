@@ -315,7 +315,7 @@ block content
               .six.wide.column
                 button.ui.button.float-right(id='clearTerm' onClick='clearTerminal()') Clear
           .ui.secondary.segment
-            #xterm-container
+            #xterm-container(onmouseup='resizeTerm()')
 
   .ui.chatbox(id="live-chat")
     header.clearfix
