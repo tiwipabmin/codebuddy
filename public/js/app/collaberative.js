@@ -1082,7 +1082,7 @@ function onClickAddPartnerButton(studentsGroup) {
 
 
     select_student = Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value)
-    console.log("#group-student group" , select_student.length)
+    console.log("#group-student group" , select_student)
 
     if( select_student.length > 0 ){
       let fullName = []
@@ -1364,8 +1364,24 @@ function groupStudent(studentsGroup){
 
       $.post("/dsbaClass/assignAssignment", parameters, function(data) {
 
-        console.log("/dsbaClass/assignAssignment 2")
 
+      let res_status = data.res_status;
+      if (
+        res_status == "Please pair all students before assign the assignment!"
+      ) {
+        alert(res_status);
+      } else if (res_status == "You already assigned these assignments!") {
+        alert(res_status);
+      } else if (res_status == "Successfully assigned this assignment!") {
+        alert(res_status);
+      } else if (res_status == "Completed test!") {
+        alert(res_status);
+      } else {
+        alert(res_status);
+      }
+        $("#global_loader").attr({
+          style: "display: none; position: fixed;"
+        });
       });
     }
   
