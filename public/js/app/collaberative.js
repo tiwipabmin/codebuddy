@@ -1056,7 +1056,7 @@ function onClickAddPartnerButton(studentsGroup) {
                         '<div class="ten wide column">'+
                           ' <p>'+ studentsGroup.students[index].first_name + " " +studentsGroup.students[index].last_name+'</p>'+
                         '</div>'+
-                      '<div class="two wide column"><input type="checkbox" name="student" value='+JSON.stringify(studentsGroup.students[index]) +' id="student" float="left" /></div>'+
+                      '<div class="two wide column"><input class="single-checkbox" type="checkbox" name="student" value='+JSON.stringify(studentsGroup.students[index]) +' id="student" float="left" /></div>'+
                     '</div>'+
                 '</div>'+
             '</div>'+
@@ -1064,7 +1064,12 @@ function onClickAddPartnerButton(studentsGroup) {
       )
     } 
   }
- 
+  var limit = 3;
+  $('input.single-checkbox').on('change', function(evt) {
+     if($(this).siblings(':checked').length >= limit) {
+         this.checked = false;
+     }
+  });
 
       $("#partner_selection_modal").modal("show");
 
