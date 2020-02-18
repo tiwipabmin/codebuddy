@@ -137,7 +137,7 @@ block content
                     p   Section !{section.section} Room !{section.room}
                     p   !{section.day} !{section.time_start} - !{section.time_end}
                   .extra
-                    a.ui.right.floated.alignedvertical.animated.enterToClass.button.green(href=`/classroom/${section.section_id}`)
+                    a.ui.right.floated.alignedvertical.animated.enterToClass.button.green(href=`/classroom/section/${section.section_id}`)
                       .hidden.content Enter
                       .visible.content
                         i.sign.in.alternate.icon.icon
@@ -159,9 +159,12 @@ block content
                     p   Section !{section.section} Room !{section.room}
                     p   !{section.day} !{section.time_start} - !{section.time_end}
                   .extra
-                    a.ui.right.floated.primary.alignedvertical.animated.enterToClass.button(href=`/classroom/${section.section_id}`)
+                    a.ui.right.floated.primary.alignedvertical.animated.enterToClass.button(href=`/classroom/section/${section.section_id}`)
                       .hidden.content Enter
                       .visible.content
                         i.sign.in.alternate.icon.icon
       else
         p.text-center No classroom.
+
+  script(src='/js/static/socket.io.min.js')
+  script( data-sections=`${dataSets.reforms.secObjects}` data-username=`${user.username}` data-occupation=`${user.info.occupation}` src='/js/app/classroomNotification.js')

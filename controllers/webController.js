@@ -45,8 +45,10 @@ exports.getLobby = async (req, res) => {
       "'";
     sections = await conMysql.selectSection(querySection);
   }
+  const secObjects = {} // section_id store
   for (let index in sections) {
     sections[index].section_id = cryptr.encrypt(sections[index].section_id);
+    Object.assign(secObjects, { [sections[index].course_name + sections[index].section]: sections[index].section_id })
   }
   if (!sections.length) sections = [];
   let dataSets = {
@@ -54,6 +56,9 @@ exports.getLobby = async (req, res) => {
       occupation: occupation,
       sections: sections,
       dataService: "dataService"
+    },
+    reforms: {
+      secObjects: JSON.stringify(secObjects)
     }
   };
   res.render("lobby", { dataSets, title: "Lobby" });
@@ -213,12 +218,11 @@ exports.getProfileByTeacher = async (req, res) => {
   res.render("profile", { dataSets, title: username + " Progress" });
 };
 
-// exports.getNotifications = async (req, res) => {
-//   const projects = await Project.find({
-//     $or: [{ creator: req.user.username }, { collaborator: req.user.username }]
-//   }).sort({ createdAt: -1 });
-//   res.render("notifications", { projects, title: "Notifications" });
-// };
+exports.getNotifications = async (req, res) => {
+  const notifications = JSON.stringify(req.payload)
+
+  res.send({ notifications: notifications });
+};
 
 // exports.createProject = async (req, res) => {
 //   const collaborator = await User.findOne({ username: req.body.collaborator });
@@ -358,7 +362,7 @@ exports.getSection = async (req, res) => {
      * projects change data type from array to object
      */
     let cloneProjects = {};
-    projects.forEach(function(project) {
+    projects.forEach(function (project) {
       cloneProjects[project.assignment_id] = project;
     });
 
@@ -1031,7 +1035,7 @@ exports.updatePairing = async (req, res) => {
 
     if (!outLoop) {
       projects.push([]);
-      resProject.forEach(function(e) {
+      resProject.forEach(function (e) {
         projects[count].push(e.pid);
       });
       count++;
@@ -1081,7 +1085,7 @@ exports.updatePairing = async (req, res) => {
 
     if (!outLoop) {
       projects.push([]);
-      resProject.forEach(function(e) {
+      resProject.forEach(function (e) {
         projects[count].push(e.pid);
       });
       count++;
@@ -1154,7 +1158,7 @@ exports.updatePairing = async (req, res) => {
         {
           username: newStudents[uid[index]].username
         },
-        async function(err, element) {
+        async function (err, element) {
           if (err) {
             console.log(err);
           }
@@ -1173,14 +1177,14 @@ exports.updatePairing = async (req, res) => {
                 }
               }
             ],
-            function(err, results) {
+            function (err, results) {
               if (err) {
                 console.log(err);
                 return;
               }
               if (results) {
                 // sum = 0;
-                results.forEach(function(result) {
+                results.forEach(function (result) {
                   // start update
                   User.updateOne(
                     {
@@ -1191,7 +1195,7 @@ exports.updatePairing = async (req, res) => {
                         avgScore: result.avg
                       }
                     },
-                    function(err, userReturn) {
+                    function (err, userReturn) {
                       if (err);
                       if (userReturn) {
                         console.log(userReturn);
@@ -1210,7 +1214,7 @@ exports.updatePairing = async (req, res) => {
                         avgScore: 0
                       }
                     },
-                    function(err, userReturn) {
+                    function (err, userReturn) {
                       if (err);
                       if (userReturn) {
                         console.log(userReturn);
@@ -1312,7 +1316,7 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
       {
         username: username
       },
-      function(err, data) {
+      function (err, data) {
         if (err) console.log("updateTotalScores err, ", err);
         else if (data) {
           User.updateOne(
@@ -1322,7 +1326,7 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
             {
               $set: { avgScore: parseFloat(totalScores[username]) }
             },
-            function(err, data) {
+            function (err, data) {
               if (err) console.log(err);
               if (data) console.log(data);
             }
@@ -1401,11 +1405,11 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
   //   res.send({resStatus: 'Number of student is not even!'})
   //   return
   // }
-  allOfScores.sort(function(a, b) {
+  allOfScores.sort(function (a, b) {
     return b - a;
   });
 
-  let randomKey = function(obj) {
+  let randomKey = function (obj) {
     let keys = Object.keys(obj);
     return keys[(keys.length * Math.random()) << 0];
   };
@@ -1511,7 +1515,7 @@ exports.startAutoPairingByPurpose = async (req, res) => {
     allOfScores.push(user.avgScore);
   }
   numberAllOfStudent = Math.floor(numberAllOfStudent / 2);
-  allOfScores.sort(function(a, b) {
+  allOfScores.sort(function (a, b) {
     return b - a;
   });
 
@@ -1537,7 +1541,7 @@ exports.startAutoPairingByPurpose = async (req, res) => {
 
   let isCompletedPairing = false;
   let timerId = setTimeout(
-    function(resStatus, isCompletedPairing, timerId) {
+    function (resStatus, isCompletedPairing, timerId) {
       resStatus = "Out of time, Please start new auto pairing!";
       isCompletedPairing = true;
       clearInterval(timerId);
@@ -1604,7 +1608,7 @@ exports.startAutoPairingByPurpose = async (req, res) => {
            */
           if (
             eachStudentScores[enrollmentIdEx] -
-              eachStudentScores[enrollmentIdNo] >
+            eachStudentScores[enrollmentIdNo] >
             10
           ) {
             partnerKeys[enrollmentIdEx] = enrollmentIdNo;
@@ -1916,14 +1920,14 @@ exports.getWeeklyAssignments = async (req, res) => {
     let project = await Project.find({
       available_project: false
     });
-    project.forEach(function(e) {
+    project.forEach(function (e) {
       weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
     });
   } else if (action == "disable") {
     let project = await Project.find({
       available_project: true
     });
-    project.forEach(function(e) {
+    project.forEach(function (e) {
       weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
     });
   }
@@ -2077,9 +2081,9 @@ exports.updateAssignment = async (req, res) => {
   await conMysql.updateAssignment(updateAssignment);
   res.redirect(
     "/assignment?section_id=" +
-      cryptr.encrypt(sectionId) +
-      "&assignment_id=" +
-      cryptr.encrypt(assignment_id)
+    cryptr.encrypt(sectionId) +
+    "&assignment_id=" +
+    cryptr.encrypt(assignment_id)
   );
 };
 
@@ -2466,7 +2470,7 @@ exports.assignAssignment = async (req, res) => {
 
             // Insert score records
             const uids = [creator._id, collaborator._id];
-            uids.forEach(function(uid) {
+            uids.forEach(function (uid) {
               const scoreModel = {
                 pid: project.pid,
                 uid: uid,
@@ -2543,7 +2547,7 @@ exports.assignAssignment = async (req, res) => {
         fs.open(
           "./public/project_files/" + project.pid + "/main.py",
           "w",
-          function(err, file) {
+          function (err, file) {
             if (err) throw err;
             console.log("file " + project.pid + ".py is created");
           }

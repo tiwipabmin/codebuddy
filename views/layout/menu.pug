@@ -15,13 +15,13 @@
               i.database.icon
               |  Data Service
           if (dataSets.origins.section)
-            a.item(href='/classroom/'+dataSets.origins.section.section_id)
+            a.item(href='/classroom/section/'+dataSets.origins.section.section_id)
               i.laptop.layout.icon
               |  Classroom
-          //- a.item(href='/notifications')
-          //-   i.Alarm.icon
-          //-   |  Notifications
-            //- .ui.red.horizontal.label 1
+          a.item(href='/notifications')
+            i.Alarm.icon
+            |  Notifications
+            .ui.red.horizontal.label 1
           .ui.simple.dropdown.right.item
               //- i.user.icon
               img.ui.avatar.image(src=user.img)

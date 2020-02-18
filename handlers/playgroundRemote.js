@@ -35,7 +35,6 @@ module.exports = (io, client, redis, projects) => {
    */
   client.on("join project", async payload => {
     try {
-      console.log('Payload , ', payload)
       projectId = payload.pid;
       curUser = payload.username;
       winston.info(`User ${curUser} joined at pid: ${projectId}`);
@@ -139,6 +138,7 @@ module.exports = (io, client, redis, projects) => {
           client.emit("reject joining");
         }
       }
+      console.log('Projects, ', projects)
     } catch (error) {
       winston.info(`catching error: ${error}`);
     }
@@ -164,7 +164,7 @@ module.exports = (io, client, redis, projects) => {
    * `disconnect` event fired when user exit from playground page
    * by exit means: reload page, close page/browser, session lost
    **/
-  client.on("disconnect", payload => {
+  client.on("disconnect", () => {
     try {
       let numUser = Object.keys(projects[projectId].active_user).length;
 
@@ -1267,7 +1267,6 @@ module.exports = (io, client, redis, projects) => {
           }
         });
       }
-      console.log('index of U', data.indexOf("U"))
       if (data.indexOf(".pylintrc") == -1 &&
       data.indexOf("U") != 16
       ) {

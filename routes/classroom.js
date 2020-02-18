@@ -15,7 +15,7 @@ const router = express.Router()
  * @method {GET} return rendered `classroom.pug`
  * @method {POST} handle create new section form on `lobby.pug` page
  */
-router.get('/:section_id', auth.isSignedIn, auth.validateSection, catchErrors(webController.getSection))
+router.get('/section/:section_id', auth.isSignedIn, auth.validateSection, catchErrors(webController.getSection))
 router.post('/', auth.isSignedIn, catchErrors(webController.createSection))
 
 router.get('/searchStudentByPurpose', auth.isSignedIn, catchErrors(webController.searchStudentByPurpose))

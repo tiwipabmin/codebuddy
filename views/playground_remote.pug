@@ -33,7 +33,7 @@ block content
     .content
       .actions
         center
-          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom/'+`${dataSets.origins.section.section_id}`)
+          a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom/section/'+`${dataSets.origins.section.section_id}`)
             i.check.icon
             |       ตกลง
   
@@ -370,6 +370,7 @@ block content
     let uid="#{user._id}"
     let partner="#{partner}"
     let partner_img="#{partner_img}"
+    let occupation="#{user.info.occupation}"
   script(type='text/javascript').
     $(document).ready(function(){
       $('.demo.menu .item').tab({history:false});
@@ -382,6 +383,7 @@ block content
   script(src='/xterm/addons/fit/fit.js')
   script(src='/js/static/countdown.min.js')
   script(src='/js/app/playgroundRemote.js')
+  //- script(src='/js/app/classroomNotification.js')
   script(src='/js/app/main.js')
   script(src='/trackingjs/build/tracking-min.js')
   script(src='/trackingjs/build/data/face-min.js')
