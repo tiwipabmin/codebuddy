@@ -263,7 +263,7 @@ module.exports = (io, client, keyStores) => {
                 })
             }
         }
-        // console.log('AllNotifications, ', allNotifications, ', activeProjects, ', allNotifications[1].weerabhat1.activeProjects)
+        console.log('AllNotifications, ', allNotifications)
         // console.log('KeyStores, ', keyStores, ', activeUsers, ', keyStores[1].weerabhat.activeUsers)
         console.log('KeyStores, ', keyStores)
 
@@ -275,7 +275,9 @@ module.exports = (io, client, keyStores) => {
             for (let secKey in allNotifications) {
                 const tmpPnSessKey = Object.keys(allNotifications[secKey])
                 for (let index in tmpPnSessKey) {
-                    io.in(tmpPnSessKey[index]).emit('notice', { res: 'Alert' })
+                    if (allNotifications[secKey][tmpPnSessKey[index]].activeProjects !== null) {
+                        io.in(tmpPnSessKey[index]).emit('notice', { res: 'Alert' })
+                    }
                 }
             }
         }
@@ -302,29 +304,23 @@ module.exports = (io, client, keyStores) => {
             if (hasPartner) {
                 let pnSessionKey = guest === undefined ? curUser + secKey : guest + secKey;
                 let tmpKey = guest === undefined ? curUser : guest;
-                if (pnSessionKeys[secKey][pnSessionKey] !== undefined) {
-                    let numUser = keyStores[secKey][tmpKey].activeUsers.length
+                let numUser = keyStores[secKey][tmpKey].activeUsers.length
 
-                    if (numUser === 1) {
-                        delete keyStores[secKey][tmpKey]
-                        // console.log('PnSessionKey and SecKey has already removed form Keys and PnSessionKeys.')
-                    } else {
-                        if (guest === undefined) {
-                            let index = keyStores[secKey][tmpKey].activeUsers.indexOf(tmpKey)
-                            keyStores[secKey][tmpKey].activeUsers.splice(index, 1)
-                        } else {
-                            let index = keyStores[secKey][guest].activeUsers.indexOf(keyStores[secKey][guest].guest)
-                            keyStores[secKey][guest].activeUsers.splice(index, 1)
-                        }
-                    }
-
-                    delete pnSessionKeys[secKey];
-                    delete keys[secKey]
-                    client.leave(pnSessionKey)
-                    winston.info(`${curUser} leave partner session['${pnSessionKey}']`);
+                if (numUser === 1) {
+                    delete keyStores[secKey][tmpKey]
                 } else {
-                    // console.log('PnSessionKey is undefined.')
+                    if (guest === undefined) {
+                        let index = keyStores[secKey][tmpKey].activeUsers.indexOf(tmpKey)
+                        keyStores[secKey][tmpKey].activeUsers.splice(index, 1)
+                    } else {
+                        let index = keyStores[secKey][guest].activeUsers.indexOf(keyStores[secKey][guest].guest)
+                        keyStores[secKey][guest].activeUsers.splice(index, 1)
+                    }
                 }
+
+                delete keys[secKey]
+                client.leave(pnSessionKey)
+                winston.info(`${curUser} leave partner session['${pnSessionKey}']`);
             }
 
             // console.log('KeyStores, keys, pnSessionKeys Before, ', keyStores, ', ', keys, ', ', pnSessionKeys)
