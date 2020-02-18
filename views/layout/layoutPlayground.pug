@@ -11,5 +11,7 @@ html
         }
     block script
   body
+    script(src='/js/static/socket.io.min.js')
+    script(data-username=`${user.username}` data-occupation=`${user.info.occupation}` src='/js/app/notification.js')
     include menu
     block content

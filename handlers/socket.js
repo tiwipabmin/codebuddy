@@ -27,8 +27,8 @@ module.exports = (server) => {
       }
     })
 
-    client.on('classroom notification', (payload) => {
-      require('./classroomNotification.js')(io, client, keyStores)
+    client.on('notification', (payload) => {
+      require('./notification.js')(io, client, keyStores)
     })
   })
 }

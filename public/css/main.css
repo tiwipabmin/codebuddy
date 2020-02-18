@@ -4,6 +4,16 @@
     overflow-y: scroll;
 } */
 
+.CodeMirror {
+    resize: vertical;
+    overflow: auto !important;
+}
+
+#xterm-container {
+    resize: vertical;
+    overflow: auto !important;
+}
+
 body {
     height: 130%;
 }

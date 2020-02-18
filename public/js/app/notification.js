@@ -14,11 +14,10 @@ function getVarFromScript(scriptName, name) {
 }
 
 const classNotiSocket = io('');
-const sections = getVarFromScript('classroomNotification', 'data-sections')
-const username = getVarFromScript('classroomNotification', 'data-username')
-const occupation = getVarFromScript('classroomNotification', 'data-occupation')
-console.log('sections, ', sections, ', username, ', username, ', occupation, ', occupation)
-classNotiSocket.emit('classroom notification', {})
+const username = getVarFromScript('notification', 'data-username')
+const occupation = getVarFromScript('notification', 'data-occupation')
+console.log('Username, ', username, ', Occupation, ', occupation)
+classNotiSocket.emit('notification', {})
 
 /**
  * get query parameter from URL
@@ -37,13 +36,7 @@ function getParameterByName(name) {
     }
 }
 
-$(window).on("beforeunload", () => {
-    // storeActiveTime()
-    classNotiSocket.disconnect();
-});
-
 classNotiSocket.emit('join classroom', {
-    sections: sections,
     username: username,
     occupation: occupation
 })

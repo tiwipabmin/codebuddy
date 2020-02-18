@@ -36,18 +36,74 @@ module.exports = (io, client, keyStores) => {
     let curUser = 'gentleman'
 
     client.on('join classroom', async (payload) => {
-        const sections = JSON.parse(payload.sections)
-        for (let secKey in sections) {
-            let decrypt = cryptr.decrypt(sections[secKey])
-            Object.assign(keys, { [decrypt]: secKey })
+        curUser = payload.username
+        const occupation = payload.occupation
+        let sections = {}
+        if (occupation === 'student') {
+            const queryStudent = `select enrollment_id from student as std 
+            join enrollment as en on en.student_id = std.student_id 
+            where std.username = \"${curUser}\"`
+            const resEnrollmentId = await conMysql.selectEnrollment(queryStudent).catch((err) => {
+                console.log('Connected class socket was an err, ', err)
+                client.emit('connection failed', { err: err })
+                return;
+            })
+            // console.log('ResEnrollmentId, ', resEnrollmentId)
 
-            if (keyStores[decrypt] === undefined) {
-                keyStores[decrypt] = {}
+            for (let index in resEnrollmentId) {
+                const enrollmentId = resEnrollmentId[index].enrollment_id
+                const querySection = `select * from enrollment as en 
+                join section as sec on sec.section_id = en.section_id 
+                join course as c on c.course_id = sec.section_id 
+                where en.enrollment_id = ${enrollmentId}`
+                const resSections = await conMysql.selectSection(querySection).catch((err) => {
+                    console.log('Connected class socket was an err, ', err)
+                    client.emit('connection failed', { err: err })
+                    return;
+                })
+
+                const tmps = { ...resSections[0] }
+                Object.assign(sections, { [resSections[0].section_id]: tmps })
+            }
+
+            // console.log('Sections, ', sections)
+        } else if (occupation === 'teacher') {
+            const queryTeacher = `select teacher_id from teacher where username = \"${curUser}\"`
+            const resTeachers = await conMysql.selectTeacher(queryTeacher).catch((err) => {
+                console.log('Connected class socket was an err, ', err)
+                client.emit('connection failed', { err: err })
+                return;
+            })
+            // console.log('ResTeachers, ', resTeachers)
+
+            const teacherId = resTeachers[0].teacher_id
+            const querySection = `select * from teacher as t 
+            join course as c on c.teacher_id = t.teacher_id 
+            join section as sec on sec.course_id = c.course_id 
+            where t.teacher_id = ${teacherId}`
+            const resSections = await conMysql.selectSection(querySection).catch((err) => {
+                console.log('Connected class socket was an err, ', err)
+                client.emit('connection failed', { err: err })
+                return;
+            })
+
+            for (let index in resSections) {
+                const tmps = { ...resSections[index] }
+                Object.assign(sections, { [resSections[index].section_id]: tmps })
+            }
+
+            // console.log('Sections, ', sections)
+        }
+
+
+        for (let secKey in sections) {
+            Object.assign(keys, { [secKey]: sections[secKey].course_name })
+
+            if (keyStores[secKey] === undefined) {
+                keyStores[secKey] = {}
             }
         }
         console.log('KeyStores[secKey], ', keyStores)
-        curUser = payload.username
-        const occupation = payload.occupation
         /**
          * keyStores = {
          *  secKey: {
@@ -214,7 +270,14 @@ module.exports = (io, client, keyStores) => {
         for (let secKey in keys) {
             client.join(secKey)
             winston.info(`${curUser} join classroom['${secKey}']`);
-            io.in(secKey).emit('notice', { res: 'Alert' })
+            // io.in(secKey).emit('notice', { res: 'Alert' })
+
+            for (let secKey in allNotifications) {
+                const tmpPnSessKey = Object.keys(allNotifications[secKey])
+                for (let index in tmpPnSessKey) {
+                    io.in(tmpPnSessKey[index]).emit('notice', { res: 'Alert' })
+                }
+            }
         }
     })
 
@@ -264,11 +327,11 @@ module.exports = (io, client, keyStores) => {
                 }
             }
 
-            console.log('KeyStores, keys, pnSessionKeys Before, ', keyStores, ', ', keys, ', ', pnSessionKeys)
+            // console.log('KeyStores, keys, pnSessionKeys Before, ', keyStores, ', ', keys, ', ', pnSessionKeys)
             keyStores[secKey][curUser] === null ? delete keyStores[secKey][curUser] : null;
             Object.keys(keyStores[secKey]).length === 0 ? delete keyStores[secKey] : null;
             client.leave(secKey)
-            console.log('KeyStores, keys, pnSessionKeys After, ', keyStores, ', ', keys, ', ', pnSessionKeys)
+            // console.log('KeyStores, keys, pnSessionKeys After, ', keyStores, ', ', keys, ', ', pnSessionKeys)
             winston.info(`${curUser} leave classroom['${secKey}']`);
         }
     })
