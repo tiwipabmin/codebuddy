@@ -34,8 +34,38 @@ module.exports = (io, client, keyStores) => {
     let keys = {} // section key
     let pnSessionKeys = {} // partner session key
     let curUser = 'gentleman'
+    let beat = 0
+    let pingPong = ''
+    let autoDisc = ''
+
+    function sendHeartbeat() {
+        // pingPong = setTimeout(sendHeartbeat, 2000)
+        // autoDisc = setTimeout(automaticallyDisconnect, 3000)
+        client.emit('PING', { beat: beat })
+    }
+
+    function automaticallyDisconnect() {
+        client.disconnect()
+    }
+
+    client.on('PONG', (payload) => {
+        console.log('New, ', payload.beat, ', Old, ', beat)
+        if (payload.beat > beat) {
+            console.log('Gester than, ', payload.beat > beat)
+            beat = payload.beat
+            pingPong = setTimeout(sendHeartbeat, 2000)
+            clearTimeout(autoDisc)
+            autoDisc = setTimeout(automaticallyDisconnect, 3000)
+        } else {
+            console.log('Lesser than and Equal, ', payload.beat <= beat)
+            clearTimeout(pingPong)
+        }
+    })
 
     client.on('join classroom', async (payload) => {
+        pingPong = setTimeout(sendHeartbeat, 2000)
+        autoDisc = setTimeout(automaticallyDisconnect, 3000)
+
         curUser = payload.username
         const occupation = payload.occupation
         let sections = {}

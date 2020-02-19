@@ -13,6 +13,9 @@ function getVarFromScript(scriptName, name) {
     return variable
 }
 
+/**
+ * Websocket.io instance
+ */
 const classNotiSocket = io('');
 const username = getVarFromScript('notification', 'data-username')
 const occupation = getVarFromScript('notification', 'data-occupation')
@@ -41,8 +44,14 @@ classNotiSocket.emit('join classroom', {
     occupation: occupation
 })
 
-classNotiSocket.on('connection failed', {
+classNotiSocket.on('connection failed', (payload) => {
 
+})
+
+classNotiSocket.on('PING', (payload) => {
+    let newBeat = payload.beat + 1
+    console.log('Newbeat, ', newBeat)
+    classNotiSocket.emit('PONG', { beat: newBeat })
 })
 
 classNotiSocket.on('notice', (payload) => {
