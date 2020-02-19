@@ -583,11 +583,11 @@ exports.updatePairingSession = async (req, res) => {
   /**
    * create date time at this moment
    */
-  var dateTime = new Date();
-  var strDataTime = dateTime.toString();
-  var splitDataTime = strDataTime.split(" ");
-  var sliceDataTime = splitDataTime.slice(1, 5);
-  var month = {
+  let dateTime = new Date();
+  let strDataTime = dateTime.toString();
+  let splitDataTime = strDataTime.split(" ");
+  let sliceDataTime = splitDataTime.slice(1, 5);
+  let month = {
     Jan: "01",
     Feb: "02",
     Mar: "03",
@@ -601,9 +601,9 @@ exports.updatePairingSession = async (req, res) => {
     Nov: "11",
     Dec: "12"
   };
-  var numMonth = month[sliceDataTime[0]];
+  let numMonth = month[sliceDataTime[0]];
   numMonth === undefined ? (numMonth = "13") : null;
-  var timeEnd =
+  let timeEnd =
     sliceDataTime[2] +
     "-" +
     numMonth +
@@ -639,12 +639,53 @@ exports.updatePairingSession = async (req, res) => {
     resStatus = "Update a pairing date time status failed.";
   }
 
+  const queryAssignment = `select * from assignment where section_id = ${sectionId}`
+  const resAssignments = await conMysql.selectAssignment(queryAssignment)
+  let assignments = {}
+  for (let index in resAssignments) {
+    const tmp = { ...resAssignments[index] }
+    Object.assign(assignments, { [tmp.assignment_id]: tmp })
+  }
+
+  queryPairingSession = `select * from pairing_session where pairing_session_id = ${pairing_session_id}`
+  const resPairingSessions = await conMysql.selectPairingSession(queryPairingSession)
+
+  // console.log('Assignments, ', assignments)
+  const projects = await Project.find({
+    $and: [{
+      available_project: true
+    }, {
+      createdAt: {
+        $gt: new Date(resPairingSessions[0].time_start)
+      }
+    }]
+  })
+  console.log('Projects Before, ', projects)
+
+  for (let index in projects) {
+    const assignmentId = projects[index].assignment_id
+    if (assignments[assignmentId] !== undefined) {
+      const updatProject = await Project.updateOne(
+        { assignment_id: assignmentId },
+        { $set: { available_project: false } }
+      )
+    }
+  }
+  console.log('Projects After, ', projects)
+
   res.send({
     resStatus: resStatus,
     pairingSessions: JSON.stringify(pairingSessions),
     sectionId: cryptr.encrypt(sectionId)
   });
 };
+
+function compareDate(date1, date2) {
+  if (date1 > date2) return 1;
+  else if (date1 === date2) return 0;
+  else if (date1 < date2) return -1;
+  else return "An illegal date.";
+}
 
 exports.resetPair = async (req, res) => {
   const queryEnrollment =
