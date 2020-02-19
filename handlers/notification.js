@@ -48,14 +48,15 @@ module.exports = (io, client, keyStores) => {
                 client.emit('connection failed', { err: err })
                 return;
             })
-            // console.log('ResEnrollmentId, ', resEnrollmentId)
+            console.log('ResEnrollmentId, ', resEnrollmentId)
 
             for (let index in resEnrollmentId) {
                 const enrollmentId = resEnrollmentId[index].enrollment_id
                 const querySection = `select * from enrollment as en 
                 join section as sec on sec.section_id = en.section_id 
-                join course as c on c.course_id = sec.section_id 
+                join course as c on c.course_id = sec.course_id 
                 where en.enrollment_id = ${enrollmentId}`
+                console.log('EnrollmentId, ', enrollmentId)
                 const resSections = await conMysql.selectSection(querySection).catch((err) => {
                     console.log('Connected class socket was an err, ', err)
                     client.emit('connection failed', { err: err })
@@ -63,6 +64,7 @@ module.exports = (io, client, keyStores) => {
                 })
 
                 const tmps = { ...resSections[0] }
+                console.log('ResSections, ', resSections)
                 Object.assign(sections, { [resSections[0].section_id]: tmps })
             }
 

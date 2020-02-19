@@ -2080,10 +2080,10 @@ exports.updateAssignment = async (req, res) => {
     assignment_id;
   await conMysql.updateAssignment(updateAssignment);
   res.redirect(
-    "/assignment?section_id=" +
-    cryptr.encrypt(sectionId) +
-    "&assignment_id=" +
-    cryptr.encrypt(assignment_id)
+    "/assignment/" +
+    cryptr.encrypt(assignment_id) +
+    "/section/" +
+    cryptr.encrypt(sectionId)
   );
 };
 
