@@ -14,6 +14,7 @@ const Score = mongoose.model("Score");
 const User = mongoose.model("User");
 const Comment = mongoose.model("Comment");
 const History = mongoose.model("History");
+const CollaborativeProject = mongoose.model("CollaborativeProject");
 
 exports.getHomepage = (req, res) => {
   res.render("index");
@@ -75,7 +76,7 @@ exports.getPlayground = async (req, res) => {
   var section = {};
   section.section_id = section_id;
   let partner_obj = "";
-  const project = await Project.findOne({ pid: req.query.pid });
+
   const messages = await Message.find({ pid: req.query.pid }).sort({
     createdAt: 1
   });
@@ -87,6 +88,7 @@ exports.getPlayground = async (req, res) => {
 
   if(branch_type[0]["branch_type"] == "IT"){
     console.log("OK Playground IT")
+    const project = await Project.findOne({ pid: req.query.pid });
     if ("creator" == userRole && project.programming_style !== "Individual") {
       partner_obj = await User.findOne({ _id: project.collaborator_id });
     } else if (
@@ -137,9 +139,10 @@ exports.getPlayground = async (req, res) => {
   
   }else if(branch_type[0]["branch_type"] == "DSBA"){
     console.log("OK Playground DSBA")
+    let project = await CollaborativeProject.findOne({ pid: req.query.pid });
     const select_notebookAssignment_by_notebookAssignment_id =
       "SELECT * FROM notebook_assignment WHERE notebook_assignment_id = " +
-      cryptr.decrypt(project.files[0]);
+      cryptr.decrypt(project.file);
     let notebookAssignment = await conMysql.selectAssignment(
       select_notebookAssignment_by_notebookAssignment_id
     );
@@ -647,13 +650,13 @@ exports.getSection = async (req, res) => {
     let cloneAssignments = Object.assign({}, assignments);
     console.log("cloneAssignments ", cloneAssignments)
     console.log("req.user.username ", req.user.username)
-    let projects = await Project.find({
+    let projects = await CollaborativeProject.find({
       $and: [
         { status: { $ne: "pending" } },
         {
           $or: [
             { creator: req.user.username },
-            { collaborator: req.user.username }
+            {collaborator:req.user.username}
           ]
         }
       ]
@@ -707,7 +710,7 @@ exports.getSection = async (req, res) => {
       }
     };
 
-    console.log("dataSets ", dataSets)
+    console.log("dataSets ========================== ", dataSets)
   }
 
     res.render("collaberative",{ dataSets, title: section.course_name })
