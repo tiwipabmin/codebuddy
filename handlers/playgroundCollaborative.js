@@ -14,6 +14,7 @@ const TurndownService = require('turndown');
 // Create an instance of the turndown service
 let turndownService = new TurndownService();
 var maxExecution;
+let curUser = "";
 
 
 module.exports = (io, client,redis, Projects) => {
@@ -27,16 +28,18 @@ module.exports = (io, client,redis, Projects) => {
   let focusBlock = null;
   let bufferOutput = { output: "", error: "" };
   let isSpawnText = false;
-  let executionCount;
 
   spawnPython();
   detectOutput();
   winston.info("Client connected");
 
   client.on("join project", async payload => {
+    curUser = payload.username;
+    console.log(" curUser ------------ " , curUser)
     try {
         notebookAssingmentId = cryptr.decrypt(payload.notebookAssingmentId),
         projectId = payload.pid;
+        winston.info(`User ${payload.username} joined at pid: ${payload.pid}`);
         client.join(projectId);
         initRemainder();
     } catch (e) {
@@ -44,8 +47,12 @@ module.exports = (io, client,redis, Projects) => {
     }
   });
 
-  
 
+  client.on("update block status",  payload => {
+    console.log(" payload.sattus" , payload.blockStatus)
+    io.in(projectId).emit("update blockStatus", payload.blockStatus );
+
+  });
 
   client.on("code change",  payload => {
     const origin = !!payload.code.origin && payload.code.origin !== "setValue";
@@ -139,7 +146,6 @@ module.exports = (io, client,redis, Projects) => {
     /**
      * display In[*]
      */
-    //ดูวิธีเรียกตรงนี้อีกที คิดว่าต้องใช้ io.in
     getCurrentExecute(notebookAssingmentId)
 
   });

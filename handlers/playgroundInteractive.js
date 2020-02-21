@@ -39,12 +39,16 @@ module.exports = (io, client, redis, projects) => {
    * after that socket will fire `init state` with editor code to initiate local editor
    */
   client.on("join project", async payload => {
+
     try {
       projectId = payload.pid;
       curUser = payload.username;
       winston.info(`User ${payload.username} joined at pid: ${payload.pid}`);
       client.join(projectId);
 
+      console.log(" curUser ------------ " , curUser)
+
+      
       let allcomment = await Comment.find(
         { pid: payload.pid },
         { file: 1, line: 1, description: 1, _id: 0 }

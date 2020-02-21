@@ -1056,7 +1056,7 @@ function onClickAddPartnerButton(studentsGroup) {
                         '<div class="ten wide column">'+
                           ' <p>'+ studentsGroup.students[index].first_name + " " +studentsGroup.students[index].last_name+'</p>'+
                         '</div>'+
-                      '<div class="two wide column"><input class="single-checkbox" type="checkbox" name="student" value='+JSON.stringify(studentsGroup.students[index]) +' id="student" float="left" /></div>'+
+                      '<div class="two wide column"><input onclick="onClickStudentCheckbox('+studentsGroup.students[index].first_name+')" type="checkbox" name="student" value='+JSON.stringify(studentsGroup.students[index]) +' float="left" id = '+studentsGroup.students[index].first_name+' /></div>'+
                     '</div>'+
                 '</div>'+
             '</div>'+
@@ -1064,12 +1064,6 @@ function onClickAddPartnerButton(studentsGroup) {
       )
     } 
   }
-  var limit = 3;
-  $('input.single-checkbox').on('change', function(evt) {
-     if($(this).siblings(':checked').length >= limit) {
-         this.checked = false;
-     }
-  });
 
       $("#partner_selection_modal").modal("show");
 
@@ -1078,7 +1072,22 @@ function onClickAddPartnerButton(studentsGroup) {
         "showGroup(" + JSON.stringify(studentsGroup)+ ")"
         ); 
   }
+
+    function onClickStudentCheckbox(id){
+
+      check_student = Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value)
+      console.log("check_student" ,  id.value)
+
+      if(check_student.length > 3){
+        student = JSON.parse(id.value)
+        first_name = student["first_name"]
+        let f = document.getElementById(first_name).checked = false;
+
+      }     
+
+  }
   function showGroup(studentsGroup){
+
 
 
     select_student = Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value)

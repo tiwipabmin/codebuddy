@@ -5,14 +5,17 @@ var comments = [];
 var executingBlock;
 var output = {};
 var sizeOutputObjects = 0;
-
+var blockStatus = []
 
 function getCodeFocusBlock() {
   var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
   return codeFocusBlock;
 }
 
-
+socket.on("update blockStatus", payload => {
+  console.log(" payload.sattus front" , payload)
+  blockStatus = payload
+});
 /**
  * Run code
  */
@@ -22,9 +25,7 @@ function runCode() {
     focusBlock: detectFocusBlock,
     blockId: editors[detectFocusBlock].blockId
   });
-  // socket.emit("save lines of code", {
-  //   uid: uid
-  // });
+
 }
 
 socket.on("show output", payload => {
@@ -113,41 +114,64 @@ var notebookAssingmentId = document.getElementById("notebookAssingmentId").value
 for(var i = 0; i < projectFiles.length; i++){
   let cellType = projectFiles[i]["cellType"]
 
-  // if(cellType == "code"){
     newEditorFacade(i,cellType)
-  // }
 
-  
 }
-
-
-
 
 function newEditorFacade(fileName, cellType) {
   setEditor(fileName, cellType);
   setOnChangeEditer(fileName);
-  // setOnDoubleClickEditor(fileName);
-
-  // /**
-  //  * setup partner active tab
-  //  **/
-  // if (fileName == "main") {
-  //   $("#" + partnerTab + "-file-icon").replaceWith(
-  //     '<img id="' +
-  //       partnerTab +
-  //       '-file-icon" class="ui avatar image partner-file-icon" src="' +
-  //       partner_img +
-  //       '" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>'
-  //   );
-  // } else {
-  //   $("#" + fileName + "-file-icon").replaceWith(
-  //     '<div id="' + fileName + '-file-icon"/>'
-  //   );
-  // }
+ 
 }
 
+
+function setStatusBlock(blockId){
+
+  // check if owner change block
+  //true = delete block id in list
+  activeOwner = blockStatus.map(function(d) { return d['owner']; });
+ if(activeOwner.includes(user)){
+    const index = blockStatus.findIndex(x => x.owner === user);
+    blockStatus.splice(index, 1);
+
+   //delete block id in list
+   socket.emit("update block status", {
+    blockStatus: blockStatus
+    
+  });
+ }
+    //check if blockId in list of blockStatus ??
+
+  const checkBlockId = blockStatus => blockStatus.id === blockId;
+
+  if(blockStatus.some(checkBlockId)){
+    console.log(" IN ")
+    console.log(" lock ---------------" , blockStatus)
+
+    return "lock"
+
+  }else{
+    console.log(" OUT ")
+    let block  = {
+      id : blockId,
+      owner : user
+      
+    }
+
+    blockStatus.push(block)
+    socket.emit("update block status", {
+      blockStatus: blockStatus
+      
+    });
+    console.log(" unLock ---------------" , blockStatus)
+
+    return "unLock"
+
+  }
+
+
+}
 function setEditor(fileName, cellType) {
-  // console.log(fileName)
   var cm = CodeMirror.fromTextArea(
     document.getElementById(fileName),
     {
@@ -202,23 +226,29 @@ function setEditor(fileName, cellType) {
       })
       .indexOf(cm);
 
-    socket.emit("codemirror on focus", {
-      prevFocus: prevFocusBlock,
-      newFocus: detectFocusBlock
-    });
-
-    document.getElementById(
-      editors[prevFocusBlock].blockId + "-div"
-    ).style.border = "";
-    document.getElementById(
-      editors[detectFocusBlock].blockId + "-div"
-    ).style.border = "thin solid #2185d0";
-    document.getElementById(
-      editors[detectFocusBlock].blockId + "-div"
-    ).style.borderLeft = "thick solid #2185d0";
-
-
-    console.log(`SET Detect focus block!! ${detectFocusBlock}`);
+      console.log(`SET Detect focus block!! ${detectFocusBlock}`);
+      status = setStatusBlock(detectFocusBlock)
+      console.log("status " , status)
+      if(status == 'unLock'){
+        socket.emit("codemirror on focus", {
+          prevFocus: prevFocusBlock,
+          newFocus: detectFocusBlock
+        });
+    
+        document.getElementById(
+          editors[prevFocusBlock].blockId + "-div"
+        ).style.border = "";
+        document.getElementById(
+          editors[detectFocusBlock].blockId + "-div"
+        ).style.border = "thin solid #2185d0";
+        document.getElementById(
+          editors[detectFocusBlock].blockId + "-div"
+        ).style.borderLeft = "thick solid #2185d0";
+      }else{
+        console.log(" Commentttttttttttttt")
+      }
+  
+    
   });
   editors.push({ blockId: fileName, editor: cm });
 }
@@ -307,11 +337,11 @@ function setOnChangeEditer(fileName) {
 socket.on("focus block", payload => {
   executingBlock = payload;
   if (executingBlock != editors.length - 1) {
-    // detectFocusBlock += 1;
-    // socket.emit("codemirror on focus", {
-    //   prevFocus: detectFocusBlock - 1,
-    //   newFocus: detectFocusBlock
-    // });
+    detectFocusBlock += 1;
+    socket.emit("codemirror on focus", {
+      prevFocus: detectFocusBlock - 1,
+      newFocus: detectFocusBlock
+    });
     editors[detectFocusBlock].editor.focus();
     editors[detectFocusBlock].editor.setCursor(0, 0);
   }
@@ -335,9 +365,12 @@ socket.on("editor update", payload => {
  * User join the project
  */
 socket.emit("load playground", { programming_style: "Collaborative" });
+
 socket.emit("join project", {
   notebookAssingmentId: notebookAssingmentId,
-  pid: getParameterByName("pid")
+  pid: getParameterByName("pid"),
+  username: user
+
 });
 
 /**

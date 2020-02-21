@@ -135,7 +135,8 @@ exports.getPlayground = async (req, res) => {
       });
     }
   
-  }else if(branch_type[0]["branch_type"] == "DSBA"){
+  }
+  else if(branch_type[0]["branch_type"] == "DSBA"){
     console.log("OK Playground DSBA")
     const select_notebookAssignment_by_notebookAssignment_id =
       "SELECT * FROM notebook_assignment WHERE notebook_assignment_id = " +
@@ -499,7 +500,7 @@ exports.getSection = async (req, res) => {
     }).sort({ createdAt: -1 });
 
     
-    console.log("projects 2 ", projects)
+    // console.log("projects 2 ", projects)
     /**
      * projects change data type from array to object
      */

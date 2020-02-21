@@ -10,15 +10,6 @@ block script
   link(rel='stylesheet' href='/codemirror/theme/seti.css')
   link(rel='stylesheet' href='/codemirror/theme/material.css')
 
-  //- style.
-  //-   @media (min-height: 200px) {
-  //-   .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-  //-   position: fixed;
-  //-   margin-top: 20px;
-  //-   bottom: 0;
-  //-   width: 100%;
-  //-   }
-  //-   }
 
 block content
   +assignmentModal()
@@ -130,7 +121,10 @@ block content
     .CodeMirror-gutter {
       height: auto;
     }
-
+  script.
+    let user="#{user.username}"
+    let uid="#{user._id}"
+    
   script(src='/js/static/socket.io.min.js')
   script(src='/xterm/xterm.js')
   script(src='/codemirror/lib/codemirror.js')

@@ -289,7 +289,7 @@ function on_click_ui_purpose_tab(
               JSON.stringify(partnerKeys) +
               ", " +
               JSON.stringify(pairingObjectives) +
-              ",2)'>Add2</div></div><img class='ui avatar image' src='" +
+              ",2)'>Add</div></div><img class='ui avatar image' src='" +
               student.img +
               "'><div class='content'><div class='header'>" +
               student.first_name +
@@ -328,7 +328,7 @@ function on_click_ui_purpose_tab(
               JSON.stringify(partnerKeys) +
               ", " +
               JSON.stringify(pairingObjectives) +
-              ",2)'>Add 4</div></div><img class='ui avatar image' src='" +
+              ",2)'>Add</div></div><img class='ui avatar image' src='" +
               student.img +
               "'><div class='content'><div class='header'>" +
               student.first_name +
@@ -1147,7 +1147,7 @@ function showStudentList(
             ", " +
             JSON.stringify(pairingObjectives) +
             //when partner is empty
-            ", 1)'>Adddddddd</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: " + 
+            ", 1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: " + 
             pad(parseInt(0 / 3600)) +
             ":" +
             pad(parseInt((0 - parseInt(0 / 3600) * 3600) / 60)) +
@@ -1174,7 +1174,7 @@ function showStudentList(
             JSON.stringify(partnerKeys) +
             ", " +
             JSON.stringify(pairingObjectives) +
-            ",1)'>Add 3</div>";
+            ",1)'>Add </div>";
         }
         let pairing_objective_str = pairingObjectives[key];
         if (
