@@ -32,7 +32,8 @@ const collaborativeProject = new mongoose.Schema({
     week: { type : Number , default: 1 },
     disable_time: { type: Date, default: Date.now },
     enable_time: { type: Date, default: Date.now },
-    available_project: { type: Boolean, default: false }
+    available_project: { type: Boolean, default: false },
+    collaborative_session_id: String
 
 })
 

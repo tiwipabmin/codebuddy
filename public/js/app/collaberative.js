@@ -38,10 +38,10 @@ function on_click_weeks_dropdown(
       collaborative_session_id +
       ")"
   );
-  // $("#delete_assignment_button").attr(
-  //   "onclick",
-  //   "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
-  // );
+  $("#delete_assignment_button").attr(
+    "onclick",
+    "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
+  );
   $("div").remove("#assignment_pagination");
   if (pagination[pagination.length - 1] == 1) {
     pagination = [];
@@ -1470,62 +1470,62 @@ function groupStudent(studentsGroup){
     //     }
     //   });
     // }
-    //  else if (message == "Are you sure you want to delete these assignment?") {
-    //   $("#global_loader").attr({
-    //     style: "display: block; position: fixed;"
-    //   });
-    //   $.ajax({
-    //     url: "/notebookAssignment/deleteAssignment",
-    //     type: "delete",
-    //     data: parameters,
-    //     success: function(res) {
-    //       let status = res.dataSets.origins.status;
-    //       let assignments = JSON.parse(res.dataSets.reforms.assignments);
-    //       let username = res.dataSets.origins.username;
-    //       let img = res.dataSets.origins.img;
-    //       let pairing_session_id = res.dataSets.origins.pairing_session_id;
-    //       let opt = 0;
-    //       let weeks = res.dataSets.origins.weeks;
-    //       let data_for_weeks_dropdown_function = {
-    //         assignments: JSON.stringify(assignments),
-    //         username: username,
-    //         img: img,
-    //         weeks: weeks
-    //       };
-    //       if (status == "Delete all of these assignment successfully.") {
-    //         $("#menu_week").empty();
-    //         create_weeks_dropdown(
-    //           "#menu_week",
-    //           pairing_session_id,
-    //           data_for_weeks_dropdown_function
-    //         );
-    //         $("#weeks").dropdown();
-    //         on_click_weeks_dropdown(
-    //           "-1week",
-    //           assignments,
-    //           username,
-    //           img,
-    //           pairing_session_id,
-    //           opt
-    //         );
-    //         $("#clear_checkbox").attr(
-    //           "onclick",
-    //           "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 0)"
-    //         );
-    //         $("#check_all_of_box").attr(
-    //           "onclick",
-    //           "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 1)"
-    //         );
-    //         alert(status);
-    //       } else {
-    //         alert(status);
-    //       }
-    //       $("#global_loader").attr({
-    //         style: "display: none; position: fixed;"
-    //       });
-    //     }
-    //   });
-    // } 
+     else if (message == "Are you sure you want to delete these assignment?") {
+      $("#global_loader").attr({
+        style: "display: block; position: fixed;"
+      });
+      $.ajax({
+        url: "/notebookAssignment/deleteAssignment",
+        type: "delete",
+        data: parameters,
+        success: function(res) {
+          let status = res.dataSets.origins.status;
+          let assignments = JSON.parse(res.dataSets.reforms.assignments);
+          let username = res.dataSets.origins.username;
+          let img = res.dataSets.origins.img;
+          let pairing_session_id = res.dataSets.origins.pairing_session_id;
+          let opt = 0;
+          let weeks = res.dataSets.origins.weeks;
+          let data_for_weeks_dropdown_function = {
+            assignments: JSON.stringify(assignments),
+            username: username,
+            img: img,
+            weeks: weeks
+          };
+          if (status == "Delete all of these assignment successfully.") {
+            $("#menu_week").empty();
+            create_weeks_dropdown(
+              "#menu_week",
+              pairing_session_id,
+              data_for_weeks_dropdown_function
+            );
+            $("#weeks").dropdown();
+            on_click_weeks_dropdown(
+              "-1week",
+              assignments,
+              username,
+              img,
+              pairing_session_id,
+              opt
+            );
+            $("#clear_checkbox").attr(
+              "onclick",
+              "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 0)"
+            );
+            $("#check_all_of_box").attr(
+              "onclick",
+              "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 1)"
+            );
+            alert(status);
+          } else {
+            alert(status);
+          }
+          $("#global_loader").attr({
+            style: "display: none; position: fixed;"
+          });
+        }
+      });
+    } 
     // else if (
     //   message == "Are you sure you want to disable assignments on this week?"
     // ) {
@@ -1737,6 +1737,8 @@ function onClickDeleteAssignment(assignment_of_week) {
     let parameters = JSON.stringify({
       assignment_is_selected: assignment_is_selected
     });
+
+
     $("#confirm-button").attr(
       "onclick",
       "on_click_confirm_button(" + parameters + ")"

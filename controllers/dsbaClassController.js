@@ -186,9 +186,13 @@ if(resStatus == "Update completed."){
   "SELECT * FROM collaborative_session  WHERE section_id = " +
   section_id +
   " ORDER BY collaborative_session_id DESC";
-  console.log(queryCollaborativeSession)
+
   collaborativeSession = await conMysql.selectCollaborativeSession(queryCollaborativeSession);
-  console.log("collaborativeSession", collaborativeSession)
+
+  let collaborativeProject = await CollaborativeProject.updateMany(
+    {collaborative_session_id:collaborativeSessionId},
+    {$set: {available_project:false}}
+  );
 }else {
     resStatus = "Update a pairing date time status failed.";
 
@@ -302,6 +306,7 @@ for (let _index in assignmentSet) {
       for (let _index in assignment_of_each_pair[key]) {
         assignment_id = assignment_of_each_pair[key][_index];
         collaborativeProject = new CollaborativeProject();
+        collaborativeProject.collaborative_session_id = collaborative_session_id
         collaborativeProject.title = cloneAssignmentSet[assignment_id].title;
         collaborativeProject.description = cloneAssignmentSet[assignment_id].description;
         collaborativeProject.programming_style =
