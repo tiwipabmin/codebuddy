@@ -1175,6 +1175,7 @@ function showStudentList(
             ", " +
             JSON.stringify(pairingObjectives) +
             ",1)'>Add </div>";
+
         }
         let pairing_objective_str = pairingObjectives[key];
         if (
