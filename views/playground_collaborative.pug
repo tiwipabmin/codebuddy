@@ -14,7 +14,32 @@ block script
 block content
   +assignmentModal()
   +alertModal()
-
+  .ui.modal
+  .ui.reviewer.small.modal
+    .header Code Review
+    .content
+      .ui.form
+        .field
+          label File :
+          |  
+          input.disabled.file.name(type='text' placeholder='File' disabled='')
+          input.hidden.file.name(type='hidden')
+        .field
+          label Line No :
+          |  
+          input.disabled.line.no(type='text' placeholder='Your Project Name' disabled='')
+        .field
+          label Comment :
+          |  
+          textarea.line.reviewer.description(rows='4' cols='50' placeholder='Something about this line')
+        .ui.basic.center.aligned.segment()
+          .actions
+            button.ui.button.approve.green(onClick='submitReview()') Submit
+            .ui.button.approve.red(data-value='cancel') Cancel
+            .ui.floated.alignedvertical.animated.deleteProject.button.approve(onClick='deleteReview()' tabindex='0')
+              .hidden.content Delete
+              .visible.content
+                i.trash.icon
   .ui.segment.container.notebook_app.command_mode
     .ui.two.column.grid
       .middle.aligned.column
@@ -60,44 +85,6 @@ block content
           input(type='hidden' id='projectFiles' value=`${JSON.stringify(cells)}`)
           input(type='hidden' id='notebookAssingmentId' value=`${dataSets.origins.notebookAssignment.notebook_assignment_id}`)
           //- p !{cells[51]["outputs"][0]["data"]}
-
-
-    //- .ui.chatbox(id="live-chat")
-    //-     header.clearfix
-    //-       eight.wide.column(style="float: left;")
-    //-         i.comments.icon(style="float: left;")
-    //-         p Chat
-    //-       eight.wide.column(style="float: right;")
-    //-         i.angle.up.icon(id="angle-up")
-    //-     .chat
-    //-       .chat-history
-    //-         .ui.items.message-list(id="chatheight")
-    //-           if dataSets.reforms.messages.length == 0
-    //-             .ui.item
-    //-             | Send message to your pair.
-    //-           else
-    //-             each message in dataSets.reforms.messages
-    //-               .ui.item
-    //-                 if (message.uid != user._id)
-    //-                   img.ui.avatar.image(src=partner_img)
-    //-                   .curve-box #{message.message}
-    //-                 else
-    //-                   //- img.ui.avatar.image(src=`${user.img}`)
-    //-                   .content
-    //-                   .curve-box-user #{message.message}
-    //-                   //- a.header Thara
-
-    //-       .ui.chatbottom
-    //-         p#show-is-typing
-    //-           .ui.form(action='/project' method='POST')
-    //-             .field
-    //-               .ui.grid
-    //-                 .twelve.wide.column
-    //-                   input.ui.input(type='text' id="inputMessage" name='message' placeholder='Type here')
-    //-                 .four.wide.column
-    //-                   button.ui.button.icon(type='submit' onClick='sendMessage()')
-    //-                     i.send.icon
-    //-       .twelve.wide.column.right
 
     a.button.ui.labeled.icon.button(href='/classroom?section_id='+dataSets.origins.section.section_id, style='margin-top:20px;')
       i.reply.icon

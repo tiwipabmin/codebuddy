@@ -65,32 +65,32 @@ block content
           .ui.blue.massive.inverted.positive.button
             i.remove.icon
             |       Close
-  .ui.modal
-  .ui.reviewer.small.modal
-    .header Code Review
-    .content
-      .ui.form
-        .field
-          label File :
-          |
-          input.disabled.file.name(type='text' placeholder='File' disabled='')
-          input.hidden.file.name(type='hidden')
-        .field
-          label Line No :
-          |
-          input.disabled.line.no(type='text' placeholder='Your Project Name' disabled='')
-        .field
-          label Comment :
-          |
-          textarea.line.reviewer.description(rows='4' cols='50' placeholder='Something about this line')
-        .ui.basic.center.aligned.segment()
-          .actions
-            button.ui.button.approve.green(onClick='submitReview()') Submit
-            .ui.button.approve.red(data-value='cancel') Cancel
-            .ui.floated.alignedvertical.animated.deleteProject.button.approve(onClick='deleteReview()' tabindex='0')
-              .hidden.content Delete
-              .visible.content
-                i.trash.icon
+  //- .ui.modal
+  //- .ui.reviewer.small.modal
+  //-   .header Code Review
+  //-   .content
+  //-     .ui.form
+  //-       .field
+  //-         label File :
+  //-         |
+  //-         input.disabled.file.name(type='text' placeholder='File' disabled='')
+  //-         input.hidden.file.name(type='hidden')
+  //-       .field
+  //-         label Line No :
+  //-         |
+  //-         input.disabled.line.no(type='text' placeholder='Your Project Name' disabled='')
+  //-       .field
+  //-         label Comment :
+  //-         |
+  //-         textarea.line.reviewer.description(rows='4' cols='50' placeholder='Something about this line')
+  //-       .ui.basic.center.aligned.segment()
+  //-         .actions
+  //-           button.ui.button.approve.green(onClick='submitReview()') Submit
+  //-           .ui.button.approve.red(data-value='cancel') Cancel
+  //-           .ui.floated.alignedvertical.animated.deleteProject.button.approve(onClick='deleteReview()' tabindex='0')
+  //-             .hidden.content Delete
+  //-             .visible.content
+  //-               i.trash.icon
   .ui.coder.small.modal
     .header Review Description
     .content

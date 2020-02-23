@@ -215,7 +215,6 @@ function setEditor(fileName, cellType) {
   });
   cm.on("focus", cm => {
     var prevFocusBlock = detectFocusBlock;
-
     /**
      * find index of focusing codemirror in editors array.
      **/
@@ -245,7 +244,22 @@ function setEditor(fileName, cellType) {
           editors[detectFocusBlock].blockId + "-div"
         ).style.borderLeft = "thick solid #2185d0";
       }else{
-        console.log(" Commentttttttttttttt")
+        // let A1 = editor[fileName].getCursor().line;
+        // let A2 = editor[fileName].getCursor().ch;
+        // let B1 = editor[fileName].findWordAt({
+        //   line: A1,
+        //   ch: A2
+        // }).anchor.ch;
+        // let B2 = editor[fileName].findWordAt({
+        //   line: A1,
+        //   ch: A2
+        // }).head.ch;
+        // $("input.disabled.line.no").val(A1 + 1);
+        // $("input.disabled.file.name").val(fileName + ".py");
+        // $("input.hidden.file.name").val(fileName);
+        // let line = $("input.disabled.line.no").val();
+        $(".ui.reviewer.small.modal").modal("show");
+        detectFocusBlock = 0;
       }
   
     
@@ -253,6 +267,16 @@ function setEditor(fileName, cellType) {
   editors.push({ blockId: fileName, editor: cm });
 }
 
+function submitReview() {
+
+  console.log("submit   Review ")
+  // socket.emit("submit review", {
+  //   file: $("input.hidden.file.name").val(),
+  //   line: parseInt($("input.disabled.line.no").val()),
+  //   description: $("textarea.line.reviewer.description").val()
+  // });
+  // $("textarea.line.description").val("");
+}
 function setOnChangeEditer(fileName) {
 
   /**

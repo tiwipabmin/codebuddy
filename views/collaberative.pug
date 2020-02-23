@@ -140,7 +140,7 @@ block content
                 $(document).ready(function() {
                   set_item_pagination_in_third_container(!{dataSets.reforms.assignments}, "!{dataSets.origins.section.section_id}", "!{user.info.occupation}")
                   on_click_page_number_in_third_container(1)
-                  monitorActiveProjects(!{dataSets.reforms.projects})
+                  //- monitorActiveProjects(!{dataSets.reforms.projects})
                   clearInterval("!{user.username}")
                   setMonitoringInterval("!{user.username}", 60000, !{dataSets.reforms.projects})
                 })
