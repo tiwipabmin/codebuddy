@@ -652,10 +652,10 @@ exports.getSection = async (req, res) => {
     console.log("req.user.username ", req.user.username)
     let projects = await CollaborativeProject.find({
       $and: [
-        { status: { $ne: "pending" } },
+        { available_project: { $ne: false } },
         {
           $or: [
-            { creator: req.user.username },
+            {creator: req.user.username },
             {collaborator:req.user.username}
           ]
         }

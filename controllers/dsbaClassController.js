@@ -207,7 +207,7 @@ if(resStatus == "Update completed."){
 
 exports.assignAssignment = async (req, res) => {
 
-
+  console.log("assignAssignment =================")
   let cloneAssignmentSet = {};
 
   let assignmentSet = req.body.assignment_set;
@@ -230,8 +230,7 @@ exports.assignAssignment = async (req, res) => {
     collaborative_session_id;
   let students = await conMysql.selectStudent(selectStudent);
 
-  let swaptime = "1";
-  let language = "0";
+  
   let creator = "username@Codebuddy";
   let collaborator = "examiner@codebuddy";
   let cloneStudents = {};
@@ -283,7 +282,9 @@ for (let _index in assignmentSet) {
         findProject = await CollaborativeProject.findOne({
              assignment_id: assignmentSet[_index].notebook_assignment_id,
               creator: cloneStudents[group[key][0]].username,
-              createdAt: { $gt: new Date(timeStart) }
+              available_project: true,
+              createdAt: { $gt: new Date(timeStart),
+             }
         });
 
         if (findProject == null) {
@@ -301,6 +302,7 @@ for (let _index in assignmentSet) {
 
   let start_time  = getCurrentTime()
   let countMember = 0;
+  console.log("assignment_of_each_pair ", assignment_of_each_pair)
   for (let key in assignment_of_each_pair) {
     countMember++;
       for (let _index in assignment_of_each_pair[key]) {
@@ -329,8 +331,10 @@ for (let _index in assignmentSet) {
         let isCreatePro = false;
      
         if (creator != null) {
+          console.log("creator != null")
           collaborator = await User.findOne({ username: collaborator });
             if (collaborator != null) {
+              console.log("collaborator != null")
                 collaborativeProject = await collaborativeProject.save();
                 await CollaborativeProject.updateOne(
                   {
