@@ -235,6 +235,8 @@ function setEditor(fileName, cellType) {
       console.log("status " , status)
 
       if(status == 'unLock'){
+        cm.setOption("readOnly", false); // no cursor
+
         socket.emit("codemirror on focus", {
           prevFocus: prevFocusBlock,
           newFocus: detectFocusBlock
@@ -249,25 +251,11 @@ function setEditor(fileName, cellType) {
         document.getElementById(
           editors[detectFocusBlock].blockId + "-div"
         ).style.borderLeft = "thick solid #2185d0";
+
       }else{
-        // let A1 = editor[fileName].getCursor().line;
-        // let A2 = editor[fileName].getCursor().ch;
-        // let B1 = editor[fileName].findWordAt({
-        //   line: A1,
-        //   ch: A2
-        // }).anchor.ch;
-        // let B2 = editor[fileName].findWordAt({
-        //   line: A1,
-        //   ch: A2
-        // }).head.ch;
-        // $("input.disabled.line.no").val(A1 + 1);
-        // $("input.disabled.file.name").val(fileName + ".py");
-        // $("input.hidden.file.name").val(fileName);
-        // let line = $("input.disabled.line.no").val();
-        // detectFocusBlock = 0
-        // $(".ui.reviewer.small.modal").modal("show");
-        $("#alert-header").text("Export File");
-      $("#alert-message").text(status);
+        
+        cm.setOption("readOnly", "nocursor"); // no cursor
+
 
       }
   
@@ -275,6 +263,23 @@ function setEditor(fileName, cellType) {
   });
   editors.push({ blockId: fileName, editor: cm });
 }
+
+  /**
+   * Editor is configured cursor according to the user's role.
+   * @param {object} blockId receive a file name.
+   */
+  function setOptionFileNoCursor(blockId) {
+    var blockObj = editors.find(obj => {
+      return obj.blockId == fileName;
+    });
+    blockObj.editor.setOption("readOnly", "nocursor");
+  }
+  function setOptionFileShowCursor(blockId) {
+    var blockObj = editors.find(obj => {
+      return obj.blockId == fileName;
+    });
+    blockObj.editor.setOption("readOnly", false);
+  }
 
 function submitReview() {
 
@@ -407,7 +412,7 @@ socket.emit("join project", {
  */
 socket.on("update block", payload => {
   
-  console.log("update block")
+  console.log("update block ---------------*")
   let blockId = payload.blockId;
   let index = payload.index;
 
@@ -430,11 +435,7 @@ socket.on("update block", payload => {
           '</div>'+
         '</div>'+
       '</div>'
-      
-      // '<div id="'+blockId+'-output" class="output">'+
-      //     '<div class="output_subarea output_text" style="padding-left:8em; padding-right:25px;">'+
-      //     '</div>'+
-      // '</div>'  
+     
 
     divisionCodeBlock.className = "cell code_cell rendered";
     divisionCodeBlock.setAttribute("id", blockId + "-div");
@@ -444,8 +445,7 @@ socket.on("update block", payload => {
       divisionCodeBlock,
       segmentCodeBlock.children[index]
     );
-    // console.log("INDEX: ", index)
-    // $( divisionCodeBlock ).insertBefore( "#"+index+"-div" );
+ 
 
     /**
      * TODO: refactor setEditor with index parameter
@@ -489,78 +489,6 @@ socket.on("update block", payload => {
     setOnChangeEditer(blockId);
     setOnDoubleClickEditor(blockId);
 
-    function sendMessage() {
-      if (document.getElementById("inputMessage").value != "") {
-        socket.emit("send message", {
-          uid: uid,
-          message: document.getElementById("inputMessage").value
-        });
-      }
-    }
-
-/**
- * attach ready event -- Video Toggle
- **/
-$(document).ready(function() {
-  $(".ui.video.toggle.button").state({
-    text: {
-      inactive: '<i class="pause circle icon"/>',
-      active: '<i class="play video icon"/>'
-    }
-  });
-  $(".ui.mute.toggle.button").state({
-    text: {
-      inactive: '<i class="mute icon"/>',
-      active: '<i class="unmute icon"/>'
-    }
-  });
-  $("#inputMessage").keydown(function() {
-    socket.emit("is typing", {
-      uid: uid,
-      text: `${user} is typing...`
-    });
-    clearTimeout(parseInt($("#inputMessage").attr("data-timeId")));
-  });
-  $("#inputMessage").keyup(function() {
-    let timeId = setTimeout(function() {
-      socket.emit("is typing", {
-        uid: uid,
-        text: ""
-      });
-    }, 5000);
-    $("#inputMessage").attr("data-timeId", timeId);
-  });
-  $("#inputMessage").keydown(function(e) {
-    if (e.keyCode == 13) {
-      sendMessage();
-    }
-  });
-  updateScroll();
-});
-    
-/**
- * Update message
- */
-socket.on("update message", payload => {
-  updateScroll();
-  if (payload.user._id === uid) {
-    $(".message-list").append(
-      "<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>" +
-        payload.message.message +
-        "</p></div></li>"
-    );
-    $("#inputMessage").val("");
-  } else {
-    $(".message-list").append(
-      "<li class='ui item'><a class='ui avatar image'><img src='" +
-        payload.user.img +
-        "'></a><div class='description curve-box'><p>" +
-        payload.message.message +
-        "</p></div></li>"
-    );
-  }
-});
-    
     cm.on("focus", cm => {
       var prevFocusBlock = detectFocusBlock;
 
@@ -607,28 +535,10 @@ socket.on("update message", payload => {
     editors.splice(index, 0, { blockId: blockId, editor: cm });
    
     projectFiles.splice(index, 0, {cellType: "code", executionCount: null, outputs: Array(0), source: "", blockId: blockId.toString()});
-    // for(i in editors){
-    //   if(i > blockId ){
-    //     editors[i]["blockId"] = parseInt(i)
-    //     projectFiles[i]["blockId"]= i
-        
-    //   }
-    // }
-    // console.log("editors ", editors)
-    // console.log("projectFiles ", projectFiles)
-    // console.log("projectFiles ", projectFiles)
-    // projectFiles.splice(blockId, 0, blockId);
-    setOnChangeEditer(blockId);
-    // setOnDoubleClickEditor(blockId);
 
-    // switch (roles.user) {
-    //   case "coder":
-    //     cm.setOption("readOnly", false); // show cursor
-    //     break;
-    //   case "reviewer":
-    //     cm.setOption("readOnly", "nocursor"); // no cursor
-    //     break;
-    // }
+    setOnChangeEditer(blockId);
+    setOnDoubleClickEditor(blockId);
+  
   } 
   // else {
   //   var divisionCodeBlock = document.getElementById(blockId + "-div");
