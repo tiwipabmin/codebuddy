@@ -9,6 +9,13 @@
     overflow: auto !important;
 }
 
+#notiMenu {
+    width: 450px;
+    height: 355px;
+    background-color: #F8F9F9;
+    overflow-y: auto;
+}
+
 #xterm-container {
     resize: vertical;
     overflow: auto !important;

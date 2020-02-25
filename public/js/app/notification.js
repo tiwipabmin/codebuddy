@@ -6,7 +6,7 @@
  */
 function getVarFromScript(scriptName, name) {
     const data = $(`script[src*=${scriptName}]`)
-    let variable = data.attr(name)
+    const variable = data.attr(name)
     if (typeof variable === undefined) {
         console.log('Error: ', variable)
     }
@@ -17,9 +17,6 @@ function getVarFromScript(scriptName, name) {
  * Websocket.io instance
  */
 const classNotiSocket = io('');
-const username = getVarFromScript('notification', 'data-username')
-const occupation = getVarFromScript('notification', 'data-occupation')
-console.log('Username, ', username, ', Occupation, ', occupation)
 classNotiSocket.emit('notification', {})
 
 /**
@@ -40,8 +37,8 @@ function getParameterByName(name) {
 }
 
 classNotiSocket.emit('join classroom', {
-    username: username,
-    occupation: occupation
+    username: getVarFromScript('notification', 'data-username'),
+    occupation: getVarFromScript('notification', 'data-occupation')
 })
 
 classNotiSocket.on('connection failed', (payload) => {
@@ -54,11 +51,85 @@ classNotiSocket.on('PING', (payload) => {
     classNotiSocket.emit('PONG', { beat: newBeat })
 })
 
-classNotiSocket.on('notice', (payload) => {
-    console.log('Payload, ', payload)
-    $.get('/notifications', payload, (res) => {
-        const ServRes = JSON.stringify(res)
-        console.log('ServRes, ', ServRes)
-        alert('Server response')
-    })
+classNotiSocket.on('notify all', (payload) => {
+    const notifications = payload.notifications
+    console.log('Notifications, ', notifications)
+    if (notifications !== null) {
+        $('#noNotifications').remove()
+        $('#notiItems').empty()
+        for (let index in notifications) {
+            if (notifications[index].process === `pending` && notifications[index].available_project) {
+                const item = $(`<div class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;"></div>`)
+                const content = $(`<div class="content"><div class="header">${notifications[index].head}</div><div class="description"><p>${notifications[index].content}</p></div></div>`)
+                const button = $(`<div class="extra"><div class="ui right floated primary button" onclick="location.href='${notifications[index].link}';">Join</div></div>`)
+                content.append(button)
+                item.append(content)
+                $('#notiItems').append(item)
+            } else {
+                const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;"></div>`)
+                const content = $(`<div class="content"><div class="header">${notifications[index].head}</div><div class="description"><p>${notifications[index].content}</p></div></div>`)
+                item.append(content)
+                $('#notiItems').append(item)
+            }
+        }
+        $('#alarmNoti').text($('#notiItems').children().length)
+        $('#alarmNoti').attr("style", "display: block;")
+    }
+})
+
+classNotiSocket.on('notify to join project', (payload) => {
+    const username = getVarFromScript('notification', 'data-username')
+
+    if (Object.keys(payload).length
+        && Object.keys(payload.curUser).length
+        && Object.keys(payload.partner).length) {
+        if ($('#noNotifications').length) {
+            $('#noNotifications').remove()
+            $('#notiItems').empty()
+        }
+        // console.log('Element, ', $('#noNotifications').length)
+        if (username === payload.curUser.own) {
+            const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;"></div>`)
+            const content = $(`<div class="content"><div class="header">${payload.curUser.head}</div><div class="description"><p>${payload.curUser.content}</p></div></div>`)
+            item.append(content)
+            $('#notiItems').append(item)
+            $('#alarmNoti').text($('#notiItems').children().length)
+            $('#alarmNoti').attr("style", "display: block;")
+        } else {
+            const item = $(`<div class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:white;"></div>`)
+            const content = $(`<div class="content"><div class="header">${payload.partner.head}</div><div class="description"><p>${payload.partner.content}</p></div></div>`)
+            const button = $(`<div class="extra"><div class="ui right floated primary button" onclick="location.href='${payload.partner.link}';">Join</div></div>`)
+            content.append(button)
+            item.append(content)
+            $('#notiItems').append(item)
+            $('#alarmNoti').text($('#notiItems').children().length)
+            $('#alarmNoti').attr("style", "display: block;")
+        }
+    }
+})
+
+classNotiSocket.on('test notification', (payload) => {
+    alert('TEST!!')
+})
+
+classNotiSocket.on('create new project notification', (payload) => {
+    const username = getVarFromScript('notification', 'data-username')
+    console.log('Server response!!')
+
+    if (username === payload.username) {
+        classNotiSocket.emit('clear interval', {
+            timerId: payload.timerId
+        })
+        $.post('/notifications/createNewProjectNotification', payload, (res) => {
+            if (Object.keys(res.notifications).length) {
+                classNotiSocket.emit('notify to join project', {
+                    curUser: res.notifications.curUser,
+                    partner: res.notifications.partner,
+                    sectionId: getParameterByName(`section`)
+                })
+            } else {
+                alert('Something wrong!!')
+            }
+        })
+    }
 })

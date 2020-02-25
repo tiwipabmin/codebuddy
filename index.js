@@ -26,12 +26,15 @@ mongoose.connect(process.env.MONGODB_URL, (err) => {
 mongoose.connection.on('error', (err) => {
   winston.error(`[%s] ${err.message}`, chalk.red('✗'))
 })
-require('./models/user')
-require('./models/project')
+
 require('./models/comment')
-require('./models/message')
-require('./models/score')
 require('./models/history')
+require('./models/message')
+require('./models/notification')
+require('./models/project')
+require('./models/score')
+require('./models/user')
+
 
 /**
  * Checking Redis server is available

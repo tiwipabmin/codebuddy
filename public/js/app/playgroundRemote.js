@@ -1,12 +1,12 @@
-$(document).ready(function() {
+$(document).ready(function () {
   $("#confirmRoleChange").modal({
     closable: false,
-    onDeny: function() {
+    onDeny: function () {
       $("#confirmRoleChange").modal("hide");
     },
-    onApprove: function() {
+    onApprove: function () {
       socket.emit("switch role", {
-        user: user,
+        user: `${getVarFromScript('playgroundRemote', 'data-username')}`,
         action: "switch role",
         status: $("#ok_button_srm").attr("value")
       });
@@ -15,7 +15,7 @@ $(document).ready(function() {
 
   $("#rejectJoining").modal({
     closable: false,
-    onApprove: function() {
+    onApprove: function () {
       $("#global_loader").attr({
         style: "display: block; position: fixed;"
       });
@@ -23,18 +23,29 @@ $(document).ready(function() {
   });
 });
 
+function getVarFromScript(scriptName, name) {
+  const data = $(`script[src*=${scriptName}]`)
+  const variable = data.attr(name)
+  if (typeof variable === undefined) {
+    console.log('Error: ', variable)
+  }
+  return variable
+}
+
 /**
  * Dependencies declaration
  */
 const socket = io('');
 const roles = {
-  user: "",
+  username: "",
   partner: ""
 };
-var comments = [];
-var code = null;
+const uid = getVarFromScript('playgroundRemote', 'data-uid')
+const sectionId = getVarFromScript('playgroundRemote', 'data-sectionId')
+let comments = [];
+let code = null;
 
-var webrtc = new SimpleWebRTC({
+let webrtc = new SimpleWebRTC({
   // the id/element dom element that will hold "our" video
   localVideoEl: "localVideo",
   // the id/element dom element that will hold remote videos
@@ -53,7 +64,7 @@ function getParameterByName(name) {
   const terms = url.split('\/')
   const index = terms.indexOf(name)
   try {
-    const result = terms[index+1]
+    const result = terms[index + 1]
     return result
   } catch (err) {
     return null;
@@ -91,13 +102,13 @@ function setEditor(fileName) {
       }
     );
     cm.addKeyMap({
-      "Alt-R": function(cm) {
+      "Alt-R": function (cm) {
         runCode();
       },
-      "Alt-S": function(cm) {
+      "Alt-S": function (cm) {
         pauseRunCode();
       },
-      "Alt-V": function(cm) {
+      "Alt-V": function (cm) {
         submitCode();
       }
     });
@@ -133,10 +144,11 @@ function changeTheme() {
 socket.emit("load playground", { programming_style: "Remote" });
 socket.emit("join project", {
   pid: getParameterByName("project"),
-  username: user
+  username: getVarFromScript('playgroundRemote', 'data-username'),
+  sectionId: getParameterByName('section')
 });
 
-webrtc.on("readyToCall", function() {
+webrtc.on("readyToCall", function () {
   // you can name it anything
   webrtc.createRoom(getParameterByName("project"));
   webrtc.joinRoom(getParameterByName("project"));
@@ -188,25 +200,25 @@ socket.on("update tab", payload => {
       .closest("a")
       .before(
         '<a class="item" id="' +
-          fileName +
-          '" data-tab="' +
-          fileName +
-          '" onClick="getActiveTab(\'' +
-          fileName +
-          "')\">" +
-          fileName +
-          ".py <span onClick=\"closeTab('" +
-          fileName +
-          '\')"><i class="delete icon" id="close-tab-icon"></i></span></a>'
+        fileName +
+        '" data-tab="' +
+        fileName +
+        '" onClick="getActiveTab(\'' +
+        fileName +
+        "')\">" +
+        fileName +
+        ".py <span onClick=\"closeTab('" +
+        fileName +
+        '\')"><i class="delete icon" id="close-tab-icon"></i></span></a>'
       );
     $(".tab-content").append(
       '<div class="ui bottom attached tab segment" id="' +
-        fileName +
-        '-tab" data-tab="' +
-        fileName +
-        '"> <textarea class="show" id="' +
-        fileName +
-        'text"></textarea></div>'
+      fileName +
+      '-tab" data-tab="' +
+      fileName +
+      '"> <textarea class="show" id="' +
+      fileName +
+      'text"></textarea></div>'
     );
     $(".menu .item").tab();
 
@@ -254,12 +266,12 @@ socket.on("update tab", payload => {
     $("#file-list").append(html);
     $("#export-checklist").append(
       '<div class="item export-file-item" id="' +
-        fileName +
-        '-export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="' +
-        fileName +
-        '"><label>' +
-        fileName +
-        ".py</label></div></div>"
+      fileName +
+      '-export-file-item"><div class="ui child checkbox"><input type="checkbox" name="checkbox-file" value="' +
+      fileName +
+      '"><label>' +
+      fileName +
+      ".py</label></div></div>"
     );
   } else {
     var tab = document.getElementById(fileName);
@@ -285,13 +297,13 @@ socket.on("update tab", payload => {
 socket.on("role selection", payload => {
   $("#selectRole-modal").modal({
     closable: false,
-    onDeny: function() {
+    onDeny: function () {
       socket.emit("role selected", {
         select: 0,
         partner: payload.partner
       });
     },
-    onApprove: function() {
+    onApprove: function () {
       socket.emit("role selected", {
         select: 1,
         partner: payload.partner
@@ -306,6 +318,7 @@ socket.on("role selection", payload => {
  * If there's no one select the role, then first user that come to the project must choose one
  */
 socket.on("confirm role change", payload => {
+  let username = getVarFromScript('playgroundRemote', 'data-username')
   $("#close_button_srm").attr("style", "display:none;");
   $("#ok_button_srm").attr("style", "display:none;");
   if (payload.status === "disconnect") {
@@ -317,16 +330,16 @@ socket.on("confirm role change", payload => {
     $("#reviewer_button").attr("style", "display:none;");
     socket.emit("join project", {
       pid: getParameterByName("project"),
-      username: user
+      username: username
     });
   } else if (
-    user === payload.projectRoles.roles.reviewer &&
+    username === payload.projectRoles.roles.reviewer &&
     payload.numUser == 2
   ) {
     $("#header_srm").text('ถึงเวลาที่คุณเป็น "Coder" แล้วครับ/ค่ะ');
     $("#confirmRoleChange").modal("show");
   } else if (
-    user === payload.projectRoles.roles.coder &&
+    username === payload.projectRoles.roles.coder &&
     payload.numUser == 2
   ) {
     $("#header_srm").text('ถึงเวลาที่คุณเป็น "Reviewer" แล้วครับ/ค่ะ');
@@ -337,7 +350,7 @@ socket.on("confirm role change", payload => {
     $("#confirmRoleChange").modal("show");
   } else if (payload.numUser == 1) {
     socket.emit("switch role", {
-      user: user,
+      user: username,
       action: "switch role"
     });
   }
@@ -373,19 +386,20 @@ socket.on("clear interval", () => {
 });
 
 socket.on("role updated", payload => {
-  if (user === payload.projectRoles.roles.reviewer) {
+  let username = getVarFromScript('playgroundRemote', 'data-username')
+  if (username === payload.projectRoles.roles.reviewer) {
     roles.user = "reviewer";
     roles.partner = "coder";
     $("#global_loader").attr("style", "display: none");
     projectFiles.forEach(setOptionFileNoCursor);
-  } else if (user === payload.projectRoles.roles.coder) {
+  } else if (username === payload.projectRoles.roles.coder) {
     roles.user = "coder";
     roles.partner = "reviewer";
     $("#global_loader").attr("style", "display: none");
     $("#close_button_srm").attr("style", "display:block;");
     projectFiles.forEach(setOptionFileShowCursor);
   } else {
-    if (user === payload.project.creator) {
+    if (username === payload.project.creator) {
       roles.user = "coder";
       roles.partner = "reviewer";
     } else {
@@ -428,17 +442,15 @@ $(window).on("beforeunload", () => {
   // storeActiveTime()
   socket.emit("submit code", {
     mode: "auto",
-    uid: uid,
     code: getAllFileEditor()
   });
   socket.disconnect();
 });
 
-$(window).bind("hashchange", function() {
+$(window).bind("hashchange", function () {
   // storeActiveTime()
   socket.emit("submit code", {
     mode: "auto",
-    uid: uid,
     code: getAllFileEditor()
   });
 });
@@ -448,7 +460,7 @@ $(window).bind("hashchange", function() {
  */
 socket.on("editor update", payload => {
   editor[payload.fileName].replaceRange(payload.text, payload.from, payload.to);
-  setTimeout(function() {
+  setTimeout(function () {
     editor[payload.fileName].refresh();
   }, 1);
 });
@@ -504,7 +516,8 @@ socket.on("update after delete review", payload => {
 });
 
 socket.on("is typing", payload => {
-  if (uid != payload.uid) {
+  let username = getVarFromScript('playgroundRemote', 'data-username')
+  if (username != payload.username) {
     $("#show-is-typing").text(payload.text);
   }
 });
@@ -533,11 +546,11 @@ function resizeTerm(newHeight) {
 let shellprompt = "\033[1;3;31m$ \033[0m";
 let inputTerm = "input@codebuddy";
 
-term.prompt = function() {
+term.prompt = function () {
   term.write("\r\n" + shellprompt);
 };
 term.prompt();
-term.on("key", function(key, ev) {
+term.on("key", function (key, ev) {
   var printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
 
   if (ev.keyCode == 13) {
@@ -561,7 +574,7 @@ term.on("key", function(key, ev) {
   }
 });
 
-term.on("keypress", function(key) {
+term.on("keypress", function (key) {
   inputTerm += key;
 });
 
@@ -645,7 +658,7 @@ socket.on("show score", payload => {
   $("#showScore-modal")
     .modal({
       closable: false,
-      onDeny: function() {
+      onDeny: function () {
         $("#global_loader").attr("style", "display: none");
       }
     })
@@ -704,10 +717,10 @@ socket.on("show partner active tab", payload => {
     partnerTab = payload.activeTab;
     $("#" + partnerTab + "-file-icon").replaceWith(
       '<img id="' +
-        partnerTab +
-        '-file-icon" class="ui avatar image partner-file-icon" src="' +
-        partner_img +
-        '" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>'
+      partnerTab +
+      '-file-icon" class="ui avatar image partner-file-icon" src="' +
+      getVarFromScript('playgroundRemote', 'data-partnerImg') +
+      '" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>'
     );
   }
 });
@@ -746,17 +759,17 @@ socket.on("update message", payload => {
   if (payload.user._id === uid) {
     $(".message-list").append(
       "<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>" +
-        payload.message.message +
-        "</p></div></li>"
+      payload.message.message +
+      "</p></div></li>"
     );
     $("#inputMessage").val("");
   } else {
     $(".message-list").append(
       "<li class='ui item'><a class='ui avatar image'><img src='" +
-        payload.user.img +
-        "'></a><div class='description curve-box'><p>" +
-        payload.message.message +
-        "</p></div></li>"
+      payload.user.img +
+      "'></a><div class='description curve-box'><p>" +
+      payload.message.message +
+      "</p></div></li>"
     );
   }
 });
@@ -803,7 +816,7 @@ function videoEvent(b) {
 /**
  * attach ready event -- Video Toggle
  **/
-$(document).ready(function() {
+$(document).ready(function () {
   $(".ui.video.toggle.button").state({
     text: {
       inactive: '<i class="pause circle icon"/>',
@@ -816,23 +829,23 @@ $(document).ready(function() {
       active: '<i class="unmute icon"/>'
     }
   });
-  $("#inputMessage").keydown(function() {
+  $("#inputMessage").keydown(function () {
     socket.emit("is typing", {
-      uid: uid,
-      text: `${user} is typing...`
+      username: getVarFromScript('playgroundRemote', 'data-username'),
+      text: `${getVarFromScript('playgroundRemote', 'data-username')} is typing...`
     });
     clearTimeout(parseInt($("#inputMessage").attr("data-timeId")));
   });
-  $("#inputMessage").keyup(function() {
-    let timeId = setTimeout(function() {
+  $("#inputMessage").keyup(function () {
+    let timeId = setTimeout(function () {
       socket.emit("is typing", {
-        uid: uid,
+        username: getVarFromScript('playgroundRemote', 'data-username'),
         text: ""
       });
     }, 5000);
     $("#inputMessage").attr("data-timeId", timeId);
   });
-  $("#inputMessage").keydown(function(e) {
+  $("#inputMessage").keydown(function (e) {
     if (e.keyCode == 13) {
       sendMessage();
     }
@@ -843,13 +856,13 @@ $(document).ready(function() {
 /**
  * is just jQuery short-hand for $(document).ready(function(){...})
  **/
-$(function() {
+$(function () {
   var acc = 0;
   var session_flag = 0;
   /**
    * send active time
    **/
-  setInterval(function() {
+  setInterval(function () {
     const counts = $("#counts_min_sec").attr("data-count");
     const min = $("#counts_min_sec").attr("data-min");
     const sec = $("#counts_min_sec").attr("data-sec");
@@ -873,7 +886,7 @@ $(function() {
 
   var lastSavedTime = 0;
 
-  setInterval(function() {
+  setInterval(function () {
     const counts = $("#counts_min_sec").attr("data-count");
     let add = counts - lastSavedTime;
 
@@ -889,8 +902,9 @@ $(function() {
 });
 
 function switchRole() {
+  let username = getVarFromScript('playgroundRemote', 'data-username')
   socket.emit("switch role", {
-    user: user,
+    user: username,
     action: "switch role"
   });
 }
@@ -918,13 +932,13 @@ function addFile() {
    * disable create button when input is empty
    **/
   $("#createBtn").prop("disabled", true);
-  $(".filename").keyup(function() {
+  $(".filename").keyup(function () {
     var disable = false;
     var isExists = false;
     var fileName = $(".filename").val();
     isExists = projectFiles.indexOf(fileName);
 
-    $(".filename").each(function() {
+    $(".filename").each(function () {
       if (
         $(this).val() == "" ||
         isExists != -1 ||
@@ -992,7 +1006,7 @@ function getActiveTab(fileName) {
   $("#" + fileName + "-header").addClass("file-active");
 
   currentTab = fileName;
-  setTimeout(function() {
+  setTimeout(function () {
     editor[fileName].refresh();
   }, 1);
   sendActiveTab(currentTab);
@@ -1019,25 +1033,25 @@ function openTab(fileName) {
     .closest("a")
     .before(
       '<a class="item" id="' +
-        fileName +
-        '" data-tab="' +
-        fileName +
-        '" onClick="getActiveTab(\'' +
-        fileName +
-        "')\">" +
-        fileName +
-        ".py <span onClick=\"closeTab('" +
-        fileName +
-        '\')"><i class="delete icon" id="close-tab-icon"></i></span></a>'
+      fileName +
+      '" data-tab="' +
+      fileName +
+      '" onClick="getActiveTab(\'' +
+      fileName +
+      "')\">" +
+      fileName +
+      ".py <span onClick=\"closeTab('" +
+      fileName +
+      '\')"><i class="delete icon" id="close-tab-icon"></i></span></a>'
     );
   $(".tab-content").append(
     '<div class="ui bottom attached tab segment" id="' +
-      fileName +
-      '-tab" data-tab="' +
-      fileName +
-      '"> <textarea class="show" id="' +
-      fileName +
-      'text"></textarea></div>'
+    fileName +
+    '-tab" data-tab="' +
+    fileName +
+    '"> <textarea class="show" id="' +
+    fileName +
+    'text"></textarea></div>'
   );
   $(".menu .item").tab();
   newEditorFacade(fileName);
@@ -1063,7 +1077,7 @@ function deleteFile(fileName) {
 
 function onClickExport() {
   let fileNameList = [];
-  $('[name="checkbox-file"]').each(function() {
+  $('[name="checkbox-file"]').each(function () {
     if ($(this).prop("checked") == true) {
       fileNameList.push($(this).val());
     }
@@ -1083,17 +1097,18 @@ function setOnChangeEditer(fileName) {
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
   editor[fileName].on("change", (ins, data) => {
-    var text = data.text.toString().charCodeAt(0);
-    var enterline = parseInt(data.to.line) + 1;
-    var remove = data.removed;
-    var isEnter = false;
-    var isDelete = false;
+    let text = data.text.toString().charCodeAt(0);
+    let enterline = parseInt(data.to.line) + 1;
+    let remove = data.removed;
+    let isEnter = false;
+    let isDelete = false;
+    let username = getVarFromScript('playgroundRemote', 'data-username')
 
     /**
      * check when enter new line
      **/
     if (text == 44) {
-      for (var i in comments) {
+      for (let i in comments) {
         if (comments[i].line > enterline && comments[i].file == fileName) {
           isEnter = true;
           comments[i].line = parseInt(comments[i].line) + 1;
@@ -1111,7 +1126,7 @@ function setOnChangeEditer(fileName) {
      * check when delete line
      **/
     if (remove.length == 2) {
-      for (var i in comments) {
+      for (let i in comments) {
         if (comments[i].line > enterline - 1 && comments[i].file == fileName) {
           isDelete = true;
           comments[i].line = parseInt(comments[i].line) - 1;
@@ -1128,7 +1143,7 @@ function setOnChangeEditer(fileName) {
     socket.emit("code change", {
       code: data,
       editor: editor[fileName].getValue(),
-      user: user,
+      user: username,
       enterline: enterline,
       isEnter: isEnter,
       isDelete: isDelete,
@@ -1159,7 +1174,7 @@ function setOnDoubleClickEditor(fileName) {
     let line = $("input.disabled.line.no").val();
     switch (roles.user) {
       case "coder":
-        for (var i in comments) {
+        for (let i in comments) {
           if (
             comments[i].file == fileName &&
             comments[i].line == parseInt(line)
@@ -1175,7 +1190,7 @@ function setOnDoubleClickEditor(fileName) {
         $(".ui.coder.small.modal").modal("show");
         break;
       case "reviewer":
-        for (var i in comments) {
+        for (let i in comments) {
           if (
             comments[i].file == fileName &&
             comments[i].line == parseInt(line)
@@ -1195,7 +1210,7 @@ function setOnDoubleClickEditor(fileName) {
 }
 
 function getAllFileEditor() {
-  var codeEditors = {};
+  let codeEditors = {};
   projectFiles.forEach(runCodeEachFile);
   function runCodeEachFile(fileName) {
     codeEditors[fileName] = editor[fileName].getValue();
@@ -1214,10 +1229,10 @@ function newEditorFacade(fileName) {
   if (fileName == "main") {
     $("#" + partnerTab + "-file-icon").replaceWith(
       '<img id="' +
-        partnerTab +
-        '-file-icon" class="ui avatar image partner-file-icon" src="' +
-        partner_img +
-        '" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>'
+      partnerTab +
+      '-file-icon" class="ui avatar image partner-file-icon" src="' +
+      getVarFromScript('playgroundRemote', 'data-partnerImg') +
+      '" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>'
     );
   } else {
     $("#" + fileName + "-file-icon").replaceWith(

@@ -6,6 +6,7 @@ const moment = require("moment");
 const Redis = require("ioredis");
 var fs = require("fs");
 
+const Notification = mongoose.model("Notification");
 const Project = mongoose.model("Project");
 const Message = mongoose.model("Message");
 const Score = mongoose.model("Score");
@@ -219,10 +220,84 @@ exports.getProfileByTeacher = async (req, res) => {
 };
 
 exports.getNotifications = async (req, res) => {
-  const notifications = JSON.stringify(req.payload)
+  const username = req.user.username
+  const sectionId = req.query.sectionId
+  let notifications = req.query.allNotifications
+  console.log('Notifications, ', notifications)
+  if (notifications !== {}) {
+    for (let key in notifications) {
+      if (key === 'projects' && notifications.projects !== '') {
+        const tmpProject = notifications[key]
+        console.log('tmpProject, ', tmpProject)
+        const role = tmpProject.creator = username ? 'creator' : 'collaborator';
+        let insertNotification = new Notification()
+        insertNotification.own = `${username}`
+        insertNotification.link = `/project/${tmpProject.pid}/section/${sectionId}/role/${role}`
+        insertNotification.head = `Project: ${tmpProject.title}`
+        insertNotification.content = `${tmpProject.description}`
+        insertNotification.process = `pending`
+        insertNotification = await insertNotification.save();
+        // console.log('InsertNoti, ', insertNotification)
+      }
+    }
+  }
+
+  notifications = await Notification.find({
+    $and: [{ own: username }, { process: `pending` }]
+  })
+  // console.log('Notifications, ', notifications)
 
   res.send({ notifications: notifications });
 };
+
+exports.createNewProjectNotification = async function (req, res) {
+  const sectionId = req.body.sectionId
+  const pid = req.body.pid
+  const username = req.body.username
+  const projects = await Project.findOne({
+    pid: pid
+  })
+  const notifications = {}
+
+  const role = username !== projects.creator ? `creator` : `collaborator`; // role's partner
+  const partner = username !== projects.creator ? projects.creator : projects.collaborator;
+  let insertNotification = new Notification()
+  insertNotification.own = `${partner}`
+  insertNotification.link = `/project/${pid}/section/${sectionId}/role/${role}`
+  insertNotification.head = `Project: ${projects.title}`
+  insertNotification.content = `${projects.description}`
+  insertNotification.process = `pending`,
+  insertNotification.type = `project`
+  insertNotification.info = { pid: pid }
+  insertNotification = await insertNotification.save();
+
+  let queryNotifications = await Notification.findOne({
+    _id: insertNotification._id
+  })
+
+  notifications[`partner`] = queryNotifications
+
+  insertNotification = new Notification()
+  insertNotification.own = `${username}`
+  insertNotification.link = `-`
+  insertNotification.head = `Project: ${projects.title}`
+  insertNotification.content = `${projects.description}`
+  insertNotification.process = `finished`
+  insertNotification.type = `project`
+  insertNotification.info = { pid: pid }
+  insertNotification = await insertNotification.save();
+
+  // console.log('2')
+  queryNotifications = await Notification.findOne({
+    _id: insertNotification._id
+  })
+
+  notifications[`curUser`] = queryNotifications
+
+  // console.log(`Notification, `, notifications)
+
+  res.send({ notifications: notifications })
+}
 
 // exports.createProject = async (req, res) => {
 //   const collaborator = await User.findOne({ username: req.body.collaborator });

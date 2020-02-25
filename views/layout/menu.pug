@@ -1,59 +1,66 @@
+.ui.active.inverted.dimmer#global_loader(style='position:fixed; display:none;')
+  .ui.text.loader Loading
 .ui.attached.stackable.menu
-      .ui.container
-        .ui.active.inverted.dimmer#global_loader(style='position:fixed; display:none;')
-          .ui.text.loader Loading
-        img.logo.large(src='/images/logo-codebuddy-s.png')
-        if (user)
-          //- a.item(href='/dashboard')
-            i.grid.layout.icon
-          //  |  Dashboard
-          a.item(href='/lobby')
-            i.home.icon
-            |  Lobby
-          if (user.info.occupation === 'teacher' && dataSets.origins.dataService)
-            a.item(href='/dataService')
-              i.database.icon
-              |  Data Service
-          if (dataSets.origins.section)
-            a.item(href='/classroom/section/'+dataSets.origins.section.section_id)
-              i.laptop.layout.icon
-              |  Classroom
-          a.item(href='/notifications')
-            i.Alarm.icon
-            |  Notifications
-            .ui.red.horizontal.label 1
-          .ui.simple.dropdown.right.item
-              //- i.user.icon
-              img.ui.avatar.image(src=user.img)
-              = `${user.info.firstname} ${user.info.lastname}`
-              i.dropdown.icon
-              .menu
-                .item
-                  i.info.icon
-                  | Signed in as 
-                  = user.username
-                .ui.inverted.divider
-                if user.info.occupation === 'teacher'
-                else
-                  a.item(href='/profile/'+user.username)
-                    i.unhide.icon
-                    |  Your Profile
-                //- a.item(href='/settings/profile')
-                //-   i.setting.icon
-                //-   |  Setting Profile
-                a.item(href='/signout')
-                  i.sign.out.icon
-                  |  Sign Out
-        else
-            a.item(href='/')
-              i.home.icon
-              |  Home
-            //- a.item(href='/howitworked')
-            //-   i.info.icon
-            //-   |  How it worked ?
-            //- a.item(href='/aboutus')
-            //-   i.users.icon
-            //-   |  About us
-            a.right.item(href='/signin')
-              i.sign.in.icon
-              |  Sign in
+  .ui.container
+    img.logo.large(src='/images/logo-codebuddy-s.png')
+    if (user)
+      //- a.item(href='/dashboard')
+        i.grid.layout.icon
+      //  |  Dashboard
+      a.item(href='/lobby')
+        i.home.icon
+        |  Lobby
+      if (user.info.occupation === 'teacher' && dataSets.origins.dataService)
+        a.item(href='/dataService')
+          i.database.icon
+          |  Data Service
+      if (dataSets.origins.section)
+        a.item(href='/classroom/section/'+dataSets.origins.section.section_id)
+          i.laptop.layout.icon
+          |  Classroom
+      .ui.dropdown.right.item#notifications
+        i.Alarm.icon
+        .ui.red.horizontal.label#alarmNoti(style='display: none;') 0
+        .menu#notiMenu
+          p#noNotifications(style="text-align:center; padding-top:177.5px;")= `No notification.`
+          .ui.items#notiItems
+            .item
+      script(type="text/javascript").
+        $(function () {
+          $('#notifications').dropdown();
+        })
+      .ui.simple.dropdown.right.item
+        //- i.user.icon
+        img.ui.avatar.image(src=user.img)
+        = `${user.info.firstname} ${user.info.lastname}`
+        i.dropdown.icon
+        .menu
+          .item
+            i.info.icon
+            | Signed in as 
+            = user.username
+          .ui.inverted.divider
+          if user.info.occupation === 'teacher'
+          else
+            a.item(href='/profile/'+user.username)
+              i.unhide.icon
+              |  Your Profile
+          //- a.item(href='/settings/profile')
+          //-   i.setting.icon
+          //-   |  Setting Profile
+          a.item(href='/signout')
+            i.sign.out.icon
+            |  Sign Out
+    else
+        a.item(href='/')
+          i.home.icon
+          |  Home
+        //- a.item(href='/howitworked')
+        //-   i.info.icon
+        //-   |  How it worked ?
+        //- a.item(href='/aboutus')
+        //-   i.users.icon
+        //-   |  About us
+        a.right.item(href='/signin')
+          i.sign.in.icon
+          |  Sign in
