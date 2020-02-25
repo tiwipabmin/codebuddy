@@ -171,6 +171,7 @@ function setStatusBlock(blockId){
 
 
 }
+
 function setEditor(fileName, cellType) {
   var cm = CodeMirror.fromTextArea(
     document.getElementById(fileName),
@@ -258,8 +259,11 @@ function setEditor(fileName, cellType) {
         // $("input.disabled.file.name").val(fileName + ".py");
         // $("input.hidden.file.name").val(fileName);
         // let line = $("input.disabled.line.no").val();
-        $(".ui.reviewer.small.modal").modal("show");
-        detectFocusBlock = 0;
+        // detectFocusBlock = 0
+        // $(".ui.reviewer.small.modal").modal("show");
+        $("#alert-header").text("Export File");
+      $("#alert-message").text(status);
+
       }
   
     
@@ -361,11 +365,7 @@ function setOnChangeEditer(fileName) {
 socket.on("focus block", payload => {
   executingBlock = payload;
   if (executingBlock != editors.length - 1) {
-    detectFocusBlock += 1;
-    socket.emit("codemirror on focus", {
-      prevFocus: detectFocusBlock - 1,
-      newFocus: detectFocusBlock
-    });
+   
     editors[detectFocusBlock].editor.focus();
     editors[detectFocusBlock].editor.setCursor(0, 0);
   }

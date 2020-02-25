@@ -1088,8 +1088,6 @@ function onClickAddPartnerButton(studentsGroup) {
   }
   function showGroup(studentsGroup){
 
-
-
     select_student = Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value)
     console.log("#group-student group" , select_student)
 
@@ -1165,30 +1163,54 @@ function showStudentList(
       $.get("/dsbaClass/getStudentsFromSection", parameter , function(data) {
 
         let students = data.students
+        let groupRecord = data.groups
         let group = []
 
         let command = data.command
         let collaborativeSessionStatus = data.collaborativeSessionStatus
-        
-     
-    
-        if (command == "pair") {
-          if (collaborativeSessionStatus == 1) {
-            $("#changePair").show();
-          } else {
-            $("#changePair").hide();
-            $("#autoPairing").show();
+        console.log(" students -------------" , students)
+
+        $(".student-container").empty();
+
+             console.log(" groupRecord -------------" , groupRecord[0][1][0].student_id)
+
+         if (command == "view") {
+         for(let i in groupRecord[0]){
+          if(groupRecord[0][i].length == 3){
+  
+          $(".student-container").append(
+              "<li id='" +
+              "' class='ui segment'>"+
+              "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+              "<img class='ui avatar image' src='" +groupRecord[0][i][0].img +"'></img>" +"  " + 
+              groupRecord[0][i][0].first_name+ " " + groupRecord[0][i][0].last_name +
+              "</td>"+
+              "<td > "+   "<img class='ui avatar image' src='" +groupRecord[0][i][1].img +"'></img>" +"<font color='grey'> "+groupRecord[0][i][1].first_name+ " " + groupRecord[0][i][1].last_name +" </font>" +
+              "</td>  </tr>"+
+              "<tr><td>"+  "<img class='ui avatar image' src='" +groupRecord[0][i][1].img +"'></img>" +" <font color='grey'> "+groupRecord[0][i][2].first_name+ " " + groupRecord[0][i][2].last_name +" </font> <br></td></tr></table>"+
+              "</li>"
+              );
           }
-        } 
-        else if (command == "view") {
-          if (collaborativeSessionStatus == 1) {
-            $("#changePair").show();
-          } else {
-            $("#changePair").hide();
-          }
+          else{
+            $(".student-container").append(
+              "<li id='" +
+              "' class='ui segment'>"+
+              "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+              "<img class='ui avatar image' src='" +groupRecord[0][i][0].img +"'></img>" +"  " + 
+              groupRecord[0][i][0].first_name+ " " + groupRecord[0][i][0].last_name +
+              "</td>"+
+              "<td > "+   "<img class='ui avatar image' src='" +groupRecord[0][i][1].img +"'></img>" +"<font color='grey'> "+groupRecord[0][i][1].first_name+ " " + groupRecord[0][i][1].last_name +" </font>" +
+              "</td>  </tr>"+
+              "<br></td></tr></table>"+
+              "</li>"
+           
+          );
+  
+         }
+         }
+
         }
     
-        $(".student-container").empty();
     
         // when click pair
         
@@ -1585,7 +1607,7 @@ function pairingOrViewingisHided(command) {
 }
 
 function onClickViewPairingRecord(collaborative_session_id, section_id) {
-  console.log(" onClickViewPairingRecord  " , onClickViewPairingRecord)
+
   pairingOrViewingisHided("view");
   showStudentList("view", collaborative_session_id, section_id);
 }

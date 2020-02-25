@@ -281,6 +281,14 @@ exports.updateGroupSession = (query) => {
   })
 }
 
+exports.queryGroupRecord = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function(err, res){
+      if(err) reject(err);
+      resolve(res);
+    })
+  })
+}
 exports.selectStudent = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
@@ -289,6 +297,7 @@ exports.selectStudent = (query) => {
     })
   })
 }
+
 
 exports.insertStudent = (query, values) => {
   return new Promise(function(resolve, reject){

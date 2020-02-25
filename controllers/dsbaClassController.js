@@ -11,12 +11,14 @@ const User = mongoose.model("User");
 const CollaborativeProject = mongoose.model("CollaborativeProject");
 exports.getStudentsFromSection = async (req, res) => {
   
+    let groups = []
+    let group = {}
+    let mock = {}
     console.log("getStudentsFromSection ");
     let collaborative_session_id = req.query.pairingSessionId
     // console.log("collaborative_session_id ", collaborative_session_id)
     let section_id = parseInt(cryptr.decrypt(req.query.section_id));
     let command = req.query.command
-    console.log("getStudentsFromSection " , collaborative_session_id);
 
     let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
@@ -45,18 +47,44 @@ exports.getStudentsFromSection = async (req, res) => {
           resStudents[index].img = user.img;
           resStudents[index].status = -1;
           resStudents[index].partner_id="";
+          console.log(" resStudents[index] ------------- " , resStudents[index])
+          mock[resStudents[index].student_id] = resStudents[index]
+
         } else {
           console.log("User instance is null in getStudentsFromSection function");
         }
         resStudents[index].fullName = resStudents[index].first_name + ":" + resStudents[index].last_name
+        
+      }
+      if (!resCollaborativeSessions.length) resCollaborativeSessions = [{ status: -1 }]
+      else{
+        queryGroupRecord =  "SELECT * FROM collaborative_record WHERE collaborative_session_id = " +
+        resCollaborativeSessions[0].collaborative_session_id;
+        groupRecord = await conMysql.queryGroupRecord(
+          queryGroupRecord
+        );
+          for(let i in groupRecord){
+            if(group[groupRecord[i].group_id] == undefined){
+             
+              group[groupRecord[i].group_id]= []
+              group[groupRecord[i].group_id].push( mock[groupRecord[i].student_id])
+            }else{
+              console.log(" is defined ------------- ")
+
+              group[groupRecord[i].group_id].push( mock[groupRecord[i].student_id])
+            }
+           
+           } 
+           groups.push(group)
+
+           console.log(" groups ------------- " , groups[0]["2"])
       }
 
-      if (!resCollaborativeSessions.length) resCollaborativeSessions = [{ status: -1 }];
-    
     res.send({
         students: resStudents,
         command: command,
-        collaborativeSessionStatus:resCollaborativeSessions[0].status
+        collaborativeSessionStatus:resCollaborativeSessions[0].status,
+        groups : groups
       });
 
 
