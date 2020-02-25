@@ -121,9 +121,13 @@ for(var i = 0; i < projectFiles.length; i++){
 function newEditorFacade(fileName, cellType) {
   setEditor(fileName, cellType);
   setOnChangeEditer(fileName);
+  setOnDoubleClickEditor(fileName);
+
  
 }
-
+function setOnDoubleClickEditor(fileName) {
+  console.log(" setOnDoubleClickEditor ------------------")
+}
 
 function setStatusBlock(blockId){
 
@@ -229,6 +233,7 @@ function setEditor(fileName, cellType) {
       console.log(`SET Detect focus block!! ${detectFocusBlock}`);
       status = setStatusBlock(detectFocusBlock)
       console.log("status " , status)
+
       if(status == 'unLock'){
         socket.emit("codemirror on focus", {
           prevFocus: prevFocusBlock,
@@ -481,6 +486,8 @@ socket.on("update block", payload => {
         moveBlock("down");
       }
     });
+    setOnChangeEditer(blockId);
+    setOnDoubleClickEditor(blockId);
 
     function sendMessage() {
       if (document.getElementById("inputMessage").value != "") {

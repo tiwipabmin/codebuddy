@@ -1089,24 +1089,27 @@ function onClickAddPartnerButton(studentsGroup) {
   function showGroup(studentsGroup){
 
     select_student = Array.from(document.querySelectorAll('input[name="student"]:checked')).map(student => student.value)
-    console.log("#group-student group" , select_student)
 
     if( select_student.length > 0 ){
       let fullName = []
       let studentId = []
       let img = []
-      for (let i = 0 ;  i < 3 ; i++){
-        if(select_student[i] != null ){
-          student = JSON.parse(select_student[i])
-          fullName.push(student["fullName"].replace(":", " "))
-          img.push(student["img"])
-          studentId.push(student["student_id"])
-        }
-        else{
-          fullName.push("Empty")
-          img.push("/images/user_empty.jpg")
+      // if(select_student.length == 3){
+        for (let i in select_student){
+          console.log(" i +++++++++++++++ " , i)
+          if(select_student[i] != null ){
+            student = JSON.parse(select_student[i])
+            fullName.push(student["fullName"].replace(":", " "))
+            img.push(student["img"])
+            studentId.push(student["student_id"])
           }
-        }
+          else{
+            fullName.push("Empty")
+            img.push("/images/user_empty.jpg")
+            }
+          }
+      // }
+      
   
         for (let i = 0 ;  i < Object.keys(studentsGroup["students"]).length ; i++){
   
@@ -1119,22 +1122,43 @@ function onClickAddPartnerButton(studentsGroup) {
         // groupStudent["group"].push(fullName)
         console.log("type group = " ,  typeof studentsGroup["group"])
         studentsGroup["group"].push(studentId)
-  
+        console.log(" fullName length --" , fullName.length)
       $("#student_list_modal").modal("show");
-  
-      $(".student-container").append(
+            if(fullName.length == 3){
+              $(".student-container").append(
+                "<li id='" +
+                "' class='ui segment'>"+
+                "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+                "<img class='ui avatar image' src='" +img[0] +"'></img>" +"  " + 
+                fullName[0]+ 
+                "</td>"+
+                "<td > "+   "<img class='ui avatar image' src='" +img[1] +"'></img>" +"<font color='grey'> "+fullName[1]+" </font>" +
+                "</td>  </tr>"+
+                "<tr><td>"+  "<img class='ui avatar image' src='" +img[2] +"'></img>" +" <font color='grey'> "+fullName[2]+" </font> <br></td></tr></table>"+
+                "</li>"
+                );
+            }else{
+              if(img[1] == undefined){
+                img[1] = "/images/user_empty.jpg"
+                fullName[1] = "Empty"
+              }
+              $(".student-container").append(
+
           "<li id='" +
-          "' class='ui segment'>"+
-          "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
-          "<img class='ui avatar image' src='" +img[0] +"'></img>" +"  " + 
-          fullName[0]+ 
-          "</td>"+
-          "<td > "+   "<img class='ui avatar image' src='" +img[1] +"'></img>" +"<font color='grey'> "+fullName[1]+" </font>" +
-          "</td>  </tr>"+
-          "<tr><td>"+  "<img class='ui avatar image' src='" +img[2] +"'></img>" +" <font color='grey'> "+fullName[2]+" </font> <br></td></tr></table>"+
-          "</li>"
-          );
-  
+              "' class='ui segment'>"+
+              "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+              "<img class='ui avatar image' src='" +img[0]  +"'></img>" +"  " + 
+              fullName[0] +
+              "</td>"+
+              "<td > "+   "<img class='ui avatar image' src='" +img[1]  +"'></img>" +"<font color='grey'> "+fullName[1]+" </font>" +
+              "</td>  </tr>"+
+              "<br></td></tr></table>"+
+              "</li>"
+              );
+
+            }
+     
+       
           console.log(" studentsGroup group-student " , studentsGroup)
           groupStudent(studentsGroup )
     } else{
