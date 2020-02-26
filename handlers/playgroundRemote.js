@@ -69,7 +69,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       );
 
       /**
-       * Increase user's enter count
+       * Increase users enter count
        **/
       const user = await User.findOne({ username: curUser });
       const project = await Project.findOne({ pid: projectId });
@@ -88,14 +88,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
         let timerId = Object.keys(timerIds).length + 1
 
-        console.log('Length, ', Object.keys(timerIds).length + 1)
-
         timerIds[timerId] = setInterval(() => {
 
           let guest = Object.keys(keyStores[decrypt]).find(username => keyStores[decrypt][username].guest === curUser)
           let pnSessionKey = guest === undefined ? curUser + decrypt : guest + decrypt;
 
-          console.log('pnSessionKey, ', pnSessionKey)
           io.in(pnSessionKey).emit("create new project notification", {
             sectionId: sectionId,
             pid: projectId,
@@ -106,13 +103,13 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         }, 5000)
 
         let active_user = {};
-        let partner = null;
         active_user[curUser] = 1;
-        if (curUser === project.creator) {
-          partner = project.collaborator;
-        } else {
-          partner = project.creator;
-        }
+        // let partner = null;
+        // if (curUser === project.creator) {
+        //   partner = project.collaborator;
+        // } else {
+        //   partner = project.creator;
+        // }
         projects[projectId] = {
           roles: {
             coder: "",
@@ -121,14 +118,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           },
           active_user: active_user
         };
-        client.emit("role selection", { partner: partner });
+        // client.emit("role selection", { partner: partner });
 
         initRemainder(projectId);
       } else {
         if (projects[projectId].active_user[curUser] === undefined) {
           await Project.findOne({ pid: projectId }, async function (err, res) {
             if (err) return handleError(err);
-            projects[projectId].active_user[curUser] = 1;
+            projects[projectId].active_user[curUser] = 2;
 
             /**
              * Increase users' pairing count
@@ -143,7 +140,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             );
             let numUser = Object.keys(projects[projectId].active_user).length;
             client.emit("role updated", {
-              projectRoles: projects[projectId],
+              roles: projects[projectId].roles,
               project: res
             });
             io.in(projectId).emit("update status", {
@@ -152,6 +149,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             });
 
             initRemainder(projectId);
+
+            client.in(projectId).emit("role selection", {
+              activeUsers: projects[projectId].active_user,
+              partner: curUser
+            });
           });
         } else {
           if (projects[projectId].reject === undefined) {
@@ -176,7 +178,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     });
     io.in(proId).emit("auto update score");
     client.emit("init reviews", comments);
-    // io.in(curUser).emit("notifications", { projectId: proId })
   }
 
   client.on("clear interval", () => {
@@ -205,9 +206,10 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
            **/
           io.in(projectId).emit("clear interval");
 
-          delete projects[projectId];
+          delete projects[projectId].active_user[curUser]
           io.in(projectId).emit("confirm role change", {
-            projectRoles: projects[projectId],
+            roles: projects[projectId].roles,
+            activeUsers: projects[projectId].active_user,
             status: "disconnect",
             numUser: numUser
           });
@@ -216,6 +218,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             numUser: numUser
           });
 
+          delete projects[projectId];
           client.leave(projectId);
           Project.updateOne(
             {
@@ -498,7 +501,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     Project.findOne({ pid: projectId }, function (err, res) {
       if (err) return handleError(err);
       io.in(projectId).emit("role updated", {
-        projectRoles: projects[projectId],
+        roles: projects[projectId].roles,
         project: res
       });
     });
@@ -1386,7 +1389,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           let numUser = Object.keys(projects[projectId].active_user).length;
           clearInterval(timerId["codebuddy"]);
           io.in(projectId).emit("confirm role change", {
-            projectRoles: projects[projectId],
+            roles: projects[projectId].roles,
+            activeUsers: projects[projectId].active_user,
             status: "connect",
             numUser: numUser
           });
@@ -1435,7 +1439,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         Project.findOne({ pid: projectId }, function (err, res) {
           if (err) return handleError(err);
           io.in(projectId).emit("role updated", {
-            projectRoles: projects[projectId],
+            roles: projects[projectId].roles,
             project: res
           });
         });

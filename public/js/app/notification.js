@@ -112,7 +112,7 @@ classNotiSocket.on('notify to join project', (payload) => {
             `<i class="edit icon"></i>${moment(payload.curUser.createdAt).fromNow()}</div>`+
             `</div>`)
             item.append(content)
-            $('#notiItems').append(item)
+            $('#notiItems').prepend(item)
             $('#alarmNoti').text($('#notiItems').children().length)
             $('#alarmNoti').attr("style", "display: block;")
         } else {
@@ -128,7 +128,7 @@ classNotiSocket.on('notify to join project', (payload) => {
             `</div>`)
             content.append(extra)
             item.append(content)
-            $('#notiItems').append(item)
+            $('#notiItems').prepend(item)
             $('#alarmNoti').text($('#notiItems').children().length)
             $('#alarmNoti').attr("style", "display: block;")
         }

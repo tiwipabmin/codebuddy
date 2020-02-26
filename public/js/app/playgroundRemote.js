@@ -295,23 +295,26 @@ socket.on("update tab", payload => {
  * If there's no one select the role, then first user that come to the project must choose one
  */
 socket.on("role selection", payload => {
-  $("#selectRole-modal").modal({
-    closable: false,
-    onDeny: function () {
-      socket.emit("role selected", {
-        select: 0,
-        partner: payload.partner
-      });
-    },
-    onApprove: function () {
-      socket.emit("role selected", {
-        select: 1,
-        partner: payload.partner
-      });
-    }
-  });
-  $("#selectRole-modal").modal("show");
-  $("#global_loader").attr("style", "display: none");
+  let username = getVarFromScript('playgroundRemote', 'data-username')
+  if (payload.activeUsers[username] === 1) {
+    $("#selectRole-modal").modal({
+      closable: false,
+      onDeny: function () {
+        socket.emit("role selected", {
+          select: 0,
+          partner: payload.partner
+        });
+      },
+      onApprove: function () {
+        socket.emit("role selected", {
+          select: 1,
+          partner: payload.partner
+        });
+      }
+    });
+    $("#selectRole-modal").modal("show");
+    $("#global_loader").attr("style", "display: none");
+  }
 });
 
 /**
@@ -321,26 +324,28 @@ socket.on("confirm role change", payload => {
   let username = getVarFromScript('playgroundRemote', 'data-username')
   $("#close_button_srm").attr("style", "display:none;");
   $("#ok_button_srm").attr("style", "display:none;");
-  if (payload.status === "disconnect") {
+  if (payload.status === "disconnect" && payload.activeUsers[username] !== undefined) {
     $("#global_loader").attr({
       style: "display: block; position: fixed;"
     });
-    $("#header_serm").empty();
-    $("#header_serm").text("เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ");
-    $("#reviewer_button").attr("style", "display:none;");
-    socket.emit("join project", {
-      pid: getParameterByName("project"),
-      username: username,
-      sectionId: getParameterByName('section')
-    });
+    let a = document.getElementById("backToClass");
+    a.click();
+    // $("#header_serm").empty();
+    // $("#header_serm").text("เพื่อนของคุณออกจากหน้าเขียนโปรแกรมแล้วครับ/ค่ะ");
+    // $("#reviewer_button").attr("style", "display:none;");
+    // socket.emit("join project", {
+    //   pid: getParameterByName("project"),
+    //   username: username,
+    //   sectionId: getParameterByName('section')
+    // });
   } else if (
-    username === payload.projectRoles.roles.reviewer &&
+    username === payload.roles.reviewer &&
     payload.numUser == 2
   ) {
     $("#header_srm").text('ถึงเวลาที่คุณเป็น "Coder" แล้วครับ/ค่ะ');
     $("#confirmRoleChange").modal("show");
   } else if (
-    username === payload.projectRoles.roles.coder &&
+    username === payload.roles.coder &&
     payload.numUser == 2
   ) {
     $("#header_srm").text('ถึงเวลาที่คุณเป็น "Reviewer" แล้วครับ/ค่ะ');
@@ -388,12 +393,12 @@ socket.on("clear interval", () => {
 
 socket.on("role updated", payload => {
   let username = getVarFromScript('playgroundRemote', 'data-username')
-  if (username === payload.projectRoles.roles.reviewer) {
+  if (username === payload.roles.reviewer) {
     roles.user = "reviewer";
     roles.partner = "coder";
     $("#global_loader").attr("style", "display: none");
     projectFiles.forEach(setOptionFileNoCursor);
-  } else if (username === payload.projectRoles.roles.coder) {
+  } else if (username === payload.roles.coder) {
     roles.user = "coder";
     roles.partner = "reviewer";
     $("#global_loader").attr("style", "display: none");

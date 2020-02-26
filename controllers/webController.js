@@ -2,16 +2,14 @@ const mongoose = require("mongoose");
 const conMysql = require("../mySql");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
-const moment = require("moment");
 const Redis = require("ioredis");
-var fs = require("fs");
+const fs = require("fs");
 
 const Notification = mongoose.model("Notification");
 const Project = mongoose.model("Project");
 const Message = mongoose.model("Message");
 const Score = mongoose.model("Score");
 const User = mongoose.model("User");
-const Comment = mongoose.model("Comment");
 const History = mongoose.model("History");
 
 exports.getHomepage = (req, res) => {
