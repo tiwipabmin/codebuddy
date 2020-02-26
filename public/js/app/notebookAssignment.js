@@ -129,8 +129,14 @@ function setOnDoubleClickEditor(fileName) {
   console.log(" setOnDoubleClickEditor ------------------")
 }
 
-function setStatusBlock(blockId){
+function setStatusBlock(detectFocusBlock , cm){
 
+  preFocusBlock = editors
+      .map(function(obj) {
+        // console.log("obj ", obj)
+        return obj.editor;
+      })
+      .indexOf(cm);
   // check if owner change block
   //true = delete block id in list
   activeOwner = blockStatus.map(function(d) { return d['owner']; });
@@ -143,10 +149,13 @@ function setStatusBlock(blockId){
     blockStatus: blockStatus
     
   });
+
+  cm.setOption("readOnly", false); 
+
  }
     //check if blockId in list of blockStatus ??
 
-  const checkBlockId = blockStatus => blockStatus.id === blockId;
+  const checkBlockId = blockStatus => blockStatus.id === detectFocusBlock;
 
   if(blockStatus.some(checkBlockId)){
     console.log(" IN ")
@@ -157,7 +166,7 @@ function setStatusBlock(blockId){
   }else{
     console.log(" OUT ")
     let block  = {
-      id : blockId,
+      id : detectFocusBlock,
       owner : user
       
     }
@@ -231,11 +240,13 @@ function setEditor(fileName, cellType) {
       .indexOf(cm);
 
       console.log(`SET Detect focus block!! ${detectFocusBlock}`);
-      status = setStatusBlock(detectFocusBlock)
-      console.log("status " , status)
+      status = setStatusBlock(detectFocusBlock , cm)
+      console.log("editors[detectFocusBlock].blockId " , editors[detectFocusBlock].blockId)
 
       if(status == 'unLock'){
-        cm.setOption("readOnly", false); // no cursor
+        cm.setOption("cursorBlinkRate", 0); // cant edit
+
+        cm.setOption("readOnly", false); 
 
         socket.emit("codemirror on focus", {
           prevFocus: prevFocusBlock,
@@ -253,10 +264,18 @@ function setEditor(fileName, cellType) {
         ).style.borderLeft = "thick solid #2185d0";
 
       }else{
-        
-        cm.setOption("readOnly", "nocursor"); // no cursor
+        socket.emit("codemirror on focus", {
+          prevFocus: prevFocusBlock,
+          newFocus: detectFocusBlock
+        });
+        document.getElementById(
+          editors[prevFocusBlock].blockId + "-div"
+        ).style.border = "";
 
+        cm.setOption("readOnly", true); // cant edit
+        cm.setOption("cursorBlinkRate", -1); // cant edit
 
+      
       }
   
     
@@ -264,22 +283,6 @@ function setEditor(fileName, cellType) {
   editors.push({ blockId: fileName, editor: cm });
 }
 
-  /**
-   * Editor is configured cursor according to the user's role.
-   * @param {object} blockId receive a file name.
-   */
-  function setOptionFileNoCursor(blockId) {
-    var blockObj = editors.find(obj => {
-      return obj.blockId == fileName;
-    });
-    blockObj.editor.setOption("readOnly", "nocursor");
-  }
-  function setOptionFileShowCursor(blockId) {
-    var blockObj = editors.find(obj => {
-      return obj.blockId == fileName;
-    });
-    blockObj.editor.setOption("readOnly", false);
-  }
 
 function submitReview() {
 
