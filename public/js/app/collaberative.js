@@ -1216,19 +1216,37 @@ function showStudentList(
               );
           }
           else{
-            $(".student-container").append(
-              "<li id='" +
-              "' class='ui segment'>"+
-              "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
-              "<img class='ui avatar image' src='" +groupRecord[0][i][0].img +"'></img>" +"  " + 
-              groupRecord[0][i][0].first_name+ " " + groupRecord[0][i][0].last_name +
-              "</td>"+
-              "<td > "+   "<img class='ui avatar image' src='" +groupRecord[0][i][1].img +"'></img>" +"<font color='grey'> "+groupRecord[0][i][1].first_name+ " " + groupRecord[0][i][1].last_name +" </font>" +
-              "</td>  </tr>"+
-              "<br></td></tr></table>"+
-              "</li>"
-           
-          );
+            if(groupRecord[0][i][1] == undefined){
+              $(".student-container").append(
+                "<li id='" +
+                "' class='ui segment'>"+
+                "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+                "<img class='ui avatar image' src='" +groupRecord[0][i][0].img +"'></img>" +"  " + 
+                groupRecord[0][i][0].first_name+ " " + groupRecord[0][i][0].last_name +
+                "</td>"+
+                "<td > "+   "<img class='ui avatar image' src="  +"/images/user_empty.jpg" +"></img>" +"<font color='grey'> "+ " Empty </font>" +
+                "</td>  </tr>"+
+                "<br></td></tr></table>"+
+                "</li>"
+             
+            );
+
+            }else{
+              $(".student-container").append(
+                "<li id='" +
+                "' class='ui segment'>"+
+                "<table style='width : 100%;' ><tr><td colspan='2' rowspan='2' style='width: 50% ;' >"+
+                "<img class='ui avatar image' src='" +groupRecord[0][i][0].img +"'></img>" +"  " + 
+                groupRecord[0][i][0].first_name+ " " + groupRecord[0][i][0].last_name +
+                "</td>"+
+                "<td > "+   "<img class='ui avatar image' src='" +groupRecord[0][i][1].img +"'></img>" +"<font color='grey'> "+groupRecord[0][i][1].first_name+ " " + groupRecord[0][i][1].last_name +" </font>" +
+                "</td>  </tr>"+
+                "<br></td></tr></table>"+
+                "</li>"
+             
+            );
+            }
+            
   
          }
          }
