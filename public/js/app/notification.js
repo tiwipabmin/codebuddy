@@ -59,15 +59,28 @@ classNotiSocket.on('notify all', (payload) => {
         $('#notiItems').empty()
         for (let index in notifications) {
             if (notifications[index].process === `pending` && notifications[index].available_project) {
-                const item = $(`<div class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;"></div>`)
-                const content = $(`<div class="content"><div class="header">${notifications[index].head}</div><div class="description"><p>${notifications[index].content}</p></div></div>`)
-                const button = $(`<div class="extra"><div class="ui right floated primary button" onclick="location.href='${notifications[index].link}';">Join</div></div>`)
-                content.append(button)
+                const item = $(`<div class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;">`+
+                `</div>`)
+                const content = $(`<div class="content">`+
+                `<div class="header">${notifications[index].head}</div>`+
+                `<div class="description"><p>${notifications[index].content}</p></div>`+
+                `</div>`)
+                const extra = $(`<div class="extra">`+
+                `<i class="edit icon"></i>${moment(notifications[index].createdAt).fromNow()}`+
+                `<div class="ui right floated primary button" onclick="location.href='${notifications[index].link}';">Join</div>`+
+                `</div>`)
+                content.append(extra)
                 item.append(content)
                 $('#notiItems').append(item)
             } else {
-                const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;"></div>`)
-                const content = $(`<div class="content"><div class="header">${notifications[index].head}</div><div class="description"><p>${notifications[index].content}</p></div></div>`)
+                const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">`+
+                `</div>`)
+                const content = $(`<div class="content">`+
+                `<div class="header">${notifications[index].head}</div>`+
+                `<div class="description"><p>${notifications[index].content}</p></div>`+
+                `<div class="extra">`+
+                `<i class="edit icon"></i>${moment(notifications[index].createdAt).fromNow()}</div>`+
+                `</div>`)
                 item.append(content)
                 $('#notiItems').append(item)
             }
@@ -89,17 +102,31 @@ classNotiSocket.on('notify to join project', (payload) => {
         }
         // console.log('Element, ', $('#noNotifications').length)
         if (username === payload.curUser.own) {
-            const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;"></div>`)
-            const content = $(`<div class="content"><div class="header">${payload.curUser.head}</div><div class="description"><p>${payload.curUser.content}</p></div></div>`)
+            // alert('Payload.curUser.Own')
+            const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">`+
+            `</div>`)
+            const content = $(`<div class="content">`+
+            `<div class="header">${payload.curUser.head}</div>`+
+            `<div class="description"><p>${payload.curUser.content}</p></div>`+
+            `<div class="extra">`+
+            `<i class="edit icon"></i>${moment(payload.curUser.createdAt).fromNow()}</div>`+
+            `</div>`)
             item.append(content)
             $('#notiItems').append(item)
             $('#alarmNoti').text($('#notiItems').children().length)
             $('#alarmNoti').attr("style", "display: block;")
         } else {
-            const item = $(`<div class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:white;"></div>`)
-            const content = $(`<div class="content"><div class="header">${payload.partner.head}</div><div class="description"><p>${payload.partner.content}</p></div></div>`)
-            const button = $(`<div class="extra"><div class="ui right floated primary button" onclick="location.href='${payload.partner.link}';">Join</div></div>`)
-            content.append(button)
+            const item = $(`<div class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;">`+
+            `</div>`)
+            const content = $(`<div class="content">`+
+            `<div class="header">${payload.partner.head}</div>`+
+            `<div class="description"><p>${payload.partner.content}</p></div>`+
+            `</div>`)
+            const extra = $(`<div class="extra">`+
+            `<i class="edit icon"></i>${moment(payload.partner.createdAt).fromNow()}`+
+            `<div class="ui right floated primary button" onclick="location.href='${payload.partner.link}';">Join</div>`+
+            `</div>`)
+            content.append(extra)
             item.append(content)
             $('#notiItems').append(item)
             $('#alarmNoti').text($('#notiItems').children().length)

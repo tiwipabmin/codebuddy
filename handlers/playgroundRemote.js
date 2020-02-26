@@ -147,7 +147,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
               project: res
             });
             io.in(projectId).emit("update status", {
-              projectRoles: projects[projectId],
               status: 1,
               numUser: numUser
             });
@@ -192,7 +191,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     try {
       if (projects[projectId] !== undefined) {
         let numUser = Object.keys(projects[projectId].active_user).length;
-
         // winston.info(
         //   `user left project ${projectId} now has ${numUser} user(s) online`
         // );
@@ -214,7 +212,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             numUser: numUser
           });
           io.in(projectId).emit("update status", {
-            projectRoles: projects[projectId],
             status: 0,
             numUser: numUser
           });

@@ -330,7 +330,8 @@ socket.on("confirm role change", payload => {
     $("#reviewer_button").attr("style", "display:none;");
     socket.emit("join project", {
       pid: getParameterByName("project"),
-      username: username
+      username: username,
+      sectionId: getParameterByName('section')
     });
   } else if (
     username === payload.projectRoles.roles.reviewer &&

@@ -755,13 +755,6 @@ exports.updatePairingSession = async (req, res) => {
   });
 };
 
-function compareDate(date1, date2) {
-  if (date1 > date2) return 1;
-  else if (date1 === date2) return 0;
-  else if (date1 < date2) return -1;
-  else return "An illegal date.";
-}
-
 exports.resetPair = async (req, res) => {
   const queryEnrollment =
     "UPDATE enrollment SET partner_id = " +
