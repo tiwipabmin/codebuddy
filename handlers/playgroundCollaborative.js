@@ -275,7 +275,7 @@ module.exports = (io, client,redis, Projects) => {
    * @param {Object} payload blockId
    */
   client.on("add block below", async payload => {
- 
+    console.log("add block below playground")
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
     

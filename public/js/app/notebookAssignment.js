@@ -159,11 +159,12 @@ function setStatusBlock(detectFocusBlock , cm){
 
   if(blockStatus.some(checkBlockId)){
     
-
+  console.log("lock")
     return "lock"
 
   }
   else{
+    console.log("unlock")
     let block  = {
       id : detectFocusBlock,
       owner : user
@@ -241,7 +242,7 @@ function setEditor(fileName, cellType) {
       status = setStatusBlock(detectFocusBlock , cm)
 
       if(status == 'unLock'){
-        cm.setOption("cursorBlinkRate", 0); // cant edit
+        cm.setOption("cursorBlinkRate", 0); // can edit
 
         cm.setOption("readOnly", false); 
 
@@ -249,10 +250,14 @@ function setEditor(fileName, cellType) {
           prevFocus: prevFocusBlock,
           newFocus: detectFocusBlock
         });
-        
-        document.getElementById(
-          editors[prevFocusBlock].blockId + "-div"
-        ).style.border = "";
+       
+        activeBlock = blockStatus.map(function(d) { return d['id']; });
+        if(!activeBlock.includes(prevFocusBlock)){
+         document.getElementById(
+           editors[prevFocusBlock].blockId + "-div"
+         ).style.border = "";
+         }
+     
         document.getElementById(
           editors[detectFocusBlock].blockId + "-div"
         ).style.border = "thin solid #2185d0";
@@ -293,7 +298,7 @@ function submitReview() {
   // $("textarea.line.description").val("");
 }
 function setOnChangeEditer(fileName) {
-
+  console.log("fileName ", fileName)
   /**
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
@@ -417,6 +422,7 @@ socket.on("update block", payload => {
   
   console.log("update block ---------------*")
   let blockId = payload.blockId;
+  console.log("blockId update block", blockId)
   let index = payload.index;
 
   let action = payload.action;
@@ -489,8 +495,8 @@ socket.on("update block", payload => {
         moveBlock("down");
       }
     });
-    setOnChangeEditer(blockId);
-    setOnDoubleClickEditor(blockId);
+    // setOnChangeEditer(blockId);
+    // setOnDoubleClickEditor(blockId);
 
     cm.on("focus", cm => {
       var prevFocusBlock = detectFocusBlock;
@@ -503,49 +509,62 @@ socket.on("update block", payload => {
           return obj.editor;
         })
         .indexOf(cm);
-
-      console.log("prevFocusBlock ", prevFocusBlock)
-      console.log("detectFocusBlock ", detectFocusBlock)
-      //update focus block when after user addblock and focus that block
-      socket.emit("codemirror on focus", {
-        prevFocus: prevFocusBlock,
-        newFocus: detectFocusBlock
-      });
-      activeBlock = blockStatus.map(function(d) { return d['id']; });
-      if(!activeBlock.includes(payload.prevFocus)){
-       document.getElementById(
-         editors[payload.prevFocus].blockId + "-div"
-       ).style.border = "";
-       }
+      
+        // by jj
+        status = setStatusBlock(detectFocusBlock , cm)
+        if(status == 'unLock'){
+          cm.setOption("cursorBlinkRate", 0); // can edit
   
-      document.getElementById(
-        editors[detectFocusBlock].blockId + "-div"
-      ).style.border = "thin solid #2185d0";
-      document.getElementById(
-        editors[detectFocusBlock].blockId + "-div"
-      ).style.borderLeft = "thick solid #2185d0";
-      console.log(`update Detect focus block!! ${detectFocusBlock}`);
-      let c = cm.getCursor();
-      let lineText = cm.getRange({line: c.line, ch: 0}, {line: c.line, ch: c.ch});
-      let SPACES_REGEXP = /^( +$)/;
-      // Detecting whether the lineText contains only spaces.
-      let m = SPACES_REGEXP.exec(lineText);
-      if (m) {
-        // If only spaces, deleting at most 4 spaces.
-        let numDelete = m[1].length < 4 ? m[1].length : 4;
-        cm.replaceRange('', {line: c.line, ch: 0}, {line: c.line, ch: numDelete});
-      } 
+          cm.setOption("readOnly", false); 
+  
+          socket.emit("codemirror on focus", {
+            prevFocus: prevFocusBlock,
+            newFocus: detectFocusBlock
+          });
+          
+          activeBlock = blockStatus.map(function(d) { return d['id']; });
+          if(!activeBlock.includes(prevFocusBlock)){
+           document.getElementById(
+             editors[prevFocusBlock].blockId + "-div"
+           ).style.border = "";
+           }
+          document.getElementById(
+            editors[detectFocusBlock].blockId + "-div"
+          ).style.border = "thin solid #2185d0";
+          document.getElementById(
+            editors[detectFocusBlock].blockId + "-div"
+          ).style.borderLeft = "thick solid #2185d0";
+          let c = cm.getCursor();
+          let lineText = cm.getRange({line: c.line, ch: 0}, {line: c.line, ch: c.ch});
+          let SPACES_REGEXP = /^( +$)/;
+          // Detecting whether the lineText contains only spaces.
+          let m = SPACES_REGEXP.exec(lineText);
+          if (m) {
+            // If only spaces, deleting at most 4 spaces.
+            let numDelete = m[1].length < 4 ? m[1].length : 4;
+            cm.replaceRange('', {line: c.line, ch: 0}, {line: c.line, ch: numDelete});
+          } 
+        }else{
+          console.log( " prevFocusBlock when click lock block " , prevFocusBlock )
+          socket.emit("codemirror on focus", {
+            prevFocus: prevFocusBlock,
+            newFocus: detectFocusBlock
+          });
+          document.getElementById(
+            editors[prevFocusBlock].blockId + "-div"
+          ).style.border = "";
+  
+          cm.setOption("readOnly", true); // cant edit
+          cm.setOption("cursorBlinkRate", -1); // cant edit 
+        }
     });
 
-
-    
     editors.splice(index, 0, { blockId: blockId, editor: cm });
    
     projectFiles.splice(index, 0, {cellType: "code", executionCount: null, outputs: Array(0), source: "", blockId: blockId.toString()});
-
+    
     setOnChangeEditer(blockId);
     setOnDoubleClickEditor(blockId);
-  
   } 
 
 
