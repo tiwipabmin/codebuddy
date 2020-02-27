@@ -10,6 +10,7 @@ const conMysql = require('../mySql');
 
 const Project = mongoose.model("Project");
 const Message = mongoose.model("Message");
+const Notification = mongoose.model("Notification");
 const Score = mongoose.model("Score");
 const User = mongoose.model("User");
 const Comment = mongoose.model("Comment");
@@ -20,6 +21,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * recieve project id from client and stored in projectId
    **/
   let projectId = "";
+  let sectionId = "";
   let curUser = "";
   let detectInput = "empty@Codebuddy";
   let timerId = {};
@@ -83,21 +85,20 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
        **/
       if (!projects[projectId]) {
         // winston.info(`created new projects['${projectId}']`);
-        let sectionId = payload.sectionId
-        let decrypt = cryptr.decrypt(sectionId)
+        sectionId = cryptr.decrypt(payload.sectionId)
 
-        let timerId = Object.keys(timerIds).length + 1
+        let tmpTimerId = Object.keys(timerIds).length + 1
 
-        timerIds[timerId] = setInterval(() => {
+        timerIds[tmpTimerId] = setInterval(() => {
 
-          let guest = Object.keys(keyStores[decrypt]).find(username => keyStores[decrypt][username].guest === curUser)
-          let pnSessionKey = guest === undefined ? curUser + decrypt : guest + decrypt;
+          let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
+          let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
 
           io.in(pnSessionKey).emit("create new project notification", {
-            sectionId: sectionId,
+            sectionId: cryptr.encrypt(sectionId),
             pid: projectId,
             username: curUser,
-            timerId: timerId
+            timerId: tmpTimerId
           })
 
         }, 5000)
@@ -188,7 +189,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `disconnect` event fired when user exit from playground page
    * by exit means: reload page, close page/browser, session lost
    **/
-  client.on("disconnect", () => {
+  client.on("disconnect", async () => {
     try {
       if (projects[projectId] !== undefined) {
         let numUser = Object.keys(projects[projectId].active_user).length;
@@ -220,7 +221,39 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
           delete projects[projectId];
           client.leave(projectId);
-          Project.updateOne(
+
+          let tmpTimerId = Object.keys(timerIds).length + 1
+
+          timerIds[tmpTimerId] = setInterval(() => {
+
+            let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
+            let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
+
+            io.in(pnSessionKey).emit("finished process", {
+              type: `project`,
+              timerId: tmpTimerId
+            })
+
+          }, 5000)
+
+          // const notifications = await Notification.find({
+          //   $and: [{ own: curUser }, { type: `project` }, { process: `pending` }]
+          // }).sort({ createdAt: -1 })
+          // console.log(`Find Notifications of ${curUser}, `, notifications)
+
+          // const updateNotifications = await Notification.updateOne(
+          //   {
+          //     _id: notifications[0]._id
+          //   },
+          //   {
+          //     $set: {
+          //       process: `finished`
+          //     }
+          //   }
+          // );
+          // console.log(`Update Notifications of ${curUser}, `, updateNotifications)
+
+          await Project.updateOne(
             {
               pid: projectId
             },

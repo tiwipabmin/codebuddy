@@ -51,6 +51,81 @@ classNotiSocket.on('PING', (payload) => {
     classNotiSocket.emit('PONG', { beat: newBeat })
 })
 
+function createProjectNotificationElement(info, own) {
+    if (own === `receiver`) {
+        // const data = JSON.stringify({ _id: info._id, link: info.link })
+        // console.log('Data, ', data)
+        const item = $(`<div id="${info.nid}Item" class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;">` +
+            `</div>`)
+        const content = $(`<div class="content">` +
+            `<div class="header">${info.head}</div>` +
+            `<div class="description"><p>${info.content}</p></div>` +
+            `</div>`)
+        const extra = $(`<div class="extra">` +
+            `<i class="edit icon"></i>${moment(info.createdAt).fromNow()}` +
+            `<div id="${info.nid}Btn" class="ui right floated primary button" onclick="location.href='${info.link}';")">Join</div>` +
+            `</div>`)
+        content.append(extra)
+        item.append(content)
+        return item
+    } else if (own === `sender`) {
+        const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">` +
+            `</div>`)
+        const content = $(`<div class="content">` +
+            `<div class="header">${info.head}</div>` +
+            `<div class="description"><p>${info.content}</p></div>` +
+            `<div class="extra">` +
+            `<i class="edit icon"></i>${moment(info.createdAt).fromNow()}</div>` +
+            `</div>`)
+        item.append(content)
+        return item
+    }
+}
+
+function onClickJoinProject(element, nid = null, link = null) {
+    console.log('Nid, ', nid, ', Link, ', link, ', element, ', element)
+    // $.ajax({
+    //     url: `/notification/updateProjectNotification`,
+    //     type: `put`,
+    //     data: data
+    // })
+    // element.attr({
+    //     onclick: `location.href="${ data.link }";`
+    // })
+    // element.click()
+}
+
+classNotiSocket.on('finished process', (payload) => {
+    let username = getVarFromScript('notification', 'data-username')
+    classNotiSocket.emit('clear interval', {
+        timerId: payload.timerId
+    })
+    $.ajax({
+        url: `/notifications/finishedNotificationProcess`,
+        type: `put`,
+        data: {
+            own: username,
+            type: payload.type
+        },
+        success: function (res) {
+            if (Object.keys(res.notification).length) {
+                $(`#${res.notification.nid}Btn`).remove()
+                $(`#${res.notification.nid}Item`).attr({
+                    style: `pointer-events: none;`+
+                    ` width: 420px;`+ 
+                    ` padding: 10px;`+ 
+                    ` margin: 5px;`+
+                    ` background-color:white;`
+                })
+                alert(`Success!!`)
+            } else {
+                alert(`Error!!`)
+            }
+            $('#alarmNoti').text($('#notiItems').children().length - 1)
+        }
+    })
+})
+
 classNotiSocket.on('notify all', (payload) => {
     const notifications = payload.notifications
     console.log('Notifications, ', notifications)
@@ -59,30 +134,11 @@ classNotiSocket.on('notify all', (payload) => {
         $('#notiItems').empty()
         for (let index in notifications) {
             if (notifications[index].process === `pending` && notifications[index].available_project) {
-                const item = $(`<div class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;">`+
-                `</div>`)
-                const content = $(`<div class="content">`+
-                `<div class="header">${notifications[index].head}</div>`+
-                `<div class="description"><p>${notifications[index].content}</p></div>`+
-                `</div>`)
-                const extra = $(`<div class="extra">`+
-                `<i class="edit icon"></i>${moment(notifications[index].createdAt).fromNow()}`+
-                `<div class="ui right floated primary button" onclick="location.href='${notifications[index].link}';">Join</div>`+
-                `</div>`)
-                content.append(extra)
-                item.append(content)
-                $('#notiItems').append(item)
+                let notificationElement = createProjectNotificationElement(notifications[index], `receiver`)
+                $('#notiItems').append(notificationElement)
             } else {
-                const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">`+
-                `</div>`)
-                const content = $(`<div class="content">`+
-                `<div class="header">${notifications[index].head}</div>`+
-                `<div class="description"><p>${notifications[index].content}</p></div>`+
-                `<div class="extra">`+
-                `<i class="edit icon"></i>${moment(notifications[index].createdAt).fromNow()}</div>`+
-                `</div>`)
-                item.append(content)
-                $('#notiItems').append(item)
+                let notificationElement = createProjectNotificationElement(notifications[index], `sender`)
+                $('#notiItems').append(notificationElement)
             }
         }
         $('#alarmNoti').text($('#notiItems').children().length)
@@ -102,40 +158,20 @@ classNotiSocket.on('notify to join project', (payload) => {
         }
         // console.log('Element, ', $('#noNotifications').length)
         if (username === payload.curUser.own) {
-            // alert('Payload.curUser.Own')
-            const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">`+
-            `</div>`)
-            const content = $(`<div class="content">`+
-            `<div class="header">${payload.curUser.head}</div>`+
-            `<div class="description"><p>${payload.curUser.content}</p></div>`+
-            `<div class="extra">`+
-            `<i class="edit icon"></i>${moment(payload.curUser.createdAt).fromNow()}</div>`+
-            `</div>`)
-            item.append(content)
-            $('#notiItems').prepend(item)
+            let notificationElement = createProjectNotificationElement(payload.curUser, `sender`)
+            $('#notiItems').prepend(notificationElement)
             $('#alarmNoti').text($('#notiItems').children().length)
             $('#alarmNoti').attr("style", "display: block;")
         } else {
-            const item = $(`<div class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;">`+
-            `</div>`)
-            const content = $(`<div class="content">`+
-            `<div class="header">${payload.partner.head}</div>`+
-            `<div class="description"><p>${payload.partner.content}</p></div>`+
-            `</div>`)
-            const extra = $(`<div class="extra">`+
-            `<i class="edit icon"></i>${moment(payload.partner.createdAt).fromNow()}`+
-            `<div class="ui right floated primary button" onclick="location.href='${payload.partner.link}';">Join</div>`+
-            `</div>`)
-            content.append(extra)
-            item.append(content)
-            $('#notiItems').prepend(item)
+            let notificationElement = createProjectNotificationElement(payload.partner, `receiver`)
+            $('#notiItems').prepend(notificationElement)
             $('#alarmNoti').text($('#notiItems').children().length)
             $('#alarmNoti').attr("style", "display: block;")
         }
     }
 })
 
-classNotiSocket.on('test notification', (payload) => {
+classNotiSocket.on('test notification', () => {
     alert('TEST!!')
 })
 
@@ -147,7 +183,7 @@ classNotiSocket.on('create new project notification', (payload) => {
         classNotiSocket.emit('clear interval', {
             timerId: payload.timerId
         })
-        $.post('/notifications/createNewProjectNotification', payload, (res) => {
+        $.post('/notifications/createProjectNotification', payload, (res) => {
             if (Object.keys(res.notifications).length) {
                 classNotiSocket.emit('notify to join project', {
                     curUser: res.notifications.curUser,

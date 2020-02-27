@@ -248,7 +248,40 @@ exports.getNotifications = async (req, res) => {
   res.send({ notifications: notifications });
 };
 
-exports.createNewProjectNotification = async function (req, res) {
+exports.finishedNotificationProcess = async function (req, res) {
+  const notifications = await Notification.find({
+    $and: [
+      { own: req.body.own },
+      { type: req.body.type },
+      { process: `pending` }
+    ]
+  }).sort({ createdAt: -1 })
+  let notification = {}
+
+  if (Object.keys(notifications).length) {
+    notification = notifications[0]._doc
+
+    const finished = await Notification.updateOne(
+      {
+        _id: notification._id
+      },
+      {
+        $set: {
+          process: `finished`
+        }
+      }
+    )
+
+    notification.nid = reverseId(notification.nid)
+  }
+  res.send({ notification: notification })
+}
+
+exports.updateProjectNotification = async function (req, res) {
+  console.log('Data, ', req.body)
+}
+
+exports.createProjectNotification = async function (req, res) {
   const sectionId = req.body.sectionId
   const pid = req.body.pid
   const username = req.body.username
@@ -264,7 +297,7 @@ exports.createNewProjectNotification = async function (req, res) {
   insertNotification.link = `/project/${pid}/section/${sectionId}/role/${role}`
   insertNotification.head = `Project: ${projects.title}`
   insertNotification.content = `${projects.description}`
-  insertNotification.process = `pending`,
+  insertNotification.process = `pending`
   insertNotification.type = `project`
   insertNotification.info = { pid: pid }
   insertNotification = await insertNotification.save();
@@ -272,6 +305,8 @@ exports.createNewProjectNotification = async function (req, res) {
   let queryNotifications = await Notification.findOne({
     _id: insertNotification._id
   })
+
+  queryNotifications._doc.nid = reverseId(queryNotifications.nid)
 
   notifications[`partner`] = queryNotifications
 
@@ -285,16 +320,23 @@ exports.createNewProjectNotification = async function (req, res) {
   insertNotification.info = { pid: pid }
   insertNotification = await insertNotification.save();
 
-  // console.log('2')
   queryNotifications = await Notification.findOne({
     _id: insertNotification._id
   })
 
+  queryNotifications._doc.nid = reverseId(queryNotifications.nid)
+
   notifications[`curUser`] = queryNotifications
 
-  // console.log(`Notification, `, notifications)
-
   res.send({ notifications: notifications })
+}
+
+function reverseId(id) {
+  let newId = ""
+  for (let index = id.length - 1; index >= 0; index--) {
+    newId += id[index]
+  }
+  return newId
 }
 
 // exports.createProject = async (req, res) => {

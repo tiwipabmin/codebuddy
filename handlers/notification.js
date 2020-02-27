@@ -38,6 +38,14 @@ module.exports = (io, client, keyStores, timerIds) => {
         client.disconnect()
     }
 
+    function reverseId(id) {
+        let newId = ""
+        for (let index = id.length - 1; index >= 0; index--) {
+            newId += id[index]
+        }
+        return newId
+    }
+
     client.on('PONG', (payload) => {
         // console.log('New, ', payload.beat, ', Old, ', beat)
         if (payload.beat > beat) {
@@ -256,8 +264,9 @@ module.exports = (io, client, keyStores, timerIds) => {
                 const projects = await Project.findOne({
                     pid: tmpNotifications.info.pid
                 })
-                Object.assign(notifications[index]._doc, { 
-                    available_project: projects.available_project
+                Object.assign(notifications[index]._doc, {
+                    available_project: projects.available_project,
+                    nid: reverseId(notifications[index]._doc.nid)
                 })
             }
         }
