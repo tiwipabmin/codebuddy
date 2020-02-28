@@ -40,7 +40,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     try {
       projectId = payload.pid;
       curUser = payload.username;
-      // winston.info(`User ${curUser} joined at pid: ${projectId}`);
+      sectionId = cryptr.decrypt(payload.sectionId)
+
+      /**
+       * Join session socket with project id
+       */
       client.join(projectId);
 
       let allcomment = await Comment.find(
@@ -71,7 +75,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       );
 
       /**
-       * Increase users enter count
+       * Increase users' enter count
        **/
       const user = await User.findOne({ username: curUser });
       const project = await Project.findOne({ pid: projectId });
@@ -85,7 +89,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
        **/
       if (!projects[projectId]) {
         // winston.info(`created new projects['${projectId}']`);
-        sectionId = cryptr.decrypt(payload.sectionId)
 
         let tmpTimerId = Object.keys(timerIds).length + 1
 
@@ -164,6 +167,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         }
       }
       console.log('Projects, ', projects)
+
     } catch (error) {
       winston.info(`catching error: ${error}`);
     }
@@ -222,37 +226,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           delete projects[projectId];
           client.leave(projectId);
 
-          let tmpTimerId = Object.keys(timerIds).length + 1
-
-          timerIds[tmpTimerId] = setInterval(() => {
-
-            let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
-            let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
-
-            io.in(pnSessionKey).emit("finished process", {
-              type: `project`,
-              timerId: tmpTimerId
-            })
-
-          }, 5000)
-
-          // const notifications = await Notification.find({
-          //   $and: [{ own: curUser }, { type: `project` }, { process: `pending` }]
-          // }).sort({ createdAt: -1 })
-          // console.log(`Find Notifications of ${curUser}, `, notifications)
-
-          // const updateNotifications = await Notification.updateOne(
-          //   {
-          //     _id: notifications[0]._id
-          //   },
-          //   {
-          //     $set: {
-          //       process: `finished`
-          //     }
-          //   }
-          // );
-          // console.log(`Update Notifications of ${curUser}, `, updateNotifications)
-
           await Project.updateOne(
             {
               pid: projectId
@@ -266,8 +239,53 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
               if (err) throw err;
             }
           );
+
+          const notifications = await Notification.find({
+            $and: [
+              {
+                receiver:
+                  { $all: [curUser] }
+              },
+              { type: `project` },
+              { status: `pending` },
+              { "info.pid": projectId }
+            ]
+          }).sort({ createdAt: -1 })
+
+          if (notifications.length) {
+            if (notifications[0].info.pid === projectId) {
+              const updateNotifications = await Notification.updateOne(
+                {
+                  _id: notifications[0]._id
+                },
+                {
+                  $set: {
+                    status: `finished`
+                  }
+                }
+              );
+
+              let tmpTimerId = Object.keys(timerIds).length + 1
+              let reversedNid = ``
+              for (let index = notifications[0].nid.length - 1; index >= 0; index--) {
+                reversedNid += notifications[0].nid[index]
+              }
+
+              timerIds[tmpTimerId] = setInterval(() => {
+                let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
+                let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
+
+                io.in(pnSessionKey).emit("finished project notification", {
+                  nid: reversedNid,
+                  timerId: tmpTimerId
+                })
+
+              }, 5000)
+            }
+          }
         }
       }
+
       // winston.info("Client disconnected");
     } catch (error) {
       winston.info(`catching error: ${error}`);

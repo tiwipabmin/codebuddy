@@ -12,12 +12,13 @@ const notificationSchema = new mongoose.Schema({
         type: String,
         default: shortid.generate
     },
-    own: String,
+    receiver: Array,
     link: String,
     head: String,
     content: String,
-    process: String,
+    status: String,
     type: String,
+    createdBy: String,
     createdAt: { type: Date, default: Date.now },
     info: Object
 })

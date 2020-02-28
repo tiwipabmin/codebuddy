@@ -248,39 +248,6 @@ exports.getNotifications = async (req, res) => {
   res.send({ notifications: notifications });
 };
 
-exports.finishedNotificationProcess = async function (req, res) {
-  const notifications = await Notification.find({
-    $and: [
-      { own: req.body.own },
-      { type: req.body.type },
-      { process: `pending` }
-    ]
-  }).sort({ createdAt: -1 })
-  let notification = {}
-
-  if (Object.keys(notifications).length) {
-    notification = notifications[0]._doc
-
-    const finished = await Notification.updateOne(
-      {
-        _id: notification._id
-      },
-      {
-        $set: {
-          process: `finished`
-        }
-      }
-    )
-
-    notification.nid = reverseId(notification.nid)
-  }
-  res.send({ notification: notification })
-}
-
-exports.updateProjectNotification = async function (req, res) {
-  console.log('Data, ', req.body)
-}
-
 exports.createProjectNotification = async function (req, res) {
   const sectionId = req.body.sectionId
   const pid = req.body.pid
@@ -288,45 +255,23 @@ exports.createProjectNotification = async function (req, res) {
   const projects = await Project.findOne({
     pid: pid
   })
-  const notifications = {}
+  let notifications = new Notification()
 
-  const role = username !== projects.creator ? `creator` : `collaborator`; // role's partner
-  const partner = username !== projects.creator ? projects.creator : projects.collaborator;
-  let insertNotification = new Notification()
-  insertNotification.own = `${partner}`
-  insertNotification.link = `/project/${pid}/section/${sectionId}/role/${role}`
-  insertNotification.head = `Project: ${projects.title}`
-  insertNotification.content = `${projects.description}`
-  insertNotification.process = `pending`
-  insertNotification.type = `project`
-  insertNotification.info = { pid: pid }
-  insertNotification = await insertNotification.save();
+  if (Object.keys(projects).length) {
 
-  let queryNotifications = await Notification.findOne({
-    _id: insertNotification._id
-  })
-
-  queryNotifications._doc.nid = reverseId(queryNotifications.nid)
-
-  notifications[`partner`] = queryNotifications
-
-  insertNotification = new Notification()
-  insertNotification.own = `${username}`
-  insertNotification.link = `-`
-  insertNotification.head = `Project: ${projects.title}`
-  insertNotification.content = `${projects.description}`
-  insertNotification.process = `finished`
-  insertNotification.type = `project`
-  insertNotification.info = { pid: pid }
-  insertNotification = await insertNotification.save();
-
-  queryNotifications = await Notification.findOne({
-    _id: insertNotification._id
-  })
-
-  queryNotifications._doc.nid = reverseId(queryNotifications.nid)
-
-  notifications[`curUser`] = queryNotifications
+    const role = username !== projects.creator ? `creator` : `collaborator`;
+    
+    notifications.receiver = [projects.creator, projects.collaborator]
+    notifications.link = `/project/${pid}/section/${sectionId}/role/${role}`
+    notifications.head = `Project: ${projects.title}`
+    notifications.content = `${projects.description}`
+    notifications.status = `pending`
+    notifications.type = `project`
+    notifications.createdBy = username
+    notifications.info = { pid: pid }
+    notifications = await notifications.save();
+    notifications._doc.nid = reverseId(notifications.nid)
+  }
 
   res.send({ notifications: notifications })
 }

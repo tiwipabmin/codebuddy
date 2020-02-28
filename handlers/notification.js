@@ -255,9 +255,10 @@ module.exports = (io, client, keyStores, timerIds) => {
          * Notify all to user
          */
         let notifications = await Notification.find({
-            own: curUser
+            receiver: { $all: [curUser] }
         }).sort({ createdAt: -1 })
 
+        // console.log('Notifications, ', notifications)
         for (let index in notifications) {
             const tmpNotifications = notifications[index]
             if (tmpNotifications.type === `project`) {
@@ -287,51 +288,52 @@ module.exports = (io, client, keyStores, timerIds) => {
 
         if (Object.keys(payload).length) {
             io.in(pnSessionKey).emit('notify to join project', {
-                curUser: payload.curUser,
-                partner: payload.partner
+                notifications: payload.notifications
             })
         }
     })
 
     client.on('disconnect', () => {
-        // console.log('KeyStores Before, ', keyStores)
+        // console.log('KeyStores Before, ', keyStores, ', Keys, ', keys)
         for (let secKey in keys) {
-            let guest = Object.keys(keyStores[secKey]).find(username => keyStores[secKey][username].guest === curUser)
+            if (keyStores[secKey] !== undefined) {
+                let guest = Object.keys(keyStores[secKey]).find(username => keyStores[secKey][username].guest === curUser)
 
-            if (keyStores[secKey][curUser] !== undefined || guest !== undefined) {
-                // console.log('D1')
+                if (keyStores[secKey][curUser] !== undefined || guest !== undefined) {
+                    // console.log('D1')
 
-                if (guest !== undefined || keyStores[secKey][curUser].guest !== null) {
-                    // console.log('D2')
-                    let pnSessionKey = guest === undefined ? curUser + secKey : guest + secKey;
-                    let tmpKey = guest === undefined ? curUser : guest;
-                    let numUser = keyStores[secKey][tmpKey].activeUsers.length
+                    if (guest !== undefined || keyStores[secKey][curUser].guest !== null) {
+                        // console.log('D2')
+                        let pnSessionKey = guest === undefined ? curUser + secKey : guest + secKey;
+                        let tmpKey = guest === undefined ? curUser : guest;
+                        let numUser = keyStores[secKey][tmpKey].activeUsers.length
 
-                    if (numUser === 1) {
-                        delete keyStores[secKey][tmpKey]
-                    } else {
-                        if (guest === undefined) {
-                            let index = keyStores[secKey][tmpKey].activeUsers.indexOf(tmpKey)
-                            keyStores[secKey][tmpKey].activeUsers.splice(index, 1)
+                        if (numUser === 1) {
+                            delete keyStores[secKey][tmpKey]
                         } else {
-                            let index = keyStores[secKey][guest].activeUsers.indexOf(keyStores[secKey][guest].guest)
-                            keyStores[secKey][guest].activeUsers.splice(index, 1)
+                            if (guest === undefined) {
+                                let index = keyStores[secKey][tmpKey].activeUsers.indexOf(tmpKey)
+                                keyStores[secKey][tmpKey].activeUsers.splice(index, 1)
+                            } else {
+                                let index = keyStores[secKey][guest].activeUsers.indexOf(keyStores[secKey][guest].guest)
+                                keyStores[secKey][guest].activeUsers.splice(index, 1)
+                            }
                         }
+
+                        client.leave(pnSessionKey)
+                        console.log('D3')
+                        // winston.info(`${curUser} leave partner session['${pnSessionKey}']`);
+                    } else {
+                        delete keyStores[secKey][curUser]
                     }
-
-                    client.leave(pnSessionKey)
-                    console.log('D3')
-                    // winston.info(`${curUser} leave partner session['${pnSessionKey}']`);
-                } else {
-                    delete keyStores[secKey][curUser]
                 }
-            }
 
-            delete keys[secKey]
-            Object.keys(keyStores[secKey]).length === 0 ? delete keyStores[secKey] : null;
-            client.leave(secKey)
-            // console.log('KeyStores After, ', keyStores)
-            // winston.info(`${curUser} leave classroom['${secKey}']`);
+                delete keys[secKey]
+                Object.keys(keyStores[secKey]).length === 0 ? delete keyStores[secKey] : null;
+                client.leave(secKey)
+                // console.log('KeyStores After, ', keyStores)
+                // winston.info(`${curUser} leave classroom['${secKey}']`);
+            }
         }
     })
 }

@@ -53,8 +53,6 @@ classNotiSocket.on('PING', (payload) => {
 
 function createProjectNotificationElement(info, own) {
     if (own === `receiver`) {
-        // const data = JSON.stringify({ _id: info._id, link: info.link })
-        // console.log('Data, ', data)
         const item = $(`<div id="${info.nid}Item" class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;">` +
             `</div>`)
         const content = $(`<div class="content">` +
@@ -95,45 +93,35 @@ function onClickJoinProject(element, nid = null, link = null) {
     // element.click()
 }
 
-classNotiSocket.on('finished process', (payload) => {
-    let username = getVarFromScript('notification', 'data-username')
+classNotiSocket.on('finished project notification', (payload) => {
     classNotiSocket.emit('clear interval', {
         timerId: payload.timerId
     })
-    $.ajax({
-        url: `/notifications/finishedNotificationProcess`,
-        type: `put`,
-        data: {
-            own: username,
-            type: payload.type
-        },
-        success: function (res) {
-            if (Object.keys(res.notification).length) {
-                $(`#${res.notification.nid}Btn`).remove()
-                $(`#${res.notification.nid}Item`).attr({
-                    style: `pointer-events: none;`+
-                    ` width: 420px;`+ 
-                    ` padding: 10px;`+ 
-                    ` margin: 5px;`+
-                    ` background-color:white;`
-                })
-                alert(`Success!!`)
-            } else {
-                alert(`Error!!`)
-            }
-            $('#alarmNoti').text($('#notiItems').children().length - 1)
-        }
+    // console.log('Finished Project!')
+    $(`#${payload.nid}Btn`).remove()
+    $(`#${payload.nid}Item`).attr({
+        style: `pointer-events: none;` +
+            ` width: 420px;` +
+            ` padding: 10px;` +
+            ` margin: 5px;` +
+            ` background-color:white;`
     })
+    let count = parseInt($('#alarmNoti').text())
+    if (count > 0) {
+        count -= 1
+    }
+    $('#alarmNoti').text(count)
 })
 
 classNotiSocket.on('notify all', (payload) => {
     const notifications = payload.notifications
-    console.log('Notifications, ', notifications)
     if (notifications !== null) {
         $('#noNotifications').remove()
         $('#notiItems').empty()
+        let count = 0
         for (let index in notifications) {
-            if (notifications[index].process === `pending` && notifications[index].available_project) {
+            if (notifications[index].status === `pending` && notifications[index].available_project) {
+                count++
                 let notificationElement = createProjectNotificationElement(notifications[index], `receiver`)
                 $('#notiItems').append(notificationElement)
             } else {
@@ -141,32 +129,30 @@ classNotiSocket.on('notify all', (payload) => {
                 $('#notiItems').append(notificationElement)
             }
         }
-        $('#alarmNoti').text($('#notiItems').children().length)
-        $('#alarmNoti').attr("style", "display: block;")
+        $('#alarmNoti').text(count)
     }
 })
 
 classNotiSocket.on('notify to join project', (payload) => {
     const username = getVarFromScript('notification', 'data-username')
 
-    if (Object.keys(payload).length
-        && Object.keys(payload.curUser).length
-        && Object.keys(payload.partner).length) {
+    if (Object.keys(payload.notifications).length
+        && payload.notifications.receiver.indexOf(username) >= 0) {
         if ($('#noNotifications').length) {
             $('#noNotifications').remove()
             $('#notiItems').empty()
         }
-        // console.log('Element, ', $('#noNotifications').length)
-        if (username === payload.curUser.own) {
-            let notificationElement = createProjectNotificationElement(payload.curUser, `sender`)
+
+        if (username === payload.notifications.createdBy) {
+            let notificationElement = createProjectNotificationElement(payload.notifications, `sender`)
             $('#notiItems').prepend(notificationElement)
-            $('#alarmNoti').text($('#notiItems').children().length)
-            $('#alarmNoti').attr("style", "display: block;")
+            let count = parseInt($('#alarmNoti').text()) + 1
+            $('#alarmNoti').text(count)
         } else {
-            let notificationElement = createProjectNotificationElement(payload.partner, `receiver`)
+            let notificationElement = createProjectNotificationElement(payload.notifications, `receiver`)
             $('#notiItems').prepend(notificationElement)
-            $('#alarmNoti').text($('#notiItems').children().length)
-            $('#alarmNoti').attr("style", "display: block;")
+            let count = parseInt($('#alarmNoti').text()) + 1
+            $('#alarmNoti').text(count)
         }
     }
 })
@@ -186,8 +172,7 @@ classNotiSocket.on('create new project notification', (payload) => {
         $.post('/notifications/createProjectNotification', payload, (res) => {
             if (Object.keys(res.notifications).length) {
                 classNotiSocket.emit('notify to join project', {
-                    curUser: res.notifications.curUser,
-                    partner: res.notifications.partner,
+                    notifications: res.notifications,
                     sectionId: getParameterByName(`section`)
                 })
             } else {
