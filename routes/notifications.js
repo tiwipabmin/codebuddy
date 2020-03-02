@@ -16,6 +16,7 @@ const router = express.Router()
  */
 router.get('/', auth.isSignedIn, catchErrors(webController.getNotifications))
 router.post('/createProjectNotification', auth.isSignedIn, catchErrors(webController.createProjectNotification))
+router.put('/disableProjectNotification', auth.isSignedIn, catchErrors(webController.disableProjectNotification))
 
 /**
  * Expose `router`

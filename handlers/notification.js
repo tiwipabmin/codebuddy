@@ -47,7 +47,6 @@ module.exports = (io, client, keyStores, timerIds) => {
     }
 
     client.on('PONG', (payload) => {
-        // console.log('New, ', payload.beat, ', Old, ', beat)
         if (payload.beat > beat) {
             beat = payload.beat
             pingPong = setTimeout(sendHeartbeat, 5000)
@@ -123,7 +122,6 @@ module.exports = (io, client, keyStores, timerIds) => {
                 keyStores[secKey] = {}
             }
         }
-        // console.log('KeyStores[secKey], ', keyStores
 
         if (occupation === 'student') {
             const stdSecs = {} // store students that enroll to many courses.
@@ -135,7 +133,6 @@ module.exports = (io, client, keyStores, timerIds) => {
                 })
                 Object.assign(stdSecs, { [key]: resStudents })
             }
-            // console.log('StdSecs, ', stdSecs)
 
             /**
              * Looking for a student information's curUser
@@ -150,7 +147,6 @@ module.exports = (io, client, keyStores, timerIds) => {
                     }
                 }
             }
-            // console.log('Students, ', students)
 
             for (let secKey in students) {
                 const pnSecs = { info: null } // store students that are partnerShip's curUser
@@ -168,7 +164,6 @@ module.exports = (io, client, keyStores, timerIds) => {
                      * Delete duplicate data
                      */
                     if (keyStores[secKey][curUser] !== undefined && guest !== undefined) {
-                        console.log('Delete!')
                         delete keyStores[secKey][guest]
                     }
 
@@ -191,13 +186,11 @@ module.exports = (io, client, keyStores, timerIds) => {
                             })
                         }
                     } else {
-                        // console.log('Keys Length, ', Object.keys(pnSecs.info).length, ', Keys, ', Object.keys(pnSecs.info))
-
+                        
                         let tmpUser = guest === undefined ? curUser : guest;
                         if (((keyStores[secKey][tmpUser].guest !== pnSecs.info.username && guest === undefined) ||
                             (tmpUser !== pnSecs.info.username && keyStores[secKey][curUser] === undefined))
                             && Object.keys(pnSecs.info).length) {
-                            // console.log('1.1')
                             delete keyStores[secKey][tmpUser]
 
                             let pnSessionKey = curUser + secKey
@@ -211,19 +204,16 @@ module.exports = (io, client, keyStores, timerIds) => {
                             client.join(pnSessionKey)
                             winston.info(`${curUser} join partner session['${pnSessionKey}']`);
                         } else if (keyStores[secKey][tmpUser].activeUsers.indexOf(curUser) < 0 && Object.keys(pnSecs.info).length) {
-                            // console.log('1.2')
+
                             let pnSessionKey = tmpUser + secKey;
                             keyStores[secKey][tmpUser].activeUsers.push(curUser)
                             client.join(pnSessionKey)
-                            // io.in(pnSessionKey).emit('test notification', {})
-                            winston.info(`${curUser} join partner session['${pnSessionKey}']`);
+                            // winston.info(`${curUser} join partner session['${pnSessionKey}']`);
                         } else if (Object.keys(pnSecs.info).length) {
-                            // console.log('1.3')
                             let pnSessionKey = tmpUser + secKey;
                             client.join(pnSessionKey)
-                            winston.info(`${curUser} join partner session['${pnSessionKey}']`);
+                            // winston.info(`${curUser} join partner session['${pnSessionKey}']`);
                         } else {
-                            // console.log('1.4')
                             delete keyStores[secKey][tmpUser]
 
                             console.log('Student has a partnerShip but partner doesn\'t has information.')
@@ -258,7 +248,6 @@ module.exports = (io, client, keyStores, timerIds) => {
             receiver: { $all: [curUser] }
         }).sort({ createdAt: -1 })
 
-        // console.log('Notifications, ', notifications)
         for (let index in notifications) {
             const tmpNotifications = notifications[index]
             if (tmpNotifications.type === `project`) {
@@ -294,16 +283,13 @@ module.exports = (io, client, keyStores, timerIds) => {
     })
 
     client.on('disconnect', () => {
-        // console.log('KeyStores Before, ', keyStores, ', Keys, ', keys)
         for (let secKey in keys) {
             if (keyStores[secKey] !== undefined) {
                 let guest = Object.keys(keyStores[secKey]).find(username => keyStores[secKey][username].guest === curUser)
 
                 if (keyStores[secKey][curUser] !== undefined || guest !== undefined) {
-                    // console.log('D1')
 
                     if (guest !== undefined || keyStores[secKey][curUser].guest !== null) {
-                        // console.log('D2')
                         let pnSessionKey = guest === undefined ? curUser + secKey : guest + secKey;
                         let tmpKey = guest === undefined ? curUser : guest;
                         let numUser = keyStores[secKey][tmpKey].activeUsers.length
@@ -321,7 +307,6 @@ module.exports = (io, client, keyStores, timerIds) => {
                         }
 
                         client.leave(pnSessionKey)
-                        console.log('D3')
                         // winston.info(`${curUser} leave partner session['${pnSessionKey}']`);
                     } else {
                         delete keyStores[secKey][curUser]
@@ -331,7 +316,6 @@ module.exports = (io, client, keyStores, timerIds) => {
                 delete keys[secKey]
                 Object.keys(keyStores[secKey]).length === 0 ? delete keyStores[secKey] : null;
                 client.leave(secKey)
-                // console.log('KeyStores After, ', keyStores)
                 // winston.info(`${curUser} leave classroom['${secKey}']`);
             }
         }

@@ -166,7 +166,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           client.emit("reject joining");
         }
       }
-      console.log('Projects, ', projects)
 
     } catch (error) {
       winston.info(`catching error: ${error}`);
@@ -240,23 +239,23 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             }
           );
 
-          const notifications = await Notification.find({
+          const queryNotifications = await Notification.find({
             $and: [
               {
                 receiver:
                   { $all: [curUser] }
               },
               { type: `project` },
-              { status: `pending` },
-              { "info.pid": projectId }
+              { status: `pending` }
             ]
           }).sort({ createdAt: -1 })
 
-          if (notifications.length) {
-            if (notifications[0].info.pid === projectId) {
-              const updateNotifications = await Notification.updateOne(
+          if (queryNotifications.length) {
+            const reversedNidSets = []
+            for (let index in queryNotifications) {
+              const disable = await Notification.updateOne(
                 {
-                  _id: notifications[0]._id
+                  _id: queryNotifications[index]._id
                 },
                 {
                   $set: {
@@ -265,18 +264,24 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                 }
               );
 
-              let tmpTimerId = Object.keys(timerIds).length + 1
               let reversedNid = ``
-              for (let index = notifications[0].nid.length - 1; index >= 0; index--) {
-                reversedNid += notifications[0].nid[index]
+              let nid = queryNotifications[index].nid
+              for (let indexId = nid.length - 1; indexId >= 0; indexId--) {
+                reversedNid += nid[indexId]
               }
+
+              reversedNidSets.push(reversedNid)
+            }
+
+            if (reversedNidSets.length) {
+              let tmpTimerId = Object.keys(timerIds).length + 1
 
               timerIds[tmpTimerId] = setInterval(() => {
                 let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
                 let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
 
-                io.in(pnSessionKey).emit("finished project notification", {
-                  nid: reversedNid,
+                io.in(pnSessionKey).emit("disable project notification", {
+                  reversedNidSets: reversedNidSets,
                   timerId: tmpTimerId
                 })
 

@@ -260,7 +260,7 @@ exports.createProjectNotification = async function (req, res) {
   if (Object.keys(projects).length) {
 
     const role = username !== projects.creator ? `creator` : `collaborator`;
-    
+
     notifications.receiver = [projects.creator, projects.collaborator]
     notifications.link = `/project/${pid}/section/${sectionId}/role/${role}`
     notifications.head = `Project: ${projects.title}`
@@ -274,6 +274,17 @@ exports.createProjectNotification = async function (req, res) {
   }
 
   res.send({ notifications: notifications })
+}
+
+exports.disableProjectNotification = async function (req, res) {
+  const nid = reverseId(req.body.nid)
+  console.log('Nid,', nid.length)
+
+  const disable = await Notification.updateOne(
+    { nid: nid },
+    { $set: { status: `finished` } }
+  )
+  res.sendStatus(200);
 }
 
 function reverseId(id) {
