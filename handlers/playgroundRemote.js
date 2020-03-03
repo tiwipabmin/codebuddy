@@ -298,19 +298,23 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
               reversedNidSets.push(reversedNid)
             }
 
-            if (reversedNidSets.length) {
-              let tmpTimerId = Object.keys(timerIds).length + 1
+            if (reversedNidSets.length && Object.keys(keyStores).length) {
 
-              timerIds[tmpTimerId] = setInterval(() => {
-                let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
-                let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
+              let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
 
-                io.in(pnSessionKey).emit("disable project notification", {
-                  reversedNidSets: reversedNidSets,
-                  timerId: tmpTimerId
-                })
+              if (Object.keys(keyStores[sectionId][curUser]).length || guest) {
+                let tmpTimerId = Object.keys(timerIds).length + 1
 
-              }, 5000)
+                timerIds[tmpTimerId] = setInterval(() => {
+                  let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
+
+                  io.in(pnSessionKey).emit("disable project notification", {
+                    reversedNidSets: reversedNidSets,
+                    timerId: tmpTimerId
+                  })
+
+                }, 5000)
+              }
             }
           }
         }
