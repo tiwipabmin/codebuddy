@@ -148,6 +148,12 @@ socket.emit("join project", {
   sectionId: getParameterByName('section')
 });
 
+socket.on('PING', (payload) => {
+  let newBeat = payload.beat + 1
+  console.log('PING, ', newBeat)
+  socket.emit('PONG', { beat: newBeat })
+})
+
 webrtc.on("readyToCall", function () {
   // you can name it anything
   webrtc.createRoom(getParameterByName("project"));

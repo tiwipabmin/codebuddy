@@ -11,10 +11,10 @@ module.exports = (io, client, keyStores, timerIds) => {
     /**
      * keyStores = {
      *  key: {
-     *          tiwipab(pnSessionKey): {
+     *          tiwipab1: {
      *               guest: weerabhat, 
      *               activeUsers: [ tiwipab, weerabhat ] 
-     *          } // tiwipab is the partner session key
+     *          } // username merged with section_id as a partner section key's the first user login the website.
      *      }
      * }
      * 

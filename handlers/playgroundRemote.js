@@ -6,7 +6,6 @@ const archiver = require("archiver");
 const nodepty = require("node-pty");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
-const conMysql = require('../mySql');
 
 const Project = mongoose.model("Project");
 const Message = mongoose.model("Message");
@@ -28,8 +27,29 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let comments = [];
   let index = null;
   let pythonProcess = null;
+  let beat = 0;
+  let pingPong = ''
+  let autoDisc = ''
 
-  // winston.info("Client connected");
+  function sendHeartbeat() {
+    client.emit('PING', { beat: beat })
+  }
+
+  function automaticallyDisconnect() {
+    client.disconnect()
+  }
+
+  client.on('PONG', (payload) => {
+    console.log(`PONG of ${curUser}: old, `, beat, ', new, ', payload.beat)
+    if (payload.beat > beat) {
+      beat = payload.beat
+      pingPong = setTimeout(sendHeartbeat, 5000)
+      clearTimeout(autoDisc)
+      autoDisc = setTimeout(automaticallyDisconnect, 6000)
+    } else {
+      clearTimeout(pingPong)
+    }
+  })
 
   /**
    * `join project` evnet trigged when user joining project in playground page
@@ -38,6 +58,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   client.on("join project", async payload => {
     try {
+      pingPong = setTimeout(sendHeartbeat, 5000)
+      autoDisc = setTimeout(automaticallyDisconnect, 6000)
+
       projectId = payload.pid;
       curUser = payload.username;
       sectionId = cryptr.decrypt(payload.sectionId)
@@ -224,6 +247,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
           delete projects[projectId];
           client.leave(projectId);
+          clearTimeout(pingPong)
+          clearTimeout(autoDisc)
 
           await Project.updateOne(
             {
@@ -253,7 +278,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           if (queryNotifications.length) {
             const reversedNidSets = []
             for (let index in queryNotifications) {
-              const disable = await Notification.updateOne(
+              await Notification.updateOne(
                 {
                   _id: queryNotifications[index]._id
                 },
