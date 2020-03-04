@@ -40,7 +40,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   }
 
   client.on('PONG', (payload) => {
-    console.log(`PONG of ${curUser}: old, `, beat, ', new, ', payload.beat)
     if (payload.beat > beat) {
       beat = payload.beat
       pingPong = setTimeout(sendHeartbeat, 5000)
@@ -298,11 +297,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
               reversedNidSets.push(reversedNid)
             }
 
-            if (reversedNidSets.length && Object.keys(keyStores).length) {
+            if (reversedNidSets.length && keyStores[sectionId] !== undefined) {
 
               let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
 
-              if (Object.keys(keyStores[sectionId][curUser]).length || guest) {
+              if (keyStores[sectionId][curUser] !== undefined || guest) {
                 let tmpTimerId = Object.keys(timerIds).length + 1
 
                 timerIds[tmpTimerId] = setInterval(() => {

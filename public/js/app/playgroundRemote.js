@@ -150,7 +150,6 @@ socket.emit("join project", {
 
 socket.on('PING', (payload) => {
   let newBeat = payload.beat + 1
-  console.log('PING, ', newBeat)
   socket.emit('PONG', { beat: newBeat })
 })
 
