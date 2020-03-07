@@ -248,41 +248,12 @@ exports.getNotifications = async (req, res) => {
   res.send({ notifications: notifications });
 };
 
-exports.createProjectNotification = async function (req, res) {
-  const sectionId = req.body.sectionId
-  const pid = req.body.pid
-  const username = req.body.username
-  const projects = await Project.findOne({
-    pid: pid
-  })
-  let notifications = new Notification()
-
-  if (Object.keys(projects).length) {
-
-    const role = username !== projects.creator ? `creator` : `collaborator`;
-
-    notifications.receiver = [projects.creator, projects.collaborator]
-    notifications.link = `/project/${pid}/section/${sectionId}/role/${role}`
-    notifications.head = `Project: ${projects.title}`
-    notifications.content = `${projects.description}`
-    notifications.status = `pending`
-    notifications.type = `project`
-    notifications.createdBy = username
-    notifications.info = { pid: pid }
-    notifications = await notifications.save();
-    notifications._doc.nid = reverseId(notifications.nid)
-  }
-
-  res.send({ notifications: notifications })
-}
-
-exports.disableProjectNotification = async function (req, res) {
+exports.changeProjectNotificationStatus = async function (req, res) {
   const nid = reverseId(req.body.nid)
-  console.log('Nid,', nid.length)
 
   const disable = await Notification.updateOne(
     { nid: nid },
-    { $set: { status: `finished` } }
+    { $set: { ["receiver." + req.user.username]: `reacted` } }
   )
   res.sendStatus(200);
 }
@@ -2113,29 +2084,39 @@ exports.createAssignment = async (req, res) => {
     ]
   ];
 
-  console.log('Values, ', values)
   const assignment_id = await conMysql.insertAssignment(
     insertAssignment,
     values
   );
-  var assignment = {};
-  if (typeof assignment_id == "number") {
-    assignment.assignment_id = cryptr.encrypt(assignment_id);
-    assignment.title = title;
-    assignment.week = week;
-    assignment.description = dataSets.description;
-    assignment.input_specification = dataSets.input_specification;
-    assignment.output_specification = dataSets.output_specification;
-    assignment.sample_input = dataSets.sample_input;
-    assignment.sample_output = dataSets.sample_output;
-    assignment.programming_style = programming_style;
-    dataSets = {
-      origins: { assignment: assignment, section: section },
-      reforms: { assignment: JSON.stringify(assignment) }
-    };
-    res.render("assignment", { dataSets, title: title });
+
+  // const queryEnrollment = `select * from enrollment as en join student as st` +
+  //   ` on st.student_id = en.student_id where en.section_id = ${sectionId}`
+  // const resEnrollments = await conMysql.selectEnrollment(queryEnrollment)
+
+  // const receivers = [{ username: req.user.username, status: `interacted` }]
+  // for (let index in resEnrollments) {
+  //   receivers.push({username: resEnrollments[index].username, status: `no interact`})
+  // }
+
+  /**
+   * Create assignment notification
+   */
+  const enAssignmentId = cryptr.encrypt(assignment_id)
+  // let notifications = new Notification()
+  // notifications.receiver = receivers
+  // notifications.link = `/assignment/${enAssignmentId}/section/${section.section_id}`
+  // notifications.head = `Assignment: ${title}`
+  // notifications.content = `${dataSets.description}`
+  // notifications.status = `pending`
+  // notifications.type = `assignment`
+  // notifications.createdBy = req.user.username
+  // notifications.info = { assignmentId: enAssignmentId }
+  // notifications = await notifications.save();
+
+  if (typeof assignment_id === "number") {
+    res.redirect(`/assignment/${enAssignmentId}/section/${section.section_id}`);
   } else {
-    res.redirect("/classroom?section_id=" + section.section_id);
+    res.redirect(`/classroom/${section.section_id}`);
   }
 };
 

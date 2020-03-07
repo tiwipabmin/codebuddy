@@ -112,22 +112,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       if (!projects[projectId]) {
         // winston.info(`created new projects['${projectId}']`);
 
-        let tmpTimerId = Object.keys(timerIds).length + 1
-
-        timerIds[tmpTimerId] = setInterval(() => {
-
-          let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
-          let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
-
-          io.in(pnSessionKey).emit("create new project notification", {
-            sectionId: cryptr.encrypt(sectionId),
-            pid: projectId,
-            username: curUser,
-            timerId: tmpTimerId
-          })
-
-        }, 5000)
-
         let active_user = {};
         active_user[curUser] = 1;
         // let partner = null;
@@ -147,6 +131,25 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         // client.emit("role selection", { partner: partner });
 
         initRemainder(projectId);
+
+        /**
+         * Create project notification
+         */
+        const role = curUser !== project.creator ? `creator` : `collaborator`;
+        const partnerShip = curUser !== project.creator ? project.creator : project.collaborator;
+        console.log('Role, ', role, ', partnerShip, ', partnerShip)
+
+        let notifications = new Notification()
+        notifications.receiver = [{ username: curUser, status: `interacted` }, { username: partnerShip, status: `no interact` }]
+        notifications.link = `/project/${project.pid}/section/${cryptr.encrypt(sectionId)}/role/${role}`
+        notifications.head = `Project: ${project.title}`
+        notifications.content = `${project.description}`
+        notifications.status = `pending`
+        notifications.type = `project`
+        notifications.createdBy = curUser
+        notifications.info = { pid: project.pid }
+        notifications = await notifications.save();
+
       } else {
         if (projects[projectId].active_user[curUser] === undefined) {
           await Project.findOne({ pid: projectId }, async function (err, res) {
@@ -265,41 +268,40 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
           const queryNotifications = await Notification.find({
             $and: [
-              {
-                receiver:
-                  { $all: [curUser] }
-              },
-              { type: `project` },
-              { status: `pending` }
+              { "receiver.username": curUser },
+              { "receiver.status": `no interact` },
+              { type: `project` }
             ]
+          }, {
+            nid: 1
           }).sort({ createdAt: -1 })
 
-          if (queryNotifications.length) {
-            const reversedNidSets = []
-            for (let index in queryNotifications) {
-              await Notification.updateOne(
-                {
-                  _id: queryNotifications[index]._id
-                },
-                {
-                  $set: {
-                    status: `finished`
-                  }
-                }
-              );
+          const notificationsId = []
+          for (let index in queryNotifications) {
+            notificationsId.push(queryNotifications[index].nid)
+          }
 
+          if (notificationsId.length) {
+            await Notification.updateOne(
+              { nid: { $in: notificationsId } },
+              { $set: { "receiver.$[].status": `interacted` } }
+            )
+
+            const reversedNotificationsId = []
+            for (let index in notificationsId) {
+              let nid = notificationsId[index]
               let reversedNid = ``
-              let nid = queryNotifications[index].nid
               for (let indexId = nid.length - 1; indexId >= 0; indexId--) {
                 reversedNid += nid[indexId]
               }
-
-              reversedNidSets.push(reversedNid)
+              reversedNotificationsId.push(reversedNid)
             }
 
-            if (reversedNidSets.length && keyStores[sectionId] !== undefined) {
+            if (reversedNotificationsId.length && keyStores[sectionId] !== undefined) {
 
-              let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
+              let guest = Object.keys(keyStores[sectionId]).find(
+                username => keyStores[sectionId][username].guest === curUser
+              )
 
               if (keyStores[sectionId][curUser] !== undefined || guest) {
                 let tmpTimerId = Object.keys(timerIds).length + 1
@@ -308,7 +310,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                   let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
 
                   io.in(pnSessionKey).emit("disable project notification", {
-                    reversedNidSets: reversedNidSets,
+                    reversedNotificationsId: reversedNotificationsId,
                     timerId: tmpTimerId
                   })
 

@@ -22,6 +22,7 @@ module.exports = (io, client, keyStores, timerIds) => {
      *      1: courseName
      * }
      */
+    const notificationsId = []
     let keys = {} // section key
     let curUser = 'gentleman'
     let beat = 0
@@ -29,8 +30,6 @@ module.exports = (io, client, keyStores, timerIds) => {
     let autoDisc = ''
 
     function sendHeartbeat() {
-        // pingPong = setTimeout(sendHeartbeat, 2000)
-        // autoDisc = setTimeout(automaticallyDisconnect, 3000)
         client.emit('PING', { beat: beat })
     }
 
@@ -159,15 +158,20 @@ module.exports = (io, client, keyStores, timerIds) => {
                     const tmp = { ...resPartners[0] }
                     pnSecs.info = tmp
 
-                    let guest = Object.keys(keyStores[secKey]).find(username => keyStores[secKey][username].guest === curUser)
+                    let guest = Object.keys(keyStores[secKey]).find(
+                        username => keyStores[secKey][username].guest === curUser
+                    )
+
                     /**
                      * Delete duplicate data
                      */
-                    if (keyStores[secKey][curUser] !== undefined && guest !== undefined) {
+                    if (keyStores[secKey][curUser] !== undefined
+                        && guest !== undefined) {
                         delete keyStores[secKey][guest]
                     }
 
-                    if (keyStores[secKey][curUser] === undefined && guest === undefined) {
+                    if (keyStores[secKey][curUser] === undefined
+                        && guest === undefined) {
 
                         if (pnSecs.info !== null) {
                             let pnSessionKey = curUser + secKey
@@ -186,9 +190,10 @@ module.exports = (io, client, keyStores, timerIds) => {
                             })
                         }
                     } else {
-                        
+
                         let tmpUser = guest === undefined ? curUser : guest;
-                        if (((keyStores[secKey][tmpUser].guest !== pnSecs.info.username && guest === undefined) ||
+                        if (((keyStores[secKey][tmpUser].guest !== pnSecs.info.username
+                            && guest === undefined) ||
                             (tmpUser !== pnSecs.info.username && keyStores[secKey][curUser] === undefined))
                             && Object.keys(pnSecs.info).length) {
                             delete keyStores[secKey][tmpUser]
@@ -202,8 +207,9 @@ module.exports = (io, client, keyStores, timerIds) => {
                             })
 
                             client.join(pnSessionKey)
-                            winston.info(`${curUser} join partner session['${pnSessionKey}']`);
-                        } else if (keyStores[secKey][tmpUser].activeUsers.indexOf(curUser) < 0 && Object.keys(pnSecs.info).length) {
+                            // winston.info(`${curUser} join partner session['${pnSessionKey}']`);
+                        } else if (keyStores[secKey][tmpUser].activeUsers.indexOf(curUser) < 0
+                            && Object.keys(pnSecs.info).length) {
 
                             let pnSessionKey = tmpUser + secKey;
                             keyStores[secKey][tmpUser].activeUsers.push(curUser)
@@ -241,51 +247,78 @@ module.exports = (io, client, keyStores, timerIds) => {
             // winston.info(`${curUser} join classroom['${secKey}']`);
         }
 
-        /**
-         * Notify all to user
-         */
+        const notifications = await getAllNotifications(curUser)
+        if (notifications.length) {
+            client.emit('notify all', { notifications: notifications, init: 1 })
+        }
+
+        timerIds[curUser] = setInterval(async function () {
+            const notifications = await getAllNotifications(curUser)
+            if (notifications.length) {
+                client.emit('notify all', { notifications: notifications, init: 0 })
+            }
+        }, 5000)
+    })
+
+    async function getAllNotifications(curUser) {
         let notifications = await Notification.find({
-            receiver: { $all: [curUser] }
-        }).sort({ createdAt: -1 })
+            $and: [
+                { "receiver.username": curUser },
+                { nid: { $nin: notificationsId } }
+            ]
+        }, {
+            nid: 1,
+            receiver: { $elemMatch: { username: curUser } },
+            link: 1,
+            head: 1,
+            content: 1,
+            status: 1,
+            type: 1,
+            createdBy: 1,
+            createdAt: 1,
+            info: 1
+        })
 
         for (let index in notifications) {
             const tmpNotifications = notifications[index]
-            if (tmpNotifications.type === `project`) {
-                const projects = await Project.findOne({
-                    pid: tmpNotifications.info.pid
-                })
-                Object.assign(notifications[index]._doc, {
-                    available_project: projects.available_project,
-                    nid: reverseId(notifications[index]._doc.nid)
-                })
+            if (notificationsId.indexOf(tmpNotifications.nid) < 0) {
+                if (tmpNotifications.type === `project`) {
+                    notificationsId.push(tmpNotifications.nid)
+                    const projects = await Project.findOne({
+                        pid: tmpNotifications.info.pid
+                    })
+                    Object.assign(notifications[index]._doc, {
+                        available_project: projects.available_project,
+                        nid: reverseId(notifications[index]._doc.nid),
+                        [tmpNotifications.receiver[0].username]: tmpNotifications.receiver[0].status
+                    })
+                } else if (tmpNotifications.type === `assignment`) {
+                    notificationsId.push(tmpNotifications.nid)
+                    Object.assign(notifications[index]._doc, {
+                        nid: reverseId(notifications[index]._doc.nid),
+                        [tmpNotifications.receiver[0].username]: tmpNotifications.receiver[0].status
+                    })
+                }
             }
         }
 
-        if (notifications.length) {
-            client.emit('notify all', { notifications: notifications })
-        }
-    })
+        return notifications
+    }
 
     client.on('clear interval', (payload) => {
         clearInterval(timerIds[payload.timerId])
-    })
-
-    client.on('notify to join project', (payload) => {
-        let sectionId = cryptr.decrypt(payload.sectionId)
-        let guest = Object.keys(keyStores[sectionId]).find(username => keyStores[sectionId][username].guest === curUser)
-        let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
-
-        if (Object.keys(payload).length) {
-            io.in(pnSessionKey).emit('notify to join project', {
-                notifications: payload.notifications
-            })
-        }
+        delete timerIds[payload.timerId]
     })
 
     client.on('disconnect', () => {
+        if (timerIds[curUser] !== undefined) {
+            clearInterval(timerIds[curUser])
+        }
         for (let secKey in keys) {
             if (keyStores[secKey] !== undefined) {
-                let guest = Object.keys(keyStores[secKey]).find(username => keyStores[secKey][username].guest === curUser)
+                let guest = Object.keys(keyStores[secKey]).find(
+                    username => keyStores[secKey][username].guest === curUser
+                )
 
                 if (keyStores[secKey][curUser] !== undefined || guest !== undefined) {
 

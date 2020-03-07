@@ -79,10 +79,41 @@ function createProjectNotificationElement(info, own) {
     }
 }
 
+function createAssignmentNotificationElement(info, own) {
+    if (own === `receiver`) {
+        const aTag = $(`<a href='${info.link}'></a>`)
+        const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;">` +
+            `</div>`)
+        const content = $(`<div class="content">` +
+            `<div class="header">${info.head}</div>` +
+            `<div class="description"><p>${info.content}</p></div>` +
+            `<div class="extra">` +
+            `<i class="edit icon"></i>${moment(info.createdAt).fromNow()}</div>` +
+            `</div>`)
+        item.append(content)
+        aTag.append(item)
+        return aTag
+    } else if (own === `sender`) {
+        console.log('Asssignment of sender!!')
+        const aTag = $(`<a href='${info.link}'></a>`)
+        const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">` +
+            `</div>`)
+        const content = $(`<div class="content">` +
+            `<div class="header">${info.head}</div>` +
+            `<div class="description"><p>${info.content}</p></div>` +
+            `<div class="extra">` +
+            `<i class="edit icon"></i>${moment(info.createdAt).fromNow()}</div>` +
+            `</div>`)
+        item.append(content)
+        aTag.append(item)
+        return aTag
+    }
+}
+
 function onClickJoinProject(element = null, nid = null, link = null) {
     data = { nid: nid, link: link }
     $.ajax({
-        url: `/notifications/disableProjectNotification`,
+        url: `/notifications/changeProjectNotificationStatus`,
         type: `put`,
         data: data
     })
@@ -96,10 +127,10 @@ classNotiSocket.on('disable project notification', (payload) => {
     classNotiSocket.emit('clear interval', {
         timerId: payload.timerId
     })
-    const reversedNidSets = payload.reversedNidSets
-    for (let index in reversedNidSets) {
-        $(`#${reversedNidSets[index]}Btn`).remove()
-        $(`#${reversedNidSets[index]}Item`).attr({
+    const reversedNotificationsId = payload.reversedNotificationsId
+    for (let index in reversedNotificationsId) {
+        $(`#${reversedNotificationsId[index]}Btn`).remove()
+        $(`#${reversedNotificationsId[index]}Item`).attr({
             style: `pointer-events: none;` +
                 ` width: 420px;` +
                 ` padding: 10px;` +
@@ -107,7 +138,7 @@ classNotiSocket.on('disable project notification', (payload) => {
                 ` background-color:white;`
         })
     }
-    let count = parseInt($('#alarmNoti').text()) - reversedNidSets.length
+    let count = parseInt($('#alarmNoti').text()) - reversedNotificationsId.length
     if (count < 0) {
         count = 0
     }
@@ -118,67 +149,44 @@ classNotiSocket.on('notify all', (payload) => {
     const username = getVarFromScript('notification', 'data-username')
     const notifications = payload.notifications
     if (notifications !== null) {
-        $('#noNotifications').remove()
-        $('#notiItems').empty()
-        let count = 0
-        for (let index in notifications) {
-            if (notifications[index].status === `pending` && notifications[index].available_project && notifications[index].createdBy !== username) {
-                count++
-                let notificationElement = createProjectNotificationElement(notifications[index], `receiver`)
-                $('#notiItems').append(notificationElement)
-            } else {
-                let notificationElement = createProjectNotificationElement(notifications[index], `sender`)
-                $('#notiItems').append(notificationElement)
-            }
-        }
-        $('#alarmNoti').text(count)
-    }
-})
-
-classNotiSocket.on('notify to join project', (payload) => {
-    const username = getVarFromScript('notification', 'data-username')
-
-    if (Object.keys(payload.notifications).length
-        && payload.notifications.receiver.indexOf(username) >= 0) {
         if ($('#noNotifications').length) {
             $('#noNotifications').remove()
             $('#notiItems').empty()
         }
 
-        if (username === payload.notifications.createdBy) {
-            let notificationElement = createProjectNotificationElement(payload.notifications, `sender`)
-            $('#notiItems').prepend(notificationElement)
-            let count = parseInt($('#alarmNoti').text()) + 1
-            $('#alarmNoti').text(count)
-        } else {
-            let notificationElement = createProjectNotificationElement(payload.notifications, `receiver`)
-            $('#notiItems').prepend(notificationElement)
-            let count = parseInt($('#alarmNoti').text()) + 1
-            $('#alarmNoti').text(count)
+        let count = 0
+        if (!payload.init) {
+            count = parseInt($('#alarmNoti').text())
         }
+
+        for (let index in notifications) {
+            if (notifications[index].type === `project`
+                && notifications[index][username] === `no interact`
+                && notifications[index].available_project
+                && notifications[index].createdBy !== username) {
+                count++
+                let notificationElement = createProjectNotificationElement(notifications[index], `receiver`)
+                $('#notiItems').prepend(notificationElement)
+            } else if (notifications[index].type === `project`
+                && notifications[index][username] === `interacted`) {
+                let notificationElement = createProjectNotificationElement(notifications[index], `sender`)
+                $('#notiItems').prepend(notificationElement)
+            } else if (notifications[index].type === `assignment`
+                && notifications[index][username] === `no interact`) {
+                count++
+                let notificationElement = createAssignmentNotificationElement(notifications[index], `receiver`)
+                $('#notiItems').prepend(notificationElement)
+            } else if (notifications[index].type === `assignment`
+                && notifications[index][username] === `interacted`) {
+                let notificationElement = createAssignmentNotificationElement(notifications[index], `sender`)
+                $('#notiItems').prepend(notificationElement)
+            }
+        }
+        $('#alarmNoti').text(count)
+        console.log('Count, ', $('#alarmNoti').text(), ', payload.init, ', payload.init)
     }
 })
 
 classNotiSocket.on('test notification', () => {
     alert('TEST!!')
-})
-
-classNotiSocket.on('create new project notification', (payload) => {
-    const username = getVarFromScript('notification', 'data-username')
-
-    if (username === payload.username) {
-        classNotiSocket.emit('clear interval', {
-            timerId: payload.timerId
-        })
-        $.post('/notifications/createProjectNotification', payload, (res) => {
-            if (Object.keys(res.notifications).length) {
-                classNotiSocket.emit('notify to join project', {
-                    notifications: res.notifications,
-                    sectionId: getParameterByName(`section`)
-                })
-            } else {
-                alert('Something wrong!!')
-            }
-        })
-    }
 })
