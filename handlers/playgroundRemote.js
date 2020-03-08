@@ -282,7 +282,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           }
 
           if (notificationsId.length) {
-            await Notification.updateOne(
+            await Notification.updateMany(
               { nid: { $in: notificationsId } },
               { $set: { "receiver.$[].status": `interacted` } }
             )
