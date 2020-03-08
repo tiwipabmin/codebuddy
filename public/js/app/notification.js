@@ -94,7 +94,6 @@ function createAssignmentNotificationElement(info, own) {
         aTag.append(item)
         return aTag
     } else if (own === `sender`) {
-        console.log('Asssignment of sender!!')
         const aTag = $(`<a href='${info.link}'></a>`)
         const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">` +
             `</div>`)
@@ -183,7 +182,6 @@ classNotiSocket.on('notify all', (payload) => {
             }
         }
         $('#alarmNoti').text(count)
-        console.log('Count, ', $('#alarmNoti').text(), ', payload.init, ', payload.init)
     }
 })
 
