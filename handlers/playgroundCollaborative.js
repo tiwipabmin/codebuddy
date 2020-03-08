@@ -6,7 +6,7 @@ const conMysql = require("../mySql");
 const fs = require("fs");
 const Project = mongoose.model("Project");
 const childprocess = require("child_process");
-const Comment = mongoose.model("Comment");
+const Comment = mongoose.model("commentNotebookAssignment");
 
 
 
@@ -459,7 +459,7 @@ module.exports = (io, client,redis, Projects) => {
       for (var i in comments) {
         if (
           comments[i].line == payload.line &&
-          comments[i].file == payload.file
+          comments[i].bid == payload.bid
         ) {
           found = true;
           index = i;
@@ -468,7 +468,7 @@ module.exports = (io, client,redis, Projects) => {
       if (found) {
         if (payload.description == "") {
           Comment.findOne({
-            file: payload.file,
+            bid: payload.bid,
             pid: projectId,
             line: payload.line
           })
@@ -478,7 +478,7 @@ module.exports = (io, client,redis, Projects) => {
         } else {
           Comment.update(
             {
-              file: payload.file,
+              bid: payload.bid,
               pid: projectId,
               line: payload.line
             },
@@ -491,7 +491,7 @@ module.exports = (io, client,redis, Projects) => {
               if (err) throw err;
             }
           );
-          updateDesc(payload.file, payload.line, payload.description);
+          updateDesc(payload.bid, payload.line, payload.description);
         }
       } else {
         saveComment(payload);
@@ -502,7 +502,7 @@ module.exports = (io, client,redis, Projects) => {
 
   function saveComment(payload) {
     const commentModel = {
-      file: payload.file,
+      bid: payload.bid,
       line: parseInt(payload.line),
       pid: projectId,
       description: payload.description,
@@ -512,7 +512,7 @@ module.exports = (io, client,redis, Projects) => {
       if (err) throw err;
     }).save();
     comments.push({
-      file: payload.file,
+      bid: payload.bid,
       line: parseInt(payload.line),
       description: payload.description
     });
@@ -520,7 +520,7 @@ module.exports = (io, client,redis, Projects) => {
 
   client.on("delete review", payload => {
     Comment.findOne({
-      file: payload.file,
+      bid: payload.bid,
       pid: projectId,
       line: payload.line
     })
@@ -541,7 +541,7 @@ module.exports = (io, client,redis, Projects) => {
 
     io.in(projectId).emit("update after delete review", {
       comments: comments,
-      file: payload.file,
+      bid: payload.bid,
       deleteline: payload.line
     });
   });

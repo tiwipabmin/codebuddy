@@ -306,8 +306,10 @@ function setOnDoubleClickEditor(BID) {
     $("input.hidden.file.name").val(BID);
     let line = $("input.disabled.line.no").val();
     for (var i in comments) {
+      console.log(" i = " , i)
+      console.log(" comments[i].BID " , comments[i].bid)
       if (
-        comments[i].file == BID &&
+        comments[i].bid == BID &&
         comments[i].line == parseInt(line)
       ) {
         $("textarea.line.reviewer.description").val(
@@ -324,9 +326,8 @@ function setOnDoubleClickEditor(BID) {
 }
 function submitReview() {
 
-  console.log("submit   Review ")
   socket.emit("submit review", {
-    file: $("input.hidden.file.name").val(),
+    bid: $("input.hidden.file.name").val(),
     line: parseInt($("input.disabled.line.no").val()),
     description: $("textarea.line.reviewer.description").val()
   });
@@ -337,7 +338,7 @@ socket.on("new review", payload => {
   comments = payload;
   comments.map(comment => {
     var blockObj = editors.find(obj => {
-      return obj.blockId == comment.file;
+      return obj.blockId == comment.bid;
     });
     blockObj.editor.addLineClass(
       parseInt(comment.line - 1),
@@ -349,7 +350,7 @@ socket.on("new review", payload => {
 
 function deleteReview() {
   socket.emit("delete review", {
-    file: $("input.hidden.file.name").val(),
+    bid: $("input.hidden.file.name").val(),
     line: $("input.disabled.line.no").val(),
     description: $("textarea.line.reviewer.description").val()
   });
@@ -359,7 +360,7 @@ socket.on("update after delete review", payload => {
 
   console.log(" update after delete review ***********")
   var blockObj = editors.find(obj => {
-    return obj.blockId == payload.file;
+    return obj.blockId == payload.bid;
   });
   comments = payload.comments;
   deleteline = payload.deleteline;

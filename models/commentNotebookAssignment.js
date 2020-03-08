@@ -7,12 +7,13 @@ const shortid = require('shortid')
 /**
  * `Comment` model schema based on Mongoose schema
  */
-const commentSchema = new mongoose.Schema({
-    file: {
-        type: String,
-        required: [true, 'Please enter a file name']
+const commentNotebookAssignment = new mongoose.Schema({
+   
+    bid: {
+        type: Number,
+        required: [true, 'Please enter a bid']
     },
-    block_id: {
+    line: {
         type: Number,
         required: [true, 'Please enter a line']
     },
@@ -28,10 +29,14 @@ const commentSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    creator_id: String,
+    // approve: {
+    //     type : Boolean,
+    //     default : false
+    // },
+    // creator_id: String,
 })
 
 /**
  * Expose `Comment` model
  */
-module.exports = mongoose.model('Comment', commentSchema)
+module.exports = mongoose.model('commentNotebookAssignment', commentNotebookAssignment)
