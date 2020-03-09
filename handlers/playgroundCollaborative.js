@@ -6,6 +6,8 @@ const conMysql = require("../mySql");
 const fs = require("fs");
 const Project = mongoose.model("Project");
 const childprocess = require("child_process");
+const Comment = mongoose.model("commentNotebookAssignment");
+
 
 
 // Import Turndown module
@@ -28,6 +30,8 @@ module.exports = (io, client,redis, Projects) => {
   let focusBlock = null;
   let bufferOutput = { output: "", error: "" };
   let isSpawnText = false;
+  let comments = [];
+
 
   spawnPython();
   detectOutput();
@@ -461,7 +465,111 @@ module.exports = (io, client,redis, Projects) => {
     });
   });
   
+  /**
+   * set review to mongoDB
+   **/
+  client.on("submit review", payload => {
+    var found = false;
+    console.log( "payload.des =  " , payload.description)
+    /**
+     * if there's no comment in array => add to DB and array
+     **/
+    if (comments.length == 0) {
+      saveComment(payload);
+    } else {
+      /**
+       * edit comment in exist line => update in DB
+       **/
+      for (var i in comments) {
+        if (
+          comments[i].line == payload.line &&
+          comments[i].bid == payload.bid
+        ) {
+          found = true;
+          index = i;
+        }
+      }
+      if (found) {
+        if (payload.description == "") {
+          Comment.findOne({
+            bid: payload.bid,
+            pid: projectId,
+            line: payload.line
+          })
+            .remove()
+            .exec();
+          comments.splice(index, 1);
+        } else {
+          Comment.update(
+            {
+              bid: payload.bid,
+              pid: projectId,
+              line: payload.line
+            },
+            {
+              $set: {
+                description: payload.description
+              }
+            },
+            err => {
+              if (err) throw err;
+            }
+          );
+          updateDesc(payload.bid, payload.line, payload.description);
+        }
+      } else {
+        saveComment(payload);
+      }
+    }
+    io.in(projectId).emit("new review", comments);
+  });
 
+  function saveComment(payload) {
+    const commentModel = {
+      bid: payload.bid,
+      line: parseInt(payload.line),
+      pid: projectId,
+      description: payload.description,
+      createdAt: Date.now()
+    };
+    new Comment(commentModel, err => {
+      if (err) throw err;
+    }).save();
+    comments.push({
+      bid: payload.bid,
+      line: parseInt(payload.line),
+      description: payload.description
+    });
+  }
+
+  client.on("delete review", payload => {
+    Comment.findOne({
+      bid: payload.bid,
+      pid: projectId,
+      line: payload.line
+    })
+      .remove()
+      .exec();
+    /**
+     * remove deleted comment from list
+     **/
+    for (var i in comments) {
+      if (
+        comments[i].file == payload.file &&
+        comments[i].line == payload.line
+      ) {
+        comments.splice(i, 1);
+        break;
+      }
+    }
+
+    io.in(projectId).emit("update after delete review", {
+      comments: comments,
+      bid: payload.bid,
+      deleteline: payload.line
+    });
+  });
+  
   client.on("disconnect", () => {
     try {
       winston.info("Client disconnected");

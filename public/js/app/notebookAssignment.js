@@ -132,10 +132,8 @@ function newEditorFacade(fileName, cellType) {
   setOnChangeEditer(fileName);
   setOnDoubleClickEditor(fileName);
 
+
  
-}
-function setOnDoubleClickEditor(fileName) {
-  console.log(" setOnDoubleClickEditor ------------------")
 }
 
 function setStatusBlock(detectFocusBlock , cm){
@@ -235,6 +233,8 @@ function setEditor(fileName, cellType) {
       moveBlock("down");
     }
   });
+
+
   cm.on("focus", cm => {
     console.log("detectFocusBlock ",detectFocusBlock)
     var prevFocusBlock = detectFocusBlock;
@@ -289,28 +289,101 @@ function setEditor(fileName, cellType) {
 
         cm.setOption("readOnly", true); // cant edit
         cm.setOption("cursorBlinkRate", -1); // cant edit
-
+        
       
       }
-  
+     
     
   });
   editors.push({ blockId: fileName, editor: cm });
 }
 
+function setOnDoubleClickEditor(BID) {
+  var blockObj = editors.find(obj => {
+    return obj.blockId == BID;
+  });
+  blockObj.editor.on("dblclick", () => {
+    let A1 = blockObj.editor.getCursor().line;
+    let A2 = blockObj.editor.getCursor().ch;
+    let B1 = blockObj.editor.findWordAt({
+      line: A1,
+      ch: A2
+    }).anchor.ch;
+    let B2 = blockObj.editor.findWordAt({
+      line: A1,
+      ch: A2
+    }).head.ch;
+    $("input.disabled.line.no").val(A1 + 1);
+    $("input.disabled.file.name").val(BID + ".py");
+    $("input.hidden.file.name").val(BID);
+    let line = $("input.disabled.line.no").val();
+    for (var i in comments) {
+      console.log(" i = " , i)
+      console.log(" comments[i].BID " , comments[i].bid)
+      if (
+        comments[i].bid == BID &&
+        comments[i].line == parseInt(line)
+      ) {
+        $("textarea.line.reviewer.description").val(
+          comments[i].description
+        );
+        break;
+      } else {
+        $("textarea.line.reviewer.description").val("");
+      }
+    }
+      $(".ui.reviewer.small.modal").modal("show");
 
+  });
+}
 function submitReview() {
 
-  console.log("submit   Review ")
-  // socket.emit("submit review", {
-  //   file: $("input.hidden.file.name").val(),
-  //   line: parseInt($("input.disabled.line.no").val()),
-  //   description: $("textarea.line.reviewer.description").val()
-  // });
-  // $("textarea.line.description").val("");
+  socket.emit("submit review", {
+    bid: $("input.hidden.file.name").val(),
+    line: parseInt($("input.disabled.line.no").val()),
+    description: $("textarea.line.reviewer.description").val()
+  });
+  $("textarea.line.description").val("");
 }
+
+socket.on("new review", payload => {
+  comments = payload;
+  comments.map(comment => {
+    var blockObj = editors.find(obj => {
+      return obj.blockId == comment.bid;
+    });
+    blockObj.editor.addLineClass(
+      parseInt(comment.line - 1),
+      "wrap",
+      "CodeMirror-activeline-background"
+    );
+  });
+});
+
+function deleteReview() {
+  socket.emit("delete review", {
+    bid: $("input.hidden.file.name").val(),
+    line: $("input.disabled.line.no").val(),
+    description: $("textarea.line.reviewer.description").val()
+  });
+}
+
+socket.on("update after delete review", payload => {
+
+  console.log(" update after delete review ***********")
+  var blockObj = editors.find(obj => {
+    return obj.blockId == payload.bid;
+  });
+  comments = payload.comments;
+  deleteline = payload.deleteline;
+  blockObj.editor.removeLineClass(
+    parseInt(deleteline - 1),
+    "wrap",
+    "CodeMirror-activeline-background"
+  );
+});
+
 function setOnChangeEditer(fileName) {
-  console.log("fileName ", fileName)
   /**
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
@@ -504,8 +577,7 @@ socket.on("update block", payload => {
         moveBlock("down");
       }
     });
-    // setOnChangeEditer(blockId);
-    // setOnDoubleClickEditor(blockId);
+
 
     cm.on("focus", cm => {
       var prevFocusBlock = detectFocusBlock;
@@ -575,6 +647,7 @@ socket.on("update block", payload => {
     projectFiles.splice(index, 0, {cellType: "code", executionCount: null, outputs: Array(0), source: "", blockId: blockId.toString()});
     
     setOnChangeEditer(blockId);
+
     setOnDoubleClickEditor(blockId);
   }  else {
     var divisionCodeBlock = document.getElementById(blockId + "-div");
@@ -582,6 +655,7 @@ socket.on("update block", payload => {
     editors.splice(index, 1);
     projectFiles.splice(index, 1);
   }
+
 });
 
 /**
