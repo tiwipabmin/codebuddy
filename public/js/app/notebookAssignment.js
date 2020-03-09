@@ -89,6 +89,15 @@ socket.on("update execution count", payload => {
   document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
 });
 
+
+function deleteBlock() {
+  console.log("delete block  " )
+  socket.emit("delete block", {
+    blockId: editors[detectFocusBlock].blockId,
+    index: detectFocusBlock
+  });
+}
+
 function addBlock() {
   console.log("editors 1 ", editors)
     socket.emit("add block below", {
@@ -227,6 +236,7 @@ function setEditor(fileName, cellType) {
     }
   });
   cm.on("focus", cm => {
+    console.log("detectFocusBlock ",detectFocusBlock)
     var prevFocusBlock = detectFocusBlock;
     /**
      * find index of focusing codemirror in editors array.
@@ -248,32 +258,34 @@ function setEditor(fileName, cellType) {
 
         socket.emit("codemirror on focus", {
           prevFocus: prevFocusBlock,
-          newFocus: detectFocusBlock
+          newFocus: detectFocusBlock,
+          readOnlyStatus: false
         });
        
-        activeBlock = blockStatus.map(function(d) { return d['id']; });
-        if(!activeBlock.includes(prevFocusBlock)){
-         document.getElementById(
-           editors[prevFocusBlock].blockId + "-div"
-         ).style.border = "";
-         }
+        // activeBlock = blockStatus.map(function(d) { return d['id']; });
+        // if(!activeBlock.includes(prevFocusBlock)){
+        //  document.getElementById(
+        //    editors[prevFocusBlock].blockId + "-div"
+        //  ).style.border = "";
+        //  }
      
-        document.getElementById(
-          editors[detectFocusBlock].blockId + "-div"
-        ).style.border = "thin solid #2185d0";
-        document.getElementById(
-          editors[detectFocusBlock].blockId + "-div"
-        ).style.borderLeft = "thick solid #2185d0";
+        // document.getElementById(
+        //   editors[detectFocusBlock].blockId + "-div"
+        // ).style.border = "thin solid #2185d0";
+        // document.getElementById(
+        //   editors[detectFocusBlock].blockId + "-div"
+        // ).style.borderLeft = "thick solid #2185d0";
 
       }else{
         console.log( " prevFocusBlock when click lock block " , prevFocusBlock )
         socket.emit("codemirror on focus", {
           prevFocus: prevFocusBlock,
-          newFocus: detectFocusBlock
+          newFocus: detectFocusBlock,
+          readOnlyStatus: true
         });
-        document.getElementById(
-          editors[prevFocusBlock].blockId + "-div"
-        ).style.border = "";
+        // document.getElementById(
+        //   editors[prevFocusBlock].blockId + "-div"
+        // ).style.border = "";
 
         cm.setOption("readOnly", true); // cant edit
         cm.setOption("cursorBlinkRate", -1); // cant edit
@@ -420,11 +432,8 @@ socket.emit("join project", {
  */
 socket.on("update block", payload => {
   
-  console.log("update block ---------------*")
   let blockId = payload.blockId;
-  console.log("blockId update block", blockId)
   let index = payload.index;
-
   let action = payload.action;
   
   if (action == "add") {
@@ -519,21 +528,22 @@ socket.on("update block", payload => {
   
           socket.emit("codemirror on focus", {
             prevFocus: prevFocusBlock,
-            newFocus: detectFocusBlock
+            newFocus: detectFocusBlock,
+            readOnlyStatus: false
           });
           
-          activeBlock = blockStatus.map(function(d) { return d['id']; });
-          if(!activeBlock.includes(prevFocusBlock)){
-           document.getElementById(
-             editors[prevFocusBlock].blockId + "-div"
-           ).style.border = "";
-           }
-          document.getElementById(
-            editors[detectFocusBlock].blockId + "-div"
-          ).style.border = "thin solid #2185d0";
-          document.getElementById(
-            editors[detectFocusBlock].blockId + "-div"
-          ).style.borderLeft = "thick solid #2185d0";
+          // activeBlock = blockStatus.map(function(d) { return d['id']; });
+          // if(!activeBlock.includes(prevFocusBlock)){
+          //  document.getElementById(
+          //    editors[prevFocusBlock].blockId + "-div"
+          //  ).style.border = "";
+          //  }
+          // document.getElementById(
+          //   editors[detectFocusBlock].blockId + "-div"
+          // ).style.border = "thin solid #2185d0";
+          // document.getElementById(
+          //   editors[detectFocusBlock].blockId + "-div"
+          // ).style.borderLeft = "thick solid #2185d0";
           let c = cm.getCursor();
           let lineText = cm.getRange({line: c.line, ch: 0}, {line: c.line, ch: c.ch});
           let SPACES_REGEXP = /^( +$)/;
@@ -548,11 +558,12 @@ socket.on("update block", payload => {
           console.log( " prevFocusBlock when click lock block " , prevFocusBlock )
           socket.emit("codemirror on focus", {
             prevFocus: prevFocusBlock,
-            newFocus: detectFocusBlock
+            newFocus: detectFocusBlock,
+            readOnlyStatus: true
           });
-          document.getElementById(
-            editors[prevFocusBlock].blockId + "-div"
-          ).style.border = "";
+          // document.getElementById(
+          //   editors[prevFocusBlock].blockId + "-div"
+          // ).style.border = "";
   
           cm.setOption("readOnly", true); // cant edit
           cm.setOption("cursorBlinkRate", -1); // cant edit 
@@ -565,10 +576,12 @@ socket.on("update block", payload => {
     
     setOnChangeEditer(blockId);
     setOnDoubleClickEditor(blockId);
-  } 
-
-
- 
+  }  else {
+    var divisionCodeBlock = document.getElementById(blockId + "-div");
+    divisionCodeBlock.remove();
+    editors.splice(index, 1);
+    projectFiles.splice(index, 1);
+  }
 });
 
 /**
@@ -620,11 +633,6 @@ socket.on("init state", payload => {
 
 function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 
-
-
-  console.log(" exportNotebookFile dirpath = " + dirPath)
-
-
   const options = {
     dirPath : dirPath ,
     notebookAssingmentId : notebookAssingmentId
@@ -636,32 +644,54 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
       $("#alert-header").text("Export File");
       $("#alert-message").text(status);
       $("#alert-modal").modal("show");
-      // alert(status);
     }
 
-
-    console.log("status  " ,  status)
   })
   
 }
 
 socket.on("update block highlight", payload => {
- 
-  console.log("update block highlight *********** ")
+
   activeBlock = blockStatus.map(function(d) { return d['id']; });
- if(!activeBlock.includes(payload.prevFocus)){
-  document.getElementById(
-    editors[payload.prevFocus].blockId + "-div"
-  ).style.border = "";
-  }
+//  if(!activeBlock.includes(payload.prevFocus) && payload.prevFocus != -1){
+//   document.getElementById(
+//     editors[payload.prevFocus].blockId + "-div"
+//   ).style.border = "";
+//   }
  
-  document.getElementById(
-    editors[payload.newFocus].blockId + "-div"
-  ).style.border = "thin solid #2185d0";
-  document.getElementById(
-    editors[payload.newFocus].blockId + "-div"
-  ).style.borderLeft = "thick solid #2185d0";
-});
+//   if(payload.newFocus != -1){
+//     document.getElementById(
+//       editors[payload.newFocus].blockId + "-div"
+//     ).style.border = "thin solid #2185d0";
+//     document.getElementById(
+//       editors[payload.newFocus].blockId + "-div"
+//     ).style.borderLeft = "thick solid #2185d0";
+//   }
+
+  
+  if(payload.readOnlyStatus&& payload.prevFocus != 1){
+           document.getElementById(
+              editors[payload.prevFocus].blockId + "-div"
+            ).style.border = "";
+  }else if(!payload.readOnlyStatus){
+          activeBlock = blockStatus.map(function(d) { return d['id']; });
+          if(!activeBlock.includes(payload.prevFocus) && payload.prevFocus != 1){
+              document.getElementById(
+                editors[payload.prevFocus].blockId + "-div"
+              ).style.border = "";
+           }
+
+           if(payload.newFocus != -1){
+             document.getElementById(
+                editors[payload.newFocus].blockId + "-div"
+              ).style.border = "thin solid #2185d0";
+              document.getElementById(
+                editors[payload.newFocus].blockId + "-div"
+              ).style.borderLeft = "thick solid #2185d0";
+           }
+         
+  }
+  });
 
 /**
  * If user exit or going elsewhere which can be caused this project window closed

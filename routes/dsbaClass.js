@@ -16,9 +16,11 @@ const router = express.Router()
  */
 
 router.get('/getStudentsFromSection', auth.isSignedIn, auth.validateSection, catchErrors(dsbaClassController.getStudentsFromSection))
+router.get('/weeklyAssignments', auth.isSignedIn, catchErrors(dsbaClassController.weeklyAssignments))
 router.post('/createGroupRecord', auth.isSignedIn, catchErrors(dsbaClassController.createGroupRecord))
-router.put('/completeGroupSession', auth.isSignedIn,  catchErrors(dsbaClassController.completeGroupSession))
 router.post('/assignAssignment', auth.isSignedIn, catchErrors(dsbaClassController.assignAssignment))
+router.put('/completeGroupSession', auth.isSignedIn,  catchErrors(dsbaClassController.completeGroupSession))
+router.put('/manageAssignment', auth.isSignedIn,  catchErrors(dsbaClassController.manageAssignment))
 
 /**
  * Expose `router`

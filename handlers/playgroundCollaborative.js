@@ -49,7 +49,6 @@ module.exports = (io, client,redis, Projects) => {
 
 
   client.on("update block status",  payload => {
-    console.log(" payload.sattus" , payload.blockStatus)
     io.in(projectId).emit("update blockStatus", payload.blockStatus );
 
   });
@@ -66,19 +65,18 @@ module.exports = (io, client,redis, Projects) => {
       payload.code.fileName = payload.fileName;
       client.to(projectId).emit("editor update", payload.code);
       editorName = payload.fileName;
-      console.log("editorName: ", editorName)
       redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
        function(err, obj) {
         let cells = {};
         if (obj.cells != undefined) {
           cells = JSON.parse(obj.cells);
-          // console.log("celss test: ", cells)
+       
           let cellValue = cells.find(member => {
             return member.blockId == editorName
           })
-          // console.log("[cellValue.blockId]: ", [cellValue.blockId])
+          
           cellValue.source = payload.editor
-          // console.log("cellValue: ", cellValue)
+         
           cells[payload.detectFocusBlock] = cellValue;
         }
         else{
@@ -270,12 +268,38 @@ module.exports = (io, client,redis, Projects) => {
 
     });
   }
+
+
+  /**
+   * `delete block` event fired when user click delete block
+   * @param {Object} payload fileName
+   */
+  client.on("delete block", async payload => {
+    /**
+     * delete code in redis
+     **/
+    let code = JSON.parse(
+      await redis.hget(`notebookAssignment:${notebookAssingmentId}`, "cells", (err, res) => res)
+    );
+   
+    if (code != null) {
+      code.splice(payload.index, 1)
+      redis.hset(`notebookAssignment:${notebookAssingmentId}`, "cells", JSON.stringify(code));
+    }
+
+    io.in(projectId).emit("update block", {
+      blockId: payload.blockId,
+      index: payload.index,
+      action: "delete"
+    });
+  });
+
   /**
    * `add block` event  when user add new block
    * @param {Object} payload blockId
    */
   client.on("add block below", async payload => {
-    console.log("add block below playground")
+    
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
     
@@ -303,11 +327,11 @@ module.exports = (io, client,redis, Projects) => {
   });
 
   async function getCurrentExecute (notebookAssingmentId){
-    console.log("getCurrentExecute")
+    
     listExe = []
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
-    // console.log("notebookAssignment: ", notebookAssignment)
+    
     for (x in notebookAssignment) {
       cell_type = notebookAssignment[x]["cellType"];
       if ( cell_type != 'markdown') {
@@ -337,7 +361,7 @@ module.exports = (io, client,redis, Projects) => {
     let metadata = {}
     let notebookAssignmentRedis = await redis.hget( "notebookAssignment:"+notebookAssingmentId, "cells");
     let notebookAssignment = JSON.parse(notebookAssignmentRedis)
-
+    
     for (x in notebookAssignment) {
       cell_type = notebookAssignment[x]["cellType"];
       var html2Md = []
@@ -416,7 +440,6 @@ module.exports = (io, client,redis, Projects) => {
           "nbformat": 4,
           "nbformat_minor": 2
       }
-    
     return JSON.stringify(fileNotebook)
   }
 
@@ -433,7 +456,8 @@ module.exports = (io, client,redis, Projects) => {
   client.on("codemirror on focus", payload => {
     io.in(projectId).emit("update block highlight", {
       prevFocus: payload.prevFocus,
-      newFocus: payload.newFocus
+      newFocus: payload.newFocus,
+      readOnlyStatus: payload.readOnlyStatus
     });
   });
   

@@ -461,3 +461,71 @@ function getCurrentTime(){
 
     return timeEnd
 }
+
+
+exports.weeklyAssignments = async (req, res) =>{
+  console.log("weeklyAssignment")
+  let action = req.query.action;
+  let weeks = [];
+  if (action == "enable") {
+    let collaborativeProject = await CollaborativeProject.find({
+      available_project: false
+    });
+    collaborativeProject.forEach(function(e) {
+      weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+    });
+  } else if (action == "disable") {
+    let collaborativeProject = await CollaborativeProject.find({
+      available_project: true
+    });
+    collaborativeProject.forEach(function(e) {
+      weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+    });
+  }
+  res.send({ weeks: JSON.stringify(weeks) });
+}
+
+exports.manageAssignment = async (req, res) => {
+  // console.log("manageAssignment")
+  let action = req.body.action;
+  let week = parseInt(req.body.week);
+  if (week < 0) {
+    if (action == "enable") {
+      res.send({ status: "No disable assignment." });
+    } else if (action == "disable") {
+      res.send({ status: "Not yet assigned assignment." });
+    }
+    return;
+  }
+  if (action == "enable") {
+    if (!week) {
+      let collaborativeProject = await CollaborativeProject.updateMany(
+        { available_project: false },
+        { $set: { available_project: true } }
+      );
+    } else if (week) {
+      let collaborativeProject = await CollaborativeProject.updateMany(
+        { week: week },
+        { $set: { available_project: true } }
+      );
+    }
+
+    res.send({ status: "Enable assignments successfully." });
+    return;
+  } else if (action == "disable") {
+    if (!week) {
+      let collaborativeProject = await CollaborativeProject.updateMany(
+        { available_project: true },
+        { $set: { available_project: false } }
+      );
+    } else if (week) {
+      let collaborativeProject = await CollaborativeProject.updateMany(
+        { week: week },
+        { $set: { available_project: false } }
+      );
+    }
+
+    res.send({ status: "Disable assignments successfully." });
+    return;
+  }
+}

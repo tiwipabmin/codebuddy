@@ -1544,52 +1544,53 @@ function groupStudent(studentsGroup){
         }
       });
     } 
-    // else if (
-    //   message == "Are you sure you want to disable assignments on this week?"
-    // ) {
-    //   $("#global_loader").attr({
-    //     style: "display: block; position: fixed;"
-    //   });
-    //   $.ajax({
-    //     url: "/classroom/manageAssignment",
-    //     type: "put",
-    //     data: parameters,
-    //     success: function(res) {
-    //       let status = res.status;
-    //       if (status == "Disable assignments successfully.") {
-    //         alert(status);
-    //       } else {
-    //         alert(status);
-    //       }
-    //       $("#global_loader").attr({
-    //         style: "display: none; position: fixed;"
-    //       });
-    //     }
-    //   });
-    // } 
-    // else if (
-    //   message == "Are you sure you want to enable assignments on this week?"
-    // ) {
-    //   $("#global_loader").attr({
-    //     style: "display: block; position: fixed;"
-    //   });
-    //   $.ajax({
-    //     url: "/classroom/manageAssignment",
-    //     type: "put",
-    //     data: parameters,
-    //     success: function(res) {
-    //       let status = res.status;
-    //       if (status == "Enable assignments successfully.") {
-    //         alert(status);
-    //       } else {
-    //         alert(status);
-    //       }
-    //       $("#global_loader").attr({
-    //         style: "display: none; position: fixed;"
-    //       });
-    //     }
-    //   });
-    // } 
+    else if (
+      message == "Are you sure you want to disable assignments on this week?"
+    ) {
+      console.log("manageAssignment front end")
+      $("#global_loader").attr({
+        style: "display: block; position: fixed;"
+      });
+      $.ajax({
+        url: "/dsbaClass/manageAssignment",
+        type: "put",
+        data: parameters,
+        success: function(res) {
+          let status = res.status;
+          if (status == "Disable assignments successfully.") {
+            alert(status);
+          } else {
+            alert(status);
+          }
+          $("#global_loader").attr({
+            style: "display: none; position: fixed;"
+          });
+        }
+      });
+    } 
+    else if (
+      message == "Are you sure you want to enable assignments on this week?"
+    ) {
+      $("#global_loader").attr({
+        style: "display: block; position: fixed;"
+      });
+      $.ajax({
+        url: "/dsbaClass/manageAssignment",
+        type: "put",
+        data: parameters,
+        success: function(res) {
+          let status = res.status;
+          if (status == "Enable assignments successfully.") {
+            alert(status);
+          } else {
+            alert(status);
+          }
+          $("#global_loader").attr({
+            style: "display: none; position: fixed;"
+          });
+        }
+      });
+    } 
 
   
     $("#confirm-message").attr("value", "Something message.");
@@ -1783,7 +1784,7 @@ function on_click_enable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "enable" }, function(res) {
+  $.get("/dsbaClass/weeklyAssignments", { action: "enable" }, function(res) {
     let weeks = JSON.parse(res.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
@@ -1823,7 +1824,7 @@ function on_click_disable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function(
+  $.get("/dsbaClass/weeklyAssignments", { action: "disable" }, function(
     res
   ) {
     let weeks = JSON.parse(res.weeks);
@@ -1867,13 +1868,13 @@ function on_click_confirm_assignment_management_button(action) {
       "onclick",
       "on_click_confirm_button(" + parameters + ")"
     );
-    $("#confirm-header").text("Disable Assignment");
+    $("#confirm-header").text("Enable Assignment");
     $("#confirm-message").attr(
       "value",
-      "Are you sure you want to disable assignments on this week?"
+      "Are you sure you want to enable assignments on this week?"
     );
     $("#confirm-message").text(
-      "Are you sure you want to disable assignments on this week?"
+      "Are you sure you want to enable assignments on this week?"
     );
     $("#confirm-modal").modal("show");
   } else if (action == "disable") {
@@ -1885,13 +1886,13 @@ function on_click_confirm_assignment_management_button(action) {
       "onclick",
       "on_click_confirm_button(" + parameters + ")"
     );
-    $("#confirm-header").text("Enable Assignment");
+    $("#confirm-header").text("Disable Assignment");
     $("#confirm-message").attr(
       "value",
-      "Are you sure you want to enable assignments on this week?"
+      "Are you sure you want to disable assignments on this week?"
     );
     $("#confirm-message").text(
-      "Are you sure you want to enable assignments on this week?"
+      "Are you sure you want to disable assignments on this week?"
     );
     $("#confirm-modal").modal("show");
   }
