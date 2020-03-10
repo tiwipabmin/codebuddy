@@ -188,7 +188,6 @@ function setStatusBlock(detectFocusBlock , cm){
 
   }
 
-
 }
 
 function setEditor(fileName, cellType) {
@@ -263,8 +262,10 @@ function setEditor(fileName, cellType) {
           readOnlyStatus: false
         });
        
+        // delete border prevFocusBlock 
         // activeBlock = blockStatus.map(function(d) { return d['id']; });
         // if(!activeBlock.includes(prevFocusBlock)){
+        //   console.log(" delete border prevFocusBlock  ")
         //  document.getElementById(
         //    editors[prevFocusBlock].blockId + "-div"
         //  ).style.border = "";
@@ -315,7 +316,7 @@ function setOnDoubleClickEditor(BID) {
       ch: A2
     }).head.ch;
     $("input.disabled.line.no").val(A1 + 1);
-    $("input.disabled.file.name").val(BID + ".py");
+    $("input.disabled.file.name").val(BID );
     $("input.hidden.file.name").val(BID);
     let line = $("input.disabled.line.no").val();
     for (var i in comments) {
@@ -581,6 +582,7 @@ socket.on("update block", payload => {
 
 
     cm.on("focus", cm => {
+
       var prevFocusBlock = detectFocusBlock;
 
       /**
@@ -617,6 +619,7 @@ socket.on("update block", payload => {
           // document.getElementById(
           //   editors[detectFocusBlock].blockId + "-div"
           // ).style.borderLeft = "thick solid #2185d0";
+
           let c = cm.getCursor();
           let lineText = cm.getRange({line: c.line, ch: 0}, {line: c.line, ch: c.ch});
           let SPACES_REGEXP = /^( +$)/;
@@ -727,7 +730,8 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 
 socket.on("update block highlight", payload => {
 
-  activeBlock = blockStatus.map(function(d) { return d['id']; });
+  console.log("blockStatus **** " , blockStatus)
+//   activeBlock = blockStatus.map(function(d) { return d['id']; });
 //  if(!activeBlock.includes(payload.prevFocus) && payload.prevFocus != -1){
 //   document.getElementById(
 //     editors[payload.prevFocus].blockId + "-div"
@@ -742,14 +746,15 @@ socket.on("update block highlight", payload => {
 //       editors[payload.newFocus].blockId + "-div"
 //     ).style.borderLeft = "thick solid #2185d0";
 //   }
+  activeBlock = blockStatus.map(function(d) { return d['id']; });
 
   
-  if(payload.readOnlyStatus&& payload.prevFocus != 1){
+  if(payload.readOnlyStatus&& payload.prevFocus != 1 && !activeBlock.includes(payload.prevFocus)){
            document.getElementById(
               editors[payload.prevFocus].blockId + "-div"
             ).style.border = "";
   }else if(!payload.readOnlyStatus){
-          activeBlock = blockStatus.map(function(d) { return d['id']; });
+
           if(!activeBlock.includes(payload.prevFocus) && payload.prevFocus != 1){
               document.getElementById(
                 editors[payload.prevFocus].blockId + "-div"
