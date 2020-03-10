@@ -252,9 +252,10 @@ function setEditor(fileName, cellType) {
       status = setStatusBlock(detectFocusBlock , cm)
 
       if(status == 'unLock'){
-        cm.setOption("cursorBlinkRate", 0); // can edit
+        cm.setOption("cursorBlinkRate", 530); // can edit
 
-        cm.setOption("readOnly", false); 
+        cm.setOption("readOnly", false);
+         
 
         socket.emit("codemirror on focus", {
           prevFocus: prevFocusBlock,
