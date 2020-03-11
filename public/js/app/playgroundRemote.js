@@ -758,6 +758,8 @@ socket.on("download file", payload => {
   a.target = "_blank";
   a.style = "display: none";
 
+  console.log("payload.filePath " , payload.filePath)
+
   if (fileNameListLength === 1) {
     a.href = "/api/downloadFile?filePath=" + payload.filePath;
     document.body.appendChild(a);

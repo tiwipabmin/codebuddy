@@ -60,8 +60,7 @@ block content
                   i.folder.icon
                   .content
                     .header src
-                      a.ui.label(id='exportBtn' onClick='showExportModal()') export file
-                      //- button.ui.icon.button.pink.float-right(id='exportNotebookFileStudent' onClick='exportNotebookFileStudent("'+dirPath+'","'+dataSets.origins.notebookAssignment.notebook_assignment_id+'")' data-tooltip="Export" data-inverted="")
+                      a.ui.label(id='exportNotebookFileStudent' onClick='exportNotebookFileStudent("'+dirPath+'","'+dataSets.origins.notebookAssignment.notebook_assignment_id+'")') export file
 
                     .description Description of project
                     .list.relaxed#file-list(style="margin:0px;")
@@ -151,15 +150,7 @@ block content
               
 
           //- file tab  
-          .ui.form
-            .ui.top.attached.tabular.file.menu(id='file-tabs')
-              each file, index in  ["test.py"]
-                if index == 0
-                  a.active.item(id=file data-tab='main' onClick=`getActiveTab()`) main.py
-                else
-                  a.item(id=file data-tab=file onClick=`getActiveTab()`)=file+'.py' 
-                    span(onClick=`closeTab()`)
-                      i.delete.icon(id='close-tab-icon')        
+        
           .ui
             .column(style="display: flex;")
               .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")

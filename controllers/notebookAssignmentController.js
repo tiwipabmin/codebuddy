@@ -14,7 +14,6 @@ const TurndownService = require('turndown');
 let turndownService = new TurndownService();
 
 
-
 exports.getNotebookAssignment = async (req, res) => {
     const section_id = req.query.section_id;
     const select_notebookAssignment_by_notebookAssignment_id =
@@ -325,9 +324,9 @@ exports.exportNotebookFile = async (req, res) => {
     console.log("testFile.ipynb " + " has been saved!");
 
   });
-
-  status = "Export File Complete!!";
-    res.send({ status: status });
+ 
+  // status = "Export File Complete!!";
+  //   res.send({ status: status });
 
 }
 
@@ -422,6 +421,7 @@ async function getFileNotebook(notebookAssingmentId){
   return JSON.stringify(fileNotebook)
 }
 
+
  exports.exportNotebookFileStudent = async (req, res) => {
 
   
@@ -443,19 +443,24 @@ async function getFileNotebook(notebookAssingmentId){
     let information = fs.readFileSync(dirPath, "utf8");
     let notebookAssignment = JSON.parse(information);
     fileName = dirPath.split("/")[5].split("-")[0]
-    filePath = "C:/Users/user/Desktop/"+fileName+".ipynb"
-    fs.writeFileSync(__dirname+"../../../"+fileName+".ipynb", JSON.stringify(notebookAssignment), 'utf8', err =>  {
+    filePath = "./public/project_files/"+fileName+".ipynb"
+    console.log(" dirPath = " , dirPath)
+
+    console.log(" filePath = " , filePath)
+    fs.writeFileSync(filePath, JSON.stringify(notebookAssignment), 'utf8', err =>  {
 
     // throws an error, you could also catch it here
     if (err) throw err;
 
     // success case, the file was saved
-    console.log("./Downloads/"+fileName+".ipynb" + " has been saved!");
+    console.log(fileName+".ipynb" + " has been saved!");
 
   });
 
+  filePath = "../project_files/" + "/work.ipynb";
   status = "Export File Complete!!";
-  res.send({ status: status });
+  res.send({ status: status ,
+    filePath : cryptr.encrypt(filePath) });
 }
 
 
@@ -538,3 +543,4 @@ exports.deleteAssignment = async (req, res) => {
     dataSets: { origins: { status: "Found error while is be processing!" } }
   });
 };
+

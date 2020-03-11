@@ -554,7 +554,6 @@ exports.getSection = async (req, res) => {
     };
   }
 
-  console.log("  pairingSessions classroom" , pairingSessions)
 
   res.render("classroom", { dataSets, title: section.course_name });
   }

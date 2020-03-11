@@ -711,6 +711,13 @@ socket.on("init state", payload => {
 
 function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 
+  console.log(" function exportNotebookFileStudent ")
+
+  // socket.emit("export file", {
+  //   dirPath: dirPath,
+  //   notebookAssingmentId: notebookAssingmentId
+  // });
+
   const options = {
     dirPath : dirPath ,
     notebookAssingmentId : notebookAssingmentId
@@ -718,15 +725,44 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 
   $.post("/notebookAssignment/StudentExport", options ,  function(data){
     const status = data.status;
-    if (status == "Export File Complete!!") {
-      $("#alert-header").text("Export File");
-      $("#alert-message").text(status);
-      $("#alert-modal").modal("show");
-    }
+    // const filePath = data.filePath
+    // const filePath = "./project_files/work.ipynb"
+    // if (status == "Export File Complete!!") {
+    //   $("#alert-header").text("Export File");
+    //   $("#alert-message").text(status);
+    //   $("#alert-modal").modal("show");
+    // }
+
+    let a = document.createElement("a");
+    a.download;
+    a.target = "_blank";
+    a.style = "display: none";
+  
+      a.href = "/api/downloadFile?filePath=" + data.filePath;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
 
   })
   
 }
+socket.on("download file", payload => {
+
+  console.log("download file . on ")
+  // let fileNameListLength = payload.fileNameListLength;
+  // let projectId = payload.projectId;
+  let a = document.createElement("a");
+  a.download;
+  a.target = "_blank";
+  a.style = "display: none";
+
+    a.href = "/api/downloadFile?filePath=" + payload.filePath;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+ 
+});
 
 socket.on("update block highlight", payload => {
 
