@@ -139,8 +139,18 @@ exports.getPlayground = async (req, res) => {
   
   }
   else if(branch_type[0]["branch_type"] == "DSBA"){
+    let group = [];
     console.log("OK Playground DSBA")
     let project = await CollaborativeProject.findOne({ pid: req.query.pid });
+    for(let username in project.collaborator){
+      // console.log("member ", project.collaborator[member])
+      let user = await User.findOne({ username: project.collaborator[username] });
+      group.push(user)
+
+    }
+    
+    group.push(await User.findOne({ username: project.creator}))
+    // console.log("group ", group)
     const select_notebookAssignment_by_notebookAssignment_id =
       "SELECT * FROM notebook_assignment WHERE notebook_assignment_id = " +
       cryptr.decrypt(project.file);
@@ -162,7 +172,7 @@ exports.getPlayground = async (req, res) => {
     }
    
     dataSets = {
-      origins: { notebookAssignment: notebookAssignment, section: section,  project: project },
+      origins: { notebookAssignment: notebookAssignment, section: section,  project: project, group:group },
       reforms: { notebookAssignment: JSON.stringify(notebookAssignment) , messages: messages }
     };
 

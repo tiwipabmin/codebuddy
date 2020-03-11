@@ -41,11 +41,9 @@ block content
               .visible.content
                 i.trash.icon
   .ui.container.segment
-    .ui.grid
-      .ui.segment.container.notebook_app.command_mode
-        .ui.two.column.grid
-          .middle.aligned.column
-            h1.ui.header !{dataSets.origins.notebookAssignment.title}
+    .ui.segment.container.notebook_app.command_mode
+        .middle.aligned.column
+            h1.ui.header.centered !{dataSets.origins.notebookAssignment.title}
             
             input(type='hidden' id='pid' value=`${dataSets.origins.project.pid}`)
     .ui.grid
@@ -57,13 +55,10 @@ block content
             p
               .ui.list
                 .item
-                  i.folder.icon
+                  i.file.icon
                   .content
-                    .header src
-                      a.ui.label(id='exportBtn' onClick='showExportModal()') export file
-                      //- button.ui.icon.button.pink.float-right(id='exportNotebookFileStudent' onClick='exportNotebookFileStudent("'+dirPath+'","'+dataSets.origins.notebookAssignment.notebook_assignment_id+'")' data-tooltip="Export" data-inverted="")
-
-                    .description Description of project
+                    .header(id="assignment-title") !{dataSets.origins.notebookAssignment.title}
+                    .description !{dataSets.origins.notebookAssignment.description}
                     .list.relaxed#file-list(style="margin:0px;")
                       each file, index in ["test.py"]
                         .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
@@ -137,6 +132,23 @@ block content
                 video#localVideo(style='height: 150px; transform: scaleX(-1);' oncontextmenu='return false;')
                 canvas(id="canvas" width="320" height="240" style="transform: scaleX(-1);")
                 #localVolume.volume_bar  
+          .ui.segments
+            .ui.segment
+              .six.wide.column
+                .ui.grid
+                   - for (let i=0 ; i <`${dataSets.origins.group.length}`; i++ )
+                      .sixteen.wide.column.padding-left-3.padding-right-3
+                        div.ui.relaxed.items
+                          div.item
+                            div
+                              div.ui.tiny.image.circular
+                                img(src= `${dataSets.origins.group[i].img}`)
+                              p.user-role-label.text-center
+                            div.content.padding-10
+                              p.header #{`${dataSets.origins.group[i].info.firstname}`}   #{`${dataSets.origins.group[i].info.lastname}`} <b> (@#{`${dataSets.origins.group[i].username}`}) </b>
+                              div.description
+                                label.ui.teal.circular.label#user-point-label average score : 0
+
         .twelve.wide.column.right
           .ui.grid
             .sixteen.wide.column
@@ -160,9 +172,8 @@ block content
                   a.item(id=file data-tab=file onClick=`getActiveTab()`)=file+'.py' 
                     span(onClick=`closeTab()`)
                       i.delete.icon(id='close-tab-icon')        
-          .ui
-            .column(style="display: flex;")
-              .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")
+
+          .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")
                 - for (var i=0 ; i < `${cells.length}` ; i++)
                   if `${cells[i]["cellType"]}` === "markdown"
                     .cell.text_cell.rendered(id=`${cells[i]["blockId"]}-div`)
