@@ -59,15 +59,11 @@ block content
                   .content
                     .header(id="assignment-title") !{dataSets.origins.notebookAssignment.title}
                     .description !{dataSets.origins.notebookAssignment.description}
-                    .list.relaxed#file-list(style="margin:0px;")
-                      each file, index in ["test.py"]
-                        .item.cursor-pointer(id=file+'-file' onClick=`getActiveTab(${JSON.stringify(file)})`)
-                          div(id=file+'-file-icon')
-                          i.file.icon
-                          .header src
-                      		
-                      		a.ui.label(id='exportNotebookFileStudent' onClick='exportNotebookFileStudent("'+dirPath+'","'+dataSets.origins.notebookAssignment.notebook_assignment_id+'")') export file
-                          
+                  br
+                  i.file.icon
+                  .content
+                    a.ui.label(id='exportNotebookFileStudent' onClick='exportNotebookFileStudent("'+dirPath+'","'+dataSets.origins.notebookAssignment.notebook_assignment_id+'")') export file
+                            
                                  
           //- exporting file modal
           .ui.small.modal#export-modal
@@ -87,18 +83,6 @@ block content
               button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
               .ui.button.approve.red(data-value='cancel') Cancel  
 
-          .ui.bottom.attached.tab.segment(data-tab='second')
-            .ui.toggle.lightmodetoggle.checkbox
-              input(type='checkbox' onChange='changeTheme()')#lightmodetoggle
-              label Enable Light Mode 
-                    //- .ui.segments
-                    //-   .ui.segment
-                    //-     p Video Chat 
-                    //-       button.ui.mute.toggle.button.active(onClick='muteEvent(this)')
-                    //-         i.unmute.icon
-                    //-       button.ui.video.toggle.button.active(onClick='videoEvent(this)')
-                    //-         i.video.play.icon
-                    //-   .ui.secondary.segment
               style.
                 .videoContainer {
                 position: relative;
