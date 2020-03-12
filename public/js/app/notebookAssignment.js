@@ -725,13 +725,7 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 
   $.post("/notebookAssignment/StudentExport", options ,  function(data){
     const status = data.status;
-    // const filePath = data.filePath
-    // const filePath = "./project_files/work.ipynb"
-    // if (status == "Export File Complete!!") {
-    //   $("#alert-header").text("Export File");
-    //   $("#alert-message").text(status);
-    //   $("#alert-modal").modal("show");
-    // }
+    
 
     let a = document.createElement("a");
     a.download;
@@ -822,3 +816,45 @@ $(window).on("beforeunload", () => {
   socket.disconnect();
 });
 
+/**
+ * Send Message
+ */
+function sendMessage(img) {
+  if (document.getElementById("inputMessage").value != "") {
+
+    socket.emit("send message", {
+      uid: uid,
+      message: document.getElementById("inputMessage").value
+    });
+  }
+}
+
+/**
+ * Update message
+ */
+socket.on("update message", payload => {
+  console.log(payload)
+  updateScroll();
+  if (payload.user._id === uid) {
+    $(".message-list").append(
+      "<li class='ui item'><a class='ui avatar image'></a><div class='content'></div><div class='description curve-box-user'><p>" +
+        payload.message.message +
+        "</p></div></li>"
+    );
+    $("#inputMessage").val("");
+  } else {
+    $(".message-list").append(
+      "<li class='ui item'><a class='ui avatar image'><img src='" +
+        payload.user.img +
+        "'></a><div class='description curve-box'><p>" +
+        payload.message.message +
+        "</p></div></li>"
+    );
+  }
+});
+function updateScroll() {
+  $(".chat-history").animate(
+    { scrollTop: $(".message-list").height() },
+    "fast"
+  );
+}

@@ -10,6 +10,7 @@ const fs = require("fs");
 
 const Project = mongoose.model("Project");
 const Message = mongoose.model("Message");
+const CollaborativeMessage = mongoose.model("collaborativeMessage");
 const Score = mongoose.model("Score");
 const User = mongoose.model("User");
 const Comment = mongoose.model("Comment");
@@ -80,7 +81,9 @@ exports.getPlayground = async (req, res) => {
   const messages = await Message.find({ pid: req.query.pid }).sort({
     createdAt: 1
   });
-
+  const collaborativeMessage = await CollaborativeMessage.find({ pid: req.query.pid }).sort({
+    createdAt: 1
+  });
 
   let queryBranch_type = "SELECT branch_type FROM branch WHERE section_id = " + cryptr.decrypt(section_id);
   let branch_type = [];
@@ -123,6 +126,7 @@ exports.getPlayground = async (req, res) => {
         partner_obj
       });
     } else if (project.programming_style == "Remote") {
+
       res.render("playground_remote", {
         dataSets,
         title: `${project.title} - Playground`,
@@ -173,7 +177,7 @@ exports.getPlayground = async (req, res) => {
    
     dataSets = {
       origins: { notebookAssignment: notebookAssignment, section: section,  project: project, group:group },
-      reforms: { notebookAssignment: JSON.stringify(notebookAssignment) , messages: messages }
+      reforms: { notebookAssignment: JSON.stringify(notebookAssignment) , messages: collaborativeMessage }
     };
 
     let filePath = notebookAssignment.filePath;
@@ -657,7 +661,6 @@ exports.getSection = async (req, res) => {
     console.log("occupation == student")
     occupation = 1;
     let cloneAssignments = Object.assign({}, assignments);
-    console.log("cloneAssignments ", cloneAssignments)
     console.log("req.user.username ", req.user.username)
     let projects = await CollaborativeProject.find({
       $and: [
@@ -671,7 +674,7 @@ exports.getSection = async (req, res) => {
       ]
     }).sort({ createdAt: -1 });
     
-    console.log("projects ", projects)
+    // console.log("projects ", projects)
     /**
      * projects change data type from array to object
      */
@@ -719,7 +722,7 @@ exports.getSection = async (req, res) => {
       }
     };
 
-    console.log("dataSets ========================== ", dataSets)
+    // console.log("dataSets ========================== ", dataSets)
   }
 
     res.render("collaberative",{ dataSets, title: section.course_name })
