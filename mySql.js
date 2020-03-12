@@ -8,7 +8,7 @@ const conMysql = mysql.createConnection({
   user: "root",
   password: "",
   database: "classroom_management_system",
-  port: 3308
+  port: 3306
 })
 
 conMysql.connect(function(err){

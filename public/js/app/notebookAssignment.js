@@ -91,11 +91,27 @@ socket.on("update execution count", payload => {
 
 
 function deleteBlock() {
-  console.log("delete block  " )
-  socket.emit("delete block", {
-    blockId: editors[detectFocusBlock].blockId,
+
+  let parameters = JSON.stringify({
+    blockId:editors[detectFocusBlock].blockId,
     index: detectFocusBlock
-  });
+  })
+  
+
+  $("#confirm-button").attr(
+    "onclick",
+    "on_click_confirm_button(" + parameters + ")"
+  );
+  $("#confirm-header").text("Delete Block");
+  $("#confirm-message").attr(
+    "value",
+    "Are you sure you want to delete this block?"
+  );
+  $("#confirm-message").text(
+    "Are you sure you want to delete this block?"
+  );
+  $("#confirm-modal").modal("show");
+
 }
 
 function addBlock() {
@@ -808,6 +824,18 @@ socket.on("update block highlight", payload => {
          
   }
   });
+
+function on_click_confirm_button(parameters){
+  console.log("on_click_confirm_button")
+  const message = $("#confirm-message").attr("value");
+  console.log("message ", message)
+  if(message == "Are you sure you want to delete this block?"){
+      socket.emit("delete block", {
+        blockId: parameters.blockId,
+        index: parameters.index
+      });
+  }
+}
 
 /**
  * If user exit or going elsewhere which can be caused this project window closed
