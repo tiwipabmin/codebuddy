@@ -1196,7 +1196,6 @@ function showStudentList(
 
         $(".student-container").empty();
 
-             console.log(" groupRecord -------------" , groupRecord[0][1][0].student_id)
 
          if (command == "view") {
          for(let i in groupRecord[0]){

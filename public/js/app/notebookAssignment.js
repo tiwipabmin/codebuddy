@@ -127,16 +127,39 @@ for(var i = 0; i < projectFiles.length; i++){
 
 }
 
+
+
+
 function newEditorFacade(fileName, cellType) {
   setEditor(fileName, cellType);
   setOnChangeEditer(fileName);
   setOnDoubleClickEditor(fileName);
 
-
  
 }
 
+const theOneFunc = delay => {
+  console.log('Hello after ' + delay + ' seconds');
+  const index = blockStatus.findIndex(x => x.owner === user);
+  console.log(" indexindexindex ------------" , index)
+  blockStatus.splice(index, 1);
+  console.log(blockStatus);
+  socket.emit("update block status", {
+    blockStatus: blockStatus
+    
+  });
+  var prevFocusBlock = detectFocusBlock;
+
+  socket.emit("codemirror on focus", {
+    prevFocus: prevFocusBlock,
+    newFocus: -1,
+    readOnlyStatus: false
+  });
+
+}
 function setStatusBlock(detectFocusBlock , cm){
+
+
 
   preFocusBlock = editors
       .map(function(obj) {
@@ -150,6 +173,7 @@ function setStatusBlock(detectFocusBlock , cm){
  if(activeOwner.includes(user)){
     const index = blockStatus.findIndex(x => x.owner === user);
     blockStatus.splice(index, 1);
+    console.log(" index " , index)
 
    //delete block id in list
    socket.emit("update block status", {
@@ -174,7 +198,8 @@ function setStatusBlock(detectFocusBlock , cm){
     console.log("unlock")
     let block  = {
       id : detectFocusBlock,
-      owner : user
+      owner : user,
+      time : setTimeout(theOneFunc, 3 * 1000, 3)
       
     }
 
@@ -191,6 +216,7 @@ function setStatusBlock(detectFocusBlock , cm){
 }
 
 function setEditor(fileName, cellType) {
+  
   var cm = CodeMirror.fromTextArea(
     document.getElementById(fileName),
     {

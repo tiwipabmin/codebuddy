@@ -10,7 +10,6 @@ block script
   link(rel='stylesheet' href='/codemirror/theme/seti.css')
   link(rel='stylesheet' href='/codemirror/theme/material.css')
 
-
 block content
   +assignmentModal()
   +alertModal()
@@ -45,8 +44,7 @@ block content
         .middle.aligned.column
             h1.ui.header.centered !{dataSets.origins.notebookAssignment.title}
             input(type='hidden' id='pid' value=`${dataSets.origins.project.pid}`)
-
-
+            div(id="clocksec")
     .ui.grid
         .four.wide.column
           .ui.top.attached.tabular.demo.menu
@@ -247,5 +245,6 @@ block content
   script(src='/codemirror/lib/codemirror.js')
   script(src='/codemirror/mode/python/python.js')
   script(src='/js/app/notebookAssignment.js')
+
 
 
