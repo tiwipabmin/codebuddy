@@ -314,41 +314,53 @@ function setEditor(fileName, cellType) {
 }
 
 function setOnDoubleClickEditor(BID) {
+
   var blockObj = editors.find(obj => {
     return obj.blockId == BID;
   });
   blockObj.editor.on("dblclick", () => {
-    let A1 = blockObj.editor.getCursor().line;
-    let A2 = blockObj.editor.getCursor().ch;
-    let B1 = blockObj.editor.findWordAt({
-      line: A1,
-      ch: A2
-    }).anchor.ch;
-    let B2 = blockObj.editor.findWordAt({
-      line: A1,
-      ch: A2
-    }).head.ch;
-    $("input.disabled.line.no").val(A1 + 1);
-    $("input.disabled.file.name").val(BID );
-    $("input.hidden.file.name").val(BID);
-    let line = $("input.disabled.line.no").val();
-    for (var i in comments) {
-      console.log(" i = " , i)
-      console.log(" comments[i].BID " , comments[i].bid)
-      if (
-        comments[i].bid == BID &&
-        comments[i].line == parseInt(line)
-      ) {
-        $("textarea.line.reviewer.description").val(
-          comments[i].description
-        );
-        break;
-      } else {
-        $("textarea.line.reviewer.description").val("");
-      }
-    }
-      $(".ui.reviewer.small.modal").modal("show");
+    let codeder =  document.getElementById(`${BID}-codeder`).getAttribute("value")
 
+    if(codeder != user && codeder!="undefined"){
+      let A1 = blockObj.editor.getCursor().line;
+      let A2 = blockObj.editor.getCursor().ch;
+      let B1 = blockObj.editor.findWordAt({
+        line: A1,
+        ch: A2
+      }).anchor.ch;
+      let B2 = blockObj.editor.findWordAt({
+        line: A1,
+        ch: A2
+      }).head.ch;
+      $("input.disabled.line.no").val(A1 + 1);
+      $("input.disabled.file.name").val(BID );
+      $("input.hidden.file.name").val(BID);
+      let line = $("input.disabled.line.no").val();
+      for (var i in comments) {
+        console.log(" i = " , i)
+        console.log(" comments[i].BID " , comments[i].bid)
+        if (
+          comments[i].bid == BID &&
+          comments[i].line == parseInt(line)
+        ) {
+          $("textarea.line.reviewer.description").val(
+            comments[i].description
+          );
+          break;
+        } else {
+          $("textarea.line.reviewer.description").val("");
+        }
+      }
+        $(".ui.reviewer.small.modal").modal("show");
+
+    }else{
+      $("#alert-header").text("Verification error");
+      $("#alert-message").text(
+        'You do not have permission to verify this code.'
+      );
+      $("#alert-modal").modal("show");
+    }
+    
   });
 }
 function submitReview() {
@@ -362,8 +374,10 @@ function submitReview() {
 
   socket.emit("verification update", {
     blockId: editors[detectFocusBlock].blockId,
-    pid: document.getElementById("pid").value,
-    statusCode: "unapproved"
+    pid: document.getElementById("pid").valu,
+    statusCode: "unapproved",
+    code: {origin:true},
+    username:user
   })
 }
 
@@ -486,13 +500,14 @@ function setOnChangeEditer(fileName) {
     });
 
     // update verification icon
-    if(document.getElementById(editors[detectFocusBlock].blockId+ "-div").getAttribute("class") == "cell code_cell rendered"){
-      socket.emit("verification update", {
+     socket.emit("verification update", {
         blockId: editors[detectFocusBlock].blockId,
         pid: document.getElementById("pid").value,
-        statusCode: "empty"
+        statusCode: "empty",
+        username:user,
+        code: data,
       })
-    }
+   
   
   });
 }
@@ -849,7 +864,9 @@ function on_click_confirm_button(parameters){
     socket.emit("verification update", {
       blockId: parameters.blockId,
       pid: parameters.pid,
-      statusCode: parameters.statusCode
+      statusCode: parameters.statusCode,
+      code: {origin:true},
+      username:user
     })
   }
 }
@@ -863,34 +880,41 @@ function on_click_cancel_button() {
   } 
 }
 function verificationUpdate(blockId, pid, statusCode){
-     
- 
-  let parameters = JSON.stringify({
-    blockId: blockId,
-    pid: pid,
-    statusCode: statusCode
-  })
- 
-  $("#confirm-button").attr(
-    "onclick",
-    "on_click_confirm_button(" + parameters + ")"
-  );
+  let codeder =  document.getElementById(`${blockId}-codeder`).getAttribute("value")
+  if(codeder != user && codeder!="undefined"){
+    let parameters = JSON.stringify({
+      blockId: blockId,
+      pid: pid,
+      statusCode: statusCode
+    })
+   
+    $("#confirm-button").attr(
+      "onclick",
+      "on_click_confirm_button(" + parameters + ")"
+    );
+    
+    $("#confirm-header").text("Verify Block");
+    $("#confirm-message").attr(
+      "value",
+      `Are you sure you want to ${statusCode} this block?`
+    );
+    $("#confirm-message").text(
+      `Are you sure you want to ${statusCode} this block?`
+    );
+    $("#confirm-modal").modal("show");
+  }else{
+    $("#alert-header").text("Verification error");
+    $("#alert-message").text(
+      'You do not have permission to verify this code.'
+    );
+    $("#alert-modal").modal("show");
+  }
   
-  $("#confirm-header").text("Verify Block");
-  $("#confirm-message").attr(
-    "value",
-    `Are you sure you want to ${statusCode} this block?`
-  );
-  $("#confirm-message").text(
-    `Are you sure you want to ${statusCode} this block?`
-  );
-  $("#confirm-modal").modal("show");
 }
 
 
 socket.on("update approve icon", payload => {
- 
-  if(payload.result == "completed"){
+  
     if(payload.statusCode == "approved"){
       document.getElementById(payload.blockId+"-approved").setAttribute("class","ui icon button approved float-right")
       document.getElementById(payload.blockId+"-unapproved") .removeAttribute("enabled", "");
@@ -911,21 +935,11 @@ socket.on("update approve icon", payload => {
       document.getElementById(payload.blockId+"-approved").setAttribute("class", `ui icon button empty float-right`)
       document.getElementById(payload.blockId+"-approved").setAttribute("enabled", "");
       document.getElementById(payload.blockId+"-approved") .removeAttribute("disabled", "");
+      
+      // show coddername
+      document.getElementById(`${payload.blockId}-codeder`).setAttribute("value", payload.codderId);
+      $(`#${payload.blockId}-codeder`).text(payload.codderFullname)
     }
-
-  }else if (payload.result == "This block has not been modified."){
-    $("#alert-header").text("Verification error");
-    $("#alert-message").text(
-      'This block has not been modified.'
-    );
-    $("#alert-modal").modal("show");
-  }else if (payload.result == "failed"){
-    $("#alert-header").text("Verification error");
-    $("#alert-message").text(
-      'Unable to update verification.'
-    );
-    $("#alert-modal").modal("show");
-  }
 })
 
 /**

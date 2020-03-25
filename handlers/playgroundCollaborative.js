@@ -8,6 +8,7 @@ const Project = mongoose.model("Project");
 const childprocess = require("child_process");
 const Comment = mongoose.model("commentNotebookAssignment");
 const VerificationProject = mongoose.model("VerificationProject")
+const User = mongoose.model("User")
 
 
 
@@ -609,59 +610,62 @@ module.exports = (io, client,redis, Projects) => {
 
 
   client.on("verification update", async payload => {
-    let blockId = payload.blockId;
-    let pid = payload.pid;
-
-    let verification = await VerificationProject.findOne({$and: [{bid: blockId},{pid: pid}]})
-    let result = "";
-    if(verification!==null){
-      if(payload.statusCode == "empty"){
-        let verificationProject = await VerificationProject.updateOne({
-          $and: [{bid: blockId},{pid: pid}]},
-          {
-            $set:{
-              codderId: curUser,
-              statusCode: "edited",
-              verificationStudentId: ""
-            }
-          }
-        )
-        
-      }else if(payload.statusCode == "approved" || payload.statusCode == "unapproved"){
-        let verificationProject = await VerificationProject.updateOne({
-          $and: [{bid: blockId},{pid: pid}]},
-          {
-            $set:{
-              amountTofix: verification.amountTofix +1,
-              statusCode: payload.statusCode,
-              verificationStudentId: curUser
-            }
-          }
-        )
-      }
-      result="completed"
-    }else{
-      if(payload.statusCode == "empty"){
-        let verification = await new VerificationProject({
-          pid: pid,
-          bid:blockId,
-          codderId: curUser,
-          statusCode: "empty",
-          amountTofix : 0,
-          verificationStudentId:""
-        }).save()
-      }else if(payload.statusCode == "approved"|| payload.statusCode == "unapproved"){
-        result = "This block has not been modified."
-      }
-      result="failed"
-    }
-    let response = {
-      blockId:blockId,
-      statusCode:payload.statusCode,
-      result:result
-    }
-    io.in(projectId).emit("update approve icon", response);
-  })
+    
+    const origin = !!payload.code.origin && payload.code.origin !== "setValue"
+    if(origin){
+      let blockId = payload.blockId;
+      let pid = payload.pid;
   
+      let verification = await VerificationProject.findOne({$and: [{bid: blockId},{pid: pid}]})
+      let user = await User.findOne({username: payload.username})
+      
+      let result = "";
+      if(verification!==null){
+        if(payload.statusCode == "empty"){
+          let verificationProject = await VerificationProject.updateOne({
+            $and: [{bid: blockId},{pid: pid}]},
+            {
+              $set:{
+                codderId: curUser,
+                statusCode: "edited",
+                verificationStudentId: ""
+              }
+            }
+          )
+          
+        }else if(payload.statusCode == "approved" || payload.statusCode == "unapproved"){
+          let verificationProject = await VerificationProject.updateOne({
+            $and: [{bid: blockId},{pid: pid}]},
+            {
+              $set:{
+                amountTofix: verification.amountTofix +1,
+                statusCode: payload.statusCode,
+                verificationStudentId: curUser
+              }
+            }
+          )
+        }
+      }else{
+        if(payload.statusCode == "empty"){
+          let verification = await new VerificationProject({
+            pid: pid,
+            bid:blockId,
+            codderId: curUser,
+            statusCode: "empty",
+            amountTofix : 0,
+            verificationStudentId:""
+          }).save()
+        }
+      }
 
+      let response = {
+        blockId:blockId,
+        statusCode:payload.statusCode,
+        codderFullname: user.info.firstname+" "+user.info.lastname,
+        codderId : user.username
+      }
+      io.in(projectId).emit("update approve icon", response);
+    }
+   
+  })
 };

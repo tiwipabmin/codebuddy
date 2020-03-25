@@ -190,12 +190,18 @@ exports.getPlayground = async (req, res) => {
         let statusCode =  verificationProject.map(function(obj) { return obj.bid}).indexOf(Number( objCells [i].blockId))
         if( statusCode != -1){
           objCells[i].statusCode = verificationProject[statusCode].statusCode;
+          objCells[i].verificationStudentId = verificationProject[statusCode].verificationStudentId
+          user = await User.findOne({ username: verificationProject[statusCode].codderId })
+          objCells[i].codderfullname =  user.info.firstname+" "+user.info.lastname;
+          objCells[i].codderId = user.username
+            
         }else {
           objCells[i].statusCode = "empty";
         }
       }
      
     }
+    console.log("objece ", objCells[8])
     cells = JSON.stringify(objCells)
       
     saveFileToRedis(cells, notebookAssignment.notebook_assignment_id)

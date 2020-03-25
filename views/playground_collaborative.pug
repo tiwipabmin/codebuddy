@@ -176,7 +176,7 @@ block content
                                 bdi In &nbsp; 
                                 bdi [!{cells[i]["executionCount"]}]:
                         .four.wide.column
-                          p#recently-codder(style='color: gray; margin-left: 1em') Aew Aew Suttida
+                          p(style='color: gray; margin-left: 1em' value=`${cells[i]["codderId"]}` id=`${cells[i]["blockId"]}-codeder`) !{cells[i]["codderfullname"]}
                           //- a.ui.label(style='margin-left:10px;' href='/history?pid='+dataSets.origins.project.pid+'&curUser='+curUser+'&section_id='+dataSets.origins.section.section_id) view history
                         .ten.wide.column(style="padding-right:35px;")
                           if `${cells[i].statusCode}` == "unapproved"
