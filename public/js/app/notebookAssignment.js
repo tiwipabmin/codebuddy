@@ -61,10 +61,10 @@ function addDivOutput(textOutput, blockId) {
 
   let divisionCodeBlock = document.createElement("div");
   let html =
-        '<div output_subarea output_text style="padding-left:8em; padding-right:25px; ">'+
+        '<div output_subarea output_text style="padding-left:8em; padding-right:25px;">'+
         '<div id="'+
         blockId +
-        '-div-output" style="background-color: #f5f5f5; margin-top: 25px;margin-bottom: 1em; padding-left:2em;padding-top:1em;padding-bottom:1em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
+        '-div-output" style="background-color: #f5f5f5; margin-top: 10px;margin-bottom: 1em; padding-left:2em;padding-bottom:1em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
         '</div>'+'</div>'
   divisionCodeBlock.className = blockId+"-output";
 
@@ -115,7 +115,6 @@ function deleteBlock() {
 }
 
 function addBlock() {
-  console.log("editors 1 ", editors)
     socket.emit("add block below", {
       blockId: Object.keys(projectFiles).length+1,
       index:  detectFocusBlock+1,
@@ -132,7 +131,7 @@ function addBlock() {
  */
 var projectFiles = JSON.parse(document.getElementById("projectFiles").value);
 var notebookAssingmentId = document.getElementById("notebookAssingmentId").value;
-// console.log("notebookAssingmentId", notebookAssingmentId)
+
 
 
 
@@ -156,7 +155,6 @@ function setStatusBlock(detectFocusBlock , cm){
 
   preFocusBlock = editors
       .map(function(obj) {
-        // console.log("obj ", obj)
         return obj.editor;
       })
       .indexOf(cm);
@@ -251,8 +249,9 @@ function setEditor(fileName, cellType) {
 
 
   cm.on("focus", cm => {
-    console.log("detectFocusBlock ",detectFocusBlock)
+    
     var prevFocusBlock = detectFocusBlock;
+    // let prevFocusBlockID = 
     /**
      * find index of focusing codemirror in editors array.
      **/
@@ -263,6 +262,10 @@ function setEditor(fileName, cellType) {
       })
       .indexOf(cm);
 
+     
+
+    
+
       console.log(`SET Detect focus block!! ${detectFocusBlock}`);
       status = setStatusBlock(detectFocusBlock , cm)
 
@@ -271,28 +274,25 @@ function setEditor(fileName, cellType) {
 
         cm.setOption("readOnly", false);
          
+        let detectFocusBlock2 = editors[detectFocusBlock]
+        
 
         socket.emit("codemirror on focus", {
           prevFocus: prevFocusBlock,
           newFocus: detectFocusBlock,
           readOnlyStatus: false
         });
+
        
-        // delete border prevFocusBlock 
-        // activeBlock = blockStatus.map(function(d) { return d['id']; });
-        // if(!activeBlock.includes(prevFocusBlock)){
-        //   console.log(" delete border prevFocusBlock  ")
-        //  document.getElementById(
-        //    editors[prevFocusBlock].blockId + "-div"
-        //  ).style.border = "";
-        //  }
-     
-        // document.getElementById(
-        //   editors[detectFocusBlock].blockId + "-div"
-        // ).style.border = "thin solid #2185d0";
-        // document.getElementById(
-        //   editors[detectFocusBlock].blockId + "-div"
-        // ).style.borderLeft = "thick solid #2185d0";
+      
+
+       //show codder option
+      //  let x = document.getElementById(detectFocusBlock+"-codderOption");
+          // if (x.style.display === "none") {
+          //   x.style.display = "block";
+          // } else {
+          //   x.style.display = "none";
+          // }
 
       }else{
         console.log( " prevFocusBlock when click lock block " , prevFocusBlock )
@@ -301,9 +301,6 @@ function setEditor(fileName, cellType) {
           newFocus: detectFocusBlock,
           readOnlyStatus: true
         });
-        // document.getElementById(
-        //   editors[prevFocusBlock].blockId + "-div"
-        // ).style.border = "";
 
         cm.setOption("readOnly", true); // cant edit
         cm.setOption("cursorBlinkRate", -1); // cant edit
@@ -362,6 +359,12 @@ function submitReview() {
     description: $("textarea.line.reviewer.description").val()
   });
   $("textarea.line.description").val("");
+
+  socket.emit("verification update", {
+    blockId: editors[detectFocusBlock].blockId,
+    pid: document.getElementById("pid").value,
+    statusCode: "unapproved"
+  })
 }
 
 socket.on("new review", payload => {
@@ -410,8 +413,10 @@ function setOnChangeEditer(fileName) {
   });
 
   blockObj.editor.on("change", (ins, data) => {
+    
+  
+  
     var text = data.text.toString().charCodeAt(0);
-    // console.log("data.text.toString() : " + data.text.toString());
     var enterline = parseInt(data.to.line) + 1;
     var remove = data.removed;
     var isEnter = false;
@@ -436,6 +441,8 @@ function setOnChangeEditer(fileName) {
         enterline: enterline,
         isEnter: isEnter
       });
+
+     
     }
 
     /**
@@ -477,6 +484,16 @@ function setOnChangeEditer(fileName) {
       currentTab: fileName,
       fileName: fileName
     });
+
+    // update verification icon
+    if(document.getElementById(editors[detectFocusBlock].blockId+ "-div").getAttribute("class") == "cell code_cell rendered"){
+      socket.emit("verification update", {
+        blockId: editors[detectFocusBlock].blockId,
+        pid: document.getElementById("pid").value,
+        statusCode: "empty"
+      })
+    }
+  
   });
 }
 
@@ -496,7 +513,7 @@ socket.on("focus block", payload => {
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on("editor update", payload => {
-  console.log("editor update")
+ 
   var blockObj = editors.find(obj => {
     return obj.blockId == payload.fileName;
   });
@@ -522,7 +539,7 @@ socket.emit("join project", {
  * Update block when add
  */
 socket.on("update block", payload => {
-  
+ 
   let blockId = payload.blockId;
   let index = payload.index;
   let action = payload.action;
@@ -530,24 +547,47 @@ socket.on("update block", payload => {
   if (action == "add") {
     let divisionCodeBlock = document.createElement("div");
     let html =
+    '<div class="ui grid">'+
+      '<div class="two wide column">'+
+          '<div class="prompt_container" >'+
+            '<div class="prompt input_prompt" id="'+blockId + '-in">'+
+              '<bdi> In &nbsp;</bdi>'+
+              '<bdi>[]</bdi>'+
+            '</div>'+
+          '</div>'+
+      '</div>'+
+
+      '<div class="four wide column">'+
+        '<p id="recently-codder" style="color: gray; margin-left: 1em">Aew Aew Suttida</p>'+
+      '</div>'+
+
+      '<div class="ten wide column" style="padding-right:35px;">'+
+        '<button class="ui icon button close float-right">'+
+        '<i class="close icon"></i>'+'</button>'+
+        '<button class="ui icon button check float-right">'+
+        '<i class="check icon"></i>'+'</button>'+
+        '<button class="ui icon button negative float-right">'+
+        '<i class="minus icon"></i>'+'</button>'+
+        '<button class="ui icon button blue float-right">'+
+        '<i class="plus icon"></i>'+'</button>'+
+        '<button class="ui icon button positive float-right">'+
+        '<i class="play icon"></i>'+'</button>'+
+      '</div>' +
+    '</div>'+
+    '<div class="inner_cell" >'+
       '<div id="'+blockId+'-input" class="input">' +
-        '<div class="prompt_container" >'+
-          '<div class="prompt input_prompt" id="'+blockId + '-in">'+
-            '<bdi> In &nbsp;</bdi>'+
-            '<bdi>[]</bdi>'+
-          '</div>'+
-        '</div>'+
-        
-        '<div class="inner_cell" >'+
-          '<div class="input_area" style="margin-top: 25px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
+        '<div class="input_area" style="margin-top: 8px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;">'+
             '<textarea class="show" id="'+blockId+'" > </textarea>'+
-          '</div>'+
         '</div>'+
-      '</div>'
-     
+      '</div>'+
+    '</div>'
+   
+      
+    
 
     divisionCodeBlock.className = "cell code_cell rendered";
     divisionCodeBlock.setAttribute("id", blockId + "-div");
+    divisionCodeBlock.setAttribute("syle","padding-top: 2em; padding-bottom: 2em")
     divisionCodeBlock.innerHTML = html;
 
     segmentCodeBlock.insertBefore(
@@ -622,19 +662,6 @@ socket.on("update block", payload => {
             newFocus: detectFocusBlock,
             readOnlyStatus: false
           });
-          
-          // activeBlock = blockStatus.map(function(d) { return d['id']; });
-          // if(!activeBlock.includes(prevFocusBlock)){
-          //  document.getElementById(
-          //    editors[prevFocusBlock].blockId + "-div"
-          //  ).style.border = "";
-          //  }
-          // document.getElementById(
-          //   editors[detectFocusBlock].blockId + "-div"
-          // ).style.border = "thin solid #2185d0";
-          // document.getElementById(
-          //   editors[detectFocusBlock].blockId + "-div"
-          // ).style.borderLeft = "thick solid #2185d0";
 
           let c = cm.getCursor();
           let lineText = cm.getRange({line: c.line, ch: 0}, {line: c.line, ch: c.ch});
@@ -647,7 +674,6 @@ socket.on("update block", payload => {
             cm.replaceRange('', {line: c.line, ch: 0}, {line: c.line, ch: numDelete});
           } 
         }else{
-          console.log( " prevFocusBlock when click lock block " , prevFocusBlock )
           socket.emit("codemirror on focus", {
             prevFocus: prevFocusBlock,
             newFocus: detectFocusBlock,
@@ -698,7 +724,7 @@ socket.on("init state", payload => {
   if (payload.editor != null) {
    
     var editorValues = JSON.parse(payload.editor);
-    //  console.log("editorValues", editorValues)
+ 
 
     for(var i = 0; i < editorValues.length; i++){
       // if(editorValues[i]["cellType"] == "code"){
@@ -727,7 +753,6 @@ socket.on("init state", payload => {
 
 function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 
-  console.log(" function exportNotebookFileStudent ")
 
   // socket.emit("export file", {
   //   dirPath: dirPath,
@@ -765,7 +790,7 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
 }
 socket.on("download file", payload => {
 
-  console.log("download file . on ")
+ 
   // let fileNameListLength = payload.fileNameListLength;
   // let projectId = payload.projectId;
   let a = document.createElement("a");
@@ -782,22 +807,6 @@ socket.on("download file", payload => {
 
 socket.on("update block highlight", payload => {
 
-  console.log("blockStatus **** " , blockStatus)
-//   activeBlock = blockStatus.map(function(d) { return d['id']; });
-//  if(!activeBlock.includes(payload.prevFocus) && payload.prevFocus != -1){
-//   document.getElementById(
-//     editors[payload.prevFocus].blockId + "-div"
-//   ).style.border = "";
-//   }
- 
-//   if(payload.newFocus != -1){
-//     document.getElementById(
-//       editors[payload.newFocus].blockId + "-div"
-//     ).style.border = "thin solid #2185d0";
-//     document.getElementById(
-//       editors[payload.newFocus].blockId + "-div"
-//     ).style.borderLeft = "thick solid #2185d0";
-//   }
   activeBlock = blockStatus.map(function(d) { return d['id']; });
 
   
@@ -813,6 +822,7 @@ socket.on("update block highlight", payload => {
               ).style.border = "";
            }
 
+           
            if(payload.newFocus != -1){
              document.getElementById(
                 editors[payload.newFocus].blockId + "-div"
@@ -826,16 +836,97 @@ socket.on("update block highlight", payload => {
   });
 
 function on_click_confirm_button(parameters){
-  console.log("on_click_confirm_button")
+
   const message = $("#confirm-message").attr("value");
-  console.log("message ", message)
+
   if(message == "Are you sure you want to delete this block?"){
       socket.emit("delete block", {
         blockId: parameters.blockId,
         index: parameters.index
       });
+  }else if(message == "Are you sure you want to approved this block?" || message == "Are you sure you want to unapproved this block?"){
+
+    socket.emit("verification update", {
+      blockId: parameters.blockId,
+      pid: parameters.pid,
+      statusCode: parameters.statusCode
+    })
   }
 }
+
+function on_click_cancel_button() {
+  const message = $("#confirm-message").attr("value");
+  if ( message == "Are you sure you want to approved this block?" 
+  || message == "Are you sure you want to unapproved this block?"
+  || message == "Are you sure you want to delete this block?") {
+    $("#confirm-modal").modal("hide");
+  } 
+}
+function verificationUpdate(blockId, pid, statusCode){
+     
+ 
+  let parameters = JSON.stringify({
+    blockId: blockId,
+    pid: pid,
+    statusCode: statusCode
+  })
+ 
+  $("#confirm-button").attr(
+    "onclick",
+    "on_click_confirm_button(" + parameters + ")"
+  );
+  
+  $("#confirm-header").text("Verify Block");
+  $("#confirm-message").attr(
+    "value",
+    `Are you sure you want to ${statusCode} this block?`
+  );
+  $("#confirm-message").text(
+    `Are you sure you want to ${statusCode} this block?`
+  );
+  $("#confirm-modal").modal("show");
+}
+
+
+socket.on("update approve icon", payload => {
+ 
+  if(payload.result == "completed"){
+    if(payload.statusCode == "approved"){
+      document.getElementById(payload.blockId+"-approved").setAttribute("class","ui icon button approved float-right")
+      document.getElementById(payload.blockId+"-unapproved") .removeAttribute("enabled", "");
+      document.getElementById(payload.blockId+"-unapproved").setAttribute("disabled", "");
+    }else if(payload.statusCode == "unapproved"){
+      document.getElementById(payload.blockId+"-unapproved").setAttribute("class","ui icon button unapproved float-right")
+      document.getElementById(payload.blockId+"-unapproved") .removeAttribute("disabled", "");
+      document.getElementById(payload.blockId+"-unapproved").setAttribute("enabled", "");
+      document.getElementById(payload.blockId+"-approved") .removeAttribute("enabled", "");
+      document.getElementById(payload.blockId+"-approved").setAttribute("disabled", "");
+      document.getElementById(payload.blockId+"-approved").setAttribute("class", `ui icon button empty float-right`)
+      
+
+    }else if (payload.statusCode == "empty"||payload.statusCode == "edited") {
+      document.getElementById(payload.blockId+"-unapproved").setAttribute("class", `ui icon button empty float-right`)
+      document.getElementById(payload.blockId+"-unapproved").setAttribute("enabled", "");
+      document.getElementById(payload.blockId+"-unapproved") .removeAttribute("disabled", "");
+      document.getElementById(payload.blockId+"-approved").setAttribute("class", `ui icon button empty float-right`)
+      document.getElementById(payload.blockId+"-approved").setAttribute("enabled", "");
+      document.getElementById(payload.blockId+"-approved") .removeAttribute("disabled", "");
+    }
+
+  }else if (payload.result == "This block has not been modified."){
+    $("#alert-header").text("Verification error");
+    $("#alert-message").text(
+      'This block has not been modified.'
+    );
+    $("#alert-modal").modal("show");
+  }else if (payload.result == "failed"){
+    $("#alert-header").text("Verification error");
+    $("#alert-message").text(
+      'Unable to update verification.'
+    );
+    $("#alert-modal").modal("show");
+  }
+})
 
 /**
  * If user exit or going elsewhere which can be caused this project window closed

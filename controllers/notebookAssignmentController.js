@@ -6,6 +6,7 @@ const Redis = require("ioredis");
 var fs = require("fs");
 var markdown = require("markdown").markdown;
 const redis = new Redis();
+const VerificationProject = mongoose.model("VerificationProject")
 
 // Import Turndown module
 const TurndownService = require('turndown');
@@ -544,3 +545,31 @@ exports.deleteAssignment = async (req, res) => {
   });
 };
 
+
+exports.verificationProject = async (req, res) => {
+  console.log("verificationProject ", req.body.blockId)
+  let blockId = req.body.blockId;
+  let pid =  req.body.pid;
+  let verification = await VerificationProject.findOne({blockId,pid})
+  console.log("result: ",verification)
+  
+  if(verification!==null){
+    let verificationProject = await VerificationProject.updateOne(
+      {
+        bid: blockId,
+        pid: pid
+      },
+      {
+        $set:{
+          amountTofix: verification.amountTofix +1,
+          statusCode: "approved",
+          verificationStudentId: req.user.username
+        }
+      }
+    )
+    resStatus="completed"
+  }else{
+    resStatus = "ยังไม่ได้โค้ด" 
+  }
+  res.send({resStatus:resStatus})
+}

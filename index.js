@@ -34,6 +34,8 @@ require('./models/score')
 require('./models/history')
 require('./models/collaborativeProject')
 require('./models/commentNotebookAssignment')
+require('./models/verificationProject')
+// require('./models/verificationProject')
 
 
 /**

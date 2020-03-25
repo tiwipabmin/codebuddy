@@ -459,3 +459,14 @@ fieldset {
 .footer-index {
     z-index: 1;
 }
+
+.ui.icon.button.approved.float-right{
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+
+.ui.icon.button.unapproved.float-right{
+    background-color: #db2828; /* Green */
+    color: white;
+}
+

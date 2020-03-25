@@ -15,6 +15,7 @@ const User = mongoose.model("User");
 const Comment = mongoose.model("Comment");
 const History = mongoose.model("History");
 const CollaborativeProject = mongoose.model("CollaborativeProject");
+const VerificationProject = mongoose.model("VerificationProject")
 
 exports.getHomepage = (req, res) => {
   res.render("index");
@@ -141,6 +142,7 @@ exports.getPlayground = async (req, res) => {
   else if(branch_type[0]["branch_type"] == "DSBA"){
     let group = [];
     console.log("OK Playground DSBA")
+
     let project = await CollaborativeProject.findOne({ pid: req.query.pid });
     for(let username in project.collaborator){
       // console.log("member ", project.collaborator[member])
@@ -170,6 +172,8 @@ exports.getPlayground = async (req, res) => {
       notebookAssignment.title = notebookAssignment.title;
       notebookAssignment.description = notebookAssignment.description;
     }
+
+    let verificationProject = await VerificationProject.find({ pid: req.query.pid });
    
     dataSets = {
       origins: { notebookAssignment: notebookAssignment, section: section,  project: project, group:group },
@@ -179,6 +183,21 @@ exports.getPlayground = async (req, res) => {
     let filePath = notebookAssignment.filePath;
     let dirPath = "./public/notebookAssignment/" + filePath.split(".ipynb")[0]+"/"+ project.pid+"/"+ filePath;
     let cells = readFileNotebookAssignment(dirPath)
+    let objCells = JSON.parse(cells)
+   
+    for(let i in objCells){
+      if(objCells[i].cellType == "code"){
+        let statusCode =  verificationProject.map(function(obj) { return obj.bid}).indexOf(Number( objCells [i].blockId))
+        if( statusCode != -1){
+          objCells[i].statusCode = verificationProject[statusCode].statusCode;
+        }else {
+          objCells[i].statusCode = "empty";
+        }
+      }
+     
+    }
+    cells = JSON.stringify(objCells)
+      
     saveFileToRedis(cells, notebookAssignment.notebook_assignment_id)
 
     res.render("playground_collaborative", { dataSets, title: title , cells : JSON.parse(cells) , dirPath:dirPath });
@@ -570,11 +589,7 @@ exports.getSection = async (req, res) => {
   /// branch type = DSBA
   
   else{
-
-    console.log("aew DSBA -----------------" )
-
     console.log("OK DSBA")
-    console.log("section_id ", section_id)
     let queryStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id AND e.section_id = " +
     section_id +
@@ -607,10 +622,8 @@ exports.getSection = async (req, res) => {
 
   if (!students.length) students = [];
   if (!assignments.length) {
-    console.log("!assignments.length")
     assignments = [];
   } else if (assignments.length) {
-    console.log("assignments.length ", assignments.length)
     for (_index in assignments) {
       assignments[_index].notebook_assignment_id = cryptr.encrypt(
         assignments[_index].notebook_assignment_id
@@ -654,11 +667,8 @@ exports.getSection = async (req, res) => {
     };
   } 
   else {
-    console.log("occupation == student")
     occupation = 1;
     let cloneAssignments = Object.assign({}, assignments);
-    console.log("cloneAssignments ", cloneAssignments)
-    console.log("req.user.username ", req.user.username)
     let projects = await CollaborativeProject.find({
       $and: [
         { available_project: { $ne: false } },
@@ -670,8 +680,6 @@ exports.getSection = async (req, res) => {
         }
       ]
     }).sort({ createdAt: -1 });
-    
-    console.log("projects ", projects)
     /**
      * projects change data type from array to object
      */
@@ -718,8 +726,6 @@ exports.getSection = async (req, res) => {
         pairingSessions: JSON.stringify(pairingSessions)
       }
     };
-
-    console.log("dataSets ========================== ", dataSets)
   }
 
     res.render("collaberative",{ dataSets, title: section.course_name })

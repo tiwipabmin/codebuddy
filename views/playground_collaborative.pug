@@ -134,16 +134,16 @@ block content
                                 label.ui.teal.circular.label#user-point-label average score : 0
 
         .twelve.wide.column.right
-          .ui.grid
-            .sixteen.wide.column
-              p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") project score : 0
-              //- a.ui.label(style='margin-left:10px;' href='/history?pid='+dataSets.origins.project.pid+'&curUser='+curUser+'&section_id='+dataSets.origins.section.section_id) view history
-              button.ui.icon.button.negative.float-right(id='run' onClick='deleteBlock()' data-tooltip="Delete Block" data-inverted="")
-                  i.minus.icon
-              button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
-                  i.plus.icon
-              button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
-                  i.play.icon
+          //- .ui.grid
+          //-   .sixteen.wide.column
+          //-     p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") project score : 0
+          //-     //- a.ui.label(style='margin-left:10px;' href='/history?pid='+dataSets.origins.project.pid+'&curUser='+curUser+'&section_id='+dataSets.origins.section.section_id) view history
+          //-     button.ui.icon.button.negative.float-right(id='run' onClick='deleteBlock()' data-tooltip="Delete Block" data-inverted="")
+          //-         i.minus.icon
+          //-     button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
+          //-         i.plus.icon
+          //-     button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
+          //-         i.play.icon
               
 
           //- file tab  
@@ -168,21 +168,51 @@ block content
                                 p !{cells[i]["source"]} 
                                 textarea(id=`${cells[i]["blockId"]}` style="display:none;").show      
                   else if `${cells[i]["cellType"]}` === "code"
-                    .cell.code_cell.rendered(id=`${cells[i]["blockId"]}-div`)
-                      .input(id=`${cells[i]["blockId"]}-input`)
-                        .prompt_container
-                          .prompt.input_prompt(id=`${cells[i]["blockId"]}-in`)
-                            bdi In &nbsp; 
-                            bdi [!{cells[i]["executionCount"]}]:
-                        .inner_cell
-                          .input_area(style="margin-top: 25px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
+                    .cell.code_cell.rendered(id=`${cells[i]["blockId"]}-div` style="padding-top: 2em; padding-bottom: 2em")
+                      .ui.grid
+                        .two.wide.column
+                            .prompt_container
+                              .prompt.input_prompt(id=`${cells[i]["blockId"]}-in`)
+                                bdi In &nbsp; 
+                                bdi [!{cells[i]["executionCount"]}]:
+                        .four.wide.column
+                          p#recently-codder(style='color: gray; margin-left: 1em') Aew Aew Suttida
+                          //- a.ui.label(style='margin-left:10px;' href='/history?pid='+dataSets.origins.project.pid+'&curUser='+curUser+'&section_id='+dataSets.origins.section.section_id) view history
+                        .ten.wide.column(style="padding-right:35px;")
+                          if `${cells[i].statusCode}` == "unapproved"
+                            button.ui.icon.button.float-right(class=`${cells[i]["statusCode"]}` id=`${cells[i]["blockId"]}-unapproved` onClick=`verificationUpdate('${cells[i]["blockId"]}', '${dataSets.origins.project.pid}', 'unapproved')` data-tooltip="Un approved" data-inverted="" )
+                                i.close.icon
+                            button.ui.icon.button.empty.float-right( id=`${cells[i]["blockId"]}-approved` onClick=`verificationUpdate('${cells[i]["blockId"]}', '${dataSets.origins.project.pid}', 'approved')` data-tooltip="Approved" data-inverted="" disabled )
+                                i.check.icon 
+                          else if  `${cells[i].statusCode}` == "approved"
+                            button.ui.icon.button.empty.float-right( id=`${cells[i]["blockId"]}-unapproved` onClick=`verificationUpdate('${cells[i]["blockId"]}', '${dataSets.origins.project.pid}', 'unapproved')` data-tooltip="Un approved" data-inverted="" disabled)
+                                i.close.icon
+                            button.ui.icon.button.float-right(class=`${cells[i]["statusCode"]}` id=`${cells[i]["blockId"]}-approved` onClick=`verificationUpdate('${cells[i]["blockId"]}', '${dataSets.origins.project.pid}', 'approved')` data-tooltip="Approved" data-inverted="" )
+                                i.check.icon 
+                          else
+                            button.ui.icon.button.float-right(class=`${cells[i]["statusCode"]}` id=`${cells[i]["blockId"]}-unapproved` onClick=`verificationUpdate('${cells[i]["blockId"]}', '${dataSets.origins.project.pid}', 'unapproved')` data-tooltip="Un approved" data-inverted="")
+                                i.close.icon
+                            button.ui.icon.button.float-right(class=`${cells[i]["statusCode"]}` id=`${cells[i]["blockId"]}-approved` onClick=`verificationUpdate('${cells[i]["blockId"]}', '${dataSets.origins.project.pid}', 'approved')` data-tooltip="Approved" data-inverted="" )
+                                i.check.icon 
+                          .option(id=`${cells[i]["blockId"]}-codderOption`)
+                            button.ui.icon.button.negative.float-right(id=`${cells[i]["blockId"]}-deleteBlock` onClick='deleteBlock()' data-tooltip="Delete Block" data-inverted="")
+                                i.minus.icon
+                            button.ui.icon.button.blue.float-right(id=`${cells[i]["blockId"]}-addBlock` onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
+                                i.plus.icon
+                            button.ui.icon.button.positive.float-right(id=`${cells[i]["blockId"]}-run` onClick='runCode()' data-tooltip="Run Code" data-inverted="")
+                                i.play.icon
+                          
+                  
+                      .inner_cell
+                        .input(id=`${cells[i]["blockId"]}-input`)
+                          .input_area(style="margin-top: 8px; padding-left:8em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
                             textarea(id=`${cells[i]["blockId"]}`).show      
                       if `${cells[i]["outputs"].length}` != 0
                         .output(id=`${cells[i]["blockId"]}-output`)
                           .output_subarea.output_text(style="padding-left:8em; padding-right:25px;")
                             - for(var y = 0; y < `${cells[i]["outputs"].length}`; y++)
                                 if `${cells[i]["outputs"][y]["text"].length}` != 0
-                                  div(id=i+'-div-output' style="background-color: #f5f5f5; margin-top: 25px;margin-bottom: 1em; padding-left:2em;padding-top:1em;padding-bottom:1em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
+                                  div(id=i+'-div-output' style="background-color: #f5f5f5; margin-top: 10px;margin-bottom: 1em; padding-left:2em;padding-bottom:1em; padding-right:25px; border: 10px; solid #cfcfcf; border-radius: 2px;")
                                       - for(let z = 0; z < `${cells[i]["outputs"][y]["text"].length}`; z++)
                                         | !{cells[i]["outputs"][y]["text"][z]} <br>  
                 input(type='hidden' id='projectFiles' value=`${JSON.stringify(cells)}`)

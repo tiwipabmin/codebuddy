@@ -9,6 +9,7 @@ const markdown = require("markdown").markdown;
 const fs = require("fs");
 const User = mongoose.model("User");
 const CollaborativeProject = mongoose.model("CollaborativeProject");
+const VerificationProject = mongoose.model("VerificationProject")
 exports.getStudentsFromSection = async (req, res) => {
   
     let groups = []
