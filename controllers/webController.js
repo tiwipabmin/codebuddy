@@ -205,7 +205,6 @@ exports.getPlayground = async (req, res) => {
       }
      
     }
-    console.log("objece ", objCells[8])
     cells = JSON.stringify(objCells)
       
     saveFileToRedis(cells, notebookAssignment.notebook_assignment_id)
