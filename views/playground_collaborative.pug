@@ -45,8 +45,9 @@ block content
     .ui.segment.container.notebook_app.command_mode
         .middle.aligned.column
             h1.ui.header.centered !{dataSets.origins.notebookAssignment.title}
-            
             input(type='hidden' id='pid' value=`${dataSets.origins.project.pid}`)
+
+
     .ui.grid
         .four.wide.column
           .ui.top.attached.tabular.demo.menu
@@ -81,7 +82,7 @@ block content
                         input(type="checkbox" name='checkbox-file', value=file)
                         label=file+'.py'       
             .actions
-              button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
+              button.ui.button.approve.green(id='exportBtn' onClick='onClickExport('+aaa+')') Export
               .ui.button.approve.red(data-value='cancel') Cancel  
 
               style.
@@ -130,34 +131,9 @@ block content
                               p.user-role-label.text-center
                             div.content.padding-10
                               p.header #{`${dataSets.origins.group[i].info.firstname}`}   #{`${dataSets.origins.group[i].info.lastname}`} <b> (@#{`${dataSets.origins.group[i].username}`}) </b>
-                              div.description
-                                label.ui.teal.circular.label#user-point-label average score : 0
+                              
 
         .twelve.wide.column.right
-          //- .ui.grid
-          //-   .sixteen.wide.column
-          //-     p#project-score-point.ui.red.circular.label(data-tooltip="Project Score" data-inverted="") project score : 0
-          //-     //- a.ui.label(style='margin-left:10px;' href='/history?pid='+dataSets.origins.project.pid+'&curUser='+curUser+'&section_id='+dataSets.origins.section.section_id) view history
-          //-     button.ui.icon.button.negative.float-right(id='run' onClick='deleteBlock()' data-tooltip="Delete Block" data-inverted="")
-          //-         i.minus.icon
-          //-     button.ui.icon.button.blue.float-right(id='addBlock' onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
-          //-         i.plus.icon
-          //-     button.ui.icon.button.positive.float-right(id='run' onClick='runCode()' data-tooltip="Run Code" data-inverted="")
-          //-         i.play.icon
-              
-
-          //- file tab  
-
-          .ui.form
-            .ui.top.attached.tabular.file.menu(id='file-tabs')
-              each file, index in  ["test.py"]
-                if index == 0
-                  a.active.item(id=file data-tab='main' onClick=`getActiveTab()`) main.py
-                else
-                  a.item(id=file data-tab=file onClick=`getActiveTab()`)=file+'.py' 
-                    span(onClick=`closeTab()`)
-                      i.delete.icon(id='close-tab-icon')        
-
           .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")
                 - for (var i=0 ; i < `${cells.length}` ; i++)
                   if `${cells[i]["cellType"]}` === "markdown"
@@ -223,7 +199,43 @@ block content
     a.button.ui.labeled.icon.button(href='/classroom?section_id='+dataSets.origins.section.section_id, style='margin-top:20px;')
       i.reply.icon
       font Back
+    p !{user.img}
+    p img
+  .ui.chatbox(id="live-chat")
+    header.clearfix
+      eight.wide.column(style="float: left;")
+        i.comments.icon(style="float: left;")
+        p Chat
+      eight.wide.column(style="float: right;")
+        i.angle.up.icon(id="angle-up")
+    .chat
+      .chat-history
+        .ui.items.message-list(id="chatheight")
+          if dataSets.reforms.messages.length == 0
+            .ui.item
+            | Send message to your pair.
+          else
+            - for (var i=0 ; i < `${dataSets.reforms.messages.length}` ; i++)
+              .ui.item
+                if (dataSets.reforms.messages[i].uid != user._id)
+                  img.ui.avatar.image(src= dataSets.reforms.messages[i].img)
+                  .curve-box #{dataSets.reforms.messages[i].message}
+                else
+                  .content
+                  .curve-box-user #{dataSets.reforms.messages[i].message}
 
+
+      .ui.chatbottom
+        p#show-is-typing
+          .ui.form(action='/project' method='POST')
+            .field
+              .ui.grid
+                .twelve.wide.column
+                  input.ui.input(type='text' id="inputMessage" name='message' placeholder='Type here')
+                .four.wide.column
+                  button.ui.button.icon(type='submit' onClick='sendMessage()')
+                    i.send.icon
+      .twelve.wide.column.right
   style(type="text/css").
     .CodeMirror {
       border: 1px solid #eee;
@@ -245,10 +257,12 @@ block content
   script.
     let user="#{user.username}"
     let uid="#{user._id}"
-    
+   
+  script(src='/js/app/main.js')
   script(src='/js/static/socket.io.min.js')
   script(src='/xterm/xterm.js')
   script(src='/codemirror/lib/codemirror.js')
   script(src='/codemirror/mode/python/python.js')
   script(src='/js/app/notebookAssignment.js')
+
 

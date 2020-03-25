@@ -9,6 +9,7 @@ const childprocess = require("child_process");
 const Comment = mongoose.model("commentNotebookAssignment");
 const VerificationProject = mongoose.model("VerificationProject")
 const User = mongoose.model("User")
+const Message = mongoose.model("collaborativeMessage");
 
 
 
@@ -580,25 +581,28 @@ module.exports = (io, client,redis, Projects) => {
     }
   });
 
-    /**
+  /**
    * `send message` event fired when user send chat message from front-end
    * @param {Object} payload code from editor
    */
   client.on("send message", payload => {
     const message = payload.message;
     const uid = payload.uid;
-    const messageModel = {
-      pid: projectId,
-      uid: uid,
-      message: message,
-      createdAt: Date.now()
-    };
-    new Message(messageModel, err => {
-      if (err) throw err;
-    }).save();
+
+    
     const user = User.where({ _id: uid }).findOne(function(err, user) {
       if (err);
       if (user) {
+        const messageModel = {
+          pid: projectId,
+          uid: uid,
+          message: message,
+          createdAt: Date.now(),
+          img : user.img
+        };
+        new Message(messageModel, err => {
+          if (err) throw err;
+        }).save();
         const response = {
           user: user,
           message: messageModel
