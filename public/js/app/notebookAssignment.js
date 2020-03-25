@@ -13,7 +13,6 @@ function getCodeFocusBlock() {
 }
 
 socket.on("update blockStatus", payload => {
-  console.log(" payload.sattus front" , payload)
   blockStatus = payload
 });
 /**
@@ -138,16 +137,15 @@ function newEditorFacade(fileName, cellType) {
  
 }
 
-const theOneFunc = delay => {
-  console.log('Hello after ' + delay + ' seconds');
-  const index = blockStatus.findIndex(x => x.owner === user);
-  console.log(" indexindexindex ------------" , index)
+function setTime () {
+  console.log("the one blockStatus = " , blockStatus);
+  let index = blockStatus.findIndex(x => x.id === detectFocusBlock)
   blockStatus.splice(index, 1);
-  console.log(blockStatus);
   socket.emit("update block status", {
     blockStatus: blockStatus
     
   });
+
   var prevFocusBlock = detectFocusBlock;
 
   socket.emit("codemirror on focus", {
@@ -171,7 +169,7 @@ function setStatusBlock(detectFocusBlock , cm){
   //true = delete block id in list
   activeOwner = blockStatus.map(function(d) { return d['owner']; });
  if(activeOwner.includes(user)){
-    const index = blockStatus.findIndex(x => x.owner === user);
+    let index = blockStatus.findIndex(x => x.owner === user);
     blockStatus.splice(index, 1);
     console.log(" index " , index)
 
@@ -190,18 +188,17 @@ function setStatusBlock(detectFocusBlock , cm){
 
   if(blockStatus.some(checkBlockId)){
     
-  console.log("lock")
     return "lock"
 
   }
   else{
-    console.log("unlock")
     let block  = {
       id : detectFocusBlock,
       owner : user,
-      time : setTimeout(theOneFunc, 3 * 1000, 3)
+      time : setTimeout(setTime, 10000)
       
     }
+    console.log("unlock " , block)
 
     blockStatus.push(block)
     socket.emit("update block status", {
@@ -262,6 +259,7 @@ function setEditor(fileName, cellType) {
 
   cm.on("focus", cm => {
     console.log("detectFocusBlock ",detectFocusBlock)
+
     var prevFocusBlock = detectFocusBlock;
     /**
      * find index of focusing codemirror in editors array.
@@ -287,22 +285,7 @@ function setEditor(fileName, cellType) {
           newFocus: detectFocusBlock,
           readOnlyStatus: false
         });
-       
-        // delete border prevFocusBlock 
-        // activeBlock = blockStatus.map(function(d) { return d['id']; });
-        // if(!activeBlock.includes(prevFocusBlock)){
-        //   console.log(" delete border prevFocusBlock  ")
-        //  document.getElementById(
-        //    editors[prevFocusBlock].blockId + "-div"
-        //  ).style.border = "";
-        //  }
-     
-        // document.getElementById(
-        //   editors[detectFocusBlock].blockId + "-div"
-        // ).style.border = "thin solid #2185d0";
-        // document.getElementById(
-        //   editors[detectFocusBlock].blockId + "-div"
-        // ).style.borderLeft = "thick solid #2185d0";
+ 
 
       }else{
         console.log( " prevFocusBlock when click lock block " , prevFocusBlock )
@@ -419,6 +402,7 @@ function setOnChangeEditer(fileName) {
     return obj.blockId == fileName;
   });
 
+ 
   blockObj.editor.on("change", (ins, data) => {
     var text = data.text.toString().charCodeAt(0);
     // console.log("data.text.toString() : " + data.text.toString());
@@ -426,7 +410,7 @@ function setOnChangeEditer(fileName) {
     var remove = data.removed;
     var isEnter = false;
     var isDelete = false;
-
+    
     /**
      * check when enter new line
      **/
@@ -466,16 +450,9 @@ function setOnChangeEditer(fileName) {
       });
     }
 
-    // var test =  blockObj.editor.getValue();
- 
-    // console.log("test",test )
-    // var blockObj2 = editors.find(obj => {
-    //   if( obj.blockId == fileName){
-    //     console.log("obj[fileName].editor", obj.editor)
-    //     obj.editor.setValue(test);
-    //   }
-    // });
-    // editors.set()
+
+  
+
 
     socket.emit("code change", {
       code: data,
@@ -485,9 +462,35 @@ function setOnChangeEditer(fileName) {
       isEnter: isEnter,
       isDelete: isDelete,
       currentTab: fileName,
-      fileName: fileName
+      fileName: fileName,
+      detectFocusBlock : detectFocusBlock
     });
   });
+
+
+}
+
+
+function updateTimeStatus(blockChange){
+  console.log(" updateTimeStatus blockStatus 1" , blockStatus)
+  if( blockStatus[0] != undefined){
+  console.log(" u func detectFocusBlock" , blockChange)
+    let i = blockStatus.findIndex(x => x.id === blockChange);
+    console.log(" blockStatus[i] = " ,blockStatus[i] )
+
+      if(blockStatus[i] != undefined){
+        console.log( " i = " , i)
+        clearTimeout(blockStatus[i].time)
+        // blockStatus[i].time = setTimeout(setTime, 10000)
+        console.log(" updateTimeStatus blockStatus 2" , blockStatus[i].time)
+
+        socket.emit("update block status", {
+          blockStatus: blockStatus
+          
+        });
+       
+      }
+   }
 }
 
 /**
@@ -506,14 +509,18 @@ socket.on("focus block", payload => {
  * Recieve new changes editor value from server and applied them to local editor
  */
 socket.on("editor update", payload => {
-  console.log("editor update")
+  code = payload.code
+  console.log(" code = " , code)
+
   var blockObj = editors.find(obj => {
-    return obj.blockId == payload.fileName;
+    return obj.blockId == code.fileName;
   });
-  blockObj.editor.replaceRange(payload.text, payload.from, payload.to);
+  blockObj.editor.replaceRange(code.text, code.from, code.to);
   setTimeout(function() {
     blockObj.editor.refresh();
   }, 1);
+
+  updateTimeStatus(payload.detectFocusBlock)
 });
 
 /**
@@ -633,19 +640,7 @@ socket.on("update block", payload => {
             readOnlyStatus: false
           });
           
-          // activeBlock = blockStatus.map(function(d) { return d['id']; });
-          // if(!activeBlock.includes(prevFocusBlock)){
-          //  document.getElementById(
-          //    editors[prevFocusBlock].blockId + "-div"
-          //  ).style.border = "";
-          //  }
-          // document.getElementById(
-          //   editors[detectFocusBlock].blockId + "-div"
-          // ).style.border = "thin solid #2185d0";
-          // document.getElementById(
-          //   editors[detectFocusBlock].blockId + "-div"
-          // ).style.borderLeft = "thick solid #2185d0";
-
+       
           let c = cm.getCursor();
           let lineText = cm.getRange({line: c.line, ch: 0}, {line: c.line, ch: c.ch});
           let SPACES_REGEXP = /^( +$)/;
@@ -767,6 +762,7 @@ function exportNotebookFileStudent(dirPath , notebookAssingmentId){
   })
   
 }
+
 socket.on("download file", payload => {
 
   console.log("download file . on ")
@@ -786,22 +782,7 @@ socket.on("download file", payload => {
 
 socket.on("update block highlight", payload => {
 
-  console.log("blockStatus **** " , blockStatus)
-//   activeBlock = blockStatus.map(function(d) { return d['id']; });
-//  if(!activeBlock.includes(payload.prevFocus) && payload.prevFocus != -1){
-//   document.getElementById(
-//     editors[payload.prevFocus].blockId + "-div"
-//   ).style.border = "";
-//   }
- 
-//   if(payload.newFocus != -1){
-//     document.getElementById(
-//       editors[payload.newFocus].blockId + "-div"
-//     ).style.border = "thin solid #2185d0";
-//     document.getElementById(
-//       editors[payload.newFocus].blockId + "-div"
-//     ).style.borderLeft = "thick solid #2185d0";
-//   }
+
   activeBlock = blockStatus.map(function(d) { return d['id']; });
 
   
