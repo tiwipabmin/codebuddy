@@ -609,19 +609,19 @@ socket.on("update block", payload => {
       '</div>'+
 
       '<div class="four wide column">'+
-        '<p id="recently-codder" style="color: gray; margin-left: 1em">Aew Aew Suttida</p>'+
+        `<p id="`+blockId+`-codeder" style="color: gray; margin-left: 1em"></p>`+
       '</div>'+
 
       '<div class="ten wide column" style="padding-right:35px;">'+
-        '<button class="ui icon button close float-right">'+
+        `<button class="ui icon button float-right empty" id="`+blockId+`-unapproved" onClick="verificationUpdate('`+blockId+`','`+ getParameterByName("pid")+`','unapproved')" data-tooltip="Un approved">`+
         '<i class="close icon"></i>'+'</button>'+
-        '<button class="ui icon button check float-right">'+
+        `<button class="ui icon button  float-right empty" id="`+blockId+`-approved" onClick="verificationUpdate('`+blockId+`','`+ getParameterByName("pid")+`','approved')" data-tooltip="Approved">`+
         '<i class="check icon"></i>'+'</button>'+
-        '<button class="ui icon button negative float-right">'+
+        `<button class="ui icon button negative float-right" id="`+blockId+`-deleteBlock"  onClick='deleteBlock()' data-tooltip="Delete Block" >`+
         '<i class="minus icon"></i>'+'</button>'+
-        '<button class="ui icon button blue float-right">'+
+        `<button class="ui icon button blue float-right" id="`+blockId+`-addBlock" onClick='addBlock()'  data-tooltip="Add Block">`+
         '<i class="plus icon"></i>'+'</button>'+
-        '<button class="ui icon button positive float-right">'+
+        `<button class="ui icon button positive float-right" id="`+blockId+`-run" onClick='runCode()' data-tooltip="Run Code">`+
         '<i class="play icon"></i>'+'</button>'+
       '</div>' +
     '</div>'+

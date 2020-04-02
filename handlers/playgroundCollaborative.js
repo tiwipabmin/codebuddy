@@ -331,7 +331,8 @@ module.exports = (io, client,redis, Projects) => {
       executionCount: null,
       outputs: [],
       source:"",
-      blockId:payload.blockId.toString()
+      blockId:payload.blockId.toString(),
+      statusCode:"empty"
     }
 
     notebookAssignment.splice(payload.index, 0 , item)
