@@ -60,6 +60,7 @@ module.exports = (io, client,redis, Projects) => {
 
   });
 
+
   client.on("code change",  payload => {
     const origin = !!payload.code.origin && payload.code.origin !== "setValue";
     // console.log("detectFocusBlock: ", payload.detectFocusBlock)
@@ -67,10 +68,20 @@ module.exports = (io, client,redis, Projects) => {
     /**
      * origin mustn't be an `undefined` or `setValue` type
      */
+   
     if (origin) {
       // winston.info(`Emitted 'editor update' to client with pid: ${projectId}`)
+
       payload.code.fileName = payload.fileName;
-      client.to(projectId).emit("editor update", payload.code);
+
+      
+      // client.to(projectId).emit("editor update", payload.code);
+      io.in(projectId).emit("editor update", {
+        code: payload.code,
+        detectFocusBlock: payload.detectFocusBlock
+      });
+
+
       editorName = payload.fileName;
       redis.hgetall( "notebookAssignment:"+ notebookAssingmentId,
        function(err, obj) {
@@ -95,10 +106,15 @@ module.exports = (io, client,redis, Projects) => {
             JSON.stringify(cells)
         );
       });
-     
+      
     }
+      
+  
   });
+  const theOneFunc = delay => {
+    console.log("the one ");
 
+  }
 
   client.on ("save code", async payload => {
     let filename = await getFilePath(notebookAssingmentId)
