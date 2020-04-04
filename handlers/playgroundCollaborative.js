@@ -86,7 +86,7 @@ module.exports = (io, client,redis, Projects) => {
           id: id,
           timer:setInterval(intervalFunc, 1000)
         }
-         console.log("timerId = ", timerId)
+         
       }else{
         /**
          * เมื่อมีการขยับเมาส์ เพื่อเปลี่ยน block id หรือ พิมพ์

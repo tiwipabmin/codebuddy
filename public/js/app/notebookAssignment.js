@@ -269,7 +269,7 @@ socket.on("update block status timeout", payload => {
      * ส่งค่า readOnlyStatus = timeout ไป เพื่ออัปเดต hightlight
      */
     socket.emit("codemirror on focus", {
-      prevFocus: prevFocusBlock,
+      prevFocus: 0,
       newFocus: timeoutBlockId,
       readOnlyStatus: "timeout"
     });
@@ -948,16 +948,12 @@ socket.on("download file", payload => {
 socket.on("update block highlight", payload => {
 
   activeBlock = blockStatus.map(function(d) { return d['id']; });
-  
-  console.log("activeBlock--------------------", activeBlock)
-  
+ 
   if(payload.readOnlyStatus == true && payload.prevFocus != 1 && !activeBlock.includes(payload.prevFocus)){   
-   console.log("read true")
     document.getElementById(
               editors[payload.prevFocus].blockId + "-div"
             ).style.border = "";
   }else if(!payload.readOnlyStatus){
-    console.log("read false")
           if(!activeBlock.includes(payload.prevFocus) && payload.prevFocus != 1){
               document.getElementById(
                 editors[payload.prevFocus].blockId + "-div"
