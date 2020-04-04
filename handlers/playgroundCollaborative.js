@@ -1,5 +1,6 @@
 const winston = require("winston");
 const mongoose = require("mongoose");
+const moment = require("moment");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
 const conMysql = require("../mySql");
@@ -34,7 +35,7 @@ module.exports = (io, client,redis, Projects) => {
   let bufferOutput = { output: "", error: "" };
   let isSpawnText = false;
   let comments = [];
-
+  let timerId = {};
 
   spawnPython();
   detectOutput();
@@ -60,6 +61,83 @@ module.exports = (io, client,redis, Projects) => {
 
   });
 
+  /**
+   * check point 2
+   * jj author auto unlock
+   * เปลี่ยนชื่อได้ ล้อมาจากชื่อเก่าของ aew
+   */
+  client.on("update block status2", payload => {
+    
+
+    const origin = !!payload.code.origin && payload.code.origin !== "setValue"
+    if(origin){
+      let id = payload.id;
+      let owner = payload.owner;
+      let time = Date.now()
+      // let fileName = payload.fileName
+  
+      /**
+       * คลิ๊กครั้งแรก และยังไม่มีการเรียก set interval
+       */
+      if(timerId[owner] == undefined){
+        
+        timerId[owner] = 
+        {
+          id: id,
+          timer:setInterval(intervalFunc, 1000)
+        }
+         console.log("timerId = ", timerId)
+      }else{
+        /**
+         * เมื่อมีการขยับเมาส์ เพื่อเปลี่ยน block id หรือ พิมพ์
+         *  ล้างค่า interval เก่า หลังจากนั้น
+         * set interval.ใหม่ 
+         */
+        clearInterval(timerId[owner].timer);
+  
+        
+        timerId[owner] = 
+        {
+          id: id,
+          timer:setInterval(intervalFunc, 1000)
+        }
+      }
+
+    /**
+     * ถ้าต้องการให้มากกว่า 20 วิ ให้เปลี่ยนเลข 30000
+     */
+    function intervalFunc (){
+      let seconds = moment
+      .duration(30000 - (Date.now() - time))
+      .seconds();
+         
+     /**
+      * ตรวจสอบ time out 
+      * ถ้าน้อยกว่า 20 วิ ให้ ปล็ดล็อค block
+      */
+      if(seconds <= 20){
+        clearInterval(timerId[owner].timer);
+        timerId = {}
+
+        /**
+         * check point 3
+         */
+        io.in(projectId).emit("update block status timeout", {
+          id: id, // ค่า id คือ detectFocusBlock ,
+          owner: owner,
+          // fileName:fileName
+        });
+
+      }
+    
+  }
+  
+    }
+
+    
+ 
+
+  })
 
   client.on("code change",  payload => {
     const origin = !!payload.code.origin && payload.code.origin !== "setValue";

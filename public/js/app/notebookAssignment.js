@@ -154,6 +154,7 @@ function newEditorFacade(fileName, cellType) {
 
 function setTime () {
   console.log("the one blockStatus = " , blockStatus);
+  
   let index = blockStatus.findIndex(x => x.id === detectFocusBlock)
   blockStatus.splice(index, 1);
   socket.emit("update block status", {
@@ -170,10 +171,8 @@ function setTime () {
   });
 
 }
+
 function setStatusBlock(detectFocusBlock , cm){
-
-
-
   preFocusBlock = editors
       .map(function(obj) {
         return obj.editor;
@@ -185,7 +184,6 @@ function setStatusBlock(detectFocusBlock , cm){
  if(activeOwner.includes(user)){
     let index = blockStatus.findIndex(x => x.owner === user);
     blockStatus.splice(index, 1);
-    console.log(" index " , index)
 
    //delete block id in list
    socket.emit("update block status", {
@@ -193,7 +191,7 @@ function setStatusBlock(detectFocusBlock , cm){
     
   });
 
-  cm.setOption("readOnly", false); 
+  cm.setOption("readOnly", false); //can edit
 
  }
     //check if blockId in list of blockStatus ??
@@ -206,25 +204,97 @@ function setStatusBlock(detectFocusBlock , cm){
 
   }
   else{
+    
     let block  = {
       id : detectFocusBlock,
-      owner : user,
-      time : setTimeout(setTime, 10000)
-      
+      owner : user
     }
-    console.log("unlock " , block)
+    // console.log("set timeout : ", setTimeout(setTime, 10000)  )
+    // console.log("unlock " , block)
 
+    // jj author
+    //  let block  = {
+    //     id : detectFocusBlock,
+    //     owner : user
+
+    //   }
+    
+    /**
+     * push block status and emit
+     */
     blockStatus.push(block)
     socket.emit("update block status", {
       blockStatus: blockStatus
       
     });
 
+    // console.log("blockStatus : ",blockStatus)
+
+
+
+  // socket.emit("update block status2", {
+  //       id : detectFocusBlock,
+  //       owner : user
+  //   }); 
     return "unLock"
 
   }
 
 }
+
+/**
+ * check point 4
+ * jj author auto unlock
+ */
+socket.on("update block status timeout", payload => {
+  
+  let timeoutBlockId = payload.id
+  let activeBlockId = blockStatus.map(function(d) { return d['id']; });
+
+   if(activeBlockId.includes(timeoutBlockId)){
+    let index = blockStatus.findIndex(x => x.id === timeoutBlockId);
+    blockStatus.splice(index, 1);
+
+    /**
+     * check point 5
+     * ส่งค่า blockStatus ไปอัปเดตทั้งสองฝั่ง
+     */
+   socket.emit("update block status", {
+    blockStatus: blockStatus
+  });
+
+
+    /**
+     * check point 6
+     * ส่งค่า readOnlyStatus = timeout ไป เพื่ออัปเดต hightlight
+     */
+    socket.emit("codemirror on focus", {
+      prevFocus: prevFocusBlock,
+      newFocus: timeoutBlockId,
+      readOnlyStatus: "timeout"
+    });
+
+
+    /**
+     * cursor blink rate setting
+     */
+
+    // let cm = CodeMirror.fromTextArea(
+    //   document.getElementById(fileName)
+    
+    // );
+
+    // cm.on("focus", cm => {
+   
+    //   cm.setOption("readOnly", true); // cant edit
+    //   cm.setOption("cursorBlinkRate", -1);
+      
+    // });
+ }
+});
+
+
+
 
 function setEditor(fileName, cellType) {
   
@@ -273,7 +343,6 @@ function setEditor(fileName, cellType) {
 
   cm.on("focus", cm => {
     var prevFocusBlock = detectFocusBlock;
-    // let prevFocusBlockID = 
     /**
      * find index of focusing codemirror in editors array.
      **/
@@ -290,14 +359,24 @@ function setEditor(fileName, cellType) {
 
       console.log(`SET Detect focus block!! ${detectFocusBlock}`);
       status = setStatusBlock(detectFocusBlock , cm)
-
+     
       if(status == 'unLock'){
         cm.setOption("cursorBlinkRate", 530); // can edit
 
         cm.setOption("readOnly", false);
          
-        let detectFocusBlock2 = editors[detectFocusBlock]
+        // let detectFocusBlock2 = editors[detectFocusBlock]
         
+         /**
+          * check point 1
+          * jj author auto unlock
+          * เปลี่ยนชื่อได้ ล้อมาจากชื่อเก่าของ aew
+          */
+          socket.emit("update block status2", {
+            id : detectFocusBlock,
+            owner : user,
+            code: {origin:true}
+          }); 
 
         socket.emit("codemirror on focus", {
           prevFocus: prevFocusBlock,
@@ -439,8 +518,6 @@ function setOnChangeEditer(fileName) {
 
  
   blockObj.editor.on("change", (ins, data) => {
-    
-  
   
     var text = data.text.toString().charCodeAt(0);
     var enterline = parseInt(data.to.line) + 1;
@@ -514,12 +591,19 @@ function setOnChangeEditer(fileName) {
         code: data,
       })
    
-  
+    
+      /**
+       * restart timer
+       * jj author auto unlock
+       * เปลี่ยนชื่อได้ ล้อมาจากชื่อเก่าของ aew
+       */ 
+    socket.emit("update block status2", {
+      id : detectFocusBlock,
+      owner : user,
+      code: data
+    }); 
   });
-
-
 }
-
 
 function updateTimeStatus(blockChange){
   console.log(" updateTimeStatus blockStatus 1" , blockStatus)
@@ -704,9 +788,21 @@ socket.on("update block", payload => {
         // by jj
         status = setStatusBlock(detectFocusBlock , cm)
         if(status == 'unLock'){
-          cm.setOption("cursorBlinkRate", 0); // can edit
+          cm.setOption("cursorBlinkRate", 530); // can edit
   
           cm.setOption("readOnly", false); 
+
+           /**
+            * check point 1 
+            * กรณี add block
+            * jj author auto unlock
+            * เปลี่ยนชื่อได้ ล้อมาจากชื่อเก่าของ aew
+            */
+          socket.emit("update block status2", {
+            id : detectFocusBlock,
+            owner : user,
+            code: {origin:true}
+          }); 
   
           socket.emit("codemirror on focus", {
             prevFocus: prevFocusBlock,
@@ -730,9 +826,7 @@ socket.on("update block", payload => {
             newFocus: detectFocusBlock,
             readOnlyStatus: true
           });
-          // document.getElementById(
-          //   editors[prevFocusBlock].blockId + "-div"
-          // ).style.border = "";
+      
   
           cm.setOption("readOnly", true); // cant edit
           cm.setOption("cursorBlinkRate", -1); // cant edit 
@@ -854,14 +948,16 @@ socket.on("download file", payload => {
 socket.on("update block highlight", payload => {
 
   activeBlock = blockStatus.map(function(d) { return d['id']; });
-
   
-  if(payload.readOnlyStatus&& payload.prevFocus != 1 && !activeBlock.includes(payload.prevFocus)){
-           document.getElementById(
+  console.log("activeBlock--------------------", activeBlock)
+  
+  if(payload.readOnlyStatus == true && payload.prevFocus != 1 && !activeBlock.includes(payload.prevFocus)){   
+   console.log("read true")
+    document.getElementById(
               editors[payload.prevFocus].blockId + "-div"
             ).style.border = "";
   }else if(!payload.readOnlyStatus){
-
+    console.log("read false")
           if(!activeBlock.includes(payload.prevFocus) && payload.prevFocus != 1){
               document.getElementById(
                 editors[payload.prevFocus].blockId + "-div"
@@ -878,6 +974,16 @@ socket.on("update block highlight", payload => {
               ).style.borderLeft = "thick solid #2185d0";
            }
          
+  }else if(payload.readOnlyStatus == "timeout"){
+    
+    /**
+     * check point 7 
+     * end
+     */
+    document.getElementById(
+      editors[payload.newFocus].blockId + "-div"
+    ).style.border = "";
+
   }
   });
 
@@ -912,7 +1018,7 @@ function on_click_cancel_button() {
 }
 function verificationUpdate(blockId, pid, statusCode){
   let codeder =  document.getElementById(`${blockId}-codeder`).getAttribute("value")
-  if(codeder != user && codeder!="undefined"){
+  if(codeder != user && codeder!="undefined" && codeder !== null){
     let parameters = JSON.stringify({
       blockId: blockId,
       pid: pid,
