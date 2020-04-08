@@ -274,22 +274,9 @@ socket.on("update block status timeout", payload => {
       readOnlyStatus: "timeout"
     });
 
-
-    /**
-     * cursor blink rate setting
-     */
-
-    // let cm = CodeMirror.fromTextArea(
-    //   document.getElementById(fileName)
-    
-    // );
-
-    // cm.on("focus", cm => {
-   
-    //   cm.setOption("readOnly", true); // cant edit
-    //   cm.setOption("cursorBlinkRate", -1);
-      
-    // });
+    if(payload.owner == user){
+      $("#blockTimeout").modal("show");
+    }
  }
 });
 
