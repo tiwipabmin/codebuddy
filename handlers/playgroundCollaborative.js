@@ -153,11 +153,11 @@ module.exports = (io, client,redis, Projects) => {
       payload.code.fileName = payload.fileName;
 
       
-      // client.to(projectId).emit("editor update", payload.code);
-      io.in(projectId).emit("editor update", {
-        code: payload.code,
-        detectFocusBlock: payload.detectFocusBlock
-      });
+      client.to(projectId).emit("editor update", payload.code);
+      // io.in(projectId).emit("editor update", {
+      //   code: payload.code,
+      //   detectFocusBlock: payload.detectFocusBlock
+      // });
 
 
       editorName = payload.fileName;
@@ -189,10 +189,10 @@ module.exports = (io, client,redis, Projects) => {
       
   
   });
-  const theOneFunc = delay => {
-    console.log("the one ");
+  // const theOneFunc = delay => {
+  //   console.log("the one ");
 
-  }
+  // }
 
   client.on ("save code", async payload => {
     let filename = await getFilePath(notebookAssingmentId)

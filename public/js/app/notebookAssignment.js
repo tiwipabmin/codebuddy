@@ -152,25 +152,25 @@ function newEditorFacade(fileName, cellType) {
  
 }
 
-function setTime () {
-  console.log("the one blockStatus = " , blockStatus);
+// function setTime () {
+//   console.log("the one blockStatus = " , blockStatus);
   
-  let index = blockStatus.findIndex(x => x.id === detectFocusBlock)
-  blockStatus.splice(index, 1);
-  socket.emit("update block status", {
-    blockStatus: blockStatus
+//   let index = blockStatus.findIndex(x => x.id === detectFocusBlock)
+//   blockStatus.splice(index, 1);
+//   socket.emit("update block status", {
+//     blockStatus: blockStatus
     
-  });
+//   });
 
-  var prevFocusBlock = detectFocusBlock;
+//   var prevFocusBlock = detectFocusBlock;
 
-  socket.emit("codemirror on focus", {
-    prevFocus: prevFocusBlock,
-    newFocus: -1,
-    readOnlyStatus: false
-  });
+//   socket.emit("codemirror on focus", {
+//     prevFocus: prevFocusBlock,
+//     newFocus: -1,
+//     readOnlyStatus: false
+//   });
 
-}
+// }
 
 function setStatusBlock(detectFocusBlock , cm){
   preFocusBlock = editors
@@ -482,7 +482,6 @@ function deleteReview() {
 
 socket.on("update after delete review", payload => {
 
-  console.log(" update after delete review ***********")
   var blockObj = editors.find(obj => {
     return obj.blockId == payload.bid;
   });
@@ -505,7 +504,7 @@ function setOnChangeEditer(fileName) {
 
  
   blockObj.editor.on("change", (ins, data) => {
-  
+   
     var text = data.text.toString().charCodeAt(0);
     var enterline = parseInt(data.to.line) + 1;
     var remove = data.removed;
@@ -592,27 +591,23 @@ function setOnChangeEditer(fileName) {
   });
 }
 
-function updateTimeStatus(blockChange){
-  console.log(" updateTimeStatus blockStatus 1" , blockStatus)
-  if( blockStatus[0] != undefined){
-  console.log(" u func detectFocusBlock" , blockChange)
-    let i = blockStatus.findIndex(x => x.id === blockChange);
-    console.log(" blockStatus[i] = " ,blockStatus[i] )
-
-      if(blockStatus[i] != undefined){
-        console.log( " i = " , i)
-        clearTimeout(blockStatus[i].time)
-        // blockStatus[i].time = setTimeout(setTime, 10000)
-        console.log(" updateTimeStatus blockStatus 2" , blockStatus[i].time)
-
-        socket.emit("update block status", {
-          blockStatus: blockStatus
+// function updateTimeStatus(blockChange){
+//  if( blockStatus[0] != undefined){
+ 
+//     let i = blockStatus.findIndex(x => x.id === blockChange);
+   
+//       if(blockStatus[i] != undefined){
+//         console.log( " i = " , i)
+//         clearTimeout(blockStatus[i].time)
+        
+//         socket.emit("update block status", {
+//           blockStatus: blockStatus
           
-        });
+//         });
        
-      }
-   }
-}
+//       }
+//    }
+// }
 
 /**
  * Update focus block of both user
@@ -632,17 +627,19 @@ socket.on("focus block", payload => {
 socket.on("editor update", payload => {
 
   code = payload.code
-  console.log(" code = " , code)
+  
 
   var blockObj = editors.find(obj => {
-    return obj.blockId == code.fileName;
+    return obj.blockId == payload.fileName;
+    // return obj.blockId == code.fileName;
   });
-  blockObj.editor.replaceRange(code.text, code.from, code.to);
-  setTimeout(function() {
-    blockObj.editor.refresh();
-  }, 1);
+  blockObj.editor.replaceRange(payload.text, payload.from, payload.to);
+  // blockObj.editor.replaceRange(code.text, code.from, code.to);
+  // setTimeout(function() {
+  //   blockObj.editor.refresh();
+  // }, 1);
 
-  updateTimeStatus(payload.detectFocusBlock)
+  // updateTimeStatus(payload.detectFocusBlock)
 });
 
 /**
