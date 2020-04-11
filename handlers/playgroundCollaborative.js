@@ -73,8 +73,7 @@ module.exports = (io, client,redis, Projects) => {
     if(origin){
       let id = payload.id;
       let owner = payload.owner;
-      let time = Date.now()
-      // let fileName = payload.fileName
+      let time = 900 ;
   
       /**
        * คลิ๊กครั้งแรก และยังไม่มีการเรียก set interval
@@ -107,15 +106,12 @@ module.exports = (io, client,redis, Projects) => {
      * ถ้าต้องการให้มากกว่า 20 วิ ให้เปลี่ยนเลข 30000
      */
     function intervalFunc (){
-      let seconds = moment
-      .duration(30000 - (Date.now() - time))
-      .seconds();
-         
+      time -= 1;
      /**
       * ตรวจสอบ time out 
       * ถ้าน้อยกว่า 20 วิ ให้ ปล็ดล็อค block
       */
-      if(seconds <= 20){
+      if(time <= 0){
         clearInterval(timerId[owner].timer);
         timerId = {}
 

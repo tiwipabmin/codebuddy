@@ -398,7 +398,7 @@ function setOnDoubleClickEditor(BID) {
   blockObj.editor.on("dblclick", () => {
     let codeder =  document.getElementById(`${BID}-codeder`).getAttribute("value")
 
-    // if(codeder != user && codeder!="undefined"){
+    if(codeder!="undefined"){
       let A1 = blockObj.editor.getCursor().line;
       let A2 = blockObj.editor.getCursor().ch;
       let B1 = blockObj.editor.findWordAt({
@@ -430,13 +430,13 @@ function setOnDoubleClickEditor(BID) {
       }
         $(".ui.reviewer.small.modal").modal("show");
 
-    // }else{
-    //   $("#alert-header").text("Verification error");
-    //   $("#alert-message").text(
-    //     'You do not have permission to verify this code.'
-    //   );
-    //   $("#alert-modal").modal("show");
-    // }
+    }else{
+      $("#alert-header").text("Verification error");
+      $("#alert-message").text(
+        'You do not have permission to verify this code.'
+      );
+      $("#alert-modal").modal("show");
+    }
     
   });
 }
