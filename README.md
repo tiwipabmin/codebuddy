@@ -4,7 +4,7 @@ Online Collaborative Web Development Environment for Pair-Programming Technique
 # Prerequisite Technology
 ## Node.js
 ## Redis
-* Install [redis] (https://redis.io/)
+* Install [redis](https://redis.io/)
 
 
 # Installation On Server
