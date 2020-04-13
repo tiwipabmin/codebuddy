@@ -8,7 +8,7 @@ Online Collaborative Web Development Environment for Pair-Programming Technique
 * Download & Install [Redis.io](https://redis.io/).
 ### Python3 && Pylint
 * Download & Install [Python3](https://www.python.org/downloads/).
-* Command for installing pylint on WINDOWS10 and OS X
+* Command line for installing pylint on WINDOWS10 and OS X
 ```bash
 pip install pylint
 ```
