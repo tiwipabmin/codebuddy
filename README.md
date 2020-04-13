@@ -1,7 +1,13 @@
 # Codebuddy
 Online Collaborative Web Development Environment for Pair-Programming Technique
 
-# Installation
+# Prerequisite Technology
+## Node.js
+## Redis
+* Install [redis] (https://redis.io/)
+
+
+# Installation On Server
 ## Initial Nginx
 > https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-18-04
 
