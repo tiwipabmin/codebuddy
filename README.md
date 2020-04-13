@@ -2,15 +2,21 @@
 Online Collaborative Web Development Environment for Pair-Programming Technique
 
 # Prerequisite On Localhost
-## Node.js
-* Install [Node.js](https://redis.io/) version 8.x.x only.
-## Redis.io
-* Install [Redis.io](https://redis.io/).
-## Python3 && Pylint
-## MongoDB (Optional)
-* Install [MongoDB](https://www.mongodb.com/download-center/community) - you can use the another software to run mongodb.
-## MySql Workbench
-* Install [MySql](https://www.mysql.com/products/workbench/)
+### Node.js
+* Download & Install [Node.js](https://redis.io/) version 8.x.x only.
+### Redis.io
+* Download & Install [Redis.io](https://redis.io/).
+### Python3 && Pylint
+* Download & Install [Python3](https://www.python.org/downloads/)
+* Command for installing pylint on
+  - Windows10
+  ```bash
+  pip install pylint
+  ```
+### MongoDB (Optional)
+* Download & Install [MongoDB](https://www.mongodb.com/download-center/community) - you can use the another software to run mongodb.
+### MySql Workbench
+* Download & Install [MySql](https://www.mysql.com/products/workbench/)
 
 
 # Installation On Server
