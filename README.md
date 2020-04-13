@@ -1,7 +1,7 @@
 # Codebuddy
 Online Collaborative Web Development Environment for Pair-Programming Technique
 
-# Prerequisite on Localhost
+# Prerequisite
 ### Node.js
 * Download & Install [Node.js](https://redis.io/) version 8.x.x only.
 ### Redis.io
