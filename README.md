@@ -3,7 +3,7 @@ Online Collaborative Web Development Environment for Pair-Programming Technique
 
 # Prerequisite
 ### Node.js
-* Download & Install [Node.js](https://redis.io/) version 8.x.x only.
+* Download & Install [Node.js](https://nodejs.org/en/download/) version 8.x.x only.
 ### Redis.io
 * Download & Install [Redis.io](https://redis.io/).
 ### Python3 && Pylint
