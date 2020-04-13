@@ -1,10 +1,16 @@
 # Codebuddy
 Online Collaborative Web Development Environment for Pair-Programming Technique
 
-# Prerequisite Technology
+# Prerequisite On Localhost
 ## Node.js
-## Redis
-* Install [redis](https://redis.io/)
+* Install [Node.js](https://redis.io/) version 8.x.x only.
+## Redis.io
+* Install [Redis.io](https://redis.io/).
+## Python3 && Pylint
+## MongoDB (Optional)
+* Install [MongoDB](https://www.mongodb.com/download-center/community) - you can use the another software to run mongodb.
+## MySql Workbench
+* Install [MySql](https://www.mysql.com/products/workbench/)
 
 
 # Installation On Server
