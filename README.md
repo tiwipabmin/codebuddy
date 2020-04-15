@@ -1,7 +1,24 @@
 # Codebuddy
 Online Collaborative Web Development Environment for Pair-Programming Technique
 
-# Installation
+# Prerequisite
+### Node.js
+* Download & Install [Node.js](https://nodejs.org/en/download/) version 8.x.x only.
+### Redis.io
+* Download & Install [Redis.io](https://redis.io/).
+### Python3 && Pylint
+* Download & Install [Python3](https://www.python.org/downloads/).
+* Command line for installing pylint on WINDOWS10 and OS X
+```bash
+pip install pylint
+```
+### MongoDB (Optional)
+* Download & Install [MongoDB](https://www.mongodb.com/download-center/community) - you can use the another software to run mongodb.
+### MySql Workbench
+* Download & Install [MySql](https://www.mysql.com/products/workbench/).
+
+
+# Installation on Server
 ## Initial Nginx
 > https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-18-04
 
