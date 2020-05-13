@@ -241,7 +241,7 @@ module.exports = (io, client,redis, Projects) => {
     /**
      * display In[*]
      */
-    getCurrentExecute(notebookAssingmentId)
+ 
 
   });
 
@@ -361,11 +361,9 @@ module.exports = (io, client,redis, Projects) => {
          * increment execution count
          */
         // io.in(projectId).emit("update execution count", ++executionCount);
-
+        getCurrentExecute(notebookAssingmentId)
       }
-      // getCurrentExecute(notebookAssingmentId)
-      // io.emit("update execution count", ++executionCount);
-
+     
     });
   }
 

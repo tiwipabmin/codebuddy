@@ -30,13 +30,8 @@ function runCode(codeFocusBlock,focusBlock, blockId) {
 
 function onClickRunCode(){
   if(codeRunning == false){
-    for(i = 0; i < document.getElementsByClassName("ui icon button positive float-right").length;i++){
-      document.getElementsByClassName("ui icon button positive float-right")[i].removeAttribute("enabled", "");
-      document.getElementsByClassName("ui icon button positive float-right")[i].setAttribute("disabled", "");
-    }
-    
     console.log("click run")
-    codeRunning = true;
+    // codeRunning = true;
     socket.emit("codemirror runcode()", {
       codeFocusBlock: getCodeFocusBlock(),
       focusBlock: detectFocusBlock,
@@ -508,11 +503,19 @@ function deleteReview() {
 }
 
 socket.on("codemirror runcode()",payload => {
-  
-  let codeFocusBlock = payload.codeFocusBlock;
-  let focusBlock = payload.focusBlock;
-  let blockId = payload.blockId;
-  runCode(codeFocusBlock,focusBlock,blockId)
+   
+      codeRunning = true
+      for(i = 0; i < document.getElementsByClassName("ui icon button positive float-right").length;i++){
+        document.getElementsByClassName("ui icon button positive float-right")[i].removeAttribute("enabled", "");
+        document.getElementsByClassName("ui icon button positive float-right")[i].setAttribute("disabled", "");
+      }
+   
+      let codeFocusBlock = payload.codeFocusBlock;
+      let focusBlock = payload.focusBlock;
+      let blockId = payload.blockId;
+      runCode(codeFocusBlock,focusBlock,blockId)
+
+
 })
 
 socket.on("update after delete review", payload => {
