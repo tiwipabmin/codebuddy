@@ -144,9 +144,11 @@ block content
                               p.user-role-label.text-center
                             div.content.padding-10
                               p.header #{`${dataSets.origins.group[i].info.firstname}`}   #{`${dataSets.origins.group[i].info.lastname}`} <b> (@#{`${dataSets.origins.group[i].username}`}) </b>
-                              
-
         .twelve.wide.column.right
+          //- .ui.grid
+          //-   .sixteen.wide.column
+          //-     button.ui.icon.button.positive.float-right(onClick='onClickRunCode()' data-tooltip="Run Code" data-inverted="")
+          //-       i.play.icon                                     
           .ui.segment(id='segmentCodeBlock' style="margin-top: 14px")
                 - for (var i=0 ; i < `${cells.length}` ; i++)
                   if `${cells[i]["cellType"]}` === "markdown"
@@ -188,7 +190,7 @@ block content
                                 i.minus.icon
                             button.ui.icon.button.blue.float-right(id=`${cells[i]["blockId"]}-addBlock` onClick='addBlock()' data-tooltip="Add Block" data-inverted="")
                                 i.plus.icon
-                            button.ui.icon.button.positive.float-right(id=`${cells[i]["blockId"]}-run` onClick='runCode()' data-tooltip="Run Code" data-inverted="")
+                            button.ui.icon.button.positive.float-right(id=`${cells[i]["blockId"]}-run` onClick='onClickRunCode()' data-tooltip="Run Code" data-inverted="")
                                 i.play.icon
                           
                   

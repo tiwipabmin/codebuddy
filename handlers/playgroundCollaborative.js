@@ -245,6 +245,9 @@ module.exports = (io, client,redis, Projects) => {
 
   });
 
+  client.on("codemirror runcode()", async payload => {
+    io.in(projectId).emit("codemirror runcode()", payload);
+  })
   function spawnPython() {
     pythonProcess = childprocess.spawn("python", ["-i"], {});
     isSpawnText = true;

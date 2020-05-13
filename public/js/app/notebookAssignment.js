@@ -6,6 +6,7 @@ var executingBlock;
 var output = {};
 var sizeOutputObjects = 0;
 var blockStatus = []
+var codeRunning = false;
 
 function getCodeFocusBlock() {
   var codeFocusBlock = editors[detectFocusBlock].editor.getValue();
@@ -18,13 +19,33 @@ socket.on("update blockStatus", payload => {
 /**
  * Run code
  */
-function runCode() {
+function runCode(codeFocusBlock,focusBlock, blockId) {
   socket.emit("run code", {
-    codeFocusBlock: getCodeFocusBlock(),
-    focusBlock: detectFocusBlock,
-    blockId: editors[detectFocusBlock].blockId
+    codeFocusBlock: codeFocusBlock,
+    focusBlock: focusBlock,
+    blockId: blockId
   });
 
+}
+
+function onClickRunCode(){
+  if(codeRunning == false){
+    for(i = 0; i < document.getElementsByClassName("ui icon button positive float-right").length;i++){
+      document.getElementsByClassName("ui icon button positive float-right")[i].removeAttribute("enabled", "");
+      document.getElementsByClassName("ui icon button positive float-right")[i].setAttribute("disabled", "");
+    }
+    
+    console.log("click run")
+    codeRunning = true;
+    socket.emit("codemirror runcode()", {
+      codeFocusBlock: getCodeFocusBlock(),
+      focusBlock: detectFocusBlock,
+      blockId: editors[detectFocusBlock].blockId 
+    });
+  }else{
+    alert("In progress")
+  }
+ 
 }
 
 socket.on("show output", payload => {
@@ -86,6 +107,11 @@ function getCodeFocusBlock() {
 socket.on("update execution count", payload => {
   var blockId = editors[executingBlock].blockId;
   document.getElementById(blockId + "-in").innerHTML = "In [" + payload + "]:";
+  codeRunning = false;
+  for(i = 0; i < document.getElementsByClassName("ui icon button positive float-right").length;i++){
+    document.getElementsByClassName("ui icon button positive float-right")[i].removeAttribute("disabled", "");
+    document.getElementsByClassName("ui icon button positive float-right")[i].setAttribute("enabled", "");
+  }
 });
 
 
@@ -311,7 +337,8 @@ function setEditor(fileName, cellType) {
  
   cm.addKeyMap({
     "Alt-R": function(cm) {
-      runCode();
+      onClickRunCode()
+     
     },
     "Alt-N": function(cm) {
       addBlock();
@@ -479,6 +506,14 @@ function deleteReview() {
     description: $("textarea.line.reviewer.description").val()
   });
 }
+
+socket.on("codemirror runcode()",payload => {
+  
+  let codeFocusBlock = payload.codeFocusBlock;
+  let focusBlock = payload.focusBlock;
+  let blockId = payload.blockId;
+  runCode(codeFocusBlock,focusBlock,blockId)
+})
 
 socket.on("update after delete review", payload => {
 
@@ -689,7 +724,7 @@ socket.on("update block", payload => {
         '<i class="minus icon"></i>'+'</button>'+
         `<button class="ui icon button blue float-right" id="`+blockId+`-addBlock" onClick='addBlock()'  data-tooltip="Add Block">`+
         '<i class="plus icon"></i>'+'</button>'+
-        `<button class="ui icon button positive float-right" id="`+blockId+`-run" onClick='runCode()' data-tooltip="Run Code">`+
+        `<button class="ui icon button positive float-right" id="`+blockId+`-run" onClick='onClickRunCode()' data-tooltip="Run Code">`+
         '<i class="play icon"></i>'+'</button>'+
       '</div>' +
     '</div>'+
@@ -739,7 +774,8 @@ socket.on("update block", payload => {
 
     cm.addKeyMap({
       "Alt-R": function(cm) {
-        runCode();
+        onClickRunCode()
+ 
       },
       "Alt-N": function(cm) {
         addBlock();
