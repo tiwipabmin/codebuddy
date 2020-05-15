@@ -458,7 +458,7 @@ async function getFileNotebook(notebookAssingmentId){
 
   });
 
-  filePath = "../project_files/" + "/work.ipynb";
+  filePath = "../project_files/" + "/"+fileName+".ipynb";
   status = "Export File Complete!!";
   res.send({ status: status ,
     filePath : cryptr.encrypt(filePath) });

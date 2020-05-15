@@ -73,7 +73,7 @@ module.exports = (io, client,redis, Projects) => {
     if(origin){
       let id = payload.id;
       let owner = payload.owner;
-      let time = 900 ;
+      let time = 120 ;
   
       /**
        * คลิ๊กครั้งแรก และยังไม่มีการเรียก set interval

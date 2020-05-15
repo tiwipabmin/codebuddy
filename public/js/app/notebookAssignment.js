@@ -28,6 +28,8 @@ function runCode(codeFocusBlock,focusBlock, blockId) {
 
 }
 
+
+
 function onClickRunCode(){
   if(codeRunning == false){
     console.log("click run")
@@ -107,6 +109,7 @@ socket.on("update execution count", payload => {
     document.getElementsByClassName("ui icon button positive float-right")[i].removeAttribute("disabled", "");
     document.getElementsByClassName("ui icon button positive float-right")[i].setAttribute("enabled", "");
   }
+  console.log("update execution count")
 });
 
 
@@ -333,6 +336,7 @@ function setEditor(fileName, cellType) {
   cm.addKeyMap({
     "Alt-R": function(cm) {
       onClickRunCode()
+      // runCode()
      
     },
     "Alt-N": function(cm) {
@@ -778,6 +782,7 @@ socket.on("update block", payload => {
     cm.addKeyMap({
       "Alt-R": function(cm) {
         onClickRunCode()
+        // runCode()
  
       },
       "Alt-N": function(cm) {
