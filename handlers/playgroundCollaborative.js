@@ -249,7 +249,7 @@ module.exports = (io, client,redis, Projects) => {
     io.in(projectId).emit("codemirror runcode()", payload);
   })
   function spawnPython() {
-    pythonProcess = childprocess.spawn("python", ["-i"], {});
+    pythonProcess = childprocess.spawn("python3", ["-i"], {});
     isSpawnText = true;
   }
 
