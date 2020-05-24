@@ -1,8 +1,6 @@
 const winston = require("winston");
 const mongoose = require("mongoose");
 const conMysql = require('../mySql');
-const Cryptr = require("cryptr");
-const cryptr = new Cryptr("codebuddy");
 
 const Notification = mongoose.model("Notification");
 const Project = mongoose.model("Project");
@@ -26,8 +24,8 @@ module.exports = (io, client, keyStores, timerIds) => {
     let keys = {} // section key
     let curUser = 'gentleman'
     let beat = 0
-    let pingPong = ''
-    let autoDisc = ''
+    let pingPongId = ''
+    let autoDiscId = ''
 
     function sendHeartbeat() {
         client.emit('PING', { beat: beat })
@@ -48,17 +46,17 @@ module.exports = (io, client, keyStores, timerIds) => {
     client.on('PONG', (payload) => {
         if (payload.beat > beat) {
             beat = payload.beat
-            pingPong = setTimeout(sendHeartbeat, 5000)
-            clearTimeout(autoDisc)
-            autoDisc = setTimeout(automaticallyDisconnect, 6000)
+            pingPongId = setTimeout(sendHeartbeat, 5000)
+            clearTimeout(autoDiscId)
+            autoDiscId = setTimeout(automaticallyDisconnect, 6000)
         } else {
-            clearTimeout(pingPong)
+            clearTimeout(pingPongId)
         }
     })
 
     client.on('join classroom', async (payload) => {
-        pingPong = setTimeout(sendHeartbeat, 5000)
-        autoDisc = setTimeout(automaticallyDisconnect, 6000)
+        pingPongId = setTimeout(sendHeartbeat, 5000)
+        autoDiscId = setTimeout(automaticallyDisconnect, 6000)
 
         curUser = payload.username
         const occupation = payload.occupation

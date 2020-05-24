@@ -251,11 +251,23 @@ exports.getNotifications = async (req, res) => {
 exports.changeProjectNotificationStatus = async function (req, res) {
   const nid = reverseId(req.body.nid)
 
-  const disable = await Notification.updateOne(
-    { nid: nid },
-    { $set: { ["receiver." + req.user.username]: `reacted` } }
-  )
-  res.sendStatus(200);
+  try {
+    const disable = await Notification.updateMany(
+      {
+        $and: [
+          { nid: nid },
+          { "receiver.username": req.user.username }
+        ]
+      },
+      {
+        $set: { "receiver.$[].status": `interacted` } 
+      }
+    )
+    res.status(200).send('OK').end()
+  } catch (err) {
+    res.status(400).send('Bad Request').end()
+    // console.log(`Error: ${err}`)
+  }
 }
 
 function reverseId(id) {

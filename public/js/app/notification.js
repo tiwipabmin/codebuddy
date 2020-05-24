@@ -19,23 +19,6 @@ function getVarFromScript(scriptName, name) {
 const classNotiSocket = io('');
 classNotiSocket.emit('notification', {})
 
-/**
- * get query parameter from URL
- * @param {String} name parameter name that you want to get value from
- * http://stackoverflow.com/a/901144/4181203
- */
-function getParameterByName(name) {
-    const url = window.location.href;
-    const terms = url.split('\/')
-    const index = terms.indexOf(name)
-    try {
-        const result = terms[index + 1]
-        return result
-    } catch (err) {
-        return null;
-    }
-}
-
 classNotiSocket.emit('join classroom', {
     username: getVarFromScript('notification', 'data-username'),
     occupation: getVarFromScript('notification', 'data-occupation')
@@ -111,15 +94,28 @@ function createAssignmentNotificationElement(info, own) {
 
 function onClickJoinProject(element = null, nid = null, link = null) {
     data = { nid: nid, link: link }
+    $('#global_loader').attr({
+        style: 'position:fixed; display:block;'
+    })
     $.ajax({
         url: `/notifications/changeProjectNotificationStatus`,
         type: `put`,
-        data: data
+        data: data,
+        success: function (data) {
+            $('#global_loader').attr({
+                style: 'position:fixed; display:none;'
+            })
+            if (data === 'OK') {
+                element.attr({
+                    onclick: `location.href="${link}";`
+                })
+                element.click()
+            } else {
+                alert(`Server crashes!`)
+            }
+        }
     })
-    element.attr({
-        onclick: `location.href="${link}";`
-    })
-    element.click()
+
 }
 
 classNotiSocket.on('disable project notification', (payload) => {

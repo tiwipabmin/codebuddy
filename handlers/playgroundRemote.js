@@ -28,8 +28,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let index = null;
   let pythonProcess = null;
   let beat = 0;
-  let pingPong = ''
-  let autoDisc = ''
+  let pingPongId = ''
+  let autoDiscId = ''
 
   function sendHeartbeat() {
     client.emit('PING', { beat: beat })
@@ -42,11 +42,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   client.on('PONG', (payload) => {
     if (payload.beat > beat) {
       beat = payload.beat
-      pingPong = setTimeout(sendHeartbeat, 5000)
-      clearTimeout(autoDisc)
-      autoDisc = setTimeout(automaticallyDisconnect, 6000)
+      pingPongId = setTimeout(sendHeartbeat, 5000)
+      clearTimeout(autoDiscId)
+      autoDiscId = setTimeout(automaticallyDisconnect, 6000)
     } else {
-      clearTimeout(pingPong)
+      clearTimeout(pingPongId)
     }
   })
 
@@ -57,8 +57,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   client.on("join project", async payload => {
     try {
-      pingPong = setTimeout(sendHeartbeat, 5000)
-      autoDisc = setTimeout(automaticallyDisconnect, 6000)
+      pingPongId = setTimeout(sendHeartbeat, 5000)
+      autoDiscId = setTimeout(automaticallyDisconnect, 6000)
 
       projectId = payload.pid;
       curUser = payload.username;
@@ -249,8 +249,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
           delete projects[projectId];
           client.leave(projectId);
-          clearTimeout(pingPong)
-          clearTimeout(autoDisc)
+          clearTimeout(pingPongId)
+          clearTimeout(autoDiscId)
 
           await Project.updateOne(
             {
