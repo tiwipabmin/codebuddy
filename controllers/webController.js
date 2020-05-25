@@ -252,7 +252,7 @@ exports.changeProjectNotificationStatus = async function (req, res) {
   const nid = reverseId(req.body.nid)
 
   try {
-    const disable = await Notification.updateMany(
+    const disable = await Notification.updateOne(
       {
         $and: [
           { nid: nid },
@@ -260,7 +260,10 @@ exports.changeProjectNotificationStatus = async function (req, res) {
         ]
       },
       {
-        $set: { "receiver.$[].status": `interacted` } 
+        $set: { "receiver.$[element].status": `interacted` }
+      },
+      {
+        arrayFilters: [{ "element.username": req.user.username }]
       }
     )
     res.status(200).send('OK').end()
