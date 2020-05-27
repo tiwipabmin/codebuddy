@@ -670,7 +670,7 @@ module.exports = (io, client, redis, projects) => {
     }
 
     let pylintProcess;
-    var args = ["-j", "4"];
+    var args = ["-j", "1"];
 
     Object.keys(code).forEach(function(key) {
       args.push("./public/project_files/" + projectId + "/" + key + ".py");

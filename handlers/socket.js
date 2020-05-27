@@ -20,7 +20,7 @@ module.exports = (server) => {
       if (payload.programming_style == 'Interactive') {
         require('./playgroundInteractive.js')(io, client, redis, projects, keyStores, timerIds)
       } else if (payload.programming_style == 'Co-located') {
-        require('./playgroundCo_located.js')(io, client, redis, projects, keyStores, timerIds)
+        require('./playgroundCoLocated.js')(io, client, redis, projects, keyStores, timerIds)
       } else if (payload.programming_style == 'Remote') {
         require('./playgroundRemote.js')(io, client, redis, projects, keyStores, timerIds)
       } else if (payload.programming_style == 'Individual') {

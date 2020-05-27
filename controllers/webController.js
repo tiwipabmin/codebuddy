@@ -100,20 +100,20 @@ exports.getPlayground = async (req, res) => {
     }
   };
   if (project.programming_style == "Interactive") {
-    res.render("playground_interactive", {
+    res.render("playgroundInteractive", {
       dataSets,
       title: `${project.title} - Playground`,
       partner_obj
     });
   } else if (project.programming_style == "Co-located") {
-    res.render("playground_co_located", {
+    res.render("playgroundCoLocated", {
       dataSets,
       title: `${project.title} - Playground`,
       messages,
       partner_obj
     });
   } else if (project.programming_style == "Remote") {
-    res.render("playground_remote", {
+    res.render("playgroundRemote", {
       dataSets,
       title: `${project.title} - Playground`,
       partner_obj
