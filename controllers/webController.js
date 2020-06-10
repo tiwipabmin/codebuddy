@@ -547,7 +547,7 @@ exports.updateSection = async (req, res) => {
     section_id;
   var courseStatus = await conMysql.updateCourse(updateCourse);
   var sectionStatus = await conMysql.updateSection(updateSection);
-  res.redirect("/classroom?section_id=" + cryptr.encrypt(section_id));
+  res.redirect("/classroom/section/" + cryptr.encrypt(section_id));
 };
 
 exports.getProjects = async (req, res) => {
@@ -2325,7 +2325,7 @@ exports.assignAssignment = async (req, res) => {
   }
 
   const pairingSessionId = req.body.pairing_session_id;
-  const swaptime = "1";
+  const swaptime = "15";
   const language = "0";
   const selectStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = " +
@@ -2335,7 +2335,6 @@ exports.assignAssignment = async (req, res) => {
   var collaborator = "examiner@codebuddy";
   var cloneStudents = {};
   var project = new Project();
-  let programming_style = "Remote";
   let tempStudents = {};
   let assignment_id = 1;
   let partnerKeys = {};
@@ -2608,7 +2607,7 @@ exports.assignAssignment = async (req, res) => {
               if (err) throw err;
             }
           );
-          console.log("Update Pro Successfully!");
+          console.log("Update Project Successfully!");
 
           // timeoutHandles.push(project._id)
 

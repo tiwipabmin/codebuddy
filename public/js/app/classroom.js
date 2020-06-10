@@ -1397,7 +1397,7 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
     // setMinute(0, 60, 'endTimeMm_a', 'dropdown')
     // setSecond(0, 60, 'endTimeSs_a', 'dropdown')
     // $('#assign_now').attr('onclick', 'on_click_assign_now_button('+JSON.stringify(assignment_is_selected)+', '+pairing_session_id+')')
-    // $('#assignment-end-time-modal').modal('show');
+    // $('#assignment-set-expiration-time').modal('show');
   } else {
     $("#alert-header").text("Select assignment");
     $("#alert-message").text(

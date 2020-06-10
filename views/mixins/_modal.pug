@@ -36,8 +36,8 @@ mixin assignmentManagementModal()
           button.ui.button.approve.green#confirm_assignment_management(type='submit') Confirm
           button.ui.button.approve.red#cancel_assignment_management(data-value='cancel') Cancel
 
-mixin assignmentEndTimeModal()
-  .ui.small.modal#assignment-end-time-modal
+mixin assignmentSetExpirationTimeModal()
+  .ui.small.modal#assignment-set-expiration-time
     i.close.icon
     .header ตั้งค่าเวลาสิ้นสุดแบบฝึกหัด
     .content
@@ -179,7 +179,7 @@ mixin settingsModal()
         input(type='hidden' name='section_id', value=`${dataSets.origins.section.section_id}`)
         .ui.basic.center.aligned.segment
           .actions
-            button.ui.button.approve.green(type='submit') Update
+            button.ui.button.approve.green(type='submit') Confirm
             .ui.button.cancel.red(data-value='cancel') Cancel
         .ui.error.message
 
@@ -201,16 +201,16 @@ mixin assignmentModal()
               input#psRemote(type='radio' name='programming_style' value='Remote')
               |  
               label Remote Pair-Programming
-          .field
-            .ui.radio.checkbox
-              input#psIndividual(type='radio' name='programming_style' value='Individual')
-              |  
-              label Individual Programming
-          .field
-            .ui.radio.checkbox
-              input#psInteractive(type='radio' name='programming_style' value='Interactive')
-              |  
-              label Interactive Programming
+          //- .field
+          //-   .ui.radio.checkbox
+          //-     input#psIndividual(type='radio' name='programming_style' value='Individual')
+          //-     |  
+          //-     label Individual Programming
+          //- .field
+          //-   .ui.radio.checkbox
+          //-     input#psInteractive(type='radio' name='programming_style' value='Interactive')
+          //-     |  
+          //-     label Interactive Programming
         .ui.grid
           .thirteen.wide.column
             .field
@@ -222,10 +222,11 @@ mixin assignmentModal()
               label Week :
               |
               input#assWeek(type='text' name='week' placeholder='Week' maxlength='3')
-        .field
-          label Description :
-          |
-          textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;')
+          .sixteen.wide.column
+            .field
+              label Description :
+              |
+              textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;')
         .ui.grid
           .two.column.row
             .column
@@ -253,7 +254,7 @@ mixin assignmentModal()
         input(type='hidden' name='sectionId', value=`${dataSets.origins.section.section_id}`)
         .ui.basic.center.aligned.segment
           .actions
-            button.ui.button.approve.green#confirmToCreateAssBtn(type='button') Update
+            button.ui.button.approve.green#confirmToCreateAssBtn(type='button') Confirm
             .ui.button.cancel.red(data-value='cancel') Cancel
         .ui.error.message
 
