@@ -20,9 +20,6 @@ $(document).ready(function() {
     closable: false,
     transition: "fade up"
   });
-  $(".newProject").click(function() {
-    $("#newProject-modal").modal("show");
-  });
   $(".first_container_menu").click(function() {
     showFirstContainer();
   });
@@ -70,76 +67,76 @@ $(document).ready(function() {
       $("#newClassroom-modal").modal("hide");
     }
   });
-  $(".ui.form.createAssignment").form({
-    fields: {
-      title: {
-        identifier: "title",
-        rules: [
-          {
-            type: "empty",
-            prompt: "Please enter your title"
-          }
-        ]
-      },
-      week: {
-        identifier: "week",
-        rules: [
-          {
-            type: "integer[1...100]",
-            prompt: "Please enter an integer value"
-          }
-        ]
-      },
-      description: {
-        identifier: "description",
-        rules: [
-          {
-            type: "empty",
-            prompt: "Please enter your description"
-          }
-        ]
-      },
-      input_specification: {
-        identifier: "input_specification",
-        rules: [
-          {
-            type: "empty",
-            prompt: "Please enter your input specification"
-          }
-        ]
-      },
-      output_specification: {
-        identifier: "output_specification",
-        rules: [
-          {
-            type: "empty",
-            prompt: "Please enter your output specification"
-          }
-        ]
-      },
-      sample_input: {
-        identifier: "sample_input",
-        rules: [
-          {
-            type: "empty",
-            prompt: "Please enter your sample input"
-          }
-        ]
-      },
-      sample_output: {
-        identifier: "sample_output",
-        rules: [
-          {
-            type: "empty",
-            prompt: "Please enter your sample output"
-          }
-        ]
-      }
-    },
-    onSuccess: function() {
-      $("#assignment-modal").modal("hide");
-    }
-  });
+  // $("#assignmentForm").form({
+  //   fields: {
+  //     title: {
+  //       identifier: "title",
+  //       rules: [
+  //         {
+  //           type: "empty",
+  //           prompt: "Please enter your title"
+  //         }
+  //       ]
+  //     },
+  //     week: {
+  //       identifier: "week",
+  //       rules: [
+  //         {
+  //           type: "integer[1...100]",
+  //           prompt: "Please enter an integer value"
+  //         }
+  //       ]
+  //     },
+  //     description: {
+  //       identifier: "description",
+  //       rules: [
+  //         {
+  //           type: "empty",
+  //           prompt: "Please enter your description"
+  //         }
+  //       ]
+  //     },
+  //     input_specification: {
+  //       identifier: "input_specification",
+  //       rules: [
+  //         {
+  //           type: "empty",
+  //           prompt: "Please enter your input specification"
+  //         }
+  //       ]
+  //     },
+  //     output_specification: {
+  //       identifier: "output_specification",
+  //       rules: [
+  //         {
+  //           type: "empty",
+  //           prompt: "Please enter your output specification"
+  //         }
+  //       ]
+  //     },
+  //     sample_input: {
+  //       identifier: "sample_input",
+  //       rules: [
+  //         {
+  //           type: "empty",
+  //           prompt: "Please enter your sample input"
+  //         }
+  //       ]
+  //     },
+  //     sample_output: {
+  //       identifier: "sample_output",
+  //       rules: [
+  //         {
+  //           type: "empty",
+  //           prompt: "Please enter your sample output"
+  //         }
+  //       ]
+  //     }
+  //   },
+  //   onSuccess: function() {
+  //     $("#assignment-modal").modal("hide");
+  //   }
+  // });
 
   pairingOrViewingisHided("pair");
   // $('#resetPair-button').click(function(){
@@ -167,6 +164,9 @@ $(document).ready(function() {
   $("#pairingSettingsModal").modal({
     closable: false
   });
+  $("#newProject-modal").modal({
+    closable: false
+  });
   $("#back-to-student-list-modal").click(function() {
     $("#student_list_modal").modal("show");
   });
@@ -175,6 +175,43 @@ $(document).ready(function() {
   });
   $(".tabular.menu .item").tab();
 });
+
+function searchPartner(element, sectionId) {
+  let parameters = { search: element.val(), sectionId: sectionId };
+  $.get("/classroom/searchPartner", parameters, function(data) {
+      $(".user-list").empty();
+      let students = data.students
+      if (students.length > 0) {
+        students.forEach(function(user) {
+          $(".user-list").append("<div class='item'><div class='right floated content'>" + 
+          "<div class='ui button add-user-button' onclick='onClickAddUserButton(\"" +user.username+"\")'>" + 
+          "Add</div></div><img class='ui avatar image' src='"+ user.img +"'>" + 
+          "<div class='content'><div class='header'>"+user.username+"</div>" + 
+          "<div class='description'><div class='ui circular labels'>" + 
+          "<a class='ui teal label'>score " + parseFloat(user.avgScore).toFixed(2) + "</a></div>" + 
+          "<div style='font-size: 12px;'>total active time: " + pad(parseInt(user.totalTime/3600)) + 
+          ":" + pad(parseInt((user.totalTime-(parseInt(user.totalTime/3600)*3600))/60)) + 
+          ":" + pad(parseInt(user.totalTime%60))+"</div></div></div></div>");
+        }, this);
+      } else {
+          $(".user-list").append("<li class='ui item'>No results</li>")
+      }         
+  })
+}
+
+function onClickSearchPartnerButton() {
+  $('#select-partner-modal').modal('show');
+  $('#newProject-modal').modal('hide');
+}
+
+function onClickAddUserButton(username) {
+  $('#collaborator').val(username)
+  $('#newProject-modal').modal('show');
+}
+
+function createProject() {
+  $('#newProject-modal').modal('show');
+}
 
 function showAssingmentModal() {
   $("#confirmToCreateAssBtn").attr({
@@ -1991,6 +2028,10 @@ function set_item_pagination_in_first_container(
             $("#items_first_container" + pagination[_index_p]).append(item);
         }
       }
+    }
+
+    if (opt) {
+
     }
   }
 }

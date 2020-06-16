@@ -1,3 +1,92 @@
+mixin partnerSelectionModal()
+  .ui.small.modal#select-partner-modal
+      i.close.icon
+      .header Select partner
+      .content
+        .ui.top.attached.tabular.menu
+          //- a.item.active(data-tab="purpose") Select by purpose
+          a.item.active(data-tab="search") Search partner
+        //- .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
+        //-   a.ui.red.ribbon.label Recommended
+        //-   .ui.grid
+        //-     .six.wide.column
+        //-         #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab(data-tooltip='The difference of the score is less than 10 points.' data-position='left center')&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
+        //-           .row
+        //-             i.large.circular.inverted.teal.line.chart.icon
+        //-           .row
+        //-             | Quality oriented
+        //-         #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 10 to 20 points.' data-position='left center')&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
+        //-           .row
+        //-             i.large.circular.inverted.teal.line.idea.icon
+        //-           .row
+        //-             | Mutual improvement
+        //-         #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 20 to 30 points.' data-position='left center')&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
+        //-           .row
+        //-             i.large.circular.inverted.teal.line.student.icon.center.aligned
+        //-           .row
+        //-             | Teaching &amp; Learning
+        //-     .ten.wide.column 
+        //-       .ui.circular.labels.your-score-label
+        //-           a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
+        //-       .ui.segment.container.user-purpose.box
+        //-         .ui.middle.aligned.animated.list.user-purpose-list
+        //-             li.ui.item Please select your purpose.
+        .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="search")
+          .ui.grid
+            .six.wide.column
+              .ui.category.search
+                .ui.icon.input
+                  input.prompt(type="text" placeholder="Search by username..." id="search-partner-input" onkeyup="searchPartner($(this), \'" + dataSets.origins.section.section_id + "\')")
+                  i.search.icon
+            .ten.wide.column 
+                .ui.segment.container.user-purpose.box
+                  .ui.middle.aligned.animated.list.user-list
+                    li.ui.item Search result
+
+mixin createProjectModal()
+  .ui.small.modal#newProject-modal
+      i.close.icon
+      .header Create New Project
+      .content
+        form.ui.form(action='/classroom/createProject', method='POST')
+          input(type='hidden' name='sectionId' value=''+`${dataSets.origins.section.section_id}`)
+          .field
+            label Project Name :
+            |  
+            input(type='text', name='title', placeholder='Your Project Name')
+          .field
+            label Description :
+            |  
+            input(type='text', name='description', placeholder='Something about your project')
+          .content
+            .ui.grid
+              .six.wide.column
+                .field
+                  label Language :
+                  select.ui.dropdown(name='language')
+                    option(value='0') Python
+              .six.wide.column
+                .field
+                  label Buddy ID :
+                  |
+                  input#collaborator(type='text',name='collaborator', placeholder='Search users...', disabled)
+              .four.wide.column
+                  button.ui.positive.labeled.icon.button(id='add-collaborator' type='button' onclick='onClickSearchPartnerButton()')
+                    i.user.icon
+                    |  Add
+          .field
+            label Time  :
+            select.ui.dropdown(name='swaptime')
+               option(value='15') 15 minutes (Recommended)
+               option(value='10') 10 minutes
+               option(value='5') 5 minutes
+               option(value='1') 1 minute
+            input(type='hidden' name='status' value="pending")
+          .ui.basic.center.aligned.segment()
+            .actions
+              button.ui.button.approve.green(type='submit') Create
+              .ui.button.approve.red(data-value='cancel') Cancel
+
 mixin alertModal()
   .ui.small.modal#alert-modal
     i.close.icon
@@ -191,25 +280,29 @@ mixin assignmentModal()
       form.ui.form.segment#assignmentForm
         .inline.fields
           label Programming Style :
-          .field
-            .ui.radio.checkbox
-              input#psCo-located(type='radio' name='programming_style' value='Co-located' checked='checked')
-              |  
-              label Conventional Pair-Programming
-          .field
-            .ui.radio.checkbox
-              input#psRemote(type='radio' name='programming_style' value='Remote')
-              |  
-              label Remote Pair-Programming
+          select.ui.dropdown(name='programming_style')
+            option(value='Remote') Remote Pair-programming
+            option(value='Co-located') Conventional Pair-programming
+            option(value='Individual') Individual Programming
+          //- .field
+          //-   .ui.radio.checkbox
+          //-     input#psCo-located(type='radio' name='programming_style' value='Co-located' checked='checked')
+          //-     |  
+          //-     label Conventional Pair-Programming
+          //- .field
+          //-   .ui.radio.checkbox
+          //-     input#psRemote(type='radio' name='programming_style' value='Remote')
+          //-     |  
+          //-     label Remote Pair-Programming
           //- .field
           //-   .ui.radio.checkbox
           //-     input#psIndividual(type='radio' name='programming_style' value='Individual')
-          //-     |  
+          //-     |
           //-     label Individual Programming
           //- .field
           //-   .ui.radio.checkbox
           //-     input#psInteractive(type='radio' name='programming_style' value='Interactive')
-          //-     |  
+          //-     |
           //-     label Interactive Programming
         .ui.grid
           .thirteen.wide.column

@@ -281,47 +281,60 @@ function reverseId(id) {
   return newId
 }
 
-// exports.createProject = async (req, res) => {
-//   const collaborator = await User.findOne({ username: req.body.collaborator });
-//   if (collaborator != null) {
-//     const project = await new Project(req.body).save();
-//     Project.update(
-//       {
-//         _id: project._id
-//       },
-//       {
-//         $set: {
-//           collaborator_id: collaborator._id
-//         }
-//       },
-//       err => {
-//         if (err) throw err;
-//       }
-//     );
-//     req.flash("success", `Successfully Created ${project.title} Project.`);
-//     /**
-//      * create directory
-//      */
-//     var dir1 = "./public/project_files";
-//     var dir2 = "./public/project_files/" + project.pid;
-//     if (!fs.existsSync(dir1)) {
-//       fs.mkdirSync(dir1);
-//     }
-//     if (!fs.existsSync(dir2)) {
-//       fs.mkdirSync(dir2);
-//     }
-//     fs.writeFile(
-//       "./public/project_files/" + project.pid + "/json.json",
-//       JSON.stringify([{ id: "0", type: "code", source: "" }]),
-//       function(err) {
-//         if (err) throw err;
-//       }
-//     );
-//   } else {
-//     req.flash("error", "Can't find @" + req.body.collaborator);
-//   }
-//   res.redirect("dashboard");
-// };
+exports.createProject = async (req, res) => {
+  const collaborator = await User.findOne({ username: req.body.collaborator });
+  if (collaborator != null) {
+    const project = await new Project(req.body).save();
+    Project.update(
+      {
+        _id: project._id
+      },
+      {
+        $set: {
+          collaborator_id: collaborator._id
+        }
+      },
+      err => {
+        if (err) throw err;
+      }
+    );
+    req.flash("success", `Successfully Created ${project.title} Project.`);
+    /**
+     * create directory
+     */
+    var dir1 = "./public/project_files";
+    var dir2 = "./public/project_files/" + project.pid;
+    if (!fs.existsSync(dir1)) {
+      fs.mkdirSync(dir1);
+    }
+    if (!fs.existsSync(dir2)) {
+      fs.mkdirSync(dir2);
+    }
+    fs.writeFile(
+      "./public/project_files/" + project.pid + "/json.json",
+      JSON.stringify([{ id: "0", type: "code", source: "" }]),
+      function (err) {
+        if (err) throw err;
+      }
+    );
+  } else {
+    req.flash("error", "Can't find @" + req.body.collaborator);
+  }
+  res.redirect("dashboard");
+};
+
+function sortNumber(numArray) {
+  for (let index1 in numArray) {
+    for (let index2 in numArray) {
+      if (numArray[index1] < numArray[index2]) {
+        let clone = numArray[index1]
+        numArray.splice(index1, 1, numArray[index2])
+        numArray.splice(index2, 1, clone)
+      }
+    }
+  }
+  return numArray
+}
 
 exports.getSection = async (req, res) => {
   let dataSets = {};
@@ -384,6 +397,8 @@ exports.getSection = async (req, res) => {
   if (occupation == "teacher") {
     occupation = 0;
 
+    weeks = sortNumber(weeks)
+
     dataSets = {
       origins: {
         occupation: occupation,
@@ -443,6 +458,7 @@ exports.getSection = async (req, res) => {
     }
 
     projects.reverse();
+    weeks = sortNumber(weeks)
 
     dataSets = {
       origins: {
@@ -792,6 +808,48 @@ exports.searchStudent = async (req, res) => {
     pairingSessionId: pairingSessionId,
     partnerKeys: req.query.partner_keys,
     pairingObjectives: req.query.pairing_objective
+  });
+};
+
+exports.searchPartner = async (req, res) => {
+  const search = req.query.search;
+  const username = req.user.username
+  const sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
+  const studentQuery =
+    "SELECT * FROM enrollment AS\
+   e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = \
+   " +
+    sectionId +
+    " AND (s.first_name LIKE '%" +
+    search +
+    "%'\
+    OR s.last_name LIKE '%" +
+    search +
+    "%' OR s.username LIKE '%" +
+    search +
+    "%')";
+  const resStudents = await conMysql.selectStudent(studentQuery);
+  console.log('resStudents, ', resStudents)
+  let students = [];
+  let user = null;
+  if (resStudents instanceof Array) {
+    for (let index in resStudents) {
+      if (resStudents[index].username != username) {
+        user = await User.findOne({
+          username: resStudents[index].username
+        });
+        if (user != null) {
+          resStudents[index].avgScore = user.avgScore;
+          resStudents[index].img = user.img;
+          resStudents[index].totalTime = user.totalTime;
+        }
+        students.push(resStudents[index]);
+      }
+    }
+  }
+  res.send({
+    students: students,
+    purpose: "none",
   });
 };
 

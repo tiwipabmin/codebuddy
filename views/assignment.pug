@@ -1,7 +1,7 @@
 extends layout/layout.pug
 
 block script
-  script(src='/js/app/assignment.js')
+  script(src='/js/app/assignment.js', data-assignments=`${dataSets.reforms.assignment}`, data-sectionId=`${dataSets.origins.section.section_id}`)
   script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
   link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
   link(rel='stylesheet' href='/css/main.css')

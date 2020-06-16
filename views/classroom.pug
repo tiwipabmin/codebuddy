@@ -23,26 +23,34 @@ block script
 
 block content
   if user.info.occupation === 'teacher'
-    +pairStudent(user, dataSets.origins.students, dataSets.origins.pairingSessions, dataSets.origins.section)
+    +pairStudent()
     +alertModal()
     +confirmModal()
     +assignmentManagementModal()
     +settingsModal()
     +assignmentModal()
     +pairingSettingsModal()
+  else
+    //- +createProjectModal()
+    //- +partnerSelectionModal()
 
   .ui.raised.very.padded.container
     .ui.centered.grid(style='padding-top:20px;')
       +detailSection()
       .ten.wide.column#first_container
         .ui.segment#segment_in_first_container
-          .ui.two.column.doubling.stackable.grid.container#ui_two_column_in_first_container(style='padding-top:20px; margin-bottom:20px;')
+          .ui.three.column.doubling.stackable.grid.container#ui_two_column_in_first_container(style='padding-top:20px; margin-bottom:20px;')
             .column
               if user.info.occupation === 'teacher'
                 h1.ui.header#headerContainer Assignment
               else
                 h1.ui.header#headerContainer My Project
-            .right.column
+            if user.info.occupation === 'student'
+              .column
+                //- button.ui.button.green(onclick='createProject()') Create Project
+            else
+              .column
+            .column
               div
                 .ui.selection.dropdown#weeks(style='float: right;')
                   i.dropdown.icon
