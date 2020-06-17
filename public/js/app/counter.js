@@ -43,9 +43,9 @@ $(document).ready(function () {
             }
           } else {
             if (columns[field] === '') {
-              newRow += '<td class=\'incorrect\'>Data Lost!</td>'
+              newRow += '<td class=\'' + columns[field] + ' incorrect\'>Data Lost!</td>'
             } else {
-              newRow += '<td>' + columns[field] + '</td>'
+              newRow += '<td class=\'' + columns[field] + '\' >' + columns[field] + '</td>'
             }
           }
 
@@ -59,7 +59,7 @@ $(document).ready(function () {
         }
         $('#totalScoreTable').append(newRow);
       }
-      console.log('totalScores, ', totalScores)
+      // console.log('totalScores, ', totalScores)
       $('#updateTotalScores').attr('onclick', 'onClickUpdateTotalScoresBtn('+JSON.stringify(totalScores)+')')
     }
     console.log('$(\'#inputFile\')[0], ', $('#inputFile')[0])
@@ -68,7 +68,7 @@ $(document).ready(function () {
 })
 
 function onClickUpdateTotalScoresBtn (totalScores) {
-  console.log('Click Total Scores Btn!!, ', totalScores)
+  // console.log('Click Total Scores Btn!!, ', totalScores)
   totalScores = {totalScores: totalScores}
   $.ajax({
     url: '/dataService/updateTotalScoreAllStudent',
@@ -76,6 +76,15 @@ function onClickUpdateTotalScoresBtn (totalScores) {
     data: totalScores,
     success: function(data){
       let status = data.status
+      let failure = data.failure
+      console.log('Failure, ', failure)
+      for (let clss in failure) {
+        console.log('Clss, ', clss)
+        $('.' + clss).attr({
+          class: clss + ' incorrect',
+          ["data-tooltip"]: 'Cannot update total score because the username is incorrect.'
+        })
+      }
       alert(status)
     }
   })

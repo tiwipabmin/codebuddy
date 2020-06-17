@@ -1452,22 +1452,25 @@ exports.updatePairing = async (req, res) => {
 exports.updateTotalScoreAllStudent = async (req, res) => {
   let totalScores = req.body.totalScores;
   let updateAvgScores = {};
+  let failure = {};
   for (let username in totalScores) {
     if (totalScores[username] === "") {
-      res.send({ status: "The total score is null!" });
+      res.status(200).send({ status: "The total score is null!" });
       return;
     } else {
       console.log("not null, ", totalScores[username]);
     }
   }
+  
   for (let username in totalScores) {
-    updateAvgScores[username] = User.findOne(
+    updateAvgScores[username] = await User.findOne(
       {
         username: username
       },
       function (err, data) {
         if (err) console.log("updateTotalScores err, ", err);
         else if (data) {
+          // console.log('Success, ', data)
           User.updateOne(
             {
               username: username
@@ -1480,11 +1483,15 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
               if (data) console.log(data);
             }
           );
+        } else {
+          failure[username] = totalScores[username]
+          console.log('Failure, ', failure)
         }
       }
     );
   }
-  res.send({ status: "Update avgScore complete!" });
+  // console.log('updateAvgScores, ', updateAvgScores)
+  res.status(200).send({ failure: failure, status: "Update avgScore complete!" });
 };
 
 exports.startAutoPairingByScoreDiff = async (req, res) => {
