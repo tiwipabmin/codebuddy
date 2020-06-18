@@ -1,9 +1,9 @@
-$(document).ready(function() {
+$(document).ready(function () {
   $("#global_loader").attr("style", "display: none");
   $("#settings-modal").modal({
     closable: false,
     transition: "fade up",
-    onApprove: function() {
+    onApprove: function () {
       //$('.ui.form').submit();
       return false;
     }
@@ -11,7 +11,7 @@ $(document).ready(function() {
   $("#assignment-modal").modal({
     closable: false,
     transition: "fade up",
-    onApprove: function() {
+    onApprove: function () {
       //$('.ui.form').submit();
       return false;
     }
@@ -20,13 +20,13 @@ $(document).ready(function() {
     closable: false,
     transition: "fade up"
   });
-  $(".first_container_menu").click(function() {
+  $(".first_container_menu").click(function () {
     showFirstContainer();
   });
-  $(".second_container_menu").click(function() {
+  $(".second_container_menu").click(function () {
     showSecondContainer();
   });
-  $(".third_container_menu").click(function() {
+  $(".third_container_menu").click(function () {
     showThirdContainer();
   });
   $(".ui.form.updateSection").form({
@@ -63,7 +63,7 @@ $(document).ready(function() {
         ]
       }
     },
-    onSuccess: function() {
+    onSuccess: function () {
       $("#newClassroom-modal").modal("hide");
     }
   });
@@ -167,10 +167,10 @@ $(document).ready(function() {
   $("#newProject-modal").modal({
     closable: false
   });
-  $("#back-to-student-list-modal").click(function() {
+  $("#back-to-student-list-modal").click(function () {
     $("#student_list_modal").modal("show");
   });
-  $("#cancelAutoPairingBtn").click(function() {
+  $("#cancelAutoPairingBtn").click(function () {
     $("#student_list_modal").modal("show");
   });
   $(".tabular.menu .item").tab();
@@ -178,24 +178,24 @@ $(document).ready(function() {
 
 function searchPartner(element, sectionId) {
   let parameters = { search: element.val(), sectionId: sectionId };
-  $.get("/classroom/searchPartner", parameters, function(data) {
-      $(".user-list").empty();
-      let students = data.students
-      if (students.length > 0) {
-        students.forEach(function(user) {
-          $(".user-list").append("<div class='item'><div class='right floated content'>" + 
-          "<div class='ui button add-user-button' onclick='onClickAddUserButton(\"" +user.username+"\")'>" + 
-          "Add</div></div><img class='ui avatar image' src='"+ user.img +"'>" + 
-          "<div class='content'><div class='header'>"+user.username+"</div>" + 
-          "<div class='description'><div class='ui circular labels'>" + 
-          "<a class='ui teal label'>score " + parseFloat(user.avgScore).toFixed(2) + "</a></div>" + 
-          "<div style='font-size: 12px;'>total active time: " + pad(parseInt(user.totalTime/3600)) + 
-          ":" + pad(parseInt((user.totalTime-(parseInt(user.totalTime/3600)*3600))/60)) + 
-          ":" + pad(parseInt(user.totalTime%60))+"</div></div></div></div>");
-        }, this);
-      } else {
-          $(".user-list").append("<li class='ui item'>No results</li>")
-      }         
+  $.get("/classroom/searchPartner", parameters, function (data) {
+    $(".user-list").empty();
+    let students = data.students
+    if (students.length > 0) {
+      students.forEach(function (user) {
+        $(".user-list").append("<div class='item'><div class='right floated content'>" +
+          "<div class='ui button add-user-button' onclick='onClickAddUserButton(\"" + user.username + "\")'>" +
+          "Add</div></div><img class='ui avatar image' src='" + user.img + "'>" +
+          "<div class='content'><div class='header'>" + user.username + "</div>" +
+          "<div class='description'><div class='ui circular labels'>" +
+          "<a class='ui teal label'>score " + parseFloat(user.avgScore).toFixed(2) + "</a></div>" +
+          "<div style='font-size: 12px;'>total active time: " + pad(parseInt(user.totalTime / 3600)) +
+          ":" + pad(parseInt((user.totalTime - (parseInt(user.totalTime / 3600) * 3600)) / 60)) +
+          ":" + pad(parseInt(user.totalTime % 60)) + "</div></div></div></div>");
+      }, this);
+    } else {
+      $(".user-list").append("<li class='ui item'>No results</li>")
+    }
   })
 }
 
@@ -237,7 +237,7 @@ function showThirdContainer() {
 }
 
 function setClassroomDetail(day, startTime, endTime) {
-  $(".settings-menu").click(function() {
+  $(".settings-menu").click(function () {
     let startTimeHh = startTime[0] + startTime[1];
     let startTimeMm = startTime[3] + startTime[4];
     let startTimeAp = startTime[5] + startTime[6];
@@ -299,7 +299,7 @@ function on_click_ui_purpose_tab(
     partnerKeys: JSON.stringify(partnerKeys),
     pairingObjectives: JSON.stringify(pairingObjectives)
   };
-  $.get("/classroom/searchStudentByPurpose", parameters, function(data) {
+  $.get("/classroom/searchStudentByPurpose", parameters, function (data) {
     $(".user-purpose-list").empty();
     let studentId = data.studentId;
     let pairingSessionId = data.pairingSessionId;
@@ -309,82 +309,82 @@ function on_click_ui_purpose_tab(
     let partnerKeys = JSON.parse(data.partnerKeys);
     let pairingObjectives = JSON.parse(data.pairingObjectives);
     if (students.length > 0) {
-      students.forEach(function(student) {
+      students.forEach(function (student) {
         if (pairingObjectives[student.enrollment_id] == -1) {
           $(".user-purpose-list").append(
             "<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton(" +
-              studentId +
-              "," +
-              student.enrollment_id +
-              ',"' +
-              purpose +
-              '","' +
-              sectionId +
-              '",' +
-              pairingSessionId +
-              ", " +
-              JSON.stringify(partnerKeys) +
-              ", " +
-              JSON.stringify(pairingObjectives) +
-              ",2)'>Add</div></div><img class='ui avatar image' src='" +
-              student.img +
-              "'><div class='content'><div class='header'>" +
-              student.first_name +
-              " " +
-              student.last_name +
-              "</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score " +
-              parseFloat(student.avg_score).toFixed(2) +
-              "</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: " +
-              pad(parseInt(student.total_time / 3600)) +
-              ":" +
-              pad(
-                parseInt(
-                  (student.total_time -
-                    parseInt(student.total_time / 3600) * 3600) /
-                    60
-                )
-              ) +
-              ":" +
-              pad(parseInt(student.total_time % 60)) +
-              "</div></div></div></div>"
+            studentId +
+            "," +
+            student.enrollment_id +
+            ',"' +
+            purpose +
+            '","' +
+            sectionId +
+            '",' +
+            pairingSessionId +
+            ", " +
+            JSON.stringify(partnerKeys) +
+            ", " +
+            JSON.stringify(pairingObjectives) +
+            ",2)'>Add</div></div><img class='ui avatar image' src='" +
+            student.img +
+            "'><div class='content'><div class='header'>" +
+            student.first_name +
+            " " +
+            student.last_name +
+            "</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score " +
+            parseFloat(student.avg_score).toFixed(2) +
+            "</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: " +
+            pad(parseInt(student.total_time / 3600)) +
+            ":" +
+            pad(
+              parseInt(
+                (student.total_time -
+                  parseInt(student.total_time / 3600) * 3600) /
+                60
+              )
+            ) +
+            ":" +
+            pad(parseInt(student.total_time % 60)) +
+            "</div></div></div></div>"
           );
         } else {
           $(".user-purpose-list").append(
             "<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton(" +
-              studentId +
-              "," +
-              student.enrollment_id +
-              ',"' +
-              purpose +
-              '","' +
-              sectionId +
-              '",' +
-              pairingSessionId +
-              ", " +
-              JSON.stringify(partnerKeys) +
-              ", " +
-              JSON.stringify(pairingObjectives) +
-              ",2)'>Add</div></div><img class='ui avatar image' src='" +
-              student.img +
-              "'><div class='content'><div class='header'>" +
-              student.first_name +
-              " " +
-              student.last_name +
-              "</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score " +
-              parseFloat(student.avg_score).toFixed(2) +
-              "</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: " +
-              pad(parseInt(student.total_time / 3600)) +
-              ":" +
-              pad(
-                parseInt(
-                  (student.total_time -
-                    parseInt(student.total_time / 3600) * 3600) /
-                    60
-                )
-              ) +
-              ":" +
-              pad(parseInt(student.total_time % 60)) +
-              "</div></div></div></div>"
+            studentId +
+            "," +
+            student.enrollment_id +
+            ',"' +
+            purpose +
+            '","' +
+            sectionId +
+            '",' +
+            pairingSessionId +
+            ", " +
+            JSON.stringify(partnerKeys) +
+            ", " +
+            JSON.stringify(pairingObjectives) +
+            ",2)'>Add</div></div><img class='ui avatar image' src='" +
+            student.img +
+            "'><div class='content'><div class='header'>" +
+            student.first_name +
+            " " +
+            student.last_name +
+            "</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score " +
+            parseFloat(student.avg_score).toFixed(2) +
+            "</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: " +
+            pad(parseInt(student.total_time / 3600)) +
+            ":" +
+            pad(
+              parseInt(
+                (student.total_time -
+                  parseInt(student.total_time / 3600) * 3600) /
+                60
+              )
+            ) +
+            ":" +
+            pad(parseInt(student.total_time % 60)) +
+            "</div></div></div></div>"
           );
         }
       }, this);
@@ -454,7 +454,7 @@ function on_click_confirm_button(parameters) {
       $("#global_loader").attr({
         style: "display: block; position: fixed;"
       });
-      $.post("/classroom/createPairingRecord", parameters, function(data) {
+      $.post("/classroom/createPairingRecord", parameters, function (data) {
         const status = data.status;
         const pairingSessions = JSON.parse(data.pairingSessions);
         const sectionId = data.sectionId;
@@ -490,21 +490,21 @@ function on_click_confirm_button(parameters) {
           $("#changePair").attr(
             "onclick",
             "onClickChangePairButton(" +
-              pairingSessions[0].pairing_session_id +
-              ', "' +
-              sectionId +
-              '")'
+            pairingSessions[0].pairing_session_id +
+            ', "' +
+            sectionId +
+            '")'
           );
           $(".ui.pointing.dropdown").dropdown();
           $("#newPairingSession").attr(
             "onclick",
             "onClickCreateSession(" +
-              pairingSessions[0].pairing_session_id +
-              ', "' +
-              sectionId +
-              '", ' +
-              pairingSessions[0].status +
-              ")"
+            pairingSessions[0].pairing_session_id +
+            ', "' +
+            sectionId +
+            '", ' +
+            pairingSessions[0].status +
+            ")"
           );
           $("#newPairingSession").attr("value", 1);
           $("#autoPairing").hide();
@@ -533,7 +533,7 @@ function on_click_confirm_button(parameters) {
         url: "/classroom/updatePairing",
         type: "put",
         data: parameters,
-        success: function(data) {
+        success: function (data) {
           var status = data.status;
           $("#loader").attr("style", "display: none");
           if (status == "Update pairing successfully") {
@@ -588,7 +588,7 @@ function on_click_confirm_button(parameters) {
       url: "/classroom/updatePairingSession",
       type: "put",
       data: parameters,
-      success: function(data) {
+      success: function (data) {
         let resStatus = data.resStatus;
         let pairingSessions = JSON.parse(data.pairingSessions);
         let sectionId = data.sectionId;
@@ -616,7 +616,7 @@ function on_click_confirm_button(parameters) {
     $("#global_loader").attr({
       style: "display: block; position: fixed;"
     });
-    $.post("/classroom/assignAssignment", parameters, function(data) {
+    $.post("/classroom/assignAssignment", parameters, function (data) {
       var res_status = data.res_status;
       if (
         res_status == "Please pair all students before assign the assignment!"
@@ -646,7 +646,7 @@ function on_click_confirm_button(parameters) {
       url: "/api/removeStudent",
       type: "delete",
       data: parameters,
-      success: function(res) {
+      success: function (res) {
         if (
           res.resStatus == "Remove the student from the classroom completed."
         ) {
@@ -668,7 +668,7 @@ function on_click_confirm_button(parameters) {
       url: "/api/deleteAssignment",
       type: "delete",
       data: parameters,
-      success: function(res) {
+      success: function (res) {
         let status = res.dataSets.origins.status;
         let assignments = JSON.parse(res.dataSets.reforms.assignments);
         let username = res.dataSets.origins.username;
@@ -725,7 +725,7 @@ function on_click_confirm_button(parameters) {
       url: "/classroom/manageAssignment",
       type: "put",
       data: parameters,
-      success: function(res) {
+      success: function (res) {
         let status = res.status;
         if (status == "Disable assignments successfully.") {
           alert(status);
@@ -747,7 +747,7 @@ function on_click_confirm_button(parameters) {
       url: "/classroom/manageAssignment",
       type: "put",
       data: parameters,
-      success: function(res) {
+      success: function (res) {
         let status = res.status;
         if (status == "Enable assignments successfully.") {
           alert(status);
@@ -762,7 +762,7 @@ function on_click_confirm_button(parameters) {
   } else if (message == "Are you sure you want to start auto pairing?") {
     // console.log('parameters, ', parameters)
     if (parameters.scoreDiff !== undefined) {
-      $.get("/classroom/startAutoPairingByScoreDiff", parameters, function(
+      $.get("/classroom/startAutoPairingByScoreDiff", parameters, function (
         res
       ) {
         if (
@@ -793,7 +793,7 @@ function on_click_confirm_button(parameters) {
         }
       });
     } else {
-      $.get("/classroom/startAutoPairingByPurpose", parameters, function(res) {
+      $.get("/classroom/startAutoPairingByPurpose", parameters, function (res) {
         // $('#confirm-header').text('Student pairing')
         // $('#confirm-message').text('Are you sure you want to cancel pairing?')
         // $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
@@ -825,7 +825,7 @@ function searchStudent(
     partner_keys: JSON.stringify(partner_keys),
     pairing_objective: JSON.stringify(pairing_objective)
   };
-  $.get("/classroom/searchStudent", parameters, function(data) {
+  $.get("/classroom/searchStudent", parameters, function (data) {
     const studentId = data.studentId;
     const students = data.students;
     const purpose = data.purpose;
@@ -835,82 +835,82 @@ function searchStudent(
     const pairingObjectives = JSON.parse(data.pairingObjectives);
     $(".user-list").empty();
     if (students.length > 0) {
-      students.forEach(function(student) {
+      students.forEach(function (student) {
         if (pairingObjectives[student.enrollment_id] == -1) {
           $(".user-list").append(
             "<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton(" +
-              studentId +
-              "," +
-              student.enrollment_id +
-              ',"' +
-              purpose +
-              '","' +
-              sectionId +
-              '",' +
-              pairingSessionId +
-              ", " +
-              JSON.stringify(partnerKeys) +
-              ", " +
-              JSON.stringify(pairingObjectives) +
-              ",2)'>Add</div></div><img class='ui avatar image' src='" +
-              student.img +
-              "'><div class='content'><div class='header'>" +
-              student.first_name +
-              " " +
-              student.last_name +
-              "</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score " +
-              parseFloat(student.avg_score).toFixed(2) +
-              "</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: " +
-              pad(parseInt(student.total_time / 3600)) +
-              ":" +
-              pad(
-                parseInt(
-                  (student.total_time -
-                    parseInt(student.total_time / 3600) * 3600) /
-                    60
-                )
-              ) +
-              ":" +
-              pad(parseInt(student.total_time % 60)) +
-              "</div></div></div></div>"
+            studentId +
+            "," +
+            student.enrollment_id +
+            ',"' +
+            purpose +
+            '","' +
+            sectionId +
+            '",' +
+            pairingSessionId +
+            ", " +
+            JSON.stringify(partnerKeys) +
+            ", " +
+            JSON.stringify(pairingObjectives) +
+            ",2)'>Add</div></div><img class='ui avatar image' src='" +
+            student.img +
+            "'><div class='content'><div class='header'>" +
+            student.first_name +
+            " " +
+            student.last_name +
+            "</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score " +
+            parseFloat(student.avg_score).toFixed(2) +
+            "</a><a class='ui green label'> Available </a></div><div style='font-size: 12px;'>total active time: " +
+            pad(parseInt(student.total_time / 3600)) +
+            ":" +
+            pad(
+              parseInt(
+                (student.total_time -
+                  parseInt(student.total_time / 3600) * 3600) /
+                60
+              )
+            ) +
+            ":" +
+            pad(parseInt(student.total_time % 60)) +
+            "</div></div></div></div>"
           );
         } else {
           $(".user-list").append(
             "<div class='item'><div class='right floated content'><div class='ui button add-partner-button' onclick='onClickAddPartnerButton(" +
-              studentId +
-              "," +
-              student.enrollment_id +
-              ',"' +
-              purpose +
-              '","' +
-              sectionId +
-              '",' +
-              pairingSessionId +
-              ", " +
-              JSON.stringify(partnerKeys) +
-              ", " +
-              JSON.stringify(pairingObjectives) +
-              ",2)'>Add</div></div><img class='ui avatar image' src='" +
-              student.img +
-              "'><div class='content'><div class='header'>" +
-              student.first_name +
-              " " +
-              student.last_name +
-              "</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score " +
-              parseFloat(student.avg_score).toFixed(2) +
-              "</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: " +
-              pad(parseInt(student.total_time / 3600)) +
-              ":" +
-              pad(
-                parseInt(
-                  (student.total_time -
-                    parseInt(student.total_time / 3600) * 3600) /
-                    60
-                )
-              ) +
-              ":" +
-              pad(parseInt(student.total_time % 60)) +
-              "</div></div></div></div>"
+            studentId +
+            "," +
+            student.enrollment_id +
+            ',"' +
+            purpose +
+            '","' +
+            sectionId +
+            '",' +
+            pairingSessionId +
+            ", " +
+            JSON.stringify(partnerKeys) +
+            ", " +
+            JSON.stringify(pairingObjectives) +
+            ",2)'>Add</div></div><img class='ui avatar image' src='" +
+            student.img +
+            "'><div class='content'><div class='header'>" +
+            student.first_name +
+            " " +
+            student.last_name +
+            "</div><div class='description'><div class='ui circular labels'><a class='ui teal label'>score " +
+            parseFloat(student.avg_score).toFixed(2) +
+            "</a><a class='ui red label'> Paired </a></div><div style='font-size: 12px;'>total active time: " +
+            pad(parseInt(student.total_time / 3600)) +
+            ":" +
+            pad(
+              parseInt(
+                (student.total_time -
+                  parseInt(student.total_time / 3600) * 3600) /
+                60
+              )
+            ) +
+            ":" +
+            pad(parseInt(student.total_time % 60)) +
+            "</div></div></div></div>"
           );
         }
       }, this);
@@ -939,84 +939,84 @@ function onClickAddPartnerButton(
       $("#ui-purpose-0").attr(
         "onclick",
         "on_click_ui_purpose_tab(" +
-          $(".ui-purpose").index($("#ui-purpose-0")) +
-          ', "' +
-          $("#ui-purpose-0").data("purpose") +
-          '", ' +
-          enrollment_id +
-          ", " +
-          pairing_session_id +
-          ', "' +
-          username +
-          '", ' +
-          avg_score +
-          ', "' +
-          section_id +
-          '", ' +
-          JSON.stringify(partner_keys) +
-          ", " +
-          JSON.stringify(pairing_objective) +
-          ")"
+        $(".ui-purpose").index($("#ui-purpose-0")) +
+        ', "' +
+        $("#ui-purpose-0").data("purpose") +
+        '", ' +
+        enrollment_id +
+        ", " +
+        pairing_session_id +
+        ', "' +
+        username +
+        '", ' +
+        avg_score +
+        ', "' +
+        section_id +
+        '", ' +
+        JSON.stringify(partner_keys) +
+        ", " +
+        JSON.stringify(pairing_objective) +
+        ")"
       );
       $("#ui-purpose-1").attr(
         "onclick",
         "on_click_ui_purpose_tab(" +
-          $(".ui-purpose").index($("#ui-purpose-1")) +
-          ', "' +
-          $("#ui-purpose-1").data("purpose") +
-          '", ' +
-          enrollment_id +
-          ", " +
-          pairing_session_id +
-          ', "' +
-          username +
-          '", ' +
-          avg_score +
-          ', "' +
-          section_id +
-          '", ' +
-          JSON.stringify(partner_keys) +
-          ", " +
-          JSON.stringify(pairing_objective) +
-          ")"
+        $(".ui-purpose").index($("#ui-purpose-1")) +
+        ', "' +
+        $("#ui-purpose-1").data("purpose") +
+        '", ' +
+        enrollment_id +
+        ", " +
+        pairing_session_id +
+        ', "' +
+        username +
+        '", ' +
+        avg_score +
+        ', "' +
+        section_id +
+        '", ' +
+        JSON.stringify(partner_keys) +
+        ", " +
+        JSON.stringify(pairing_objective) +
+        ")"
       );
       $("#ui-purpose-2").attr(
         "onclick",
         "on_click_ui_purpose_tab(" +
-          $(".ui-purpose").index($("#ui-purpose-2")) +
-          ', "' +
-          $("#ui-purpose-2").data("purpose") +
-          '", ' +
-          enrollment_id +
-          ", " +
-          pairing_session_id +
-          ', "' +
-          username +
-          '", ' +
-          avg_score +
-          ', "' +
-          section_id +
-          '", ' +
-          JSON.stringify(partner_keys) +
-          ", " +
-          JSON.stringify(pairing_objective) +
-          ")"
+        $(".ui-purpose").index($("#ui-purpose-2")) +
+        ', "' +
+        $("#ui-purpose-2").data("purpose") +
+        '", ' +
+        enrollment_id +
+        ", " +
+        pairing_session_id +
+        ', "' +
+        username +
+        '", ' +
+        avg_score +
+        ', "' +
+        section_id +
+        '", ' +
+        JSON.stringify(partner_keys) +
+        ", " +
+        JSON.stringify(pairing_objective) +
+        ")"
       );
       $("#search-user-by-input").attr(
         "onkeyup",
         'searchStudent("#search-user-by-input", ' +
-          enrollment_id +
-          ', "' +
-          section_id +
-          '", ' +
-          pairing_session_id +
-          ', "' +
-          username +
-          '", ' +
-          JSON.stringify(partner_keys) +
-          ", " +
-          JSON.stringify(pairing_objective) +
-          ")"
+        enrollment_id +
+        ', "' +
+        section_id +
+        '", ' +
+        pairing_session_id +
+        ', "' +
+        username +
+        '", ' +
+        JSON.stringify(partner_keys) +
+        ", " +
+        JSON.stringify(pairing_objective) +
+        ")"
       );
       //make user list is empty on search user panel
       $(".user-list").empty();
@@ -1106,7 +1106,7 @@ function showStudentList(
     pairingSessionId: pairingSessionId,
     command: command
   };
-  $.get("/classroom/getStudentsFromSection", parameter, function(data) {
+  $.get("/classroom/getStudentsFromSection", parameter, function (data) {
     let count = 0;
     const students = data.students;
     const partnerKeys = data.partnerKeys;
@@ -1138,50 +1138,50 @@ function showStudentList(
       if (partnerKeys[key] < 0) {
         $(".student-container").append(
           "<li id='" +
-            key +
-            "' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
-            students[key].img +
-            "'></img><div class='content'><div class='header'>" +
-            students[key].username +
-            " " +
-            students[key].last_name +
-            "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score " +
-            parseFloat(students[key].avg_score).toFixed(2) +
-            "</a></div><div style='font-size: 12px;'>total active time: " +
-            pad(parseInt(students[key].total_time / 3600)) +
-            ":" +
-            pad(
-              parseInt(
-                (students[key].total_time -
-                  parseInt(students[key].total_time / 3600) * 3600) /
-                  60
-              )
-            ) +
-            ":" +
-            pad(parseInt(students[key].total_time % 60)) +
-            "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton(" +
-            students[key].enrollment_id +
-            "," +
-            students[key].avg_score +
-            ',"' +
-            students[key].username.toString() +
-            '","' +
-            sectionId +
-            '",' +
-            pairingSessionId +
-            ", " +
-            JSON.stringify(partnerKeys) +
-            ", " +
-            JSON.stringify(pairingObjectives) +
-            ", 1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: " +
-            pad(parseInt(0 / 3600)) +
-            ":" +
-            pad(parseInt((0 - parseInt(0 / 3600) * 3600) / 60)) +
-            ":" +
-            pad(parseInt(0 % 60)) +
-            "</div><font color='#5D5D5D'> Empty </font><div class='ui circular labels' style='margin-top:2.5px; visibility:hidden;'><a class='ui teal label'> score " +
-            parseFloat(0).toFixed(2) +
-            "</a></div></div></div></div></div></div></div><div class='ui vertical divider'> - </div></li>"
+          key +
+          "' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
+          students[key].img +
+          "'></img><div class='content'><div class='header'>" +
+          students[key].username +
+          " " +
+          students[key].last_name +
+          "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score " +
+          parseFloat(students[key].avg_score).toFixed(2) +
+          "</a></div><div style='font-size: 12px;'>total active time: " +
+          pad(parseInt(students[key].total_time / 3600)) +
+          ":" +
+          pad(
+            parseInt(
+              (students[key].total_time -
+                parseInt(students[key].total_time / 3600) * 3600) /
+              60
+            )
+          ) +
+          ":" +
+          pad(parseInt(students[key].total_time % 60)) +
+          "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton(" +
+          students[key].enrollment_id +
+          "," +
+          students[key].avg_score +
+          ',"' +
+          students[key].username.toString() +
+          '","' +
+          sectionId +
+          '",' +
+          pairingSessionId +
+          ", " +
+          JSON.stringify(partnerKeys) +
+          ", " +
+          JSON.stringify(pairingObjectives) +
+          ", 1)'>Add</div></div><div class='description'><div style='font-size: 12px; visibility:hidden;'>total active time: " +
+          pad(parseInt(0 / 3600)) +
+          ":" +
+          pad(parseInt((0 - parseInt(0 / 3600) * 3600) / 60)) +
+          ":" +
+          pad(parseInt(0 % 60)) +
+          "</div><font color='#5D5D5D'> Empty </font><div class='ui circular labels' style='margin-top:2.5px; visibility:hidden;'><a class='ui teal label'> score " +
+          parseFloat(0).toFixed(2) +
+          "</a></div></div></div></div></div></div></div><div class='ui vertical divider'> - </div></li>"
         );
       } else {
         if (command == "pair") {
@@ -1226,53 +1226,53 @@ function showStudentList(
 
         $(".student-container").append(
           "<li id='" +
-            key +
-            "' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
-            students[key].img +
-            "'></img><div class='content'><div class='header'>" +
-            students[key].username +
-            " " +
-            students[key].last_name +
-            "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score " +
-            parseFloat(students[key].avg_score).toFixed(2) +
-            "</a></div><div style='font-size: 12px;'>total active time: " +
-            pad(parseInt(students[key].total_time / 3600)) +
-            ":" +
-            pad(
-              parseInt(
-                (students[key].total_time -
-                  parseInt(students[key].total_time / 3600) * 3600) /
-                  60
-              )
-            ) +
-            ":" +
-            pad(parseInt(students[key].total_time % 60)) +
-            "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
-            students[partnerKeys[key]].img +
-            "'></img><div class='content'><div class='right floated content'>" +
-            addPartnerButton +
-            "</div><div class='header'>" +
-            students[partnerKeys[key]].first_name +
-            " " +
-            students[partnerKeys[key]].last_name +
-            "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score " +
-            parseFloat(students[partnerKeys[key]].avg_score).toFixed(2) +
-            "</a></div><div style='font-size: 12px;'>total active time: " +
-            pad(parseInt(students[partnerKeys[key]].total_time / 3600)) +
-            ":" +
-            pad(
-              parseInt(
-                (students[partnerKeys[key]].total_time -
-                  parseInt(students[partnerKeys[key]].total_time / 3600) *
-                    3600) /
-                  60
-              )
-            ) +
-            ":" +
-            pad(parseInt(students[partnerKeys[key]].total_time % 60)) +
-            "</div></div></div></div></div></div></div><div class='ui vertical divider'> " +
-            pairing_objective_str +
-            " </div></li>"
+          key +
+          "' class='ui segment'><div class='ui two column very relaxed grid'><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
+          students[key].img +
+          "'></img><div class='content'><div class='header'>" +
+          students[key].username +
+          " " +
+          students[key].last_name +
+          "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'>score " +
+          parseFloat(students[key].avg_score).toFixed(2) +
+          "</a></div><div style='font-size: 12px;'>total active time: " +
+          pad(parseInt(students[key].total_time / 3600)) +
+          ":" +
+          pad(
+            parseInt(
+              (students[key].total_time -
+                parseInt(students[key].total_time / 3600) * 3600) /
+              60
+            )
+          ) +
+          ":" +
+          pad(parseInt(students[key].total_time % 60)) +
+          "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='" +
+          students[partnerKeys[key]].img +
+          "'></img><div class='content'><div class='right floated content'>" +
+          addPartnerButton +
+          "</div><div class='header'>" +
+          students[partnerKeys[key]].first_name +
+          " " +
+          students[partnerKeys[key]].last_name +
+          "</div><div class='description'><div class='ui circular labels' style='margin-top:2.5px;'><a class='ui teal label'> score " +
+          parseFloat(students[partnerKeys[key]].avg_score).toFixed(2) +
+          "</a></div><div style='font-size: 12px;'>total active time: " +
+          pad(parseInt(students[partnerKeys[key]].total_time / 3600)) +
+          ":" +
+          pad(
+            parseInt(
+              (students[partnerKeys[key]].total_time -
+                parseInt(students[partnerKeys[key]].total_time / 3600) *
+                3600) /
+              60
+            )
+          ) +
+          ":" +
+          pad(parseInt(students[partnerKeys[key]].total_time % 60)) +
+          "</div></div></div></div></div></div></div><div class='ui vertical divider'> " +
+          pairing_objective_str +
+          " </div></li>"
         );
       }
       count++;
@@ -1403,7 +1403,7 @@ function onClickAssign(
 function on_click_assign_button(assignment_of_week, pairing_session_id) {
   assignment_of_week = JSON.parse(assignment_of_week);
   let assignment_is_selected = [];
-  assignment_of_week.forEach(function(e) {
+  assignment_of_week.forEach(function (e) {
     $("#" + e.assignment_id + "_is_selected").is(":checked") == true
       ? assignment_is_selected.push(e)
       : null;
@@ -1456,7 +1456,7 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
 
 function onClickDeleteAssignment(assignment_of_week) {
   let assignment_is_selected = [];
-  assignment_of_week.forEach(function(e) {
+  assignment_of_week.forEach(function (e) {
     $("#" + e.assignment_id + "_is_selected").is(":checked") == true
       ? assignment_is_selected.push(e)
       : null;
@@ -1496,7 +1496,7 @@ function on_click_enable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "enable" }, function(res) {
+  $.get("/classroom/getWeeklyAssignments", { action: "enable" }, function (res) {
     let weeks = JSON.parse(res.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
@@ -1507,15 +1507,15 @@ function on_click_enable_assignment_button() {
         "<div class='item' id='0_week_in_dam' data-value='0'>All</div>"
       );
     }
-    weeks.forEach(function(e) {
+    weeks.forEach(function (e) {
       $("#week_amd").append(
         "<div class='item' id='" +
-          e +
-          "_week_in_dam' data-value='" +
-          e +
-          "'>" +
-          e +
-          "</div>"
+        e +
+        "_week_in_dam' data-value='" +
+        e +
+        "'>" +
+        e +
+        "</div>"
       );
     });
     $("#confirm_assignment_management").attr(
@@ -1536,7 +1536,7 @@ function on_click_disable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function(
+  $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function (
     res
   ) {
     let weeks = JSON.parse(res.weeks);
@@ -1549,15 +1549,15 @@ function on_click_disable_assignment_button() {
         "<div class='item' id='0_week_in_dam' data-value='0'>All</div>"
       );
     }
-    weeks.forEach(function(e) {
+    weeks.forEach(function (e) {
       $("#week_amd").append(
         "<div class='item' id='" +
-          e +
-          "_week_in_dam' data-value='" +
-          e +
-          "'>" +
-          e +
-          "</div>"
+        e +
+        "_week_in_dam' data-value='" +
+        e +
+        "'>" +
+        e +
+        "</div>"
       );
     });
     $("#header_amd").text("Disable Assignment");
@@ -1624,10 +1624,10 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   );
   $("#confirm-message").text(
     'Are you sure you want to remove "' +
-      first_name +
-      " " +
-      last_name +
-      '" from this classroom?'
+    first_name +
+    " " +
+    last_name +
+    '" from this classroom?'
   );
   $("#confirm-modal").modal("show");
 }
@@ -1666,14 +1666,14 @@ function checkbox_event(assignment_set, id, opt) {
   switch (opt) {
     //on click the "Check All of Box" button
     case 1:
-      assignment_of_week_.forEach(function(e) {
+      assignment_of_week_.forEach(function (e) {
         $("#" + e.assignment_id + "_is_selected").prop("checked", true);
       });
 
       break;
     //on click the "Clear Checkbox" button
     default:
-      assignment_of_week_.forEach(function(e) {
+      assignment_of_week_.forEach(function (e) {
         $("#" + e.assignment_id + "_is_selected").prop("checked", false);
       });
   }
@@ -1717,6 +1717,24 @@ function on_click_button_in_uspm(id) {
 function create_weeks_dropdown(id, pairing_session_id, dataSets) {
   $("" + id).append(
     "<div class='item' id='-1week' data-value='-1' onclick='on_click_weeks_dropdown(\"-1week\", " +
+    dataSets.assignments +
+    ', "' +
+    dataSets.username +
+    '", "' +
+    dataSets.img +
+    '", ' +
+    pairing_session_id +
+    ", 0)'>All</div>"
+  );
+  dataSets.weeks.forEach(function (e) {
+    $("" + id).append(
+      "<div class='item' id='" +
+      e +
+      "week' data-value='" +
+      e +
+      "' onclick='on_click_weeks_dropdown(\"" +
+      e +
+      'week", ' +
       dataSets.assignments +
       ', "' +
       dataSets.username +
@@ -1724,27 +1742,9 @@ function create_weeks_dropdown(id, pairing_session_id, dataSets) {
       dataSets.img +
       '", ' +
       pairing_session_id +
-      ", 0)'>All</div>"
-  );
-  dataSets.weeks.forEach(function(e) {
-    $("" + id).append(
-      "<div class='item' id='" +
-        e +
-        "week' data-value='" +
-        e +
-        "' onclick='on_click_weeks_dropdown(\"" +
-        e +
-        'week", ' +
-        dataSets.assignments +
-        ', "' +
-        dataSets.username +
-        '", "' +
-        dataSets.img +
-        '", ' +
-        pairing_session_id +
-        ", 0)'>" +
-        e +
-        "</div>"
+      ", 0)'>" +
+      e +
+      "</div>"
     );
   });
 }
@@ -1757,62 +1757,43 @@ function on_click_weeks_dropdown(
   pairing_session_id,
   opt
 ) {
-  // console.log('pairing_session_id, ', pairing_session_id)
   assignment_set = assignment_set;
   let res_obj = get_items_of_week(assignment_set, 5, id);
   let assignment_of_week_ = res_obj.items_of_week;
   let pagination = res_obj.pagination;
-  // console.log('assignment_of_week_, ', assignment_of_week_)
-
-  set_item_pagination_in_first_container(
-    pagination,
-    assignment_of_week_,
-    username,
-    img,
-    id,
-    opt
-  );
 
   $("#assign_button").attr(
     "onclick",
     "on_click_assign_button(" +
-      JSON.stringify(JSON.stringify(assignment_of_week_)) +
-      ", " +
-      pairing_session_id +
-      ")"
+    JSON.stringify(JSON.stringify(assignment_of_week_)) +
+    ", " +
+    pairing_session_id +
+    ")"
   );
   $("#delete_assignment_button").attr(
     "onclick",
     "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
   );
   $("div").remove("#assignment_pagination");
-  if (pagination[pagination.length - 1] == 1) {
-    pagination = [];
-  } else if (pagination.length) {
+  if (pagination.length) {
     $(
       "<div class='ui pagination menu' id='assignment_pagination'></div>"
     ).insertAfter("#divider_in_first_container");
   }
 
-  let item = null;
-
-  for (_index in pagination) {
-    item = $(
-      "<a class='item fc' id='page_" +
-        pagination[_index] +
-        "_first_container' onclick='on_click_page_number_in_first_container(" +
-        pagination[_index] +
-        ")'>" +
-        pagination[_index] +
-        "</a>"
-    );
-    $("#assignment_pagination").append(item);
+  let dataSets = {
+    paginations: pagination,
+    assignmentOfWeek: assignment_of_week_,
+    username: username,
+    img: img,
+    opt: opt,
+    lengthPerSet: 10
   }
 
-  on_click_page_number_in_first_container(1);
+  assignmentContainerFacade(dataSets, 1);
 }
 
-function on_click_page_number_in_first_container(page) {
+function onClickPageNumberInFirstContainer(page) {
   $(".active.item.fc").attr({
     class: "item fc"
   });
@@ -1830,12 +1811,112 @@ function on_click_page_number_in_first_container(page) {
   });
 }
 
-function set_item_pagination_in_first_container(
-  pagination,
+function assignmentContainerFacade(dataSets, container) {
+  if (container === 1) {
+    createPagination(dataSets)
+  }
+}
+
+function createPagination(dataSets) {
+  let lengthPerSet = dataSets.lengthPerSet
+  let paginations = dataSets.paginations
+  let { maxLength, paginationSets } = setForNumberOfPagination(lengthPerSet, paginations)
+  setPagination('default', 1, maxLength, paginationSets, dataSets)
+}
+
+function setForNumberOfPagination(lengthPerSet, paginations) {
+  let paginationSets = {}
+  let tmpPagination = []
+  let count = 0
+  for (let index in paginations) {
+    if (index % lengthPerSet === 0) {
+      count++;
+      tmpPagination = []
+      tmpPagination.push(paginations[index])
+      paginationSets[count] = tmpPagination
+    } else {
+      paginationSets[count].push(paginations[index])
+    }
+  }
+  return { maxLength: count, paginationSets: paginationSets }
+}
+
+function setPagination(previousOrNext, set, maxLength, paginationSets, dataSets) {
+  let tmpPaginations = paginationSets[set]
+  paginationSets = JSON.stringify(paginationSets)
+
+  createAssignmentPageInFirstContainer(
+    tmpPaginations,
+    dataSets.assignmentOfWeek,
+    dataSets.username,
+    dataSets.img,
+    dataSets.opt
+  )
+
+  let item = null;
+
+  if (set === 1 && set !== maxLength) {
+    tmpPaginations.push("next")
+  } else if (set !== 1 && set === maxLength) {
+    tmpPaginations.splice(0, 0, "previous")
+  } else if (set !== 1) {
+    tmpPaginations.push("next")
+    tmpPaginations.splice(0, 0, "previous")
+  }
+
+  $("#assignment_pagination").empty();
+  for (index in tmpPaginations) {
+    if (tmpPaginations[index] === 'next') {
+      item = $(
+        "<a class='item fc' id='page_" +
+        tmpPaginations[index] +
+        "_first_container' onclick='setPagination(\"" +
+        'next' + "\"," + 
+        (set + 1) + "," +
+        maxLength + "," +
+        paginationSets + "," +
+        JSON.stringify(dataSets) + ")'>...</a>"
+      );
+    } else if (tmpPaginations[index] === 'previous') {
+      item = $(
+        "<a class='item fc' id='page_" +
+        tmpPaginations[index] +
+        "_first_container' onclick='setPagination(\"" +
+        'previous' + "\"," + 
+        (set - 1) + "," +
+        maxLength + "," +
+        paginationSets + "," + 
+        JSON.stringify(dataSets) + ")'>...</a>"
+      );
+    } else {
+      item = $(
+        "<a class='item fc' id='page_" +
+        tmpPaginations[index] +
+        "_first_container' onclick='onClickPageNumberInFirstContainer(" +
+        tmpPaginations[index] +
+        ")'>" +
+        tmpPaginations[index] +
+        "</a>"
+      );
+    }
+
+    $("#assignment_pagination").append(item);
+  }
+
+  if (previousOrNext === 'next') {
+    onClickPageNumberInFirstContainer(tmpPaginations[1])
+  } else if (previousOrNext === 'previous') {
+    onClickPageNumberInFirstContainer(tmpPaginations[tmpPaginations.length - 2])
+  } else if (previousOrNext === 'default') {
+    onClickPageNumberInFirstContainer(1);
+  }
+}
+
+function createAssignmentPageInFirstContainer(
+  paginations,
   items_of_week,
   username,
   img,
-  week,
   opt
 ) {
   let item = null;
@@ -1846,33 +1927,33 @@ function set_item_pagination_in_first_container(
   $("div").remove(".items.first.container");
 
   $("p").remove("#no_assignment");
-  if (!pagination.length)
+  if (!paginations.length)
     $("#segment_in_first_container").append(
       "<p class='text-center' id='no_assignment'>No assignment.</p>"
     );
 
-  for (_index_p in pagination) {
-    $("div").remove("#items_first_container" + pagination[_index_p]);
+  for (_index_p in paginations) {
+    $("div").remove("#items_first_container" + paginations[_index_p]);
     $("#segment_in_first_container").append(
       "<div class='ui divided items first container' id='items_first_container" +
-        pagination[_index_p] +
-        "'></div>"
+      paginations[_index_p] +
+      "'></div>"
     );
 
-    if (pagination[_index_p] == 1) {
-      $("#items_first_container" + pagination[_index_p]).attr(
+    if (paginations[_index_p] == 1) {
+      $("#items_first_container" + paginations[_index_p]).attr(
         "class",
         "ui divided items active first container"
       );
-    } else if (pagination[_index_p] > 1) {
-      $("#items_first_container" + pagination[_index_p]).attr(
+    } else if (paginations[_index_p] > 1) {
+      $("#items_first_container" + paginations[_index_p]).attr(
         "style",
         "display: none"
       );
     }
 
     for (_index_i in items_of_week) {
-      if (items_of_week[_index_i].page == pagination[_index_p]) {
+      if (items_of_week[_index_i].page == paginations[_index_p]) {
         switch (opt) {
           case 0:
             let fourteen_wide_column = null;
@@ -1884,31 +1965,31 @@ function set_item_pagination_in_first_container(
             );
             content = $(
               "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/assignment/" +
-                assignment.assignment_id +
-                "/section/" +
-                assignment.section_id +
-                "'>" +
-                assignment.title +
-                "</b></div>"
+              assignment.assignment_id +
+              "/section/" +
+              assignment.section_id +
+              "'>" +
+              assignment.title +
+              "</b></div>"
             );
             description = $("<div class='description'>");
             grid = $("<div class='ui grid'></div>");
             fourteen_wide_column = $(
               "<div class='fourteen wide column assignment_is_selected' onclick='on_click_assignment(1, \"" +
-                assignment.assignment_id +
-                "_is_selected\")'><p style='padding-left:15px; padding-right:15px;'>" +
-                assignment.description +
-                "</p><p style='padding-left:15px; padding-right:15px;'>Programming Style : " +
-                assignment.programming_style +
-                "</p></div>"
+              assignment.assignment_id +
+              "_is_selected\")'><p style='padding-left:15px; padding-right:15px;'>" +
+              assignment.description +
+              "</p><p style='padding-left:15px; padding-right:15px;'>Programming Style : " +
+              assignment.programming_style +
+              "</p></div>"
             );
             two_wide_column = $("<div class='two wide column'></div>");
             checkbox = $(
               "<div class='ui checkbox'><input class='checkbox_is_clicked' type='checkbox' id='" +
-                assignment.assignment_id +
-                "_is_selected' onclick='on_click_assignment(0, \"" +
-                assignment.assignment_id +
-                "_is_selected\")'/><label></label></div>"
+              assignment.assignment_id +
+              "_is_selected' onclick='on_click_assignment(0, \"" +
+              assignment.assignment_id +
+              "_is_selected\")'/><label></label></div>"
             );
             item.append(content);
             content.append(description);
@@ -1916,7 +1997,7 @@ function set_item_pagination_in_first_container(
             grid.append(fourteen_wide_column);
             grid.append(two_wide_column);
             two_wide_column.append(checkbox);
-            $("#items_first_container" + pagination[_index_p]).append(item);
+            $("#items_first_container" + paginations[_index_p]).append(item);
             break;
           default:
             let project = items_of_week[_index_i];
@@ -1932,42 +2013,42 @@ function set_item_pagination_in_first_container(
               );
               div_a = $(
                 "<a href='/project/" +
-                  project.pid +
-                  "/section/" +
-                  section_id +
-                  "/role/creator" +
-                  "' class='ui tiny image' ></a>"
+                project.pid +
+                "/section/" +
+                section_id +
+                "/role/creator" +
+                "' class='ui tiny image' ></a>"
               );
               img1 = $(
                 "<img src='/images/blue-folder.png', style='position: absolute;'/>"
               );
               img2 = $(
                 "<img class='ui avatar image' src='" +
-                  img +
-                  "', style='width: 30px;height: 30px;left:25px;top: 20px;'/>"
+                img +
+                "', style='width: 30px;height: 30px;left:25px;top: 20px;'/>"
               );
               content = $("<div class='content'></div>");
               grid = $("<div class='ui grid'></div>");
               eleven_wide_column = $(
                 "<div class='eleven wide column'><b style='font-size:1.2em;'><a class='header' href='/project/" +
-                  project.pid +
-                  "/section/" +
-                  section_id +
-                  "/role/creator" +
-                  "'>" +
-                  project.title +
-                  "</a></b></div>"
+                project.pid +
+                "/section/" +
+                section_id +
+                "/role/creator" +
+                "'>" +
+                project.title +
+                "</a></b></div>"
               );
               description = $(
                 "<div class='description'><p>" +
-                  project.description +
-                  "</p><div id='" +
-                  project.pid +
-                  "Project' class='ui grid'><div class='ten wide column'><font id='" +
-                  project.pid +
-                  "TextStatus'>Last updated " +
-                  moment(project.enable_time).fromNow() +
-                  "</font></div></div></div>"
+                project.description +
+                "</p><div id='" +
+                project.pid +
+                "Project' class='ui grid'><div class='ten wide column'><font id='" +
+                project.pid +
+                "TextStatus'>Last updated " +
+                moment(project.enable_time).fromNow() +
+                "</font></div></div></div>"
               );
               div_a.append(img1);
               div_a.append(img2);
@@ -1980,43 +2061,43 @@ function set_item_pagination_in_first_container(
               item = $("<div class='item' style='padding-top:10px;'></div>");
               div_a = $(
                 "<a class='ui tiny image' href='/project/" +
-                  project.pid +
-                  "/section/" +
-                  section_id +
-                  "/role/collaborator" +
-                  "'></a>"
+                project.pid +
+                "/section/" +
+                section_id +
+                "/role/collaborator" +
+                "'></a>"
               );
               img1 = $(
                 "<img src='/images/yellow-folder.png', style='position: absolute;'/>"
               );
               img2 = $(
                 "<img class='img-owner ui avatar image' src='" +
-                  img +
-                  "', style='width: 30px;height: 30px; top: 20px;'/>"
+                img +
+                "', style='width: 30px;height: 30px; top: 20px;'/>"
               );
               img3 = $(
                 "<img class='img-partner ui avatar image' src='/images/user_img_4.jpg', style='width:30px; height:30px; top:-10px;'/>"
               );
               content = $(
                 "<div class='content'><b style='font-size:1.2em;'><a href='/project/" +
-                  project.pid +
-                  "/section/" +
-                  section_id +
-                  "/role/collaborator" +
-                  "'>" +
-                  project.title +
-                  "</a></b></div>"
+                project.pid +
+                "/section/" +
+                section_id +
+                "/role/collaborator" +
+                "'>" +
+                project.title +
+                "</a></b></div>"
               );
               description = $(
                 "<div class='description'><p>" +
-                  project.description +
-                  "</p><div id='" +
-                  project.pid +
-                  "Project' class='ui grid'><div class='ten wide column'><font id='" +
-                  project.pid +
-                  "TextStatus'>Last updated " +
-                  moment(project.enable_time).fromNow() +
-                  "</font></div></div></div>"
+                project.description +
+                "</p><div id='" +
+                project.pid +
+                "Project' class='ui grid'><div class='ten wide column'><font id='" +
+                project.pid +
+                "TextStatus'>Last updated " +
+                moment(project.enable_time).fromNow() +
+                "</font></div></div></div>"
               );
               div_a.append(img1);
               div_a.append(img2);
@@ -2025,7 +2106,7 @@ function set_item_pagination_in_first_container(
               item.append(div_a);
               item.append(content);
             }
-            $("#items_first_container" + pagination[_index_p]).append(item);
+            $("#items_first_container" + paginations[_index_p]).append(item);
         }
       }
     }
@@ -2054,8 +2135,8 @@ function monitorActiveProjects(projects) {
       ) {
         $("#" + project.pid + "Project").prepend(
           "<div id='" +
-            project.pid +
-            "IconStatus' class='one wide column'><i class='green circle icon'/></div>"
+          project.pid +
+          "IconStatus' class='one wide column'><i class='green circle icon'/></div>"
         );
         $("#" + project.pid + "TextStatus").text("Active now!");
       }
@@ -2079,7 +2160,7 @@ function setMonitoringInterval(id, intervalTime, projects) {
     projects => {
       let parameters = { projects: projects };
 
-      $.get("/api/projects", parameters, function(data) {
+      $.get("/api/projects", parameters, function (data) {
         let projects = data.projects;
         monitorActiveProjects(projects);
       });
@@ -2125,8 +2206,8 @@ function set_item_pagination_in_second_container(
     $("div").remove("#items_second_container" + pagination[_index_p]);
     $("#segment_in_second_container").append(
       "<div class='ui middle aligned divided list second container' id='items_second_container" +
-        pagination[_index_p] +
-        "'></div>"
+      pagination[_index_p] +
+      "'></div>"
     );
 
     if (pagination[_index_p] == 1) {
@@ -2146,8 +2227,8 @@ function set_item_pagination_in_second_container(
         student = students[_index_s];
         item = $(
           "<div class='item' id='" +
-            student.enrollment_id +
-            "' style='padding-left:15px; padding-right:15px;'></div>"
+          student.enrollment_id +
+          "' style='padding-left:15px; padding-right:15px;'></div>"
         );
         img = $("<img class='ui avatar image' src='/images/user_img_0.jpg'/>");
         switch (occupation) {
@@ -2159,23 +2240,23 @@ function set_item_pagination_in_second_container(
             );
             tag_a = $(
               "<a class='ui right floated aligedvertical animated button red' onclick='on_click_remove_student_button(" +
-                student.enrollment_id +
-                ',"' +
-                student.first_name +
-                '","' +
-                student.last_name +
-                "\")'><div class='hidden content' style='color:white'> Remove </div><div class='visible content'><i class='sign out icon'/></div></a>"
+              student.enrollment_id +
+              ',"' +
+              student.first_name +
+              '","' +
+              student.last_name +
+              "\")'><div class='hidden content' style='color:white'> Remove </div><div class='visible content'><i class='sign out icon'/></div></a>"
             );
             content = $(
               "<div class='content'><a href='/profile?section_id=" +
-                section_id +
-                "&username=" +
-                student.username +
-                "'><p> " +
-                student.first_name +
-                " " +
-                student.last_name +
-                " </p></a></div>"
+              section_id +
+              "&username=" +
+              student.username +
+              "'><p> " +
+              student.first_name +
+              " " +
+              student.last_name +
+              " </p></a></div>"
             );
             right_floated_content.append(tag_a);
             item.append(right_floated_content);
@@ -2186,10 +2267,10 @@ function set_item_pagination_in_second_container(
           default:
             content = $(
               "<div class='content'><p> " +
-                student.first_name +
-                " " +
-                student.last_name +
-                " </p></div>"
+              student.first_name +
+              " " +
+              student.last_name +
+              " </p></div>"
             );
             item.append(img);
             item.append(content);
@@ -2212,12 +2293,12 @@ function set_item_pagination_in_second_container(
   for (_index in pagination) {
     item = $(
       "<a class='item sc' id='page_" +
-        pagination[_index] +
-        "_second_container' onclick='on_click_page_number_in_second_container(" +
-        pagination[_index] +
-        ")'>" +
-        pagination[_index] +
-        "</a>"
+      pagination[_index] +
+      "_second_container' onclick='on_click_page_number_in_second_container(" +
+      pagination[_index] +
+      ")'>" +
+      pagination[_index] +
+      "</a>"
     );
     $("#student_pagination").append(item);
   }
@@ -2259,8 +2340,8 @@ function set_item_pagination_in_third_container(
     $("div").remove("#items_third_container" + pagination[_index_p]);
     $("#segment_in_third_container").append(
       "<div class='ui divided items third container' id='items_third_container" +
-        pagination[_index_p] +
-        "'></div>"
+      pagination[_index_p] +
+      "'></div>"
     );
 
     if (pagination[_index_p] == 1) {
@@ -2297,22 +2378,22 @@ function set_item_pagination_in_third_container(
               // console.log('pairing_session.status, ', pairing_session.status)
               tag_b = $(
                 "<b style='font-size:1.5em;'><header style='color:#5D5D5D;'> Session : " +
-                  (pairing_times - _index_o) +
-                  " </header></b>"
+                (pairing_times - _index_o) +
+                " </header></b>"
               );
               description = $(
                 "<p><b style='color:#5D5D5D'> Start at : </b><font style='color:#5D5D5D'>" +
-                  pairing_session.time_start +
-                  "</font><br><b style='color:#5D5D5D'> End at : </b><font style='color:#5D5D5D'>" +
-                  pairing_session.time_end +
-                  "</font></p>"
+                pairing_session.time_start +
+                "</font><br><b style='color:#5D5D5D'> End at : </b><font style='color:#5D5D5D'>" +
+                pairing_session.time_end +
+                "</font></p>"
               );
               button = $(
                 "<div class='ui right floated alignedvertical animated button' onclick='onClickViewPairingRecord(" +
-                  pairing_session.pairing_session_id +
-                  ', "' +
-                  section_id +
-                  "\")'><div class='hidden content' style='color:#5D5D5D;'> View </div><div class='visible content'><i class='eye icon'/></div></div>"
+                pairing_session.pairing_session_id +
+                ', "' +
+                section_id +
+                "\")'><div class='hidden content' style='color:#5D5D5D;'> View </div><div class='visible content'><i class='eye icon'/></div></div>"
               );
               extra = $(
                 "<div class='extra'><div class='ui label' id='status' style='background-color:#E8E8E8; color:#665D5D;'> COMPLETED </div></div>"
@@ -2320,26 +2401,26 @@ function set_item_pagination_in_third_container(
             } else {
               tag_b = $(
                 "<b style='font-size:1.5em;'><header> Session : " +
-                  (pairing_times - _index_o) +
-                  " </header></b>"
+                (pairing_times - _index_o) +
+                " </header></b>"
               );
               description = $(
                 "<p><b> Start at : </b><font>" +
-                  pairing_session.time_start +
-                  "</font><br><b> End at : </b><font>" +
-                  pairing_session.time_end +
-                  "</font></p>"
+                pairing_session.time_start +
+                "</font><br><b> End at : </b><font>" +
+                pairing_session.time_end +
+                "</font></p>"
               );
               button = $(
                 "<div class='ui top right floated pointing dropdown button blue' ><font color='white'> Select </font><div class='menu'><div class='item' onclick='onClickViewPairingRecord(" +
-                  pairing_session.pairing_session_id +
-                  ', "' +
-                  section_id +
-                  "\")'> View </div><div class='item' onclick='onClickCompletedSessionMenu(" +
-                  pairing_session.pairing_session_id +
-                  ', "' +
-                  section_id +
-                  "\")'> Completed </div></div></div>"
+                pairing_session.pairing_session_id +
+                ', "' +
+                section_id +
+                "\")'> View </div><div class='item' onclick='onClickCompletedSessionMenu(" +
+                pairing_session.pairing_session_id +
+                ', "' +
+                section_id +
+                "\")'> Completed </div></div></div>"
               );
               extra = $(
                 "<div class='extra'><div class='ui label' id='status' style='background-color:#16AB39; color:white;'> ACTIVE </div></div>"
@@ -2363,17 +2444,17 @@ function set_item_pagination_in_third_container(
             content = $("<div class='content'></div>");
             tag_a = $(
               "<a href='/assignment/" +
-                assignment.assignment_id +
-                "/section/" +
-                section_id +
-                "'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'>" +
-                assignment.title +
-                "</b></a>"
+              assignment.assignment_id +
+              "/section/" +
+              section_id +
+              "'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'>" +
+              assignment.title +
+              "</b></a>"
             );
             description = $(
               "<div class='description'><p style='padding-left:15px; padding-right:15px;'>" +
-                assignment.description +
-                "</p></div>"
+              assignment.description +
+              "</p></div>"
             );
             item.append(content);
             content.append(tag_a);
@@ -2397,12 +2478,12 @@ function set_item_pagination_in_third_container(
   for (_index in pagination) {
     item = $(
       "<a class='item tc' id='page_" +
-        pagination[_index] +
-        "_third_container' onclick='on_click_page_number_in_third_container(" +
-        pagination[_index] +
-        ")'>" +
-        pagination[_index] +
-        "</a>"
+      pagination[_index] +
+      "_third_container' onclick='on_click_page_number_in_third_container(" +
+      pagination[_index] +
+      ")'>" +
+      pagination[_index] +
+      "</a>"
     );
     $("#pagination_in_third_container").append(item);
   }
@@ -2413,7 +2494,7 @@ function onClickChangePairButton(pairing_session_id, section_id) {
     pairing_session_id: pairing_session_id,
     section_id: section_id
   };
-  $.get("/classroom/getPairing", parameters, function(data) {
+  $.get("/classroom/getPairing", parameters, function (data) {
     if (data.status == "Pull information successfully") {
       // $('#autoPairing').attr('onclick', 'onClickAutoPairingBtn(\"pair\", '+JSON.stringify(data.partner_keys)+', '+JSON.stringify(data.pairing_objective)+', '+data.pairing_session_id+', \"'+data.section_id+'\")')
       $("#autoPairing").show();
@@ -2444,72 +2525,72 @@ function onClickAutoPairingBtn(command, pairingSessionId, sectionId) {
   $("#expertWithExpert").attr(
     "onclick",
     'onClickPairingPurposeRadioBtn("expertWithExpert", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
   $("#expertWithNovice").attr(
     "onclick",
     'onClickPairingPurposeRadioBtn("expertWithNovice", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
   $("#noviceWithNovice").attr(
     "onclick",
     'onClickPairingPurposeRadioBtn("noviceWithNovice", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
   $("#qualityOriented").attr(
     "onclick",
     'onClickPairingPurposeRadioBtn("quality", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
   $("#mutualLearning").attr(
     "onclick",
     'onClickPairingPurposeRadioBtn("experience", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
   $("#teachingAndLearning").attr(
     "onclick",
     'onClickPairingPurposeRadioBtn("train", "purpose", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
   $("#scoreDiffField").attr(
     "onkeyup",
     'onTypingScoreDiffField("scoreDiff", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
   $("#pairingSettingsModal").modal("show");
 }
@@ -2575,16 +2656,16 @@ function onClickPairingPurposeRadioBtn(
   $("#startAutoPairingBtn").attr(
     "onclick",
     'onClickStartAutoPairingBtn("' +
-      pairingPurpose +
-      '", "' +
-      autoPairingCommand +
-      '", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    pairingPurpose +
+    '", "' +
+    autoPairingCommand +
+    '", "' +
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
 }
 
@@ -2597,16 +2678,16 @@ function onTypingScoreDiffField(
   $("#startAutoPairingBtn").attr(
     "onclick",
     'onClickStartAutoPairingBtn("' +
-      $("#scoreDiffField").val() +
-      '", "' +
-      autoPairingCommand +
-      '", "' +
-      command +
-      '", ' +
-      pairingSessionId +
-      ', "' +
-      sectionId +
-      '")'
+    $("#scoreDiffField").val() +
+    '", "' +
+    autoPairingCommand +
+    '", "' +
+    command +
+    '", ' +
+    pairingSessionId +
+    ', "' +
+    sectionId +
+    '")'
   );
 }
 
@@ -2773,7 +2854,7 @@ function setSecond(start, end, id, input_type) {
 
 function sortAtoZ(students, filtered, elementMoved) {
   while (!filtered) {
-    $("li.ui.segment").filter(function(indx) {
+    $("li.ui.segment").filter(function (indx) {
       var key = $(this).attr("id");
       var name = (
         students[key].first_name +
@@ -2782,7 +2863,7 @@ function sortAtoZ(students, filtered, elementMoved) {
       ).toLowerCase();
       var index = indx;
 
-      $("li.ui.segment").filter(function(indx) {
+      $("li.ui.segment").filter(function (indx) {
         key = $(this).attr("id");
         var _name = (
           students[key].first_name +
@@ -2841,7 +2922,7 @@ function sortAtoZ(students, filtered, elementMoved) {
 
 function sortZtoA(students, filtered, elementMoved) {
   while (!filtered) {
-    $("li.ui.segment").filter(function(indx) {
+    $("li.ui.segment").filter(function (indx) {
       var key = $(this).attr("id");
       var name = (
         students[key].first_name +
@@ -2850,7 +2931,7 @@ function sortZtoA(students, filtered, elementMoved) {
       ).toLowerCase();
       var index = indx;
 
-      $("li.ui.segment").filter(function(indx) {
+      $("li.ui.segment").filter(function (indx) {
         key = $(this).attr("id");
         var _name = (
           students[key].first_name +
@@ -2909,7 +2990,7 @@ function sortZtoA(students, filtered, elementMoved) {
 
 function sort1to100(students, filtered, elementMoved) {
   while (!filtered) {
-    $("li.ui.segment").filter(function(indx) {
+    $("li.ui.segment").filter(function (indx) {
       var key = $(this).attr("id");
       var avg_score = students[key].avg_score;
       var name = (
@@ -2919,7 +3000,7 @@ function sort1to100(students, filtered, elementMoved) {
       ).toLowerCase();
       var index = indx;
 
-      $("li.ui.segment").filter(function(indx) {
+      $("li.ui.segment").filter(function (indx) {
         key = $(this).attr("id");
         var _avg_score = students[key].avg_score;
         var _name = (
@@ -3004,7 +3085,7 @@ function sort1to100(students, filtered, elementMoved) {
 
 function sort100to1(students, filtered, elementMoved) {
   while (!filtered) {
-    $("li.ui.segment").filter(function(indx) {
+    $("li.ui.segment").filter(function (indx) {
       var key = $(this).attr("id");
       var avg_score = students[key].avg_score;
       var name = (
@@ -3014,7 +3095,7 @@ function sort100to1(students, filtered, elementMoved) {
       ).toLowerCase();
       var index = indx;
 
-      $("li.ui.segment").filter(function(indx) {
+      $("li.ui.segment").filter(function (indx) {
         key = $(this).attr("id");
         var _avg_score = students[key].avg_score;
         var _name = (
@@ -3097,7 +3178,7 @@ function sort100to1(students, filtered, elementMoved) {
   }
 }
 
-function on_click_settings_menu() {}
+function on_click_settings_menu() { }
 
 function on_click_assignment(opt, id) {
   switch (opt) {
