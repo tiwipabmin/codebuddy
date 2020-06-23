@@ -183,18 +183,12 @@ block content
               .six.wide.column
                 button.ui.button.float-right(id='clearTerm' onClick='clearTerminal()') Clear
           .ui.secondary.segment
-            #xterm-container
+            #xterm-container(onmouseup='resizeTerm()')
 
-  script.
-    let user="#{user.username}"
-    let uid="#{user._id}"
-    let partner="#{partner}"
-    let partner_img="#{partner_img}"
   script(type='text/javascript').
     $(document).ready(function(){
       $('.demo.menu .item').tab({history:false});
       $('.file.menu .item').tab({history:false});
-
     });
   script(src='/codemirror/lib/codemirror.js')
   script(src='/codemirror/mode/python/python.js')
@@ -202,7 +196,6 @@ block content
   script(src='/xterm/xterm.js')
   script(src='/xterm/addons/fit/fit.js')
   script(src='/js/static/countdown.min.js')
-  script(src='/js/app/playgroundIndividual.js')
-  script(src='/js/app/main.js')
+  script(src='/js/app/playgroundIndividual.js' data-username=`${user.username}` data-partnerImg=`${partner_img}` data-uid=`${user._id}`)
   script(src='/trackingjs/build/tracking-min.js')
   script(src='/trackingjs/build/data/face-min.js')

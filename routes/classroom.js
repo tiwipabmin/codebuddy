@@ -21,6 +21,7 @@ router.post('/', auth.isSignedIn, catchErrors(webController.createSection))
 router.get('/searchStudentByPurpose', auth.isSignedIn, catchErrors(webController.searchStudentByPurpose))
 router.get('/getStudentsFromSection', auth.isSignedIn, catchErrors(webController.getStudentsFromSection))
 router.get('/searchStudent', auth.isSignedIn, catchErrors(webController.searchStudent))
+router.get('/searchPartner', auth.isSignedIn, catchErrors(webController.searchPartner))
 router.get('/getPairing', auth.isSignedIn, catchErrors(webController.getPairing))
 router.get('/getWeeklyAssignments', auth.isSignedIn, catchErrors(webController.getWeeklyAssignments))
 router.get('/startAutoPairingByPurpose', auth.isSignedIn, catchErrors(webController.startAutoPairingByPurpose))
@@ -33,6 +34,7 @@ router.post('/joinClass', auth.isSignedIn, catchErrors(webController.joinClass))
 router.post('/updateSection', auth.isSignedIn, catchErrors(webController.updateSection))
 router.post('/assignAssignment', auth.isSignedIn, catchErrors(webController.assignAssignment))
 router.post('/createPairingRecord', auth.isSignedIn, catchErrors(webController.createPairingRecord))
+router.post('/createProject', auth.isSignedIn, catchErrors(webController.createProject))
 
 /**
  * Expose `router`

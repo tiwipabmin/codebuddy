@@ -33,6 +33,23 @@ function getVarFromScript(scriptName, name) {
 }
 
 /**
+ * get query parameter from URL
+ * @param {String} name parameter name that you want to get value from
+ * http://stackoverflow.com/a/901144/4181203
+ */
+function getParameterByName(name) {
+  const url = window.location.href;
+  const terms = url.split('\/')
+  const index = terms.indexOf(name)
+  try {
+    const result = terms[index + 1]
+    return result
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * Dependencies declaration
  */
 const socket = io('');
@@ -53,23 +70,6 @@ let webrtc = new SimpleWebRTC({
   // immediately ask for camera access
   autoRequestMedia: true
 });
-
-/**
- * get query parameter from URL
- * @param {String} name parameter name that you want to get value from
- * http://stackoverflow.com/a/901144/4181203
- */
-function getParameterByName(name) {
-  const url = window.location.href;
-  const terms = url.split('\/')
-  const index = terms.indexOf(name)
-  try {
-    const result = terms[index + 1]
-    return result
-  } catch (err) {
-    return null;
-  }
-}
 
 /**
  * Initiate local editor
@@ -550,7 +550,7 @@ term.open(document.getElementById("xterm-container"), false);
 term._initialized = true;
 // fitAddon.fit()
 
-function resizeTerm(newHeight) {
+function resizeTerm() {
   term.fit()
 }
 

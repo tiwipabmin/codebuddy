@@ -28,9 +28,9 @@ const projectSchema = new mongoose.Schema({
   language: { type: String, default: 'py' },
   swaptime: {type : String, default: '5'},
   files: { type : Array , default: ['main'] },
-  assignment_id: Number,
+  assignment_id: { type : Number , default: -1 },
   programming_style: { type: String, default: 'Remote' },
-  week: { type : Number , default: 1 },
+  week: { type : Number , default: 0 },
   disable_time: { type: Date, default: Date.now },
   enable_time: { type: Date, default: Date.now },
   available_project: { type: Boolean, default: false }

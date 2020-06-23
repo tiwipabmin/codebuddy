@@ -1,8 +1,23 @@
-$(document).ready(function() {
+/**
+ * get query parameter from URL
+ * @param {String} scriptName parameter scriptName's the name of script
+ * @param {String} name parameter name that you want to get variable from
+ * https://stackoverflow.com/questions/2190801/passing-parameters-to-javascript-files/2190927?noredirect=1#comment47136074_2190927
+ */
+function getVarFromScript(scriptName, name) {
+  const data = $(`script[src*=${scriptName}]`)
+  const variable = data.attr(name)
+  if (typeof variable === undefined) {
+    console.log('Error: ', variable)
+  }
+  return variable
+}
+
+$(document).ready(function () {
   $("#assignment-modal").modal({
     closable: false,
     transition: "fade up",
-    onApprove: function() {
+    onApprove: function () {
       //$('.ui.form').submit();
       return false;
     }
@@ -15,6 +30,15 @@ $(document).ready(function() {
           {
             type: "empty",
             prompt: "Please enter your title"
+          }
+        ]
+      },
+      week: {
+        identifier: "week",
+        rules: [
+          {
+            type: "integer[1...100]",
+            prompt: "Please enter an integer value"
           }
         ]
       },
@@ -64,11 +88,42 @@ $(document).ready(function() {
         ]
       }
     },
-    onSuccess: function() {
+    onSuccess: function () {
       $("#assignment-modal").modal("hide");
     }
   });
 });
+
+/**
+ * Notifications
+ * @param {*} assignments 
+ */
+function createAssignmentNotification(assignments = null) {
+  console.log('Assignments, ', assignments)
+  const sectionId = getVarFromScript('assignment', 'data-sectionId')
+  assignments = JSON.parse(assignments)
+  if (assignments) {
+    parameters = { assignments: assignments, sectionId: sectionId }
+    $.post('/notifications/createAssignmentNotification', parameters, function (res) {
+      console.log('Successed!, ', notifications)
+      if (res.notifications !== undefined) {
+        const notifications = res.notifications
+        const aTag = $(`<a href='${notifications.link}'></a>`)
+        const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">` +
+          `</div>`)
+        const content = $(`<div class="content">` +
+          `<div class="header">${notifications.head}</div>` +
+          `<div class="description"><p>${notifications.content}</p></div>` +
+          `<div class="extra">` +
+          `<i class="edit icon"></i>${moment(notifications.createdAt).fromNow()}</div>` +
+          `</div>`)
+        item.append(content)
+        aTag.append(item)
+        $('#notiItems').prepend(item)
+      }
+    })
+  }
+}
 
 function showDeleteModal() {
   $("#delete-modal").modal("show");
@@ -91,16 +146,37 @@ function showAssignmentModal(assignment) {
   $("#assignment-modal").modal("show");
 }
 
+function validateValueTextarea(textarea, separator) {
+  let valueTextarea = []
+  valueTextarea = $(`#${textarea}`)
+    .val()
+    .split(separator);
+    
+  if (textarea === 'assWeek') {
+    if ( !isNaN(parseInt($(`#${textarea}`).val()))) {
+      return 1
+    }
+  } else if ( ( valueTextarea.length === 1 && valueTextarea[0] !== '' ) || valueTextarea.length > 1) {
+    return 1
+  } else 
+  return 0
+}
+
 function transformValueTextarea(textarea, func, separator) {
+
+  if (textarea === 'assTitle' || textarea === 'assWeek') {
+    return 0
+  }
+
   let valueTextarea = []
   if (func === 'join') {
     valueTextarea = $(`#${textarea}`)
-    .val()
-    .join(separator);
+      .val()
+      .join(separator);
   } else if (func === 'split') {
     valueTextarea = $(`#${textarea}`)
-    .val()
-    .split(separator);
+      .val()
+      .split(separator);
   }
   $(`#${textarea}`).val(JSON.stringify(valueTextarea));
 }
@@ -112,6 +188,8 @@ function createAssignment() {
   });
 
   let textareaId = [
+    "assTitle",
+    "assWeek",
     "assignmentDesc",
     "assInSpecify",
     "assOutSpecify",
@@ -119,8 +197,18 @@ function createAssignment() {
     "assSamOutput"
   ];
 
+  let validate = 0
   for (let index in textareaId) {
-    transformValueTextarea(textareaId[index], 'split', '\n');
+    validate = validateValueTextarea(textareaId[index], '\n')
+    if (!validate) {
+      break;
+    }
+  }
+
+  if (validate) {
+    for (let index in textareaId) {
+      transformValueTextarea(textareaId[index], 'split', '\n');
+    }
   }
 
   $("#confirmToCreateAssBtn").removeAttr("onclick");
@@ -131,6 +219,13 @@ function createAssignment() {
   $("#confirmToCreateAssBtn").attr({
     type: "button"
   });
+
+  if (!validate) {
+    $("#confirmToCreateAssBtn").attr({
+      type: "button",
+      onclick: "createAssignment()"
+    });
+  }
 }
 
 function updateAssignment() {
@@ -140,6 +235,8 @@ function updateAssignment() {
   });
 
   let textareaId = [
+    "assTitle",
+    "assWeek",
     "assignmentDesc",
     "assInSpecify",
     "assOutSpecify",
@@ -147,8 +244,18 @@ function updateAssignment() {
     "assSamOutput"
   ];
 
+  let validate = 0
   for (let index in textareaId) {
-    transformValueTextarea(textareaId[index], 'split', '\n');
+    validate = validateValueTextarea(textareaId[index], '\n')
+    if (!validate) {
+      break;
+    }
+  }
+
+  if (validate) {
+    for (let index in textareaId) {
+      transformValueTextarea(textareaId[index], 'split', '\n');
+    }
   }
 
   $("#confirmToCreateAssBtn").removeAttr("onclick");
@@ -159,4 +266,11 @@ function updateAssignment() {
   $("#confirmToCreateAssBtn").attr({
     type: "button"
   });
+
+  if (!validate) {
+    $("#confirmToCreateAssBtn").attr({
+      type: "button",
+      onclick: "updateAssignment()"
+    });
+  }
 }

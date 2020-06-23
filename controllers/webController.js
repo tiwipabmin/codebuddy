@@ -100,20 +100,20 @@ exports.getPlayground = async (req, res) => {
     }
   };
   if (project.programming_style == "Interactive") {
-    res.render("playground_interactive", {
+    res.render("playgroundInteractive", {
       dataSets,
       title: `${project.title} - Playground`,
       partner_obj
     });
   } else if (project.programming_style == "Co-located") {
-    res.render("playground_co_located", {
+    res.render("playgroundCoLocated", {
       dataSets,
       title: `${project.title} - Playground`,
       messages,
       partner_obj
     });
   } else if (project.programming_style == "Remote") {
-    res.render("playground_remote", {
+    res.render("playgroundRemote", {
       dataSets,
       title: `${project.title} - Playground`,
       partner_obj
@@ -251,11 +251,26 @@ exports.getNotifications = async (req, res) => {
 exports.changeProjectNotificationStatus = async function (req, res) {
   const nid = reverseId(req.body.nid)
 
-  const disable = await Notification.updateOne(
-    { nid: nid },
-    { $set: { ["receiver." + req.user.username]: `reacted` } }
-  )
-  res.sendStatus(200);
+  try {
+    const disable = await Notification.updateOne(
+      {
+        $and: [
+          { nid: nid },
+          { "receiver.username": req.user.username }
+        ]
+      },
+      {
+        $set: { "receiver.$[element].status": `interacted` }
+      },
+      {
+        arrayFilters: [{ "element.username": req.user.username }]
+      }
+    )
+    res.status(200).send('OK').end()
+  } catch (err) {
+    res.status(400).send('Bad Request').end()
+    // console.log(`Error: ${err}`)
+  }
 }
 
 function reverseId(id) {
@@ -266,47 +281,60 @@ function reverseId(id) {
   return newId
 }
 
-// exports.createProject = async (req, res) => {
-//   const collaborator = await User.findOne({ username: req.body.collaborator });
-//   if (collaborator != null) {
-//     const project = await new Project(req.body).save();
-//     Project.update(
-//       {
-//         _id: project._id
-//       },
-//       {
-//         $set: {
-//           collaborator_id: collaborator._id
-//         }
-//       },
-//       err => {
-//         if (err) throw err;
-//       }
-//     );
-//     req.flash("success", `Successfully Created ${project.title} Project.`);
-//     /**
-//      * create directory
-//      */
-//     var dir1 = "./public/project_files";
-//     var dir2 = "./public/project_files/" + project.pid;
-//     if (!fs.existsSync(dir1)) {
-//       fs.mkdirSync(dir1);
-//     }
-//     if (!fs.existsSync(dir2)) {
-//       fs.mkdirSync(dir2);
-//     }
-//     fs.writeFile(
-//       "./public/project_files/" + project.pid + "/json.json",
-//       JSON.stringify([{ id: "0", type: "code", source: "" }]),
-//       function(err) {
-//         if (err) throw err;
-//       }
-//     );
-//   } else {
-//     req.flash("error", "Can't find @" + req.body.collaborator);
-//   }
-//   res.redirect("dashboard");
-// };
+exports.createProject = async (req, res) => {
+  const collaborator = await User.findOne({ username: req.body.collaborator });
+  if (collaborator != null) {
+    const project = await new Project(req.body).save();
+    Project.update(
+      {
+        _id: project._id
+      },
+      {
+        $set: {
+          collaborator_id: collaborator._id
+        }
+      },
+      err => {
+        if (err) throw err;
+      }
+    );
+    req.flash("success", `Successfully Created ${project.title} Project.`);
+    /**
+     * create directory
+     */
+    var dir1 = "./public/project_files";
+    var dir2 = "./public/project_files/" + project.pid;
+    if (!fs.existsSync(dir1)) {
+      fs.mkdirSync(dir1);
+    }
+    if (!fs.existsSync(dir2)) {
+      fs.mkdirSync(dir2);
+    }
+    fs.writeFile(
+      "./public/project_files/" + project.pid + "/json.json",
+      JSON.stringify([{ id: "0", type: "code", source: "" }]),
+      function (err) {
+        if (err) throw err;
+      }
+    );
+  } else {
+    req.flash("error", "Can't find @" + req.body.collaborator);
+  }
+  res.redirect("dashboard");
+};
+
+function sortNumber(numArray) {
+  for (let index1 in numArray) {
+    for (let index2 in numArray) {
+      if (numArray[index1] < numArray[index2]) {
+        let clone = numArray[index1]
+        numArray.splice(index1, 1, numArray[index2])
+        numArray.splice(index2, 1, clone)
+      }
+    }
+  }
+  return numArray
+}
 
 exports.getSection = async (req, res) => {
   let dataSets = {};
@@ -369,6 +397,8 @@ exports.getSection = async (req, res) => {
   if (occupation == "teacher") {
     occupation = 0;
 
+    weeks = sortNumber(weeks)
+
     dataSets = {
       origins: {
         occupation: occupation,
@@ -428,6 +458,7 @@ exports.getSection = async (req, res) => {
     }
 
     projects.reverse();
+    weeks = sortNumber(weeks)
 
     dataSets = {
       origins: {
@@ -532,7 +563,7 @@ exports.updateSection = async (req, res) => {
     section_id;
   var courseStatus = await conMysql.updateCourse(updateCourse);
   var sectionStatus = await conMysql.updateSection(updateSection);
-  res.redirect("/classroom?section_id=" + cryptr.encrypt(section_id));
+  res.redirect("/classroom/section/" + cryptr.encrypt(section_id));
 };
 
 exports.getProjects = async (req, res) => {
@@ -777,6 +808,48 @@ exports.searchStudent = async (req, res) => {
     pairingSessionId: pairingSessionId,
     partnerKeys: req.query.partner_keys,
     pairingObjectives: req.query.pairing_objective
+  });
+};
+
+exports.searchPartner = async (req, res) => {
+  const search = req.query.search;
+  const username = req.user.username
+  const sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
+  const studentQuery =
+    "SELECT * FROM enrollment AS\
+   e JOIN student AS s ON e.student_id = s.student_id WHERE e.section_id = \
+   " +
+    sectionId +
+    " AND (s.first_name LIKE '%" +
+    search +
+    "%'\
+    OR s.last_name LIKE '%" +
+    search +
+    "%' OR s.username LIKE '%" +
+    search +
+    "%')";
+  const resStudents = await conMysql.selectStudent(studentQuery);
+  console.log('resStudents, ', resStudents)
+  let students = [];
+  let user = null;
+  if (resStudents instanceof Array) {
+    for (let index in resStudents) {
+      if (resStudents[index].username != username) {
+        user = await User.findOne({
+          username: resStudents[index].username
+        });
+        if (user != null) {
+          resStudents[index].avgScore = user.avgScore;
+          resStudents[index].img = user.img;
+          resStudents[index].totalTime = user.totalTime;
+        }
+        students.push(resStudents[index]);
+      }
+    }
+  }
+  res.send({
+    students: students,
+    purpose: "none",
   });
 };
 
@@ -1379,22 +1452,25 @@ exports.updatePairing = async (req, res) => {
 exports.updateTotalScoreAllStudent = async (req, res) => {
   let totalScores = req.body.totalScores;
   let updateAvgScores = {};
+  let failure = {};
   for (let username in totalScores) {
     if (totalScores[username] === "") {
-      res.send({ status: "The total score is null!" });
+      res.status(200).send({ status: "The total score is null!" });
       return;
     } else {
       console.log("not null, ", totalScores[username]);
     }
   }
+  
   for (let username in totalScores) {
-    updateAvgScores[username] = User.findOne(
+    updateAvgScores[username] = await User.findOne(
       {
         username: username
       },
       function (err, data) {
         if (err) console.log("updateTotalScores err, ", err);
         else if (data) {
+          // console.log('Success, ', data)
           User.updateOne(
             {
               username: username
@@ -1407,11 +1483,15 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
               if (data) console.log(data);
             }
           );
+        } else {
+          failure[username] = totalScores[username]
+          console.log('Failure, ', failure)
         }
       }
     );
   }
-  res.send({ status: "Update avgScore complete!" });
+  // console.log('updateAvgScores, ', updateAvgScores)
+  res.status(200).send({ failure: failure, status: "Update avgScore complete!" });
 };
 
 exports.startAutoPairingByScoreDiff = async (req, res) => {
@@ -2310,7 +2390,7 @@ exports.assignAssignment = async (req, res) => {
   }
 
   const pairingSessionId = req.body.pairing_session_id;
-  const swaptime = "1";
+  const swaptime = "15";
   const language = "0";
   const selectStudent =
     "SELECT * FROM student AS st JOIN enrollment AS e ON st.student_id = e.student_id JOIN pairing_record AS ph ON e.enrollment_id = ph.enrollment_id WHERE pairing_session_id = " +
@@ -2320,7 +2400,6 @@ exports.assignAssignment = async (req, res) => {
   var collaborator = "examiner@codebuddy";
   var cloneStudents = {};
   var project = new Project();
-  let programming_style = "Remote";
   let tempStudents = {};
   let assignment_id = 1;
   let partnerKeys = {};
@@ -2593,7 +2672,7 @@ exports.assignAssignment = async (req, res) => {
               if (err) throw err;
             }
           );
-          console.log("Update Pro Successfully!");
+          console.log("Update Project Successfully!");
 
           // timeoutHandles.push(project._id)
 

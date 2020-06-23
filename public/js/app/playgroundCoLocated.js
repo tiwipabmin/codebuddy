@@ -1,13 +1,11 @@
-/**
- * Dependencies declaration
- */
-const socket = io('');
-const roles = {
-  user: "",
-  partner: ""
-};
-var comments = [];
-var code = null;
+function getVarFromScript(scriptName, name) {
+  const data = $(`script[src*=${scriptName}]`)
+  const variable = data.attr(name)
+  if (typeof variable === undefined) {
+    console.log('Error: ', variable)
+  }
+  return variable
+}
 
 /**
  * get query parameter from URL
@@ -16,14 +14,23 @@ var code = null;
  */
 function getParameterByName(name) {
   const url = window.location.href;
-  const param = name.replace(/[\[\]]/g, "\\$&");
-  const regex = new RegExp("[?&]" + param + "(=([^&#]*)|&|#|$)");
-  const results = regex.exec(url);
-
-  if (!results) return null;
-  if (!results[2]) return "";
-  return decodeURIComponent(results[2].replace(/\+/g, " "));
+  const terms = url.split('\/')
+  const index = terms.indexOf(name)
+  try {
+    const result = terms[index + 1]
+    return result
+  } catch (err) {
+    return null;
+  }
 }
+
+/**
+ * Dependencies declaration
+ */
+const socket = io('');
+const uid = getVarFromScript('playgroundCoLocated', 'data-uid')
+var comments = [];
+var code = null;
 
 /**
  * Initiate local editor
@@ -97,8 +104,8 @@ function changeTheme() {
  */
 socket.emit("load playground", { programming_style: "Co-located" });
 socket.emit("join project", {
-  pid: getParameterByName("pid"),
-  username: user
+  pid: getParameterByName("project"),
+  username: getVarFromScript('playgroundCoLocated', 'data-username')
 });
 
 /**
@@ -303,6 +310,10 @@ const term = new Terminal({
 term.open(document.getElementById("xterm-container"), false);
 term._initialized = true;
 
+function resizeTerm() {
+  term.fit()
+}
+
 var shellprompt = "\033[1;3;31m$ \033[0m";
 var inputTerm = "input@codebuddy";
 
@@ -468,7 +479,7 @@ socket.on("show partner active tab", payload => {
       '<img id="' +
         partnerTab +
         '-file-icon" class="ui avatar image partner-file-icon" src="' +
-        partner_img +
+        getVarFromScript('playgroundCoLocated', 'data-partnerImg') +
         '" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>'
     );
   }
@@ -709,17 +720,18 @@ function setOnChangeEditer(fileName) {
    * Local editor value is changing, to handle that we'll emit our changes to server
    */
   editor[fileName].on("change", (ins, data) => {
-    var text = data.text.toString().charCodeAt(0);
-    var enterline = parseInt(data.to.line) + 1;
-    var remove = data.removed;
-    var isEnter = false;
-    var isDelete = false;
+    let text = data.text.toString().charCodeAt(0);
+    let enterline = parseInt(data.to.line) + 1;
+    let remove = data.removed;
+    let isEnter = false;
+    let isDelete = false;
+    let username = getVarFromScript('playgroundCoLocated', 'data-username')
 
     /**
      * check when enter new line
      **/
     if (text == 44) {
-      for (var i in comments) {
+      for (let i in comments) {
         if (comments[i].line > enterline && comments[i].file == fileName) {
           isEnter = true;
           comments[i].line = parseInt(comments[i].line) + 1;
@@ -737,7 +749,7 @@ function setOnChangeEditer(fileName) {
      * check when delete line
      **/
     if (remove.length == 2) {
-      for (var i in comments) {
+      for (let i in comments) {
         if (comments[i].line > enterline - 1 && comments[i].file == fileName) {
           isDelete = true;
           comments[i].line = parseInt(comments[i].line) - 1;
@@ -754,7 +766,7 @@ function setOnChangeEditer(fileName) {
     socket.emit("code change", {
       code: data,
       editor: editor[fileName].getValue(),
-      user: user,
+      user: username,
       enterline: enterline,
       isEnter: isEnter,
       isDelete: isDelete,
@@ -785,7 +797,7 @@ function newEditorFacade(fileName) {
       '<img id="' +
         partnerTab +
         '-file-icon" class="ui avatar image partner-file-icon" src="' +
-        partner_img +
+        getVarFromScript('playgroundCoLocated', 'data-partnerImg') +
         '" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>'
     );
   } else {
