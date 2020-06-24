@@ -85,5 +85,5 @@ server = app.listen(process.env.PORT || 8080, () => {
   winston.info('[%s] Listening on 127.0.0.1:%s', chalk.green('✓'), chalk.blue(server.address().port))
 })
 
-require('./handlers/socket')(server);
-sockets(server, config);
+const io = require('./handlers/socket')(server);
+sockets(io, config);

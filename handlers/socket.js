@@ -32,4 +32,5 @@ module.exports = (server) => {
       require('./notification.js')(io, client, keyStores, timerIds)
     })
   })
+  return io
 }
