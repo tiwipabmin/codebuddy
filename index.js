@@ -52,9 +52,38 @@ new Redis().on('error', (err) => {
  * Start server and initiate socket.io server
  */
 const app = require('./server')
+const config = require('getconfig')
+const fs = require('fs')
+const sockets = require('./signaling/sockets')
+let server = null;
 
-const httpServer = app.listen(process.env.PORT || 8080, () => {
-  winston.info('[%s] Listening on 127.0.0.1:%s', chalk.green('✓'), chalk.blue(httpServer.address().port))
+// let serverHandler = function (req, res) {
+//   if (req.url === '/healthcheck') {
+//     console.log(Date.now(), 'healthcheck');
+//     res.writeHead(200);
+//     res.end();
+//     return;
+//   }
+//   res.writeHead(404);
+//   res.end();
+// }
+
+// Create an http(s) server instance to that socket.io can listen to
+// if (config.server.secure) {
+//   console.log('HTTPS, ', config.server.secure)
+//   server = require('https').Server({
+//     key: fs.readFileSync(config.server.key),
+//     cert: fs.readFileSync(config.server.cert),
+//     passphrase: config.server.password
+//   }, serverHandler);
+// } else {
+//   console.log('HTTP, ', config.server.secure)
+//   server = require('http').Server(serverHandler);
+// }
+
+server = app.listen(process.env.PORT || 8080, () => {
+  winston.info('[%s] Listening on 127.0.0.1:%s', chalk.green('✓'), chalk.blue(server.address().port))
 })
 
-require('./handlers/socket')(httpServer)
+require('./handlers/socket')(server);
+sockets(server, config);
