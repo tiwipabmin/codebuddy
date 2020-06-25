@@ -1,0 +1,17 @@
+*** Signalmaster ***
+Link: https://github.com/simplewebrtc/signalmaster
+
+A simple signaling server for clients to connect and do signaling for WebRTC.
+
+Specifically created as a default connection point for SimpleWebRTC.js
+
+*** SimpleWebRTC.js ***
+Link: https://github.com/SimpleWebRTC/SimpleWebRTC
+
+It also supports vending STUN/TURN servers with the shared secret mechanism as described in this draft (https://tools.ietf.org/html/draft-uberti-behave-turn-rest-00). This mechanism is implemented e.g. by rfc-5766-turn-server (https://code.google.com/archive/p/rfc5766-turn-server/) or by a patched version (https://github.com/otalk/restund) of restund (http://www.creytiv.com/restund.html).
+
+Read more:
+
+Introducing SimpleWebRTC and conversat.io (https://blog.andyet.com/2013/02/22/introducing-simplewebrtcjs-and-conversatio/)
+SimpleWebRTC.com (https://www.simplewebrtc.com/)
+talky.io (https://talky.io/)

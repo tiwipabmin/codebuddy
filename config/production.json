@@ -9,8 +9,16 @@
   },
   "stunservers": [
     {
-      "urls": "$STUNSERVER_URL"
+      "urls": "stun:stun.l.google.com:19302"
     }
   ],
-  "turnservers": []
+  "turnservers": [
+    {
+      "urls": [
+        "turn:your.turn.servers.here"
+      ],
+      "secret": "turnserversharedsecret",
+      "expiry": 86400
+    }
+  ]
 }
