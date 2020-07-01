@@ -1,5 +1,6 @@
 mixin registerForm(user)
-  p Fill in the form below to get access
+  .ui.grid
+    .column
       form.ui.form#registerForm(action='/register' method='POST')
         h4.ui.dividing.header Access information
         .required.field
@@ -11,6 +12,10 @@ mixin registerForm(user)
           label Password
           |  
           input(type='password' name='password' placeholder='Password' required)
+        .required.field
+          label Confirm Password
+          |
+          input(type='password' name='confirmPassword' placeholder='Confirm Password' required)
         .required.field
           label E-mail
           |  
@@ -62,7 +67,7 @@ mixin registerForm(user)
         //-     |  
         //-     label I agree to the Terms and Conditions 
         |  
-        button.ui.button(type='submit' onclick='validat()') Register
+        button.ui.button(type='submit') Register
 
 mixin signinForm()
   form.ui.form.signInForm(action='/signin' method='POST')

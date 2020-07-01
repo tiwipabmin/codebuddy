@@ -65,7 +65,7 @@ exports.getLobby = async (req, res) => {
 
 exports.getCounter = async (req, res) => {
   dataSets = { origins: { dataService: "dataService" } };
-  res.render("counter");
+  res.render("counter", { title: `Data Service` });
 };
 
 exports.getPlayground = async (req, res) => {
@@ -171,23 +171,6 @@ exports.getHistory = async (req, res) => {
   });
 };
 
-exports.getProfile = async (req, res) => {
-  const username = req.user.username;
-  let dataSets = {};
-  let pid = [];
-
-  const projects = await Project.find({
-    $or: [{ creator: req.user.username }, { collaborator: req.user.username }]
-  }).sort({ createdAt: -1 });
-  for (_index in projects) {
-    pid.push(projects[_index].pid);
-  }
-
-  dataSets = { origins: { username: username, pid: pid } };
-
-  res.render("profile", { dataSets, title: username + " Progress" });
-};
-
 exports.getProfileByTeacher = async (req, res) => {
   const username = req.query.username;
   let section_id = parseInt(cryptr.decrypt(req.query.section_id));
@@ -214,7 +197,7 @@ exports.getProfileByTeacher = async (req, res) => {
 
   dataSets = { origins: { username: username, pid: pid } };
 
-  res.render("profile", { dataSets, title: username + " Progress" });
+  res.render("dashboard", { dataSets, title: username + " Progress" });
 };
 
 exports.getNotifications = async (req, res) => {

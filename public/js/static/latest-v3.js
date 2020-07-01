@@ -12683,7 +12683,8 @@ function SimpleWebRTC(opts) {
     var self = this;
     var options = opts || {};
     var config = this.config = {
-            url: 'https://sandbox.simplewebrtc.com:443/',
+            /* you should change to use URL of your server */
+            url: 'https://99542b6d648f.ngrok.io:443/',
             socketio: {/* 'force new connection':true*/},
             connection: null,
             debug: false,

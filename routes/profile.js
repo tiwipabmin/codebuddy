@@ -5,6 +5,7 @@ const express = require('express')
 
 const auth = require('../middlewares/auth')
 const webController = require('../controllers/webController')
+const userController = require('../controllers/userController')
 const { catchErrors } = require('../handlers/errorHandlers')
 
 const router = express.Router()
@@ -17,8 +18,8 @@ const router = express.Router()
  */
 router
   .use(auth.isSignedIn)
-  .route('/:username')
-  .get(catchErrors(webController.getProfile))
+  .route('/dashboard/:username')
+  .get(catchErrors(userController.getDashboard))
 
 router
   .use(auth.isSignedIn)
@@ -29,6 +30,17 @@ router
   .use(auth.isSignedIn)
   .route('/getCode/:pid')
   .get(catchErrors(webController.getEditorCode))
+
+router
+  .use(auth.isSignedIn)
+  .route('/:username')
+  .get(catchErrors(userController.getProfile))
+
+router
+  .use(auth.isSignedIn)
+  .route('/:username')
+  // .post(catchErrors(userController.validateToUpdateProfile))
+  .post(catchErrors(userController.validateToUpdateProfile), catchErrors(userController.updateProfile))
 
 /**
  * Expose `router`

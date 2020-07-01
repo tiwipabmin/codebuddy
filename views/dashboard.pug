@@ -1,0 +1,40 @@
+extends layout/layout.pug
+
+block script
+    //- script(src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js")
+    script(src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js")
+    script(src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes@latest/dist/chartjs-plugin-colorschemes.min.js")
+    script(src='/js/app/dashboard.js')
+    link(rel='stylesheet' href='/css/main.css')
+block content
+    input(type='hidden' id='username' value=dataSets.origins.username)
+    input(type='hidden' id='pid' value=dataSets.origins.pid)
+    .ui.raised.very.padded.container.segment
+      .ui.relaxed.grid.container
+        .six.wide.column
+          h1.ui.header(id="userInfo")
+            | Icbiz Codebuddy
+            | (@username)
+        .three.wide.column
+          h2.ui.header(style="color: #58B6C0;") Projects
+          h2.ui.header(id="projectsNum" style="height: 100px; line-height: 100px; text-align: center; color: white; background-color: #58B6C0;") 4
+        .four.wide.column
+          h2.ui.header(style="color: #58B6C0;") Total Active Times
+          h2.ui.header(id="totalActiveTimeNum" style="height: 100px; line-height: 100px; text-align: center; color: white; background-color: #58B6C0;") 540 mins
+        .three.wide.column
+          h2.ui.header(style="color: #58B6C0;") Avg. Score
+          h2.ui.header(id="avgScoreNum" style="height: 100px; line-height: 100px; text-align: center; color: white; background-color: #58B6C0;") 80.29
+      .ui.inverted.divider
+      .ui.relaxed.grid.container
+        .six.wide.column
+          canvas(id="projectTimeChart" style="height: 300px; width: 100%;")
+        .ten.wide.column
+          canvas(id="projectScoreChart" style="height: 300px; width: 100%;")
+      .ui.equal.width.grid
+        .column
+          canvas(id="locChart" style="height: 300px; width: 100%;")
+        .column
+          canvas(id="productivityChart" style="height: 300px; width: 100%;")
+        .column
+          canvas(id="errorChart" style="height: 300px; width: 100%;")

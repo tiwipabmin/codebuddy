@@ -1,39 +1,106 @@
 extends layout/layout.pug
 
 block script
-    script(src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js")
-    script(src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js")
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js")
-    script(src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes@latest/dist/chartjs-plugin-colorschemes.min.js")
-    script(src='/js/app/profile.js')
-    link(rel='stylesheet' href='/css/main.css')
+  link(rel='stylesheet' href='/css/main.css')
+  script(data-status=`${dataSets.origins.status}` src='/js/app/profile.js')
+
+  style.
+    @media (max-width: 991px) {
+      #dashboardBtn { /* Increased specificity for SO snippet priority */
+        width: 100%;
+      }
+    }
+
+    @media (min-height: 200px) {
+      .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+        position: fixed;
+        margin-top: 20px;
+        bottom: 0;
+        width: 100%;
+      }
+    }
+
 block content
-    input(type='hidden' id='username' value=dataSets.origins.username)
-    input(type='hidden' id='pid' value=dataSets.origins.pid)
-    .ui.raised.very.padded.container.segment
-      .ui.relaxed.grid.container
-        .six.wide.column
-          h1.ui.header(id="userInfo")
-            | Weerabhat Meelarp
-            | (@weerabhat)
-        .three.wide.column
-          h2.ui.header(style="color: #58B6C0;") Projects
-          h2.ui.header(id="projectsNum" style="height: 100px; line-height: 100px; text-align: center; color: white; background-color: #58B6C0;") 4
-        .four.wide.column
-          h2.ui.header(style="color: #58B6C0;") Total Active Times
-          h2.ui.header(id="totalActiveTimeNum" style="height: 100px; line-height: 100px; text-align: center; color: white; background-color: #58B6C0;") 540 mins
-        .three.wide.column
-          h2.ui.header(style="color: #58B6C0;") Avg. Score
-          h2.ui.header(id="avgScoreNum" style="height: 100px; line-height: 100px; text-align: center; color: white; background-color: #58B6C0;") 80.29
-      .ui.relaxed.grid.container
-        .six.wide.column
-          canvas(id="projectTimeChart" style="height: 300px; width: 100%;")
-        .ten.wide.column
-          canvas(id="projectScoreChart" style="height: 300px; width: 100%;")
-      .ui.equal.width.grid
+    .ui.raised.very.padded.text.container.segment
+      .ui.grid
+        .doubling.two.column.row
+          .column
+            h1.ui.header Edit your profile
+            p Edit your profile in the form below
+          .column
+            a.ui.right.floated.green.button#dashboardBtn(href=`/profile/dashboard/${dataSets.origins.user.username}`) Dashboard
+      if flashes
+        .ui.grid
+          .sixteen.wide.column
+            - const flashTypes = Object.keys(flashes)
+            each flashType in flashTypes
+              each message in flashes[flashType]
+                .ui(class = `${flashType} message`)
+                  p!= message
+      .ui.grid
         .column
-          canvas(id="locChart" style="height: 300px; width: 100%;")
-        .column
-          canvas(id="productivityChart" style="height: 300px; width: 100%;")
-        .column
-          canvas(id="errorChart" style="height: 300px; width: 100%;")
+          form.ui.form#profileForm
+            h4.ui.dividing.header Access information
+            .field#usernameField
+              label Username
+              |
+              p !{dataSets.origins.user.username}
+            .field#currentPasswordField
+              label Password
+              |
+              .ui.button#changePasswordBtn(onclick=`openFormToChangePassword(\"${dataSets.origins.user.username}\")`) Change Password
+            .field#emailField
+              label E-mail
+              |
+              p !{dataSets.origins.user.email}
+              //- input(type='email' name='email' value=user.email)
+            h4.ui.dividing.header Personal information
+            .field#firstNameField
+              label First Name
+              |
+              p !{dataSets.origins.user.info.firstname}
+              //- input(type='text', name='firstname', value=user.info.firstname || '')
+            .field#lastNameField
+              label Last Name
+              |
+              p !{dataSets.origins.user.info.lastname}
+              //- input(type='text', name='lastname', value=user.info.lastname || '')
+            .field#occupationField
+              label Occupation
+              |
+              p !{dataSets.origins.user.info.occupation}
+              //- .field
+              //-   .ui.radio.checkbox
+              //-     input(type='radio' name='occupation' value='student' checked='checked' disabled)
+              //-     |  
+              //-     label Student
+            .field#genderField
+              label Gender
+              |
+              p !{dataSets.origins.user.info.gender}
+              //- if user.info.gender === 'male'
+              //-   .field
+              //-     .ui.radio.checkbox
+              //-       input(type='radio', name='gender', value='male', checked='checked' disabled)
+              //-       |
+              //-       label Male
+              //-   .field
+              //-     .ui.radio.checkbox
+              //-       input(type='radio', name='gender', value='female' disabled)
+              //-       |
+              //-       label Female
+              //- else
+              //-   .field
+              //-     .ui.radio.checkbox
+              //-       input(type='radio', name='gender', value='male' disabled)
+              //-       |
+              //-       label Male
+              //-   .field
+              //-     .ui.radio.checkbox
+              //-       input(type='radio', name='gender', value='female', checked='checked' disabled)
+              //-       |
+              //-       label Female
+            .ui.divider
+            |
+            button.ui.button#profileFormBtn(type='button' onclick=`editProfile(\"${dataSets.origins.user.username}\", \"${dataSets.origins.user.email}\", \"${dataSets.origins.user.info.firstname}\", \"${dataSets.origins.user.info.lastname}\")`) Edit Profile
+    block footerExtend
