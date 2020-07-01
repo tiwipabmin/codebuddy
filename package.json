@@ -59,7 +59,8 @@
   },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js --ignore public/",
+    "prod": "set NODE_ENV=production&& nodemon index.js --ignore public/",
+    "dev": "set NODE_ENV=development&& nodemon index.js --ignore public/",
     "build": "npm install -g nodemon; npm run dev"
   }
 }
