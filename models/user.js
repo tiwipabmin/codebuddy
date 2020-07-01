@@ -83,11 +83,22 @@ userSchema.pre('save', async function (next) {
  * @param {String} plainPassword retrieve plain password from client
  * @return {Function} callback function which's stored `error value or null` and boolean `isMatch`
  */
-userSchema.methods.verifyPassword = async function (plainPassword, done) {
+userSchema.methods.verifyPassword = async function (plainPassword) {
   try {
     return await bcrypt.compare(plainPassword, this.password)
-  } catch(err) {
-    return done(err)
+  } catch (err) {
+    console.error(err)
+    return false
+  }
+}
+
+userSchema.methods.hashPassword = async function (plainPassword) {
+  try {
+    const SALT_ROUND = 12
+    return await bcrypt.hash(plainPassword, SALT_ROUND)
+  } catch (err) {
+    console.error(err)
+    return false
   }
 }
 
