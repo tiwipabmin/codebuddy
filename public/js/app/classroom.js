@@ -1,3 +1,18 @@
+/**
+ * get query parameter from URL
+ * @param {String} scriptName parameter scriptName's the name of script
+ * @param {String} name parameter name that you want to get variable from
+ * https://stackoverflow.com/questions/2190801/passing-parameters-to-javascript-files/2190927?noredirect=1#comment47136074_2190927
+ */
+function getVarFromScript(scriptName, name) {
+  const data = $(`script[src*=${scriptName}]`)
+  const variable = data.attr(name)
+  if (typeof variable === undefined) {
+    console.log('Error: ', variable)
+  }
+  return variable
+}
+
 $(document).ready(function () {
   $("#global_loader").attr("style", "display: none");
   $("#settings-modal").modal({
@@ -67,76 +82,6 @@ $(document).ready(function () {
       $("#newClassroom-modal").modal("hide");
     }
   });
-  // $("#assignmentForm").form({
-  //   fields: {
-  //     title: {
-  //       identifier: "title",
-  //       rules: [
-  //         {
-  //           type: "empty",
-  //           prompt: "Please enter your title"
-  //         }
-  //       ]
-  //     },
-  //     week: {
-  //       identifier: "week",
-  //       rules: [
-  //         {
-  //           type: "integer[1...100]",
-  //           prompt: "Please enter an integer value"
-  //         }
-  //       ]
-  //     },
-  //     description: {
-  //       identifier: "description",
-  //       rules: [
-  //         {
-  //           type: "empty",
-  //           prompt: "Please enter your description"
-  //         }
-  //       ]
-  //     },
-  //     input_specification: {
-  //       identifier: "input_specification",
-  //       rules: [
-  //         {
-  //           type: "empty",
-  //           prompt: "Please enter your input specification"
-  //         }
-  //       ]
-  //     },
-  //     output_specification: {
-  //       identifier: "output_specification",
-  //       rules: [
-  //         {
-  //           type: "empty",
-  //           prompt: "Please enter your output specification"
-  //         }
-  //       ]
-  //     },
-  //     sample_input: {
-  //       identifier: "sample_input",
-  //       rules: [
-  //         {
-  //           type: "empty",
-  //           prompt: "Please enter your sample input"
-  //         }
-  //       ]
-  //     },
-  //     sample_output: {
-  //       identifier: "sample_output",
-  //       rules: [
-  //         {
-  //           type: "empty",
-  //           prompt: "Please enter your sample output"
-  //         }
-  //       ]
-  //     }
-  //   },
-  //   onSuccess: function() {
-  //     $("#assignment-modal").modal("hide");
-  //   }
-  // });
 
   pairingOrViewingisHided("pair");
   // $('#resetPair-button').click(function(){
@@ -175,6 +120,51 @@ $(document).ready(function () {
   });
   $(".tabular.menu .item").tab();
 });
+
+/** Responsive Pagination */
+$(window).resize(() => {
+  const windowWidth = $(window).width();
+  let assignments = getVarFromScript('classroom', 'data-assignments');
+  let projects = getVarFromScript('classroom', 'data-projects');
+
+  if (assignments !== "undefined") {
+    assignments = JSON.parse(assignments)
+  }
+
+  if (projects !== "undefined") {
+    projects = JSON.parse(projects)
+  }
+
+  const username = getVarFromScript('classroom', 'data-username');
+  const img = getVarFromScript('classroom', 'data-image');
+  const pairingSessionId = getVarFromScript('classroom', 'data-pairingSessionId');
+  const occupation = getVarFromScript('classroom', 'data-occupation');
+  let weekId = $(".week.item.active.selected").attr("id")
+
+  if (!weekId) {
+    weekId = '-1week'
+  }
+
+  if (windowWidth <= 730) {
+    if (occupation === 'teacher') {
+      onClickWeekDropdownInFirstContainer(weekId, assignments, username, img, pairingSessionId, 0, 5)
+    } else {
+      onClickWeekDropdownInFirstContainer(weekId, projects, username, img, pairingSessionId, 1, 5)
+    }
+  } else if (windowWidth <= 991) {
+    if (occupation === 'teacher') {
+      onClickWeekDropdownInFirstContainer(weekId, assignments, username, img, pairingSessionId, 0, 14)
+    } else {
+      onClickWeekDropdownInFirstContainer(weekId, projects, username, img, pairingSessionId, 1, 14)
+    }
+  } else if (windowWidth <= 1199) {
+    if (occupation === 'teacher') {
+      onClickWeekDropdownInFirstContainer(weekId, assignments, username, img, pairingSessionId, 0, 11)
+    } else {
+      onClickWeekDropdownInFirstContainer(weekId, projects, username, img, pairingSessionId, 1, 11)
+    }
+  }
+})
 
 function searchPartner(element, sectionId) {
   let parameters = { search: element.val(), sectionId: sectionId };
@@ -473,7 +463,7 @@ function on_click_confirm_button(parameters) {
             weeklyDatas
           );
           $("#weeks").dropdown();
-          on_click_weeks_dropdown(
+          onClickWeekDropdownInFirstContainer(
             "-1week",
             JSON.parse(weeklyDatas.assignments),
             weeklyDatas.username,
@@ -690,7 +680,7 @@ function on_click_confirm_button(parameters) {
             data_for_weeks_dropdown_function
           );
           $("#weeks").dropdown();
-          on_click_weeks_dropdown(
+          onClickWeekDropdownInFirstContainer(
             "-1week",
             assignments,
             username,
@@ -1715,8 +1705,9 @@ function on_click_button_in_uspm(id) {
 }
 
 function create_weeks_dropdown(id, pairing_session_id, dataSets) {
+  console.log('Create Week Dropdown')
   $("" + id).append(
-    "<div class='item' id='-1week' data-value='-1' onclick='on_click_weeks_dropdown(\"-1week\", " +
+    "<div class='week item' id='-1week' data-value='-1' onclick='onClickWeekDropdownInFirstContainer(\"-1week\", " +
     dataSets.assignments +
     ', "' +
     dataSets.username +
@@ -1728,11 +1719,11 @@ function create_weeks_dropdown(id, pairing_session_id, dataSets) {
   );
   dataSets.weeks.forEach(function (e) {
     $("" + id).append(
-      "<div class='item' id='" +
+      "<div class='week item' id='" +
       e +
       "week' data-value='" +
       e +
-      "' onclick='on_click_weeks_dropdown(\"" +
+      "' onclick='onClickWeekDropdownInFirstContainer(\"" +
       e +
       'week", ' +
       dataSets.assignments +
@@ -1749,13 +1740,14 @@ function create_weeks_dropdown(id, pairing_session_id, dataSets) {
   });
 }
 
-function on_click_weeks_dropdown(
+function onClickWeekDropdownInFirstContainer(
   id,
   assignment_set,
   username,
   img,
   pairing_session_id,
-  opt
+  opt,
+  lengthPerSet = 14
 ) {
   assignment_set = assignment_set;
   let res_obj = get_items_of_week(assignment_set, 5, id);
@@ -1781,13 +1773,23 @@ function on_click_weeks_dropdown(
     ).insertAfter("#divider_in_first_container");
   }
 
+  const windowWidth = $(window).width()
+
+  if (windowWidth <= 730) {
+    lengthPerSet = 5
+  } else if (windowWidth <= 991) {
+    lengthPerSet = 14
+  } else if (windowWidth <= 1199) {
+    lengthPerSet = 11
+  }
+
   let dataSets = {
     paginations: pagination,
     assignmentOfWeek: assignment_of_week_,
     username: username,
     img: img,
     opt: opt,
-    lengthPerSet: 10
+    lengthPerSet: lengthPerSet
   }
 
   assignmentContainerFacade(dataSets, 1);
@@ -1813,6 +1815,8 @@ function onClickPageNumberInFirstContainer(page) {
 
 function assignmentContainerFacade(dataSets, container) {
   if (container === 1) {
+    createPagination(dataSets)
+  } else if (container === 3) {
     createPagination(dataSets)
   }
 }
@@ -1871,7 +1875,7 @@ function setPagination(previousOrNext, set, maxLength, paginationSets, dataSets)
         "<a class='item fc' id='page_" +
         tmpPaginations[index] +
         "_first_container' onclick='setPagination(\"" +
-        'next' + "\"," + 
+        'next' + "\"," +
         (set + 1) + "," +
         maxLength + "," +
         paginationSets + "," +
@@ -1882,10 +1886,10 @@ function setPagination(previousOrNext, set, maxLength, paginationSets, dataSets)
         "<a class='item fc' id='page_" +
         tmpPaginations[index] +
         "_first_container' onclick='setPagination(\"" +
-        'previous' + "\"," + 
+        'previous' + "\"," +
         (set - 1) + "," +
         maxLength + "," +
-        paginationSets + "," + 
+        paginationSets + "," +
         JSON.stringify(dataSets) + ")'>...</a>"
       );
     } else {

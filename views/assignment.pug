@@ -8,24 +8,21 @@ block script
 
   style.
     @media (min-height: 200px) {
-    .ui.footer.form-page { /* Increased specificity for SO snippet priority */
-    position: fixed;
-    margin-top: 20px;
-    bottom: 0;
-    width: 100%;
-    }
+      .ui.footer.form-page { /* Increased specificity for SO snippet priority */
+        position: fixed;
+        margin-top: 20px;
+        bottom: 0;
+        width: 100%;
+      }
     }
 
 block content
   +assignmentModal()
 
   .ui.segment.container
-    .ui.two.column.grid
-      .middle.aligned.column
-        h1.ui.header !{dataSets.origins.assignment.title}
-      if user.info.occupation == 'teacher'
-        .right.aligned.column
-          .ui.button.approve.grey#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.assignment}`+')') Edit
+    .ui.grid
+      .doubling.sixteen.wide.column
+        h1 !{dataSets.origins.assignment.title}
     .ui.two.column.grid
       .column(style="display: flex;")
         .ui.segment(style="flex: 1;")
@@ -50,6 +47,11 @@ block content
               h3.ui.header Sample Output
               .ui.segment
                 p !{dataSets.origins.assignment.sample_output}
-    a.button.ui.labeled.icon.button(href=`/classroom/section/${dataSets.origins.section.section_id}`, style='margin-top:20px;')
-      i.reply.icon
-      font Back
+    if user.info.occupation == 'teacher'
+      .ui.grid
+        .doubling.eight.column.row
+          .column
+            .ui.button#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.assignment}`+')') Edit
+    //- a.button.ui.labeled.icon.button(href=`/classroom/section/${dataSets.origins.section.section_id}`, style='margin-top:20px;')
+    //-   i.reply.icon
+    //-   font Back
