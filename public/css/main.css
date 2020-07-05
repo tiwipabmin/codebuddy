@@ -4,6 +4,59 @@
     overflow-y: scroll;
 } */
 
+.text-container {
+    background: #FFFF;
+    padding: 20px;
+    height: 450px;
+    position: relative;
+}
+  
+.textarea-assignment {
+    background: transparent;
+    resize: none;
+    border: 0 none;
+    width: 100%;
+    outline: none;
+    height: 100%;
+    /* position: absolute; */
+}
+
+div.ui.checkbox {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+a {
+    word-break: break-all;
+}
+
+p {
+    word-break: break-all;
+}
+
+h1 {
+    word-break: break-all;
+}
+
+h2 {
+    word-break: break-all;
+}
+
+h3 {
+    word-break: break-all;
+}
+
+h4 {
+    word-break: break-all;
+}
+
+h5 {
+    word-break: break-all;
+}
+
 .CodeMirror {
     resize: vertical;
     overflow: auto !important;
