@@ -4,6 +4,23 @@
     overflow-y: scroll;
 } */
 
+.text-container {
+    background: #FFFF;
+    padding: 20px;
+    height: 450px;
+    position: relative;
+}
+  
+.textarea-assignment {
+    background: transparent;
+    resize: none;
+    border: 0 none;
+    width: 100%;
+    outline: none;
+    height: 100%;
+    /* position: absolute; */
+}
+
 div.ui.checkbox {
     margin: 0;
     position: absolute;

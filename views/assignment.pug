@@ -19,39 +19,39 @@ block script
 block content
   +assignmentModal()
 
-  .ui.segment.container
-    .ui.grid
-      .doubling.sixteen.wide.column
-        h1 !{dataSets.origins.assignment.title}
-    .ui.two.column.grid
-      .column(style="display: flex;")
-        .ui.segment(style="flex: 1;")
-          p !{dataSets.origins.assignment.description}
-      .column
-        .ui.two.column.grid
-          .row
-            .eight.wide.column
-              h3.ui.header Input Specification
-              .ui.segment
-                p !{dataSets.origins.assignment.input_specification}
-            .eight.wide.column
-              h3.ui.header Output Specification
-              .ui.segment
-                p !{dataSets.origins.assignment.output_specification}
-          .row
-            .eight.wide.column
-              h3.ui.header Sample Input
-              .ui.segment
-                p !{dataSets.origins.assignment.sample_input}
-            .eight.wide.column
-              h3.ui.header Sample Output
-              .ui.segment
-                p !{dataSets.origins.assignment.sample_output}
+  .ui.raised.very.padded.text.container.segment
     if user.info.occupation == 'teacher'
-      .ui.grid
-        .doubling.eight.column.row
-          .column
-            .ui.button#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.assignment}`+')') Edit
+      .ui.right.aligned.grid
+        .right.floated.right.aligned.six.wide.column
+          button.ui.icon.button#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.assignment}`+')' style="background-color: #0000;")
+            i.edit.outline.icon(style="font-size: 25px; margin-top: 8px;")
+    .ui.grid
+      .column
+        h1(style="text-align: center;") !{dataSets.origins.assignment.title}
+    .ui.grid
+      .column
+        .ui.segment
+          .text-container
+            textarea.textarea-assignment !{dataSets.origins.assignment.description}
+    .ui.grid
+      .doubling.two.column.row
+        .column
+          h3.ui.header Input Specification
+          .ui.segment
+            p !{dataSets.origins.assignment.input_specification}
+        .column
+          h3.ui.header Output Specification
+          .ui.segment
+            p !{dataSets.origins.assignment.output_specification}
+      .doubling.two.column.row
+        .column
+          h3.ui.header Sample Input
+          .ui.segment
+            p !{dataSets.origins.assignment.sample_input}
+        .column
+          h3.ui.header Sample Output
+          .ui.segment
+            p !{dataSets.origins.assignment.sample_output}
     //- a.button.ui.labeled.icon.button(href=`/classroom/section/${dataSets.origins.section.section_id}`, style='margin-top:20px;')
     //-   i.reply.icon
     //-   font Back
