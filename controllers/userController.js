@@ -129,7 +129,14 @@ exports.validateRegister = (req, res, next) => {
  */
 exports.getProfile = async (req, res) => {
   const user = req.user;
-  dataSets = { origins: { user: user } }
+  const studentQuery = `SELECT student_id FROM student WHERE username = "${user.username}"`
+  const students = await conMysql.selectStudent(studentQuery)
+  const studentId = String(students[0].student_id)
+  let subjectId = `00000${studentId}`
+  subjectId = subjectId.slice(studentId.length, subjectId.length)
+  console.log('Subject Id, ', subjectId)
+
+  dataSets = { origins: { user: user, subjectId: subjectId } }
 
   res.render("profile", { dataSets, title: user.username + ' Profile' })
 }

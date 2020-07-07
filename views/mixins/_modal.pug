@@ -315,11 +315,18 @@ mixin assignmentModal()
               label Week :
               |
               input#assWeek(type='text' name='week' placeholder='Week' maxlength='3')
-          .sixteen.wide.column
-            .field
-              label Description :
-              |
-              textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;')
+        .ui.grid
+          //- .row
+          //-   .thirteen.wide.column
+          //-     input.file#imgSel(type='file')
+          //-   .three.wide.column
+          //-     .ui.blue.button#insertPicture(style="width:100%; height:85%;") Insert
+          .row
+            .sixteen.wide.column
+              .field
+                label Description :
+                |
+                textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;')
         .ui.grid
           .two.column.row
             .column

@@ -13,7 +13,19 @@ function getVarFromScript(scriptName, name) {
   return variable
 }
 
+function typeInTextarea(newText, el = document.activeElement) {
+  const [start, end] = [el.selectionStart, el.selectionEnd];
+  el.setRangeText(newText, start, end, 'select');
+}
+
 $(document).ready(function () {
+
+  $("#assignmentDesc").on("mouseup keydown", function (e) {
+
+    // if (e.key === "Shift") typeInTextarea("lol");
+
+  })
+
   $("#assignment-modal").modal({
     closable: false,
     transition: "fade up",
@@ -151,15 +163,15 @@ function validateValueTextarea(textarea, separator) {
   valueTextarea = $(`#${textarea}`)
     .val()
     .split(separator);
-    
+
   if (textarea === 'assWeek') {
-    if ( !isNaN(parseInt($(`#${textarea}`).val()))) {
+    if (!isNaN(parseInt($(`#${textarea}`).val()))) {
       return 1
     }
-  } else if ( ( valueTextarea.length === 1 && valueTextarea[0] !== '' ) || valueTextarea.length > 1) {
+  } else if ((valueTextarea.length === 1 && valueTextarea[0] !== '') || valueTextarea.length > 1) {
     return 1
-  } else 
-  return 0
+  } else
+    return 0
 }
 
 function transformValueTextarea(textarea, func, separator) {

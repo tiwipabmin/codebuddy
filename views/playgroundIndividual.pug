@@ -4,15 +4,15 @@ block script
   link(rel='stylesheet' href='/css/main.css')
   link(rel='stylesheet' href='/xterm/xterm.css')
   link(rel='stylesheet' href='/codemirror/lib/codemirror.css')
-  link(rel='stylesheet' href='/codemirror/addon/selection/active-line.js')
+  link(rel='application/javascript' href='/codemirror/addon/selection/active-line.js')
   link(rel='stylesheet' href='/codemirror/theme/blackboard.css')
   link(rel='stylesheet' href='/codemirror/theme/seti.css')
   link(rel='stylesheet' href='/codemirror/theme/material.css')
 block content
   script(stype='text/javascript').
-    $('#global_loader').attr({
-      'style': 'display: block; position: fixed;'
-    })
+    //- $('#global_loader').attr({
+    //-   'style': 'display: block; position: fixed;'
+    //- })
 
   //- reject joining project
   .ui.basic.modal#rejectJoining

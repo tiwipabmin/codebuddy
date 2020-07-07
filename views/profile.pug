@@ -42,6 +42,10 @@ block content
           form.ui.form#profileForm
             h4.ui.dividing.header Access information
             .field#usernameField
+              label Subject ID:
+              |
+              p !{dataSets.origins.subjectId}
+            .field#usernameField
               label Username
               |
               p !{dataSets.origins.user.username}

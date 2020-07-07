@@ -27,6 +27,24 @@ block content
             i.check.icon
             |       ตกลง
 
+  //- exporting file modal
+  .ui.small.modal#export-modal
+    .header Export File
+    .content  
+      .item
+        .ui.master.checkbox
+          input(type="checkbox" name="allfile")
+          label Select all file
+        .list#export-checklist
+          each file in dataSets.origins.project.files
+            .item.export-file-item(id=file+'-export-file-item')
+              .ui.child.checkbox
+                input(type="checkbox" name='checkbox-file', value=file)
+                label=file+'.py'
+    .actions
+      button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
+      .ui.button.approve.red(data-value='cancel') Cancel
+
   //- reject joining project
   .ui.basic.modal#rejectJoining
     .ui.icon.header เกิดข้อผิดพลาดกรุณาออกจากหน้านี้
@@ -165,7 +183,7 @@ block content
       .four.wide.column
         .ui.top.attached.tabular.demo.menu
           a.active.item(data-tab='first') Project
-          |  
+          |
           a.item(data-tab='second') Setting
           .right.menu
             .item
@@ -198,29 +216,11 @@ block content
                                   p='Do you want to delete ' + file + '.py?'
                                 .actions
                                   button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
-                                  .ui.button.approve.red(data-value='cancel') Cancel 
-        //- exporting file modal
-        .ui.small.modal#export-modal
-          .header Export File
-          .content  
-            .item
-              .ui.master.checkbox
-                input(type="checkbox" name="allfile")
-                label Select all file
-              .list#export-checklist
-                each file in dataSets.origins.project.files
-                  .item.export-file-item(id=file+'-export-file-item')
-                    .ui.child.checkbox
-                      input(type="checkbox" name='checkbox-file', value=file)
-                      label=file+'.py'       
-          .actions
-            button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
-            .ui.button.approve.red(data-value='cancel') Cancel  
-
+                                  .ui.button.approve.red(data-value='cancel') Cancel   
         .ui.bottom.attached.tab.segment(data-tab='second')
           .ui.toggle.lightmodetoggle.checkbox
             input(type='checkbox' onChange='changeTheme()')#lightmodetoggle
-            label Enable Light Mode 
+            label Enable Light Mode
         .ui.segments
           .ui.segment
             p Video Chat 
