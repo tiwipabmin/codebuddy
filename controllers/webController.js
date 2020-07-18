@@ -1444,7 +1444,7 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
       console.log("not null, ", totalScores[username]);
     }
   }
-  
+
   for (let username in totalScores) {
     updateAvgScores[username] = await User.findOne(
       {
@@ -1931,6 +1931,8 @@ exports.createPairingRecord = async (req, res) => {
       }
     }
 
+    weeks = sortNumber(weeks)
+
     let weeklyDatas = {
       assignments: JSON.stringify(assignments),
       username: req.user.info.username,
@@ -2073,8 +2075,43 @@ exports.getWeeklyAssignments = async (req, res) => {
   res.send({ weeks: JSON.stringify(weeks) });
 };
 
+function checkUrl(url, search) {
+  if (url.indexOf(search)) {
+    return 1
+  }
+  return 0
+}
+
+exports.getAssignmentForm = async (req, res) => {
+  const section_id = req.params.section_id;
+  const originalUrl = req.originalUrl
+
+  let perform;
+  if (checkUrl(originalUrl, "getform")) {
+    perform = "getform"
+  }
+
+  let section = {};
+  section.section_id = section_id;
+
+  dataSets = {
+    origins: { perform: perform, section: section }
+  };
+
+  console.log(dataSets)
+
+  res.render("assignment", { dataSets, title: `Assignment Form` });
+}
+
 exports.getAssignment = async (req, res) => {
   const section_id = req.params.section_id;
+  const originalUrl = req.originalUrl
+
+  let perform;
+  if (checkUrl(originalUrl, "view")) {
+    perform = "view"
+  }
+
   const select_assignment_by_assignment_id =
     "SELECT * FROM assignment WHERE assignment_id = " +
     cryptr.decrypt(req.params.assignment_id);
@@ -2091,14 +2128,15 @@ exports.getAssignment = async (req, res) => {
     assignment.assignment_id = cryptr.encrypt(assignment.assignment_id);
     title = assignment.title;
     assignment.title = assignment.title;
+    assignment.week = assignment.week;
     assignment.description = assignment.description;
-    assignment.input_specification = assignment.input_specification;
-    assignment.output_specification = assignment.output_specification;
-    assignment.sample_input = assignment.sample_input;
-    assignment.sample_output = assignment.sample_output;
+    assignment.input_specification = JSON.stringify(assignment.input_specification);
+    assignment.output_specification = JSON.stringify(assignment.output_specification);
+    assignment.sample_input = JSON.stringify(assignment.sample_input);
+    assignment.sample_output = JSON.stringify(assignment.sample_output);
   }
   dataSets = {
-    origins: { assignment: assignment, section: section },
+    origins: { perform: perform, assignment: assignment, section: section },
     reforms: { assignment: JSON.stringify(assignment) }
   };
   res.render("assignment", { dataSets, title: title });
@@ -2109,13 +2147,14 @@ exports.createAssignment = async (req, res) => {
   let dataSets = {};
   let section = {};
   section.section_id = cryptr.encrypt(sectionId);
-  let title = req.body.title;
-  let week = parseInt(req.body.week);
-  let description = JSON.parse(req.body.description);
-  let input_specification = JSON.parse(req.body.input_specification);
-  let output_specification = JSON.parse(req.body.output_specification);
-  let sample_input = JSON.parse(req.body.sample_input);
-  let sample_output = JSON.parse(req.body.sample_output);
+  let allInfo = JSON.parse(req.body.allInfo)
+  let title = allInfo.title;
+  let week = parseInt(allInfo.week);
+  let description = allInfo.description;
+  let input_specification = allInfo.input_specification;
+  let output_specification = allInfo.output_specification;
+  let sample_input = allInfo.sample_input;
+  let sample_output = allInfo.sample_output;
   let programming_style = req.body.programming_style;
 
   dataSets = {
@@ -2126,10 +2165,40 @@ exports.createAssignment = async (req, res) => {
     sample_output: sample_output
   };
 
+  // console.log('Data Sets 1, ', dataSets)
+
   for (let key in dataSets) {
-    let joinData = dataSets[key].join("<br>");
-    dataSets[key] = joinData;
+    if (key === "description") {
+      for (let index in dataSets[key]) {
+        dataSets[key][index] = dataSets[key][index].replace(/ /g, "&nbsp;");
+      }
+    } else {
+      for (let i in dataSets[key]) {
+        let block = dataSets[key][i]
+        for (let j in block) {
+          dataSets[key][i][j] = block[j].replace(/ /g, "&nbsp;");
+        }
+      }
+    }
   }
+
+  // console.log('Data Sets 2, ', dataSets)
+
+  for (let key in dataSets) {
+    if (key === "description") {
+      let joinData = dataSets[key].join("<br>");
+      dataSets[key] = joinData;
+    } else {
+      for (let index in dataSets[key]) {
+        let data = dataSets[key][index]
+        let joinData = data.join("<br>");
+        let block = [joinData]
+        dataSets[key][index] = block;
+      }
+    }
+  }
+
+  // console.log('Data Sets 3, ', dataSets)
 
   const insertAssignment =
     "INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style, week) VALUES ?";
@@ -2138,19 +2207,28 @@ exports.createAssignment = async (req, res) => {
       sectionId,
       title,
       dataSets.description,
-      dataSets.input_specification,
-      dataSets.output_specification,
-      dataSets.sample_input,
-      dataSets.sample_output,
+      JSON.stringify(dataSets.input_specification),
+      JSON.stringify(dataSets.output_specification),
+      JSON.stringify(dataSets.sample_input),
+      JSON.stringify(dataSets.sample_output),
       programming_style,
       week
     ]
   ];
 
-  const assignment_id = await conMysql.insertAssignment(
+  await conMysql.insertAssignment(
     insertAssignment,
     values
-  );
+  ).then(data => {
+
+    if (typeof data === "number") {
+      const enAssignmentId = cryptr.encrypt(data)
+      res.redirect(`/assignment/view/${enAssignmentId}/section/${section.section_id}`);
+    } else {
+      res.redirect(`/assignment/getform/section/${section.section_id}`);
+    }
+    // console.log('Data, ', data)
+  });
 
   // const queryEnrollment = `select * from enrollment as en join student as st` +
   //   ` on st.student_id = en.student_id where en.section_id = ${sectionId}`
@@ -2164,7 +2242,6 @@ exports.createAssignment = async (req, res) => {
   /**
    * Create assignment notification
    */
-  const enAssignmentId = cryptr.encrypt(assignment_id)
   // let notifications = new Notification()
   // notifications.receiver = receivers
   // notifications.link = `/assignment/${enAssignmentId}/section/${section.section_id}`
@@ -2176,11 +2253,12 @@ exports.createAssignment = async (req, res) => {
   // notifications.info = { assignmentId: enAssignmentId }
   // notifications = await notifications.save();
 
-  if (typeof assignment_id === "number") {
-    res.redirect(`/assignment/${enAssignmentId}/section/${section.section_id}`);
-  } else {
-    res.redirect(`/classroom/${section.section_id}`);
-  }
+  // if (typeof assignment_id === "number") {
+  //   res.redirect(`/assignment/view/${enAssignmentId}/section/${section.section_id}`);
+  // } else {
+  //   res.redirect(`/assignment/getform/section/${section.section_id}`);
+  //   // res.redirect(`/classroom/${section.section_id}`);
+  // }
 };
 
 exports.updateAssignment = async (req, res) => {

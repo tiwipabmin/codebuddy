@@ -82,7 +82,8 @@ block content
             a.item.uspm#action_checkbox(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Checkbox
             a.item.uspm#manageAssignment(onclick='on_click_button_in_uspm('+`$(this).attr('id')`+')') Manage Assignment
           .ui.segment.active.uspm#c_r_u_d_segment(style='display: block')
-            button.ui.button.blue(onclick='showAssingmentModal()') Create
+            //- button.ui.button.blue(onclick='showAssingmentModal()') Create
+            a.ui.button.blue(href=`/assignment/getform/section/${dataSets.origins.section.section_id}`) Create
             button.ui.button.approve.blue#delete_assignment_button Delete
           .ui.segment.uspm#action_checkbox_segment(style='display: none')
             button.ui.button.approve.blue#check_all_of_box(onclick='checkbox_event('+`${dataSets.reforms.assignments}`+', \"-1week\", 1)') Check All Box

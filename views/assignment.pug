@@ -1,7 +1,8 @@
 extends layout/layout.pug
 
 block script
-  script(src='/js/app/assignment.js', data-assignments=`${dataSets.reforms.assignment}`, data-sectionId=`${dataSets.origins.section.section_id}`)
+  //- script(src='/js/app/assignment.js', data-assignments=`${dataSets.reforms.assignment}`, data-sectionId=`${dataSets.origins.section.section_id}`)
+  script(src='/js/app/assignment.js', data-sectionId=`${dataSets.origins.section.section_id}`)
   script(src='/easy-autocomplete/dist/jquery.easy-autocomplete.min.js')
   link(rel='stylesheet' href='/easy-autocomplete/dist/easy-autocomplete.min.css')
   link(rel='stylesheet' href='/css/main.css')
@@ -19,39 +20,190 @@ block script
 block content
   +assignmentModal()
 
-  .ui.raised.very.padded.text.container.segment
-    if user.info.occupation == 'teacher'
-      .ui.right.aligned.grid
-        .right.floated.right.aligned.six.wide.column
-          button.ui.icon.button#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.assignment}`+')' style="background-color: #0000;")
-            i.edit.outline.icon(style="font-size: 25px; margin-top: 8px;")
-    .ui.grid
-      .column
-        h1(style="text-align: center;") !{dataSets.origins.assignment.title}
-    .ui.grid
-      .column
-        .ui.segment
-          //- .text-container
-          #assignmentTextarea !{dataSets.origins.assignment.description}
-    .ui.grid
-      .doubling.two.column.row
+  //- .ui.segment#assignment-container
+  //-   if user.info.occupation == 'teacher'
+  //-     .ui.right.aligned.grid
+  //-       .floated.right.aligned.column
+  //-         button.ui.icon.button#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.assignment}`+')' style="background-color: #0000;")
+  //-           i.edit.outline.icon(style="font-size: 25px; margin-top: 8px;")
+  //-   .ui.grid.segment.assignment-detail
+  //-     .column
+  //-       h1(style="text-align: center;") !{dataSets.origins.assignment.title}
+  //-   .ui.doubling.two.column.grid
+  //-     .column
+  //-       .ui.segment.assignment-detail
+  //-         #assignment-textarea !{dataSets.origins.assignment.description}
+  //-     .ui.column.grid
+  //-       .doubling.two.column.row
+  //-         .column
+  //-           h3.ui.header Input Specification
+  //-           .ui.segment.assignment-detail
+  //-             p !{dataSets.origins.assignment.input_specification}
+  //-         .column
+  //-           h3.ui.header Output Specification
+  //-           .ui.segment.assignment-detail
+  //-             p !{dataSets.origins.assignment.output_specification}
+  //-       .doubling.two.column.row
+  //-         .column
+  //-           h3.ui.header Sample Input
+  //-           .ui.segment.assignment-detail
+  //-             p !{dataSets.origins.assignment.sample_input}
+  //-         .column
+  //-           h3.ui.header Sample Output
+  //-           .ui.segment.assignment-detail
+  //-             p !{dataSets.origins.assignment.sample_output}
+
+  //- .ui.raised.very.padded.text.container.segment
+  .ui.container.segment#assignment-container
+    if dataSets.origins.perform === "getform"
+      .ui.grid.segment.assignment-detail
         .column
-          h3.ui.header Input Specification
-          .ui.segment
-            p !{dataSets.origins.assignment.input_specification}
+          h1(style="text-align: center;") Assignment Form
+      form.ui.form.assignment-form#assignmentForm
+        .ui.doubling.two.column.grid
+          .twelve.wide.column
+            .inline.fields
+              label Programming Style :
+              |
+              select.ui.dropdown(name='programming_style')
+                option(value='Remote') Remote Pair-programming
+                option(value='Co-located') Conventional Pair-programming
+                option(value='Individual') Individual Programming
+          .four.wide.column
+            .inline.fields
+              label Week :
+              |
+              input#assWeek(type='text' name='week' placeholder='Week' maxlength='3')
+        .ui.grid
+          .sixteen.wide.column
+            .field
+              label Title :
+              |
+              input#assTitle(type='text' name='title' placeholder='Your title')
+          //- .three.wide.column
+          //-   .field
+          //-     label Week :
+          //-     |
+          //-     input#assWeek(type='text' name='week' placeholder='Week' maxlength='3')
+        .ui.grid
+          .sixteen.wide.column
+            .field
+              label Description :
+              |
+              textarea#assignmentDesc(type='text' name='description' placeholder='Some content...')
+        .ui.one.column.grid#ioSpecificationGrid
+          .column.io-spec#ioSpecBlock-1(onclick=`onIoSpecBlockClick($(this))`)
+            .ui.two.column.grid
+              .column
+                .field
+                  label Input Specification :
+                  |
+                  textarea#assInSpecify-1(row='1' type='text' name='input_specification1' placeholder='Input Specification...')
+              .column
+                .field
+                  label Output Specification :
+                  |
+                  textarea#assOutSpecify-1(row='1' type='text' name='output_specification1' placeholder='Output Specification...')
+          .column#ioSpecificationBtnRow
+            .ui.two.column.grid
+              .column
+                .ui.blue.button(onclick='addIOSpecification()' style="width:100%;") Add
+              .column
+                .ui.red.button(onclick='removeIOSpecification()' style="width:100%;") Remove
+        .ui.one.column.grid#sampleIoGrid
+          .column.sample-io#sampleIoBlock-1(onclick=`onSampleIoBlockClick($(this))`)
+            .ui.two.column.grid
+              .column
+                .field
+                  label Sample Input :
+                  |
+                  textarea#assSamInput-1(row='1' type='text' name='sample_input1' placeholder='Sample Input...')
+              .column
+                .field
+                  label Sample Output :
+                  |
+                  textarea#assSamOutput-1(row='1' type='text' name='sample_output1' placeholder='Sample Output...')
+          .column#sampleIOBtnRow
+            .ui.two.column.grid
+              .column
+                .ui.blue.button(onclick='addSampleIO()' style="width:100%;") Add
+              .column
+                .ui.red.button(onclick='removeSampleIO()' style="width:100%;") Remove
+        input(type='hidden' name='sectionId', value=`${dataSets.origins.section.section_id}`)
+        input#allInfo(type='hidden' name='allInfo', value="")
+        .ui.two.column.grid
+          .floated.left.aligned.column
+            button.ui.blue.button#leftBtn(type='button' onclick='previewAssignmentForm()') Preview
+          .floated.right.aligned.column
+            button.ui.green.button#rightBtn(type='button' onclick='createAssignment()') Confirm
+        .ui.error.message
+    else
+      .ui.doubling.two.column.grid
+        .fifteen.wide.column
+          .ui.segment.assignment-detail
+            h3.ui.header Programming Style : !{dataSets.origins.assignment.programming_style}
+        if user.info.occupation == 'teacher'
+          .floated.right.aligned.one.wide.column
+            //- button.ui.icon.button#editAssignment(onclick='showAssignmentModal('+`${dataSets.reforms.assignment}`+')' style="background-color: #0000;")
+            button.ui.icon.button#editAssignment(onclick='getAssignmentForm('+`${dataSets.reforms.assignment}`+')' style="background-color: #0000;")
+              i.edit.outline.icon(style="font-size: 25px; margin-top: 8px;")
+      .ui.grid.segment.assignment-detail
         .column
-          h3.ui.header Output Specification
-          .ui.segment
-            p !{dataSets.origins.assignment.output_specification}
-      .doubling.two.column.row
+          h1(style="text-align: center;") !{dataSets.origins.assignment.title}
+      .ui.grid#descriptionGrid
         .column
-          h3.ui.header Sample Input
-          .ui.segment
-            p !{dataSets.origins.assignment.sample_input}
-        .column
-          h3.ui.header Sample Output
-          .ui.segment
-            p !{dataSets.origins.assignment.sample_output}
+          .ui.segment.assignment-detail
+            pre#assignment-textarea !{dataSets.origins.assignment.description}
+      .ui.one.column.grid#ioSpecificationGrid
+        script(type="text/javascript").
+          $(document).ready(function(){
+            setIoSpecificationBlock(!{dataSets.origins.assignment.input_specification}, !{dataSets.origins.assignment.output_specification})
+          })
+        //- .column
+        //-   .ui.doubling.two.column.grid
+        //-     .column
+        //-       h3.ui.header Input Specification
+        //-       .ui.segment.assignment-detail
+        //-         pre !{dataSets.origins.assignment.input_specification}
+        //-     .column
+        //-       h3.ui.header Output Specification
+        //-       .ui.segment.assignment-detail
+        //-         pre !{dataSets.origins.assignment.output_specification}
+      .ui.divider(style="margin-top:30px; margin-bottom:30px;")
+      .ui.one.column.grid#sampleIoGrid
+        script(type="text/javascript").
+          $(document).ready(function(){
+            setSampleIoBlock(!{dataSets.origins.assignment.sample_input}, !{dataSets.origins.assignment.sample_output})
+          })
+        //- .column
+        //-   .ui.doubling.two.column.grid
+        //-     .column
+        //-       h3.ui.header Sample Input
+        //-       .ui.segment.assignment-detail
+        //-         pre !{dataSets.origins.assignment.sample_input}
+        //-     .column
+        //-       h3.ui.header Sample Output
+        //-       .ui.segment.assignment-detail
+        //-         pre !{dataSets.origins.assignment.sample_output}
+    //- .ui.grid
+    //-   .doubling.two.column.row
+    //-     .column
+    //-       h3.ui.header Input Specification
+    //-       .ui.segment
+    //-         p !{dataSets.origins.assignment.input_specification}
+    //-     .column
+    //-       h3.ui.header Output Specification
+    //-       .ui.segment
+    //-         p !{dataSets.origins.assignment.output_specification}
+    //-   .doubling.two.column.row
+    //-     .column
+    //-       h3.ui.header Sample Input
+    //-       .ui.segment
+    //-         p !{dataSets.origins.assignment.sample_input}
+    //-     .column
+    //-       h3.ui.header Sample Output
+    //-       .ui.segment
+    //-         p !{dataSets.origins.assignment.sample_output}
     //- a.button.ui.labeled.icon.button(href=`/classroom/section/${dataSets.origins.section.section_id}`, style='margin-top:20px;')
     //-   i.reply.icon
     //-   font Back

@@ -79,8 +79,8 @@ exports.validateRegister = (req, res, next) => {
   req.checkBody('firstname')
     .notEmpty()
     .withMessage('Please enter your First Name!')
-    .isAlpha()
-    .withMessage('This firstname is not valid!')
+    // .isAlpha()
+    // .withMessage('This firstname is not valid!')
   let firstname = req.body.firstname
   let isValidFirstname = validateName(firstname)
 
@@ -88,8 +88,8 @@ exports.validateRegister = (req, res, next) => {
   req.checkBody('lastname')
     .notEmpty()
     .withMessage('Please enter your Last Name!')
-    .isAlpha()
-    .withMessage('This lastname is not valid!')
+    // .isAlpha()
+    // .withMessage('This lastname is not valid!')
   let lastname = req.body.lastname
   let isValidLastname = validateName(lastname)
 
@@ -216,8 +216,8 @@ exports.validateToUpdateProfile = async (req, res, next) => {
       req.checkBody('firstname')
         .notEmpty()
         .withMessage('Please enter your First Name!')
-        .isAlpha()
-        .withMessage('This firstname is not valid!')
+        // .isAlpha()
+        // .withMessage('This firstname is not valid!')
 
       dataOfMongoDb["info.firstname"] = firstname
       dataOfMySql.first_name = firstname
@@ -232,8 +232,8 @@ exports.validateToUpdateProfile = async (req, res, next) => {
       req.checkBody('lastname')
         .notEmpty()
         .withMessage('Please enter your Last Name!')
-        .isAlpha()
-        .withMessage('This lastname is not valid!')
+        // .isAlpha()
+        // .withMessage('This lastname is not valid!')
 
       dataOfMongoDb["info.lastname"] = lastname
       dataOfMySql.last_name = lastname

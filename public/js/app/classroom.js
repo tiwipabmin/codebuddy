@@ -204,9 +204,6 @@ function createProject() {
 }
 
 function showAssingmentModal() {
-  $("#confirmToCreateAssBtn").attr({
-    onclick: "createAssignment()"
-  });
   $("#assignment-modal").modal("show");
 }
 
@@ -1149,7 +1146,7 @@ function showStudentList(
           ) +
           ":" +
           pad(parseInt(students[key].total_time % 60)) +
-          "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton(" +
+          "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='/images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton(" +
           students[key].enrollment_id +
           "," +
           students[key].avg_score +
@@ -1968,7 +1965,7 @@ function createAssignmentPageInFirstContainer(
               "<div class='item' id='a" + assignment.assignment_id + "'></div>"
             );
             content = $(
-              "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/assignment/" +
+              "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/assignment/view/" +
               assignment.assignment_id +
               "/section/" +
               assignment.section_id +
@@ -1981,11 +1978,11 @@ function createAssignmentPageInFirstContainer(
             fourteen_wide_column = $(
               "<div class='fourteen wide column assignment_is_selected' onclick='on_click_assignment(1, \"" +
               assignment.assignment_id +
-              "_is_selected\")'><p style='padding-left:15px; padding-right:15px;'>" +
+              "_is_selected\")'><pre style='padding-left:15px; padding-right:15px;'>" +
               assignment.description +
-              "</p><p style='padding-left:15px; padding-right:15px;'>Programming Style : " +
+              "</pre><pre style='padding-left:15px; padding-right:15px;'>Programming Style : " +
               assignment.programming_style +
-              "</p></div>"
+              "</pre></div>"
             );
             two_wide_column = $("<div class='two wide column'></div>");
             checkbox = $(
@@ -2256,11 +2253,11 @@ function set_item_pagination_in_second_container(
               section_id +
               "&username=" +
               student.username +
-              "'><p> " +
+              "'><pre> " +
               student.first_name +
               " " +
               student.last_name +
-              " </p></a></div>"
+              " </pre></a></div>"
             );
             right_floated_content.append(tag_a);
             item.append(right_floated_content);
@@ -2270,11 +2267,11 @@ function set_item_pagination_in_second_container(
             break;
           default:
             content = $(
-              "<div class='content'><p> " +
+              "<div class='content'><pre> " +
               student.first_name +
               " " +
               student.last_name +
-              " </p></div>"
+              " </pre></div>"
             );
             item.append(img);
             item.append(content);
@@ -2386,11 +2383,11 @@ function set_item_pagination_in_third_container(
                 " </header></b>"
               );
               description = $(
-                "<p><b style='color:#5D5D5D'> Start at : </b><font style='color:#5D5D5D'>" +
+                "<pre><b style='color:#5D5D5D'>Start at : </b><font style='color:#5D5D5D'>" +
                 pairing_session.time_start +
-                "</font><br><b style='color:#5D5D5D'> End at : </b><font style='color:#5D5D5D'>" +
+                "</font><br><b style='color:#5D5D5D'>End at : </b><font style='color:#5D5D5D'>" +
                 pairing_session.time_end +
-                "</font></p>"
+                "</font></pre>"
               );
               button = $(
                 "<div class='ui right floated alignedvertical animated button' onclick='onClickViewPairingRecord(" +
@@ -2409,11 +2406,11 @@ function set_item_pagination_in_third_container(
                 " </header></b>"
               );
               description = $(
-                "<p><b> Start at : </b><font>" +
+                "<pre><b>Start at : </b><font>" +
                 pairing_session.time_start +
-                "</font><br><b> End at : </b><font>" +
+                "</font><br><b>End at : </b><font>" +
                 pairing_session.time_end +
-                "</font></p>"
+                "</font></pre>"
               );
               button = $(
                 "<div class='ui top right floated pointing dropdown button blue' ><font color='white'> Select </font><div class='menu'><div class='item' onclick='onClickViewPairingRecord(" +
@@ -2447,7 +2444,7 @@ function set_item_pagination_in_third_container(
             item = $("<div class='item'></div>");
             content = $("<div class='content'></div>");
             tag_a = $(
-              "<a href='/assignment/" +
+              "<a href='/assignment/view/" +
               assignment.assignment_id +
               "/section/" +
               section_id +
@@ -2456,9 +2453,9 @@ function set_item_pagination_in_third_container(
               "</b></a>"
             );
             description = $(
-              "<div class='description'><p style='padding-left:15px; padding-right:15px;'>" +
+              "<div class='description'><pre style='padding-left:15px; padding-right:15px;'>" +
               assignment.description +
-              "</p></div>"
+              "</pre></div>"
             );
             item.append(content);
             content.append(tag_a);

@@ -6,7 +6,7 @@ const chalk = require('chalk')
 const conMysql = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "codebuddy",
+  password: "icbizcodebuddy",
   database: "classroom_management_system"
 })
 
@@ -241,6 +241,15 @@ exports.insertStudent = (query, values) => {
     conMysql.query(query, [values], function (err, res) {
       if(err) reject('Insert Failed!')
       else resolve(res.insertId)
+    })
+  })
+}
+
+exports.updateStudent = (query) => {
+  return new Promise(function(resolve, reject){
+    conMysql.query(query, function (err, res) {
+      if(err) reject(`Error: ${err}. Update Student Failed!`)
+      else resolve(`Update Student Successfully!`)
     })
   })
 }
