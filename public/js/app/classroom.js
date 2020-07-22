@@ -747,7 +747,6 @@ function on_click_confirm_button(parameters) {
       }
     });
   } else if (message == "Are you sure you want to start auto pairing?") {
-    // console.log('parameters, ', parameters)
     if (parameters.scoreDiff !== undefined) {
       $.get("/classroom/startAutoPairingByScoreDiff", parameters, function (
         res
@@ -1005,7 +1004,7 @@ function onClickAddPartnerButton(
         JSON.stringify(pairing_objective) +
         ")"
       );
-      //make user list is empty on search user panel
+      // make user list is empty on search user panel
       $(".user-list").empty();
       $(".user-list").append("<div class='li ui item'>Search result</div>");
 
@@ -1026,13 +1025,16 @@ function onClickAddPartnerButton(
       let key;
       let addSamePartner = false;
 
-      // partner_id is value in partner_keys
-      // ex. partner_keys = {0: 1, 2: 3} expected {0: -1, 2: 1, 3: -1}
-      // pair student_id = 2 with partner_id = 1 will make undefined
+      /**
+       * partner_id is value in partner_keys
+       * ex. partner_keys = {0: 1, 2: 3} expected {0: -1, 2: 1, 3: -1}
+       * pair student_id = 2 with partner_id = 1 will make undefined
+       */
       if (partner_keys[partner_id] === undefined) {
         key = Object.keys(partner_keys).find(
           key => partner_keys[key] === partner_id
         );
+
         if (key == student_id) {
           addSamePartner = true;
         }
@@ -1040,10 +1042,7 @@ function onClickAddPartnerButton(
         key = partner_keys[partner_id];
       }
 
-      if (partner_keys[student_id] < 0 && pairing_objective[partner_id] != -1) {
-        partner_keys[key] = -1;
-        pairing_objective[key] = -1;
-      } else if (partner_keys[student_id] > 0 && !addSamePartner) {
+      if (partner_keys[student_id] > 0 && !addSamePartner) {
         if (pairing_objective[partner_id] == -1) {
           partner_keys[partner_keys[student_id]] = -1;
           pairing_objective[partner_keys[student_id]] = -1;
@@ -1055,7 +1054,7 @@ function onClickAddPartnerButton(
           pairing_objective[partner_keys[student_id]] = -1;
         }
       }
-      //add new partner to student
+      // add new partner to student
       partner_keys[student_id] = partner_id;
       delete partner_keys[partner_id];
 
@@ -1321,7 +1320,6 @@ function onClickCreateSession(
 }
 
 function onClickCompletedSessionMenu(pairing_session_id, section_id) {
-  //console.log('pairing_session_id: ' + pairing_session_id)
   parameters = JSON.stringify({
     pairing_session_id: pairing_session_id,
     section_id: section_id,
@@ -1395,7 +1393,6 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
       ? assignment_is_selected.push(e)
       : null;
   });
-  // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
   if (assignment_is_selected.length) {
     let parameters = JSON.stringify({
       assignment_set: assignment_is_selected,
@@ -1448,7 +1445,6 @@ function onClickDeleteAssignment(assignment_of_week) {
       ? assignment_is_selected.push(e)
       : null;
   });
-  // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
   if (!assignment_is_selected.length) {
     $("#alert-header").text("Select assignment");
     $("#alert-message").text(
@@ -1599,7 +1595,6 @@ function on_click_confirm_assignment_management_button(action) {
 
 function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   parameters = JSON.stringify({ enrollment_id: enrollment_id });
-  // console.log('enrollment_id, ', enrollment_id)
   $("#confirm-button").attr(
     "onclick",
     "on_click_confirm_button(" + parameters + ")"
@@ -1683,7 +1678,6 @@ function onClickAutoPairingSelectionMethod(id) {
 }
 
 function on_click_button_in_uspm(id) {
-  // console.log('element_id_in_uspm, ', id)
   $(".item.active.uspm").attr({
     class: "item uspm"
   });
@@ -1702,7 +1696,6 @@ function on_click_button_in_uspm(id) {
 }
 
 function create_weeks_dropdown(id, pairing_session_id, dataSets) {
-  console.log('Create Week Dropdown')
   $("" + id).append(
     "<div class='week item' id='-1week' data-value='-1' onclick='onClickWeekDropdownInFirstContainer(\"-1week\", " +
     dataSets.assignments +
@@ -2376,7 +2369,6 @@ function set_item_pagination_in_third_container(
             eleven_wide_column = $("<div class='eleven wide column'></div>");
             five_wide_column = $("<div class='five wide column'></div>");
             if (pairing_session.status == 0) {
-              // console.log('pairing_session.status, ', pairing_session.status)
               tag_b = $(
                 "<b style='font-size:1.5em;'><header style='color:#5D5D5D;'> Session : " +
                 (pairing_times - _index_o) +

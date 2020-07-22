@@ -783,6 +783,7 @@ exports.searchStudent = async (req, res) => {
       }
     }
   }
+  console.log('Search Student: partnerKeys, ', req.query.partner_keys)
   res.send({
     studentId: studentId,
     students: students,
@@ -1521,7 +1522,9 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
       selectPairingRecordByEnrollmentId
     );
 
-    // previous partner of each student
+    /**
+     *  previous partner of each student
+     */
     let previousPartners = [];
     for (let index in getPairingRecord) {
       if (previousPartners.indexOf(getPairingRecord[index].partner_id) < 0) {
@@ -1531,7 +1534,9 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
     previousPartnersOfEachStudents[enrollmentId] = previousPartners;
     numberAllOfStudent++;
 
-    // avg score of each student
+    /**
+     * avg score of each student
+     */
     let user = await User.findOne({
       username: username
     });
@@ -1570,7 +1575,7 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
           parseInt(enrollmentIdPn)
         ) < 0
       ) {
-        partnerKeys[enrollmentIdSd] = enrollmentIdPn;
+        partnerKeys[parseInt(enrollmentIdSd)] = parseInt(enrollmentIdPn);
         delete partnerKeys[enrollmentIdPn];
         delete students[enrollmentIdSd];
         delete students[enrollmentIdPn];
@@ -1585,6 +1590,12 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
       numberOfStudents = Object.keys(students).length - 1;
 
       numberOfPreviousRandSds = Object.keys(previousRandSd).length;
+    }
+  }
+
+  for (let key in partnerKeys) {
+    if (partnerKeys[key] < 0) {
+      pairingObjectives[key] = -1
     }
   }
 
