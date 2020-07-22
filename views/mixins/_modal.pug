@@ -360,7 +360,7 @@ mixin assignmentModal()
         input(type='hidden' name='sectionId', value=`${dataSets.origins.section.section_id}`)
         .ui.two.column.grid
           .floated.left.aligned.column
-            .ui.blue.button#leftBtn(type='button' onclick='previewAssignmentForm()') Preview
+            .ui.blue.button#centerBtn(type='button' onclick='previewAssignmentForm()') Preview
           .floated.right.aligned.column
             .ui.green.submit.button#rightBtn(type='button' onclick='createAssignment()') Confirm
         .ui.error.message

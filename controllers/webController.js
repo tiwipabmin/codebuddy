@@ -2125,15 +2125,16 @@ exports.getAssignment = async (req, res) => {
 
   if (assignment.length) {
     assignment = assignment[0];
+    assignment.section_id = section_id
     assignment.assignment_id = cryptr.encrypt(assignment.assignment_id);
     title = assignment.title;
     assignment.title = assignment.title;
     assignment.week = assignment.week;
     assignment.description = assignment.description;
-    assignment.input_specification = JSON.stringify(assignment.input_specification);
-    assignment.output_specification = JSON.stringify(assignment.output_specification);
-    assignment.sample_input = JSON.stringify(assignment.sample_input);
-    assignment.sample_output = JSON.stringify(assignment.sample_output);
+    assignment.input_specification = assignment.input_specification;
+    assignment.output_specification = assignment.output_specification;
+    assignment.sample_input = assignment.sample_input;
+    assignment.sample_output = assignment.sample_output;
   }
   dataSets = {
     origins: { perform: perform, assignment: assignment, section: section },
@@ -2165,7 +2166,7 @@ exports.createAssignment = async (req, res) => {
     sample_output: sample_output
   };
 
-  // console.log('Data Sets 1, ', dataSets)
+  console.log('Data Sets 1, ', dataSets)
 
   for (let key in dataSets) {
     if (key === "description") {
@@ -2192,7 +2193,7 @@ exports.createAssignment = async (req, res) => {
       for (let index in dataSets[key]) {
         let data = dataSets[key][index]
         let joinData = data.join("<br>");
-        let block = [joinData]
+        let block = joinData
         dataSets[key][index] = block;
       }
     }
@@ -2262,53 +2263,42 @@ exports.createAssignment = async (req, res) => {
 };
 
 exports.updateAssignment = async (req, res) => {
-  const assignment_id = cryptr.decrypt(req.body.assignment_id);
+  const assignmentId = cryptr.decrypt(req.body.assignmentId);
   const sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
-  let title = req.body.title;
-  let week = parseInt(req.body.week);
-  let description = JSON.parse(req.body.description);
-  let input_specification = JSON.parse(req.body.input_specification);
-  let output_specification = JSON.parse(req.body.output_specification);
-  let sample_input = JSON.parse(req.body.sample_input);
-  let sample_output = JSON.parse(req.body.sample_output);
-  let programming_style = req.body.programming_style;
+  const allInfo = JSON.parse(req.body.allInfo)
 
-  dataSets = {
-    description: description,
-    input_specification: input_specification,
-    output_specification: output_specification,
-    sample_input: sample_input,
-    sample_output: sample_output
-  };
+  let field = ``
+  let count = 0;
+  for (let key in allInfo) {
 
-  for (let key in dataSets) {
-    let joinData = dataSets[key].join("<br>");
-    dataSets[key] = joinData;
+    if (count !== 0) {
+      field += `, `
+    }
+
+    if (key === "week") {
+      field += key + " = " + parseInt(allInfo[key])
+    } else {
+      if (key === 'input_specification' ||
+        key === 'output_specification' ||
+        key === 'sample_input' ||
+        key === 'sample_output') {
+          field += key + " = " + JSON.stringify(JSON.stringify(allInfo[key]))
+        } else {
+          field += key + " = '" + allInfo[key] + "'"
+        }
+    }
+
+    count++;
   }
 
-  const updateAssignment =
-    "UPDATE assignment SET title = '" +
-    title +
-    "', description = '" +
-    dataSets.description +
-    "', input_specification = '" +
-    dataSets.input_specification +
-    "', output_specification = '" +
-    dataSets.output_specification +
-    "', sample_input = '" +
-    dataSets.sample_input +
-    "', sample_output = '" +
-    dataSets.sample_output +
-    "', programming_style = '" +
-    programming_style +
-    "', week = " +
-    week +
-    " WHERE assignment_id = " +
-    assignment_id;
-  await conMysql.updateAssignment(updateAssignment);
+  const updateAssignment = "UPDATE assignment SET " + field + " WHERE assignment_id = " + assignmentId;
+  await conMysql.updateAssignment(updateAssignment).then(data => {
+    console.log(`Update Assignment Status: ${data}`)
+  });
+
   res.redirect(
-    "/assignment/" +
-    cryptr.encrypt(assignment_id) +
+    "/assignment/view/" +
+    cryptr.encrypt(assignmentId) +
     "/section/" +
     cryptr.encrypt(sectionId)
   );

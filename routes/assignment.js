@@ -17,9 +17,9 @@ const router = express.Router()
  */
 router.get('/view/:assignment_id/section/:section_id', auth.isSignedIn, auth.validateSection, catchErrors(webController.getAssignment))
 router.get('/getform/section/:section_id', auth.isSignedIn, catchErrors(webController.getAssignmentForm))
-router.post('/', auth.isSignedIn, catchErrors(webController.createAssignment))
+router.post('/createassignment', auth.isSignedIn, catchErrors(webController.createAssignment))
 
-router.post('/updateAssignment', auth.isSignedIn, catchErrors(webController.updateAssignment))
+router.post('/updateassignment', auth.isSignedIn, catchErrors(webController.updateAssignment))
 
 /**
  * Expose `router`
