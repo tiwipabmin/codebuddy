@@ -55,9 +55,13 @@ new Redis().on('error', (err) => {
  * Start server and initiate socket.io server
  */
 const app = require('./server')
+const config = require('getconfig')
+const fs = require('fs')
+const webRtcSockets = require('./signaling/sockets')
 
 const server = app.listen(process.env.PORT || 8080, () => {
   winston.info('[%s] Listening on 127.0.0.1:%s', chalk.green('✓'), chalk.blue(server.address().port))
 })
 
-require('./handlers/socket')(server)
+const io = require('./handlers/socket')(server);
+webRtcSockets(io, config);
