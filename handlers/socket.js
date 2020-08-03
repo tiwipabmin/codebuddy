@@ -6,10 +6,7 @@ const Redis = require('ioredis')
  */
 module.exports = (server) => {
   // Initiate socket.io conection
-  const io = socketio(server, {
-    pingInterval: 25000,
-    pingTimeout: 5000
-  })
+  const io = socketio(server)
 
   // Initiate redis connection for persist data
   const redis = new Redis()
@@ -31,4 +28,6 @@ module.exports = (server) => {
       }
     })
   })
+
+  return io;
 }
