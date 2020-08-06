@@ -685,11 +685,11 @@ function on_click_confirm_button(parameters) {
             pairing_session_id,
             opt
           );
-          $("#clear_checkbox").attr(
+          $("#clear-checkbox").attr(
             "onclick",
             "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 0)"
           );
-          $("#check_all_of_box").attr(
+          $("#check-all-box").attr(
             "onclick",
             "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 1)"
           );
@@ -709,7 +709,7 @@ function on_click_confirm_button(parameters) {
       style: "display: block; position: fixed;"
     });
     $.ajax({
-      url: "/classroom/manageAssignment",
+      url: "/classroom/disableassignments",
       type: "put",
       data: parameters,
       success: function (res) {
@@ -731,7 +731,7 @@ function on_click_confirm_button(parameters) {
       style: "display: block; position: fixed;"
     });
     $.ajax({
-      url: "/classroom/manageAssignment",
+      url: "/classroom/enableassignments",
       type: "put",
       data: parameters,
       success: function (res) {
@@ -1471,7 +1471,7 @@ function onClickDeleteAssignment(assignment_of_week) {
   }
 }
 
-function on_click_enable_assignment_button() {
+function onClickEnableAssignmentButton(sectionId) {
   $("#dropdown_amd").empty();
   $("#dropdown_amd").append(
     "<input id='week_input_amd' type='hidden'></input>"
@@ -1479,8 +1479,10 @@ function on_click_enable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "enable" }, function (res) {
-    let weeks = JSON.parse(res.weeks);
+  let parameters = { sectionId: sectionId }
+  // $.get("/classroom/getWeeklyAssignments", parameters, function (res) {
+  $.get("/classroom/getdisableassignments", parameters, function (data) {
+    let weeks = JSON.parse(data.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
         "<div class='item' id='-1_week_in_dam' data-value='-1'>No disable assignment.</div>"
@@ -1503,7 +1505,7 @@ function on_click_enable_assignment_button() {
     });
     $("#confirm_assignment_management").attr(
       "onclick",
-      "on_click_confirm_assignment_management_button('enable')"
+      "onClickEnableAssignmentConfirmation(\"" + data.sectionId + "\")"
     );
     $("#header_amd").text("Enable Assignment");
     $("#assignment_management_modal").modal("show");
@@ -1511,7 +1513,7 @@ function on_click_enable_assignment_button() {
   });
 }
 
-function on_click_disable_assignment_button() {
+function onClickDisableAssignmentButton(sectionId) {
   $("#dropdown_amd").empty();
   $("#dropdown_amd").append(
     "<input id='week_input_amd' type='hidden'></input>"
@@ -1519,10 +1521,10 @@ function on_click_disable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function (
-    res
-  ) {
-    let weeks = JSON.parse(res.weeks);
+  let parameters = { sectionId: sectionId }
+  // $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function (
+  $.get("/classroom/getenableassignments", parameters, function (data) {
+    let weeks = JSON.parse(data.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
         "<div class='item' id='-1_week_in_dam' data-value='-1'>Not yet assigned assignment.</div>"
@@ -1546,52 +1548,92 @@ function on_click_disable_assignment_button() {
     $("#header_amd").text("Disable Assignment");
     $("#confirm_assignment_management").attr(
       "onclick",
-      "on_click_confirm_assignment_management_button('disable')"
+      "onClickDisableAssignmentConfirmation(\"" + data.sectionId + "\")"
     );
     $("#assignment_management_modal").modal("show");
     $("#dropdown_amd").dropdown();
   });
 }
 
-function on_click_confirm_assignment_management_button(action) {
-  if (action == "enable") {
-    parameters = JSON.stringify({
-      week: $("#week_input_amd").val(),
-      action: "enable"
-    });
-    $("#confirm-button").attr(
-      "onclick",
-      "on_click_confirm_button(" + parameters + ")"
-    );
-    $("#confirm-header").text("Disable Assignment");
-    $("#confirm-message").attr(
-      "value",
-      "Are you sure you want to disable assignments on this week?"
-    );
-    $("#confirm-message").text(
-      "Are you sure you want to disable assignments on this week?"
-    );
-    $("#confirm-modal").modal("show");
-  } else if (action == "disable") {
-    parameters = JSON.stringify({
-      week: $("#week_input_amd").val(),
-      action: "disable"
-    });
-    $("#confirm-button").attr(
-      "onclick",
-      "on_click_confirm_button(" + parameters + ")"
-    );
-    $("#confirm-header").text("Enable Assignment");
-    $("#confirm-message").attr(
-      "value",
-      "Are you sure you want to enable assignments on this week?"
-    );
-    $("#confirm-message").text(
-      "Are you sure you want to enable assignments on this week?"
-    );
-    $("#confirm-modal").modal("show");
-  }
+function onClickEnableAssignmentConfirmation(sectionId) {
+  parameters = JSON.stringify({
+    week: $("#week_input_amd").val(),
+    sectionId: sectionId
+  });
+  $("#confirm-button").attr(
+    "onclick",
+    "on_click_confirm_button(" + parameters + ")"
+  );
+  $("#confirm-header").text("Disable Assignment");
+  $("#confirm-message").attr(
+    "value",
+    "Are you sure you want to enable assignments on this week?"
+  );
+  $("#confirm-message").text(
+    "Are you sure you want to enable assignments on this week?"
+  );
+  $("#confirm-modal").modal("show");
 }
+
+function onClickDisableAssignmentConfirmation(sectionId) {
+  parameters = JSON.stringify({
+    week: $("#week_input_amd").val(),
+    sectionId: sectionId
+  });
+  $("#confirm-button").attr(
+    "onclick",
+    "on_click_confirm_button(" + parameters + ")"
+  );
+  $("#confirm-header").text("Disable Assignment");
+  $("#confirm-message").attr(
+    "value",
+    "Are you sure you want to disable assignments on this week?"
+  );
+  $("#confirm-message").text(
+    "Are you sure you want to disable assignments on this week?"
+  );
+  $("#confirm-modal").modal("show");
+}
+
+// function on_click_confirm_assignment_management_button(action) {
+//   if (action == "enable") {
+//     parameters = JSON.stringify({
+//       week: $("#week_input_amd").val(),
+//       action: "enable"
+//     });
+//     $("#confirm-button").attr(
+//       "onclick",
+//       "on_click_confirm_button(" + parameters + ")"
+//     );
+//     $("#confirm-header").text("Disable Assignment");
+//     $("#confirm-message").attr(
+//       "value",
+//       "Are you sure you want to disable assignments on this week?"
+//     );
+//     $("#confirm-message").text(
+//       "Are you sure you want to disable assignments on this week?"
+//     );
+//     $("#confirm-modal").modal("show");
+//   } else if (action == "disable") {
+//     parameters = JSON.stringify({
+//       week: $("#week_input_amd").val(),
+//       action: "disable"
+//     });
+//     $("#confirm-button").attr(
+//       "onclick",
+//       "on_click_confirm_button(" + parameters + ")"
+//     );
+//     $("#confirm-header").text("Enable Assignment");
+//     $("#confirm-message").attr(
+//       "value",
+//       "Are you sure you want to enable assignments on this week?"
+//     );
+//     $("#confirm-message").text(
+//       "Are you sure you want to enable assignments on this week?"
+//     );
+//     $("#confirm-modal").modal("show");
+//   }
+// }
 
 function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   parameters = JSON.stringify({ enrollment_id: enrollment_id });
@@ -1677,7 +1719,7 @@ function onClickAutoPairingSelectionMethod(id) {
     .addClass("active");
 }
 
-function on_click_button_in_uspm(id) {
+function onClickButtonInUspm(id) {
   $(".item.active.uspm").attr({
     class: "item uspm"
   });
@@ -1689,7 +1731,7 @@ function on_click_button_in_uspm(id) {
     class: "ui segment uspm",
     style: "display: none"
   });
-  $("#" + id + "_segment").attr({
+  $("#" + id + "-segment").attr({
     class: "ui segment active uspm",
     style: "display: block"
   });
@@ -1744,7 +1786,7 @@ function onClickWeekDropdownInFirstContainer(
   let assignment_of_week_ = res_obj.items_of_week;
   let pagination = res_obj.pagination;
 
-  $("#assign_button").attr(
+  $("#assign-button").attr(
     "onclick",
     "on_click_assign_button(" +
     JSON.stringify(JSON.stringify(assignment_of_week_)) +
@@ -1752,7 +1794,7 @@ function onClickWeekDropdownInFirstContainer(
     pairing_session_id +
     ")"
   );
-  $("#delete_assignment_button").attr(
+  $("#delete-assignment-button").attr(
     "onclick",
     "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
   );

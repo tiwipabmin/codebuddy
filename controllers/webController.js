@@ -2086,6 +2086,143 @@ exports.getWeeklyAssignments = async (req, res) => {
   res.send({ weeks: JSON.stringify(weeks) });
 };
 
+exports.getEnableAssignments = async (req, res) => {
+  const sectionId = cryptr.decrypt(req.query.sectionId);
+  const weeks = [];
+  const assignments = []
+
+  const queryAssignment = `SELECT assignment_id FROM assignment WHERE section_id = ${sectionId}`;
+  await conMysql.selectAssignment(queryAssignment).then((data) => {
+    if (typeof (data) === `string`) {
+      console.log("Message from the \"getEnableAssignments\" function: ", data);
+    } else {
+      for (let index in data) {
+        assignments.push({ assignment_id: data[index].assignment_id })
+      }
+    }
+  })
+
+  let project = await Project.find({
+    $and: [
+      { available_project: true },
+      { $or: assignments }
+    ]
+  });
+
+  project.forEach(function (e) {
+    weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+  });
+
+  console.log('Weeks: ', weeks, ', Section id: ', sectionId)
+  res.send({ weeks: JSON.stringify(weeks), sectionId: cryptr.encrypt(sectionId) });
+}
+
+exports.getDisableAssignments = async (req, res) => {
+  const sectionId = cryptr.decrypt(req.query.sectionId);
+  const weeks = [];
+  const assignments = []
+
+  const queryAssignment = `SELECT assignment_id FROM assignment WHERE section_id = ${sectionId}`;
+  await conMysql.selectAssignment(queryAssignment).then((data) => {
+    if (typeof (data) === `string`) {
+      console.log("Message from the \"getEnableAssignments\" function: ", data);
+    } else {
+      for (let index in data) {
+        assignments.push({ assignment_id: data[index].assignment_id })
+      }
+    }
+  })
+
+  let project = await Project.find({
+    $and: [
+      { available_project: false },
+      { $or: assignments }
+    ]
+  });
+
+  project.forEach(function (e) {
+    weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+  });
+
+  res.send({ weeks: JSON.stringify(weeks), sectionId: cryptr.encrypt(sectionId) });
+}
+
+exports.enableAssignments = async (req, res) => {
+  const week = parseInt(req.body.week)
+  const sectionId = cryptr.decrypt(req.body.sectionId)
+
+  if (week < 0) {
+    res.send({ status: "Cannot enable assignment." });
+    return;
+  }
+
+  const assignments = []
+
+  const queryAssignment = `SELECT assignment_id FROM assignment WHERE section_id = ${sectionId}`;
+  await conMysql.selectAssignment(queryAssignment).then((data) => {
+    if (typeof (data) === `string`) {
+      console.log("Message from the \"enableAssignments\" function: ", data);
+    } else {
+      for (let index in data) {
+        assignments.push({ assignment_id: data[index].assignment_id })
+      }
+    }
+  })
+
+
+  if (!week) {
+    await Project.updateMany(
+      { $and: [{ available_project: false }, { $or: assignments }] },
+      { $set: { available_project: true } }
+    );
+  } else if (week) {
+    await Project.updateMany(
+      { $and: [{ week: week }, { $or: assignments }] },
+      { $set: { available_project: true } }
+    );
+  }
+
+  res.send({ status: "Enable assignments successfully." });
+}
+
+exports.disableAssignments = async (req, res) => {
+  const week = parseInt(req.body.week)
+  const sectionId = cryptr.decrypt(req.body.sectionId)
+
+  if (week < 0) {
+    res.send({ status: "Cannot disable assignment." });
+    return;
+  }
+
+  const assignments = []
+
+  const queryAssignment = `SELECT assignment_id FROM assignment WHERE section_id = ${sectionId}`;
+  await conMysql.selectAssignment(queryAssignment).then((data) => {
+    if (typeof (data) === `string`) {
+      console.log("Message from the \"disableAssignments\" function: ", data);
+    } else {
+      for (let index in data) {
+        assignments.push({ assignment_id: data[index].assignment_id })
+      }
+    }
+  })
+
+
+  if (!week) {
+    await Project.updateMany(
+      { $and: [{ available_project: true }, { $or: assignments }] },
+      { $set: { available_project: false } }
+    );
+  } else if (week) {
+    await Project.updateMany(
+      { $and: [{ week: week }, { $or: assignments }] },
+      { $set: { available_project: false } }
+    );
+  }
+
+  res.send({ status: "Disable assignments successfully." });
+}
+
 function checkUrl(url, search) {
   if (url.indexOf(search)) {
     return 1
@@ -2293,10 +2430,10 @@ exports.updateAssignment = async (req, res) => {
         key === 'output_specification' ||
         key === 'sample_input' ||
         key === 'sample_output') {
-          field += key + " = " + JSON.stringify(JSON.stringify(allInfo[key]))
-        } else {
-          field += key + " = '" + allInfo[key] + "'"
-        }
+        field += key + " = " + JSON.stringify(JSON.stringify(allInfo[key]))
+      } else {
+        field += key + " = '" + allInfo[key] + "'"
+      }
     }
 
     count++;

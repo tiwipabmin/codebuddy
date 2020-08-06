@@ -140,7 +140,7 @@ exports.deleteEnrollment = (query) => {
 exports.selectAssignment = (query) => {
   return new Promise(function(resolve, reject){
     conMysql.query(query, function(err, res){
-      if(err) reject(err);
+      if(err) reject(`Error: ${err}`);
       resolve(res);
     })
   })
