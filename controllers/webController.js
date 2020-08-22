@@ -6,11 +6,12 @@ const Redis = require("ioredis");
 const fs = require("fs");
 
 const Notification = mongoose.model("Notification");
-const Project = mongoose.model("Project");
+const Comment = mongoose.model("Comment");
 const Message = mongoose.model("Message");
+const History = mongoose.model("History");
+const Project = mongoose.model("Project");
 const Score = mongoose.model("Score");
 const User = mongoose.model("User");
-const History = mongoose.model("History");
 
 exports.getHomepage = (req, res) => {
   res.render("index");
@@ -3007,3 +3008,201 @@ exports.getProgress = async (req, res) => {
   data["pairings"] = pairings;
   res.send(data);
 };
+
+exports.getComments = async (req, res) => {
+  const comments = await Comment.find({})
+
+  if (Object.keys(comments).length) {
+    let tmpComments = []
+    tmpComments.push(Object.keys(comments[0]._doc))
+
+    let exceptKeys = ["_id", "__v", "createAt"]
+    for (let index in exceptKeys) {
+      let keyIndex = tmpComments[0].indexOf(exceptKeys[index])
+      tmpComments[0].splice(keyIndex, 1)
+    }
+
+    let comments0 = tmpComments[0]
+    for (let index in comments0) {
+      comments0[index] = toUpperCase(0, 1, comments0[index])
+    }
+
+    for (let index in comments) {
+      tmpComments.push([comments[index].file, comments[index].line, comments[index].pid, comments[index].description])
+    }
+
+    res.send({comments: tmpComments}).status(200)
+    return 0
+  }
+  res.status(400)
+}
+
+exports.getHistories = async (req, res) => {
+  const histories = await History.find({})
+
+  if (Object.keys(histories).length) {
+    let tmpHistories = []
+    tmpHistories.push(Object.keys(histories[0]._doc))
+
+    let exceptKeys = ["_id", "__v", "createdAt"]
+    for (let index in exceptKeys) {
+      let keyIndex = tmpHistories[0].indexOf(exceptKeys[index])
+      tmpHistories[0].splice(keyIndex, 1)
+    }
+
+    let histories0 = tmpHistories[0]
+    for (let index in histories0) {
+      histories0[index] = toUpperCase(0, 1, histories0[index])
+    }
+
+    for (let index in histories) {
+      tmpHistories.push([histories[index].pid, histories[index].file, histories[index].line, histories[index].ch, histories[index].text, histories[index].user])
+    }
+
+    res.send({histories: tmpHistories}).status(200)
+    return 0
+  }
+  res.status(400)
+}
+
+exports.getMessages = async (req, res) => {
+  const messages = await Message.find({})
+
+  if (Object.keys(messages).length) {
+    let tmpMessages = []
+    tmpMessages.push(Object.keys(messages[0]._doc))
+
+    let exceptKeys = ["_id", "__v", "createdAt"]
+    for (let index in exceptKeys) {
+      let keyIndex = tmpMessages[0].indexOf(exceptKeys[index])
+      tmpMessages[0].splice(keyIndex, 1)
+    }
+
+    let messages0 = tmpMessages[0]
+    for (let index in messages0) {
+      messages0[index] = toUpperCase(0, 1, messages0[index])
+    }
+
+    for (let index in messages) {
+      tmpMessages.push([messages[index].pid, messages[index].uid, messages[index].message])
+    }
+
+    console.log("Temporary Messages, ", tmpMessages)
+    res.send({messages: tmpMessages}).status(200)
+    return 0
+  }
+  res.status(400)
+}
+
+exports.getProjects = async (req, res) => {
+  const projects = await Project.find({})
+
+  if (Object.keys(projects).length) {
+    let tmpProjects = []
+    tmpProjects.push(Object.keys(projects[0]._doc))
+
+    let exceptKeys = ["_id", "__v", "files", "available_project", "createdAt", "disable_time", "enable_time", "title", "description", "collaborator_id", "creator_id"]
+    for (let index in exceptKeys) {
+      let keyIndex = tmpProjects[0].indexOf(exceptKeys[index])
+      tmpProjects[0].splice(keyIndex, 1)
+    }
+
+    let projects0 = tmpProjects[0]
+    for (let index in projects0) {
+      projects0[index] = toUpperCase(0, 1, projects0[index])
+    }
+
+    for (let index in projects) {
+      tmpProjects.push([projects[index].language, projects[index].swaptime, projects[index].assignment_id, projects[index].programming_style, projects[index].week, projects[index].pid, projects[index].creator, projects[index].collaborator])
+    }
+
+    console.log("Temporary Projects, ", tmpProjects)
+    res.send({projects: tmpProjects}).status(200)
+    return 0
+  }
+  res.status(400).end()
+}
+
+exports.getScores = async (req, res) => {
+  const scores = await Score.find({})
+  console.log('Scores, ', scores)
+
+  if (Object.keys(scores).length) {
+    let tmpScores = []
+    tmpScores.push(Object.keys(scores[0].participation))
+    tmpScores[0].splice(tmpScores[0].indexOf("$init"), 1)
+    let scoresKey = Object.keys(scores[0]._doc)
+
+    let exceptKeys = ["participation", "_id", "__v", "createdAt"]
+    for (let index in scoresKey) {
+      if (exceptKeys.indexOf(scoresKey[index]) < 0) {
+        tmpScores[0].push(scoresKey[index])
+      }
+    }
+
+    let scores0 = tmpScores[0]
+    for (let index in scores0) {
+      scores0[index] = toUpperCase(0, 1, scores0[index])
+    }
+
+    for (let index in scores) {
+      tmpScores.push([scores[index].participation.enter, scores[index].participation.pairing, scores[index].pid, scores[index].uid, scores[index].score, scores[index].time, scores[index].lines_of_code, scores[index].error_count])
+    }
+
+    console.log("Temporary Scores, ", tmpScores)
+    res.send({scores: tmpScores}).status(200)
+    return 0
+  }
+  res.status(400).end()
+}
+
+exports.getUsers = async (req, res) => {
+  const users = await User.find({})
+
+  if (Object.keys(users).length) {
+    let tmpUsers = []
+    tmpUsers.push(Object.keys(users[0].info))
+    tmpUsers[0].splice(tmpUsers[0].indexOf("$init"), 1)
+    let usersKey = Object.keys(users[0]._doc)
+
+    let exceptKeys = ["info", "_id", "__v", "password", "subjectId"]
+    for (let index in usersKey) {
+      if (exceptKeys.indexOf(usersKey[index]) < 0) {
+        tmpUsers[0].push(usersKey[index])
+      }
+    }
+
+    let users0 = tmpUsers[0]
+    for (let index in users0) {
+      users0[index] = toUpperCase(0, 1, users0[index])
+    }
+
+    for (let index in users) {
+      tmpUsers.push([users[index].info.firstname, users[index].info.lastname, users[index].info.occupation, users[index].info.gender, users[index].avgScore, users[index].totalTime, users[index].systemAccessTime, users[index].username, users[index].email, users[index].img])
+    }
+
+    res.status(200).send({users: tmpUsers})
+    return 0
+  }
+  res.status(400).end()
+}
+
+function toUpperCase(start = 0, end = 0, string = "") {
+  if (typeof(string) === "string") {
+    let newString = ""
+    if (start === 0 && end !== string.length) {
+      newString = string.slice(start, end).toUpperCase().concat(string.slice(end, string.length))
+    } else if (start !== 0 && end === string.length) {
+      newString = string.slice(0, start).concat(string.slice(start, end).toUpperCase())
+    } else if (start === 0 && end === string.length) {
+      newString = string.toUpperCase()
+    } else {
+      newString = string.slice(0, start).concat(string.slice(start, end).toUpperCase())
+      let tmpString = newString
+      newString = tmpString.concat(string.slice(end, string.length))
+    }
+    return newString
+  } else {
+    return string
+  }
+}

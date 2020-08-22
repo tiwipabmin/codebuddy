@@ -35,49 +35,102 @@ block content
       .ui.grid
         .two.wide.column
           .ui.vertical.attached.tabular.menu
-            a.item.active#userTab(data-tab="user")
+            a.item.active#user-tab(data-tab="user", onclick="setViewDataButton($(this))")
               | User
-            a.item#projectTab(data-tab="project")
+            a.item#project-tab(data-tab="project", onclick="setViewDataButton($(this))")
               | Project
-            a.item#scoreTab(data-tab="score")
+            a.item#score-tab(data-tab="score", onclick="setViewDataButton($(this))")
               | Score
-            a.item#historyTab(data-tab="history")
+            a.item#history-tab(data-tab="history", onclick="setViewDataButton($(this))")
               | History
-            a.item#commentTab(data-tab="comment")
+            a.item#comment-tab(data-tab="comment", onclick="setViewDataButton($(this))")
               | Comment
-            a.item#messageTab(data-tab="message")
+            a.item#message-tab(data-tab="message", onclick="setViewDataButton($(this))")
               | Message
         .twelve.wide.column
           .ui.vertical.attached.tab.active(data-tab="user")
-            .ui.segment#userSegment
-              | user
+            .ui.segment#user-segment
+              table.gridtable#user-table
+                thead
+                  tr.tableHeader
+                    th Firstname
+                    th Lastname
+                    th Occupation
+                    th Gender
+                    th AvgScore
+                    th TotalTime
+                    th SystemAccessTime
+                    th Username
+                    th Email
+                    th Img
           .ui.vertical.attached.tab(data-tab="project")
-            .ui.segment#projectSegment
-              | project
+            .ui.segment#project-segment
+              table.gridtable#project-table
+                thead
+                  tr.tableHeader
+                    th Language
+                    th Swaptime
+                    th Assignment_id
+                    th Programming_style
+                    th Week
+                    th Pid
+                    th Creator
+                    th Collaborator
           .ui.vertical.attached.tab(data-tab="score")
-            .ui.segment#scoreSegment
-              | score
+            .ui.segment#score-segment
+              table.gridtable#score-table
+                thead
+                  tr.tableHeader
+                    th Enter
+                    th Pairing
+                    th Pid
+                    th Uid
+                    th Score
+                    th Time
+                    th Lines of Code
+                    th Error Count
           .ui.vertical.attached.tab(data-tab="history")
-            .ui.segment#historySegment
-              | history
+            .ui.segment#history-segment
+              table.gridtable#history-table
+                thead
+                  tr.tableHeader
+                    th Pid
+                    th File
+                    th Line
+                    th Ch
+                    th Text
+                    th User
           .ui.vertical.attached.tab(data-tab="comment")
-            .ui.segment#commentSegment
-              | comment
+            .ui.segment#comment-segment
+              table.gridtable#comment-table
+                thead
+                  tr.tableHeader
+                    th File
+                    th Line
+                    th Pid
+                    th Description
           .ui.vertical.attached.tab(data-tab="message")
-            .ui.segment#messageSegment
-              | message
+            .ui.segment#message-segment
+              table.gridtable#message-table
+                thead
+                  tr.tableHeader
+                    th Pid
+                    th Uid
+                    th Message
         .two.wide.column
           .ui.segment
-            .ui.grid
-              .row
-                .column
-                  p(style='text-align:center;')
-                    b BUTTON
-              .row
-                .column
-                  div(align='center')
-                    .ui.green.button
-                      | Export
+            .ui.doubling.one.column.grid
+              .column
+                p(style='text-align:center;')
+                  b BUTTON
+              .column
+                div(align='center')
+                  .ui.blue.button#view-data(onclick="onClickViewDataButton(\"user\")")
+                    | View
+              .column
+                div(align='center')
+                  .ui.green.button#exportCsvFile
+                    | Export
     .ui.tab.segment(data-tab="import")
       .ui.grid
         .two.wide.column
