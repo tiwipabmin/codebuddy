@@ -558,3 +558,25 @@ mixin pairingSettingsModal()
           .ui.approve.green.button#startAutoPairingBtn(onclick='onClickStartAutoPairingBtn(null, null, null, null, null, null)') Start
           .ui.deny.red.button#cancelAutoPairingBtn Cancel
 
+mixin exportingFile()
+  .ui.small.modal#exportingFileModal
+    .header Exporting File
+    .content
+      .ui.doubling.one.column.grid
+        .column
+          h1(style="text-align:center;") Extension
+        .column
+          .ui.grid
+            .doubling.eight.column.row
+              .column
+                .ui.checkbox
+                  input(type="checkbox" id="JSON")
+                  label JSON
+              .column
+                .ui.checkbox
+                  input(type="checkbox" id="CSV")
+                  label CSV
+      .ui.basic.center.aligned.segment
+        .actions
+          .ui.approve.green.button Download
+          .ui.deny.red.button Cancel

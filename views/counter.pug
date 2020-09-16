@@ -18,8 +18,9 @@ block script
     }
 
 block content
+  +exportingFile()
 
-  input#previousData(type='hidden' value='[]')
+  input#data-container(type='hidden' value='{}')
   .ui.fluid.container.segment
     //- .ui.top.attached.tabular.menu
     //-   a.item.active(data-tab="purpose") Select by purpose
@@ -27,25 +28,27 @@ block content
     //- .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
     //- .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="search")
     .ui.pointing.secondary.menu
-      .item.active(data-tab="export")
+      .item.active(data-tab="export", onclick="setViewDataButton(\"user-tab\")")
         | Export
-      .item(data-tab="import")
+      .item(data-tab="import", onclick="setViewDataButton(\"totalScore-tab\")")
         | Import
+      .item(data-tab="cleanData")
+        | Clean Data
     .ui.tab.active.segment(data-tab="export")
       .ui.grid
         .two.wide.column
           .ui.vertical.attached.tabular.menu
-            a.item.active#user-tab(data-tab="user", onclick="setViewDataButton($(this))")
+            a.item.active#user-tab(data-tab="user", onclick="setViewDataButton($(this).attr(\"id\"))")
               | User
-            a.item#project-tab(data-tab="project", onclick="setViewDataButton($(this))")
+            a.item#project-tab(data-tab="project", onclick="setViewDataButton($(this).attr(\"id\"))")
               | Project
-            a.item#score-tab(data-tab="score", onclick="setViewDataButton($(this))")
+            a.item#score-tab(data-tab="score", onclick="setViewDataButton($(this).attr(\"id\"))")
               | Score
-            a.item#history-tab(data-tab="history", onclick="setViewDataButton($(this))")
+            a.item#history-tab(data-tab="history", onclick="setViewDataButton($(this).attr(\"id\"))")
               | History
-            a.item#comment-tab(data-tab="comment", onclick="setViewDataButton($(this))")
+            a.item#comment-tab(data-tab="comment", onclick="setViewDataButton($(this).attr(\"id\"))")
               | Comment
-            a.item#message-tab(data-tab="message", onclick="setViewDataButton($(this))")
+            a.item#message-tab(data-tab="message", onclick="setViewDataButton($(this).attr(\"id\"))")
               | Message
         .twelve.wide.column
           .ui.vertical.attached.tab.active(data-tab="user")
@@ -60,6 +63,7 @@ block content
                     th AvgScore
                     th TotalTime
                     th SystemAccessTime
+                    th Uid
                     th Username
                     th Email
                     th Img
@@ -70,10 +74,10 @@ block content
                   tr.tableHeader
                     th Language
                     th Swaptime
-                    th Assignment_id
                     th Programming_style
                     th Week
                     th Pid
+                    th Title
                     th Creator
                     th Collaborator
           .ui.vertical.attached.tab(data-tab="score")
@@ -125,20 +129,22 @@ block content
                   b BUTTON
               .column
                 div(align='center')
-                  .ui.blue.button#view-data(onclick="onClickViewDataButton(\"user\")")
+                  .ui.blue.button.view-data(onclick="onClickViewDataButton(\"user\")")
                     | View
               .column
                 div(align='center')
-                  .ui.green.button#exportCsvFile
+                  .ui.green.button.export-csv-file
                     | Export
     .ui.tab.segment(data-tab="import")
       .ui.grid
         .two.wide.column
           .ui.vertical.attached.tabular.menu
-            a.item.active#totalScoreTab(data-tab="totalScore")
+            a.item.active#totalScore-tab(data-tab="totalScore", onclick="setViewDataButton($(this).attr(\"id\"))")
               | Total Score
-            a.item#rawScoreTab(data-tab="rawScore")
+            a.item#rawScore-tab(data-tab="rawScore", onclick="setViewDataButton($(this).attr(\"id\"))")
               | Raw Score
+            a.item#jsonFile-tab(data-tab="jsonFile", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | Json File
         .eleven.wide.column
           .ui.vertical.attached.tab.active(data-tab="totalScore")
             .ui.segment#totalScoreImportationSegment
@@ -153,6 +159,23 @@ block content
           .ui.vertical.attached.tab(data-tab="rawScore")
             .ui.segment#rawScoreImportationSegment
               | Raw score importation segment
+          .ui.vertical.attached.tab(data-tab="jsonFile")
+            .ui.segment#json-data-segment
+              input#json-data(type="hidden" name="jsonData" value="[{}]")
+              .ui.doubling.one.column.grid
+                .column
+                  .ui.action.input(style="width:100%;")
+                    input#search-json-data(type="text" name="search" placeholder="Type Something...")
+                    button#search-btn.ui.button(onclick="onClickSearchBtn($(\"#search-json-data\").val())") Search
+                .column
+                  table.gridtable#json-data-table
+                    thead
+                      tr.tableHeader
+                        th Username
+                        th Course_Problem_Id
+                        th Status
+                        th Score
+                        th Created_at
         .three.wide.column
           .ui.segment
             .ui.grid
@@ -165,8 +188,271 @@ block content
                   input#inputFile(type='file')
               .row
                 .column
-                  input#viewFile(type='button' value='Import File')
+                  input.view-data(type='button' value='Import File' onclick="onClickViewDataButton(\"totalScore\")")
+              .row
+                .column
+                  .ui.green.export.button(onclick="onClickExportButton()")
+                    | Export
               .row
                 .column
                   .ui.blue.button#updateTotalScores
                     | Update Total Scores
+    .ui.tab.segment(data-tab="cleanData")
+      .ui.grid
+        .two.wide.column
+          .ui.vertical.attached.tabular.menu
+            a.item.active#compare-user-tab(data-tab="filterUser", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | Filter User
+            a.item#rawScore-tab(data-tab="cleanedUserData", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | User
+            a.item#jsonFile-tab(data-tab="cleanedProjectData", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | Project
+            a.item#jsonFile-tab(data-tab="cleanedScoreData", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | Score
+            a.item#jsonFile-tab(data-tab="cleanedCommentData", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | Comment
+            a.item#jsonFile-tab(data-tab="cleanedMessageData", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | Message
+            a.item#jsonFile-tab(data-tab="cleanedHistoryData", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | History
+        .eleven.wide.column
+          .ui.vertical.attached.tab.active(data-tab="filterUser")
+            .ui.segment#filter-user-segment
+              table.gridtable#filter-user-segment
+                thead
+                  tr.tableHeader
+                    th Username
+                    th Name
+                    th Problem Score
+                    th Quiz Score
+                    th Total
+          .ui.vertical.attached.tab(data-tab="cleanedUserData")
+            .ui.segment#cleaned-user-segment
+              table.gridtable#cleaned-user-table
+                thead
+                  tr.tableHeader
+                    th Uid
+                    th Username
+                    th Name
+                    th Gender
+                    th System Access Time
+                    th Total Time
+                    th Total Score
+          .ui.vertical.attached.tab(data-tab="cleanedProjectData")
+            .ui.segment#cleaned-project-segment
+              table.gridtable#cleaned-project-table
+                thead
+                  tr.tableHeader
+                    th Uid
+                    th Username
+                    th Name
+                    th Gender
+                    th System Access Time
+                    th Total Time
+                    th Total Score
+                    th Pid
+                    th Programming Style
+          .ui.vertical.attached.tab(data-tab="cleanedScoreData")
+            .ui.segment#cleaned-score-segment
+              table.gridtable#cleaned-score-table
+                thead
+                  tr.tableHeader
+                    th Username
+                    th Name
+                    th Pid
+                    th Enter
+                    th Pairing
+                    th Score
+                    th Time
+                    th Lines of Code
+                    th Error Count
+          .ui.vertical.attached.tab(data-tab="cleanedCommentData")
+            .ui.segment#cleaned-comment-segment
+              table.gridtable#cleaned-comment-table
+                thead
+                  tr.tableHeader
+                    th Uid
+                    th Username
+                    th Name
+                    th Gender
+                    th System Access Time
+                    th Total Time
+                    th Total Score
+                    th Pid
+                    th Programming Style
+          .ui.vertical.attached.tab(data-tab="cleanedMessageData")
+            .ui.segment#cleaned-message-segment
+              table.gridtable#cleaned-message-table
+                thead
+                  tr.tableHeader
+                    th Uid
+                    th Username
+                    th Name
+                    th Gender
+                    th System Access Time
+                    th Total Time
+                    th Total Score
+                    th Pid
+                    th Programming Style
+          .ui.vertical.attached.tab(data-tab="cleanedHistoryData")
+            .ui.segment#cleaned-history-segment
+              table.gridtable#cleaned-history-table
+                thead
+                  tr.tableHeader
+                    th Uid
+                    th Username
+                    th Name
+                    th Gender
+                    th System Access Time
+                    th Total Time
+                    th Total Score
+                    th Pid
+                    th Programming Style
+        .three.wide.column
+          .ui.vertical.attached.tab.active(data-tab="filterUser")
+            .ui.segment
+              .ui.grid
+                .row
+                  .column
+                    p(style='text-align:center;')
+                      b BUTTON
+                .row
+                  .column
+                    input#inputFileFt1(type='file')
+                .row
+                  .column
+                    input#inputFileFt2(type='file')
+                .row
+                  .column
+                    .ui.green.button#compare-user(onclick="onClickFilterUser()")
+                      | Filter Now!
+                .row
+                  .column
+                    .ui.blue.button.export-csv-file
+                      | Export
+          .ui.vertical.attached.tab(data-tab="cleanedUserData")
+            .ui.segment
+              .ui.grid
+                .row
+                  .column
+                    p(style='text-align:center;')
+                      b BUTTON
+                .row
+                  .column
+                    input#inputFileUt1(type='file')
+                .row
+                  .column
+                    input#inputFileUt2(type='file')
+                .row
+                  .column
+                    .ui.green.button#clean-user(onclick="cleanUserData()")
+                      | Clean Now!
+                .row
+                  .column
+                    .ui.blue.button.export-csv-file
+                      | Export
+          .ui.vertical.attached.tab(data-tab="cleanedProjectData")
+            .ui.segment
+              .ui.grid
+                .row
+                  .column
+                    p(style='text-align:center;')
+                      b BUTTON
+                .row
+                  .column
+                    input#inputFilePro1(type='file')
+                .row
+                  .column
+                    input#inputFilePro2(type='file')
+                .row
+                  .column
+                    .ui.green.button#clean-project(onclick="cleanProjectData()")
+                      | Clean Now!
+                .row
+                  .column
+                    .ui.blue.button.export-csv-file
+                      | Export
+          .ui.vertical.attached.tab(data-tab="cleanedScoreData")
+            .ui.segment
+              .ui.grid
+                .row
+                  .column
+                    p(style='text-align:center;')
+                      b BUTTON
+                .row
+                  .column
+                    input#inputFileScore1(type='file')
+                .row
+                  .column
+                    input#inputFileScore2(type='file')
+                .row
+                  .column
+                    .ui.green.button#clean-score(onclick="cleanScoreData()")
+                      | Clean Now!
+                .row
+                  .column
+                    .ui.blue.button.export-csv-file
+                      | Export
+          .ui.vertical.attached.tab(data-tab="cleanedCommentData")
+            .ui.segment
+              .ui.grid
+                .row
+                  .column
+                    p(style='text-align:center;')
+                      b BUTTON
+                .row
+                  .column
+                    input#inputFileCom1(type='file')
+                .row
+                  .column
+                    input#inputFileCom2(type='file')
+                .row
+                  .column
+                    .ui.green.button#clean-comment(onclick="cleanCommentData()")
+                      | Clean Now!
+                .row
+                  .column
+                    .ui.blue.button.export-csv-file
+                      | Export
+          .ui.vertical.attached.tab(data-tab="cleanedMessageData")
+            .ui.segment
+              .ui.grid
+                .row
+                  .column
+                    p(style='text-align:center;')
+                      b BUTTON
+                .row
+                  .column
+                    input#inputFileMsg1(type='file')
+                .row
+                  .column
+                    input#inputFileMsg2(type='file')
+                .row
+                  .column
+                    .ui.green.button#clean-message(onclick="cleanMessageData()")
+                      | Clean Now!
+                .row
+                  .column
+                    .ui.blue.button.export-csv-file
+                      | Export
+          .ui.vertical.attached.tab(data-tab="cleanedHistoryData")
+            .ui.segment
+              .ui.grid
+                .row
+                  .column
+                    p(style='text-align:center;')
+                      b BUTTON
+                .row
+                  .column
+                    input#inputFileHist1(type='file')
+                .row
+                  .column
+                    input#inputFileHist2(type='file')
+                .row
+                  .column
+                    .ui.green.button#clean-history(onclick="cleanHistoryData()")
+                      | Clean Now!
+                .row
+                  .column
+                    .ui.blue.button.export-csv-file
+                      | Export
