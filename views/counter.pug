@@ -50,6 +50,8 @@ block content
               | Comment
             a.item#message-tab(data-tab="message", onclick="setViewDataButton($(this).attr(\"id\"))")
               | Message
+            a.item#notification-tab(data-tab="notification", onclick="setViewDataButton($(this).attr(\"id\"))")
+              | Notification
         .twelve.wide.column
           .ui.vertical.attached.tab.active(data-tab="user")
             .ui.segment#user-segment
@@ -121,6 +123,14 @@ block content
                     th Pid
                     th Uid
                     th Message
+          .ui.vertical.attached.tab(data-tab="notification")
+            .ui.segment#notificatioin-segment
+              table.gridtable#notification-table
+                thead
+                  tr.tableHeader
+                    th Receiver
+                    th CreatedAt
+                    th Head
         .two.wide.column
           .ui.segment
             .ui.doubling.one.column.grid

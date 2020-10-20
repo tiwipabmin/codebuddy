@@ -351,40 +351,52 @@ function cleanProjectData() {
           }
   
           let usersObj = createUserJson(dataObj["data0"]);
-          console.log("User Obj 0: ", usersObj)
-  
-          let updateUsersObj = (usersObj = {}, data = []) => {
+
+          let createPidContainer = (usersObj = {}, data = []) => {
+            let tmpPidContainer = {...usersObj}
 
             for (let index in data) {
               let tmpData = data[index]
-              creator = usersObj[tmpData[6]]
-              collaborator = usersObj[tmpData[7]]
+              let creator = tmpPidContainer[tmpData[6]]
+              let collaborator = tmpPidContainer[tmpData[7]]
+
+              tmpData[6] === "pre63070059" ? console.log("Creator, ", creator) : tmpData[7] === "pre63070059" ? console.log("Collaborator, ", collaborator) : false;
+
               if (creator !== undefined) {
-                creator.pid === undefined ? creator.pid = [tmpData[5]] : creator.pid.push(tmpData[5]);
-                creator.programmingStyle === undefined ? creator.programmingStyle = [tmpData[3]] : creator.programmingStyle.push(tmpData[3]);
+                creator.pid === undefined ? tmpPidContainer[tmpData[6]] = {pid: [tmpData[4]], programmingStyle: []} : tmpPidContainer[tmpData[6]].pid.push(tmpData[4]);
+                creator.programmingStyle === undefined ? tmpPidContainer[tmpData[6]].programmingStyle = [tmpData[2]] : tmpPidContainer[tmpData[6]].programmingStyle.push(tmpData[2]);
               }
 
               if (collaborator !== undefined) {
-                collaborator.pid === undefined ? collaborator.pid = [tmpData[5]] : collaborator.pid.push(tmpData[5]);
-                collaborator.programmingStyle === undefined ? collaborator.programmingStyle = [tmpData[3]] : collaborator.programmingStyle.push(tmpData[3]);
+                collaborator.pid === undefined ? tmpPidContainer[tmpData[7]] = {pid: [tmpData[4]], programmingStyle: []} : tmpPidContainer[tmpData[7]].pid.push(tmpData[4]);
+                collaborator.programmingStyle === undefined ? tmpPidContainer[tmpData[7]].programmingStyle = [tmpData[2]] : tmpPidContainer[tmpData[7]].programmingStyle.push(tmpData[2]);
               }
             }
 
-            return usersObj
+            return tmpPidContainer
           }
 
-          usersObj = updateUsersObj(usersObj, dataObj["data1"])
+          let pidContainer = createPidContainer(usersObj, dataObj["data1"])
+          console.log("Pid Container, ", pidContainer)
 
-          let usersArray1 = []
           let usersArray2 = [["Uid", "Username", "Name", "Gender", "System Access Time", "Total Time", "Pid", "Programming Style", "Total Score"]]
           for (let key in usersObj) {
-            if (usersObj[key].pid !== undefined && usersObj[key].programmingStyle !== undefined) {
-              usersArray2.push([usersObj[key].uid, key, usersObj[key].name, usersObj[key].gender, usersObj[key].systemAccessTime, usersObj[key].totalTime, usersObj[key].pid.join("\/"), usersObj[key].programmingStyle.join("\/"), usersObj[key].totalScore])
-              usersArray1.push({uid: usersObj[key].uid, username: key, name: usersObj[key].name, gender: usersObj[key].gender, systemAccessTime: usersObj[key].systemAccessTime, totalTime: usersObj[key].totalTime, pid: usersObj[key].pid.join("\/"), programmingStyle: usersObj[key].programmingStyle.join("\/"), totalScore: usersObj[key].totalScore})
+            let user = pidContainer[key]
+
+            if (user !== undefined) {
+              let pids = user.pid
+              let programmingStyles = user.programmingStyle
+
+              if (pids !== undefined && programmingStyles !== undefined) {
+                for (let index in pids) {
+                  usersArray2.push([usersObj[key].uid, key, usersObj[key].name, usersObj[key].gender, usersObj[key].systemAccessTime, usersObj[key].totalTime, pids[index], programmingStyles[index], usersObj[key].totalScore])
+                }
+                usersArray2.push(['', '', '', '', '', '', '', ''])
+              }
             }
           }
 
-          createDataTable("cleaned-project-segment", "tbd-data-cleaning", usersArray1)
+          createDataTable("cleaned-project-table", "tbd-data-cleaning", usersArray2)
           $(".export-csv-file").attr({
             onclick: `downloadCsvFile(${JSON.stringify(usersArray2)}, "student_list_of_project_table")`
           })
@@ -472,22 +484,16 @@ function cleanScoreData() {
           usersObj = updateUsersObj(usersObj, dataObj["data1"])
           console.log("User Obj 1: ", usersObj)
 
-          let usersArray1 = []
           let usersArray2 = [["Username", "Name", "Pid", "Enter", "Pairing", "Score", "Time", "Lines of Code", "Error Count"]]
           for (let key in usersObj) {
             if (usersObj[key].pid !== undefined) {
-              // usersObj[key].pid = usersObj[key].pid.map(e => e.join("\/"))
               let tmpPid = usersObj[key].pid
               for (let index in tmpPid) {
                 usersArray2.push([usersObj[key].username, usersObj[key].name, tmpPid[index][0], tmpPid[index][1], tmpPid[index][2], tmpPid[index][3], tmpPid[index][4], tmpPid[index][5], tmpPid[index][6]])
               }
               usersArray2.push(['', '', '', '', '', '', '', ''])
-              // usersArray2.push([key, usersObj[key].username, usersObj[key].pid.join(";"), usersObj[key].name])
-              // usersArray1.push({uid: key, username: usersObj[key].username, pid: usersObj[key].pid.join(";"), name: usersObj[key].name})
             }
           }
-
-          console.log("Users Array 2, ", usersArray2)
 
           createDataTable("cleaned-score-table", "tbd-data-cleaning", usersArray2)
           $(".export-csv-file").attr({
@@ -669,6 +675,8 @@ function onClickViewDataButton(name) {
     getHistories()
   } else if (name === "message") {
     getMessages()
+  } else if (name === "notification") {
+    getNotifications()
   } else if (name === "project") {
     getProjects()
   } else if (name === "score") {
@@ -822,6 +830,64 @@ function getMessages() {
       $("#message-table").append(table)
       $(".export-csv-file").attr({
         onclick: `downloadCsvFile(${JSON.stringify(messages)}, "messages")`
+      })
+    }
+  })
+}
+
+function getNotifications() {
+  $.ajax({
+    url: '/dataService/getnotifications',
+    type: 'get',
+    data: {},
+    success: function(data) {
+      let notifications = data.notifications
+      let newNotifications = []
+      let table = $("<table class=\"gridtable\"></table>")
+      for (let index1 in notifications) {
+        if (!parseInt(index1)) {
+          let thead = $("<thead></thead>")
+          let tr = $("<tr></tr>")
+          let subArray = notifications[index1]
+          let tmpArray = []
+          for (let index2 in subArray) {
+            let element = subArray[index2]
+            tmpArray.push(element)
+            let th = $(`<th>${element}</th>`)
+            tr.append(th)
+          }
+          newNotifications.push(tmpArray)
+          thead.append(tr)
+          table.append(thead)
+        } else {
+          let notificationsCopy = [...notifications[index1]]
+          let receivers = JSON.parse(notificationsCopy[0])
+          notificationsCopy.splice(0, 1)
+          let subArray = [...notificationsCopy]
+          let tmpArray = []
+          for (let index2 in receivers) {
+            let username = receivers[index2].username
+            let tbody = $("<tbody class=\"tbd-exporting\"></tbody>")
+            let tr = $("<tr></tr>")
+            let th = $(`<td>${username}</td>`)
+            tmpArray.push(username)
+            tr.append(th)
+            for (let index3 in subArray) {
+              let element = subArray[index3]
+              tmpArray.push(element)
+              th = $(`<td>${element}</td>`)
+              tr.append(th)
+            }
+            newNotifications.push(tmpArray)
+            tbody.append(tr)
+            table.append(tbody)
+          }
+        }
+      }
+      $("#notification-table").empty()
+      $("#notification-table").append(table)
+      $(".export-csv-file").attr({
+        onclick: `downloadCsvFile(${JSON.stringify(newNotifications)}, "notificatioins")`
       })
     }
   })

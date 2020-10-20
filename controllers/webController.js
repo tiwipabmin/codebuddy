@@ -552,18 +552,13 @@ exports.updateSection = async (req, res) => {
   res.redirect("/classroom/section/" + cryptr.encrypt(section_id));
 };
 
-exports.getProjects = async (req, res) => {
+exports.getMyProjects = async (req, res) => {
   let projects = req.query.projects;
   let resProjects = await Project.find({
-    $and: [
-      { status: { $ne: "pending" } },
-      {
-        $or: [
-          { creator: req.user.username },
-          { collaborator: req.user.username },
-        ],
-      },
-    ],
+    $or: [
+      { creator: req.user.username },
+      { collaborator: req.user.username },
+    ]
   }).sort({ createdAt: -1 });
 
   let cloneProjects = [];
@@ -3112,6 +3107,39 @@ exports.getMessages = async (req, res) => {
 
     console.log("Temporary Messages, ", tmpMessages);
     res.send({ messages: tmpMessages }).status(200);
+    return 0;
+  }
+  res.status(400);
+};
+
+exports.getNotifications = async (req, res) => {
+  const notifications = await Notification.find({});
+
+  if (Object.keys(notifications).length) {
+    let tmpNotifications = [];
+    tmpNotifications.push(Object.keys(notifications[0]._doc));
+
+    let exceptKeys = ["_id", "__v", "nid", "link", "content", "status", "type", "createdBy", "info"];
+    for (let index in exceptKeys) {
+      let keyIndex = tmpNotifications[0].indexOf(exceptKeys[index]);
+      tmpNotifications[0].splice(keyIndex, 1);
+    }
+
+    let notifications0 = tmpNotifications[0];
+    for (let index in notifications0) {
+      notifications0[index] = toUpperCase(0, 1, notifications0[index]);
+    }
+
+    for (let index in notifications) {
+      tmpNotifications.push([
+        JSON.stringify(notifications[index].receiver),
+        notifications[index].createdAt,
+        notifications[index].head,
+      ]);
+    }
+
+    console.log("Temporary Notifications, ", tmpNotifications);
+    res.send({ notifications: tmpNotifications }).status(200);
     return 0;
   }
   res.status(400);
