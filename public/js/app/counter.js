@@ -864,12 +864,12 @@ function getNotifications() {
           let receivers = JSON.parse(notificationsCopy[0])
           notificationsCopy.splice(0, 1)
           let subArray = [...notificationsCopy]
-          let tmpArray = []
           for (let index2 in receivers) {
             let username = receivers[index2].username
             let tbody = $("<tbody class=\"tbd-exporting\"></tbody>")
             let tr = $("<tr></tr>")
             let th = $(`<td>${username}</td>`)
+            let tmpArray = []
             tmpArray.push(username)
             tr.append(th)
             for (let index3 in subArray) {
