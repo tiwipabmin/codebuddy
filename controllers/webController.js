@@ -204,38 +204,38 @@ exports.getProfileByTeacher = async (req, res) => {
   res.render("dashboard", { dataSets, title: username + " Progress" });
 };
 
-exports.getNotifications = async (req, res) => {
-  const username = req.user.username;
-  const sectionId = req.query.sectionId;
-  let notifications = req.query.allNotifications;
-  console.log("Notifications, ", notifications);
-  if (notifications !== {}) {
-    for (let key in notifications) {
-      if (key === "projects" && notifications.projects !== "") {
-        const tmpProject = notifications[key];
-        console.log("tmpProject, ", tmpProject);
-        const role = (tmpProject.creator = username
-          ? "creator"
-          : "collaborator");
-        let insertNotification = new Notification();
-        insertNotification.own = `${username}`;
-        insertNotification.link = `/project/${tmpProject.pid}/section/${sectionId}/role/${role}`;
-        insertNotification.head = `Project: ${tmpProject.title}`;
-        insertNotification.content = `${tmpProject.description}`;
-        insertNotification.process = `pending`;
-        insertNotification = await insertNotification.save();
-        // console.log('InsertNoti, ', insertNotification)
-      }
-    }
-  }
+// exports.getNotifications = async (req, res) => {
+//   const username = req.user.username;
+//   const sectionId = req.query.sectionId;
+//   let notifications = req.query.allNotifications;
+//   console.log("Notifications, ", notifications);
+//   if (notifications !== {}) {
+//     for (let key in notifications) {
+//       if (key === "projects" && notifications.projects !== "") {
+//         const tmpProject = notifications[key];
+//         console.log("tmpProject, ", tmpProject);
+//         const role = (tmpProject.creator = username
+//           ? "creator"
+//           : "collaborator");
+//         let insertNotification = new Notification();
+//         insertNotification.own = `${username}`;
+//         insertNotification.link = `/project/${tmpProject.pid}/section/${sectionId}/role/${role}`;
+//         insertNotification.head = `Project: ${tmpProject.title}`;
+//         insertNotification.content = `${tmpProject.description}`;
+//         insertNotification.process = `pending`;
+//         insertNotification = await insertNotification.save();
+//         // console.log('InsertNoti, ', insertNotification)
+//       }
+//     }
+//   }
 
-  notifications = await Notification.find({
-    $and: [{ own: username }, { process: `pending` }],
-  });
-  // console.log('Notifications, ', notifications)
+//   notifications = await Notification.find({
+//     $and: [{ own: username }, { process: `pending` }],
+//   });
+//   // console.log('Notifications, ', notifications)
 
-  res.send({ notifications: notifications });
-};
+//   res.send({ notifications: notifications });
+// };
 
 exports.changeProjectNotificationStatus = async function (req, res) {
   const nid = reverseId(req.body.nid);
