@@ -168,10 +168,10 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
               { $inc: { "participation.pairing": 1 } }
             );
             let numUser = Object.keys(projects[projectId].active_user).length;
-            client.emit("role updated", {
-              roles: projects[projectId].roles,
-              project: res
-            });
+            // client.emit("role updated", {
+            //   roles: projects[projectId].roles,
+            //   project: res
+            // });
             io.in(projectId).emit("update status", {
               status: 1,
               numUser: numUser
@@ -179,7 +179,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
             initRemainder(projectId);
 
-            client.in(projectId).emit("role selection", {
+            io.in(projectId).emit("role selection", {
               activeUsers: projects[projectId].active_user,
               partner: curUser
             });

@@ -16,9 +16,11 @@ $(document).ready(function () {
   $("#rejectJoining").modal({
     closable: false,
     onApprove: function () {
-      $("#global_loader").attr({
-        style: "display: block; position: fixed;"
-      });
+      // $("#global_loader").attr({
+      //   style: "display: block; position: fixed;"
+      // });
+      $("#pr-text-loader").text("Loading...");
+      $("#playground-remote-loader").attr("style", "display: block; position: fixed;");
     }
   });
 });
@@ -318,7 +320,10 @@ socket.on("role selection", payload => {
       }
     });
     $("#selectRole-modal").modal("show");
-    $("#global_loader").attr("style", "display: none");
+    $("#playground-remote-loader").attr("style", "display: none");
+    // $("#global_loader").attr("style", "display: none");
+  } else {
+    $("#pr-text-loader").text("รอเพื่อนของคุณเลือกบทบาทของเขา")
   }
 });
 
@@ -330,9 +335,11 @@ socket.on("confirm role change", payload => {
   $("#close_button_srm").attr("style", "display:none;");
   $("#ok_button_srm").attr("style", "display:none;");
   if (payload.status === "disconnect" && payload.activeUsers[username] !== undefined) {
-    $("#global_loader").attr({
-      style: "display: block; position: fixed;"
-    });
+    // $("#global_loader").attr({
+    //   style: "display: block; position: fixed;"
+    // });
+    $("#pr-text-loader").text("Loading...")
+    $("#playground-remote-loader").attr("style", "display: block; position: fixed;");
     let a = document.getElementById("backToClass");
     a.click();
     // $("#header_serm").empty();
@@ -401,12 +408,14 @@ socket.on("role updated", payload => {
   if (username === payload.roles.reviewer) {
     roles.user = "reviewer";
     roles.partner = "coder";
-    $("#global_loader").attr("style", "display: none");
+    // $("#global_loader").attr("style", "display: none");
+    $("#playground-remote-loader").attr("style", "display: none");
     projectFiles.forEach(setOptionFileNoCursor);
   } else if (username === payload.roles.coder) {
     roles.user = "coder";
     roles.partner = "reviewer";
-    $("#global_loader").attr("style", "display: none");
+    // $("#global_loader").attr("style", "display: none");
+    $("#playground-remote-loader").attr("style", "display: none");
     $("#close_button_srm").attr("style", "display:block;");
     projectFiles.forEach(setOptionFileShowCursor);
   } else {
@@ -614,9 +623,11 @@ function runCode() {
  * Submit code
  */
 function submitCode() {
-  $("#global_loader").attr({
-    style: "display: block; position: fixed;"
-  });
+  // $("#global_loader").attr({
+  //   style: "display: block; position: fixed;"
+  // });
+  $("#pr-text-loader").text("Loading...");
+  $("#playground-remote-loader").attr("style", "display: block; position: fixed;");
   socket.emit("submit code", {
     mode: "button submit",
     uid: uid,
@@ -670,10 +681,11 @@ socket.on("show score", payload => {
     .modal({
       closable: false,
       onDeny: function () {
-        $("#global_loader").attr("style", "display: none");
+        // $("#global_loader").attr("style", "display: none");
       }
     })
     .modal("show");
+  $("#playground-remote-loader").attr("style", "display: none;");
 });
 
 /**

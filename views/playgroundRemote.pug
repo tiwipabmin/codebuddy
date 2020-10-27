@@ -10,9 +10,13 @@ block script
   link(rel='stylesheet' href='/codemirror/theme/material.css')
 block content
   script(stype='text/javascript').
-    $('#global_loader').attr({
-      'style': 'display: block; position: fixed;'
-    })
+    //- $('#global_loader').attr({
+    //-   'style': 'display: block; position: fixed;'
+    //- })
+  
+  //- Playground Remote Loader
+  .ui.active.inverted.dimmer#playground-remote-loader(style='position:fixed; display:block;')
+    .ui.text.loader#pr-text-loader รอเพื่อนของคุณเข้าร่วมโปรเจ็กต์.
 
   //- confirm role change
   .ui.basic.modal#confirmRoleChange
@@ -69,6 +73,7 @@ block content
           .ui.green.massive.inverted.negative.button#reviewer_button
             i.unhide.icon
             |       Reviewer
+
   //- show score modal
   .ui.basic.modal#showScore-modal
     .ui.icon.header
@@ -108,6 +113,7 @@ block content
               .hidden.content Delete
               .visible.content
                 i.trash.icon
+
   //- review description modal
   .ui.coder.small.modal
     .header Review Description
