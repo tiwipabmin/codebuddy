@@ -6,11 +6,12 @@ const Redis = require("ioredis");
 const fs = require("fs");
 
 const Notification = mongoose.model("Notification");
-const Project = mongoose.model("Project");
+const Comment = mongoose.model("Comment");
 const Message = mongoose.model("Message");
+const History = mongoose.model("History");
+const Project = mongoose.model("Project");
 const Score = mongoose.model("Score");
 const User = mongoose.model("User");
-const History = mongoose.model("History");
 
 exports.getHomepage = (req, res) => {
   res.render("index");
@@ -44,21 +45,24 @@ exports.getLobby = async (req, res) => {
       "'";
     sections = await conMysql.selectSection(querySection);
   }
-  const secObjects = {} // section_id store
+  const secObjects = {}; // section_id store
   for (let index in sections) {
     sections[index].section_id = cryptr.encrypt(sections[index].section_id);
-    Object.assign(secObjects, { [sections[index].course_name + sections[index].section]: sections[index].section_id })
+    Object.assign(secObjects, {
+      [sections[index].course_name + sections[index].section]: sections[index]
+        .section_id,
+    });
   }
   if (!sections.length) sections = [];
   let dataSets = {
     origins: {
       occupation: occupation,
       sections: sections,
-      dataService: "dataService"
+      dataService: "dataService",
     },
     reforms: {
-      secObjects: JSON.stringify(secObjects)
-    }
+      secObjects: JSON.stringify(secObjects),
+    },
   };
   res.render("lobby", { dataSets, title: "Lobby" });
 };
@@ -78,7 +82,7 @@ exports.getPlayground = async (req, res) => {
   let partner_obj = "";
   const project = await Project.findOne({ pid: req.params.pid });
   const messages = await Message.find({ pid: req.params.pid }).sort({
-    createdAt: 1
+    createdAt: 1,
   });
   if ("creator" == userRole && project.programming_style !== "Individual") {
     partner_obj = await User.findOne({ _id: project.collaborator_id });
@@ -93,37 +97,37 @@ exports.getPlayground = async (req, res) => {
   dataSets = {
     origins: {
       project: project,
-      section: section
+      section: section,
     },
     reforms: {
-      messages: messages
-    }
+      messages: messages,
+    },
   };
   if (project.programming_style == "Interactive") {
     res.render("playgroundInteractive", {
       dataSets,
       title: `${project.title} - Playground`,
-      partner_obj
+      partner_obj,
     });
   } else if (project.programming_style == "Co-located") {
     res.render("playgroundCoLocated", {
       dataSets,
       title: `${project.title} - Playground`,
       messages,
-      partner_obj
+      partner_obj,
     });
   } else if (project.programming_style == "Remote") {
     res.render("playgroundRemote", {
       dataSets,
       title: `${project.title} - Playground`,
-      partner_obj
+      partner_obj,
     });
   } else if (project.programming_style == "Individual") {
     res.render("playgroundIndividual", {
       dataSets,
       title: `${project.title} - Playground`,
       messages,
-      partner_obj
+      partner_obj,
     });
   }
 };
@@ -157,7 +161,7 @@ exports.getHistory = async (req, res) => {
   const histories = await History.find({ pid: req.params.pid });
 
   dataSets = {
-    origins: { section_id: req.params.section_id, userRole: userRole }
+    origins: { section_id: req.params.section_id, userRole: userRole },
   };
   res.render("history", {
     histories,
@@ -167,7 +171,7 @@ exports.getHistory = async (req, res) => {
     partner_obj,
     creator,
     dataSets,
-    title: "History"
+    title: "History",
   });
 };
 
@@ -187,9 +191,9 @@ exports.getProfileByTeacher = async (req, res) => {
   const projects = await Project.find({
     $or: [
       { creator: req.query.username },
-      { collaborator: req.query.username }
+      { collaborator: req.query.username },
     ],
-    assignment_id: { $in: assignment_id }
+    assignment_id: { $in: assignment_id },
   }).sort({ createdAt: -1 });
   for (_index in projects) {
     pid.push(projects[_index].pid);
@@ -200,68 +204,67 @@ exports.getProfileByTeacher = async (req, res) => {
   res.render("dashboard", { dataSets, title: username + " Progress" });
 };
 
-exports.getNotifications = async (req, res) => {
-  const username = req.user.username
-  const sectionId = req.query.sectionId
-  let notifications = req.query.allNotifications
-  console.log('Notifications, ', notifications)
-  if (notifications !== {}) {
-    for (let key in notifications) {
-      if (key === 'projects' && notifications.projects !== '') {
-        const tmpProject = notifications[key]
-        console.log('tmpProject, ', tmpProject)
-        const role = tmpProject.creator = username ? 'creator' : 'collaborator';
-        let insertNotification = new Notification()
-        insertNotification.own = `${username}`
-        insertNotification.link = `/project/${tmpProject.pid}/section/${sectionId}/role/${role}`
-        insertNotification.head = `Project: ${tmpProject.title}`
-        insertNotification.content = `${tmpProject.description}`
-        insertNotification.process = `pending`
-        insertNotification = await insertNotification.save();
-        // console.log('InsertNoti, ', insertNotification)
-      }
-    }
-  }
+// exports.getNotifications = async (req, res) => {
+//   const username = req.user.username;
+//   const sectionId = req.query.sectionId;
+//   let notifications = req.query.allNotifications;
+//   console.log("Notifications, ", notifications);
+//   if (notifications !== {}) {
+//     for (let key in notifications) {
+//       if (key === "projects" && notifications.projects !== "") {
+//         const tmpProject = notifications[key];
+//         console.log("tmpProject, ", tmpProject);
+//         const role = (tmpProject.creator = username
+//           ? "creator"
+//           : "collaborator");
+//         let insertNotification = new Notification();
+//         insertNotification.own = `${username}`;
+//         insertNotification.link = `/project/${tmpProject.pid}/section/${sectionId}/role/${role}`;
+//         insertNotification.head = `Project: ${tmpProject.title}`;
+//         insertNotification.content = `${tmpProject.description}`;
+//         insertNotification.process = `pending`;
+//         insertNotification = await insertNotification.save();
+//         // console.log('InsertNoti, ', insertNotification)
+//       }
+//     }
+//   }
 
-  notifications = await Notification.find({
-    $and: [{ own: username }, { process: `pending` }]
-  })
-  // console.log('Notifications, ', notifications)
+//   notifications = await Notification.find({
+//     $and: [{ own: username }, { process: `pending` }],
+//   });
+//   // console.log('Notifications, ', notifications)
 
-  res.send({ notifications: notifications });
-};
+//   res.send({ notifications: notifications });
+// };
 
 exports.changeProjectNotificationStatus = async function (req, res) {
-  const nid = reverseId(req.body.nid)
+  const nid = reverseId(req.body.nid);
 
   try {
     const disable = await Notification.updateOne(
       {
-        $and: [
-          { nid: nid },
-          { "receiver.username": req.user.username }
-        ]
+        $and: [{ nid: nid }, { "receiver.username": req.user.username }],
       },
       {
-        $set: { "receiver.$[element].status": `interacted` }
+        $set: { "receiver.$[element].status": `interacted` },
       },
       {
-        arrayFilters: [{ "element.username": req.user.username }]
+        arrayFilters: [{ "element.username": req.user.username }],
       }
-    )
-    res.status(200).send('OK').end()
+    );
+    res.status(200).send("OK").end();
   } catch (err) {
-    res.status(400).send('Bad Request').end()
+    res.status(400).send("Bad Request").end();
     // console.log(`Error: ${err}`)
   }
-}
+};
 
 function reverseId(id) {
-  let newId = ""
+  let newId = "";
   for (let index = id.length - 1; index >= 0; index--) {
-    newId += id[index]
+    newId += id[index];
   }
-  return newId
+  return newId;
 }
 
 exports.createProject = async (req, res) => {
@@ -270,14 +273,14 @@ exports.createProject = async (req, res) => {
     const project = await new Project(req.body).save();
     Project.update(
       {
-        _id: project._id
+        _id: project._id,
       },
       {
         $set: {
-          collaborator_id: collaborator._id
-        }
+          collaborator_id: collaborator._id,
+        },
       },
-      err => {
+      (err) => {
         if (err) throw err;
       }
     );
@@ -310,13 +313,13 @@ function sortNumber(numArray) {
   for (let index1 in numArray) {
     for (let index2 in numArray) {
       if (numArray[index1] < numArray[index2]) {
-        let clone = numArray[index1]
-        numArray.splice(index1, 1, numArray[index2])
-        numArray.splice(index2, 1, clone)
+        let clone = numArray[index1];
+        numArray.splice(index1, 1, numArray[index2]);
+        numArray.splice(index2, 1, clone);
       }
     }
   }
-  return numArray
+  return numArray;
 }
 
 exports.getSection = async (req, res) => {
@@ -380,7 +383,7 @@ exports.getSection = async (req, res) => {
   if (occupation == "teacher") {
     occupation = 0;
 
-    weeks = sortNumber(weeks)
+    weeks = sortNumber(weeks);
 
     dataSets = {
       origins: {
@@ -389,14 +392,14 @@ exports.getSection = async (req, res) => {
         assignments: assignments,
         students: students,
         pairingSessions: pairingSessions,
-        weeks: weeks
+        weeks: weeks,
       },
       reforms: {
         assignments: JSON.stringify(assignments),
         students: JSON.stringify(students),
         pairingSessions: JSON.stringify(pairingSessions),
-        weeks: JSON.stringify(weeks)
-      }
+        weeks: JSON.stringify(weeks),
+      },
     };
   } else {
     occupation = 1;
@@ -407,10 +410,10 @@ exports.getSection = async (req, res) => {
         {
           $or: [
             { creator: req.user.username },
-            { collaborator: req.user.username }
-          ]
-        }
-      ]
+            { collaborator: req.user.username },
+          ],
+        },
+      ],
     }).sort({ createdAt: -1 });
 
     /**
@@ -441,7 +444,7 @@ exports.getSection = async (req, res) => {
     }
 
     projects.reverse();
-    weeks = sortNumber(weeks)
+    weeks = sortNumber(weeks);
 
     dataSets = {
       origins: {
@@ -451,14 +454,14 @@ exports.getSection = async (req, res) => {
         assignments: assignments,
         students: students,
         pairingSessions: pairingSessions,
-        weeks: weeks
+        weeks: weeks,
       },
       reforms: {
         projects: JSON.stringify(projects),
         assignments: JSON.stringify(assignments),
         students: JSON.stringify(students),
-        pairingSessions: JSON.stringify(pairingSessions)
-      }
+        pairingSessions: JSON.stringify(pairingSessions),
+      },
     };
   }
   res.render("classroom", { dataSets, title: section.course_name });
@@ -497,8 +500,8 @@ exports.createSection = async (req, res) => {
       classCode,
       req.body.day,
       timeStart,
-      timeEnd
-    ]
+      timeEnd,
+    ],
   ];
   const sections = await conMysql.insertSection(querySection, sectionValues);
   res.redirect("lobby");
@@ -549,17 +552,12 @@ exports.updateSection = async (req, res) => {
   res.redirect("/classroom/section/" + cryptr.encrypt(section_id));
 };
 
-exports.getProjects = async (req, res) => {
+exports.getMyProjects = async (req, res) => {
   let projects = req.query.projects;
   let resProjects = await Project.find({
-    $and: [
-      { status: { $ne: "pending" } },
-      {
-        $or: [
-          { creator: req.user.username },
-          { collaborator: req.user.username }
-        ]
-      }
+    $or: [
+      { creator: req.user.username },
+      { collaborator: req.user.username },
     ]
   }).sort({ createdAt: -1 });
 
@@ -590,18 +588,18 @@ exports.removeStudent = async (req, res) => {
     if (resStatus == "Delete enrollment completed.") {
       dataSets = {
         resStatus: "Remove the student from the classroom completed.",
-        enrollment_id: enrollment_id
+        enrollment_id: enrollment_id,
       };
     } else {
       dataSets = {
         resStatus: "Remove the student from the classroom failed.",
-        enrollment_id: enrollment_id
+        enrollment_id: enrollment_id,
       };
     }
   } else {
     dataSets = {
       resStatus:
-        "Cannot remove the student from the classroom because the student has already had pairing records!"
+        "Cannot remove the student from the classroom because the student has already had pairing records!",
     };
   }
   res.json(dataSets).status(200);
@@ -623,7 +621,7 @@ exports.joinClass = async (req, res) => {
       queryEnrollment =
         "INSERT INTO enrollment (student_id, section_id, grade) VALUES ?";
       let values = [
-        [resStudents[0].student_id, resSections[0].section_id, "4"]
+        [resStudents[0].student_id, resSections[0].section_id, "4"],
       ];
       await conMysql.insertEnrollment(queryEnrollment, values);
     }
@@ -655,7 +653,7 @@ exports.updatePairingSession = async (req, res) => {
     Sep: "09",
     Oct: "10",
     Nov: "11",
-    Dec: "12"
+    Dec: "12",
   };
   let numMonth = month[sliceDataTime[0]];
   numMonth === undefined ? (numMonth = "13") : null;
@@ -695,44 +693,49 @@ exports.updatePairingSession = async (req, res) => {
     resStatus = "Update a pairing date time status failed.";
   }
 
-  const queryAssignment = `select * from assignment where section_id = ${sectionId}`
-  const resAssignments = await conMysql.selectAssignment(queryAssignment)
-  let assignments = {}
+  const queryAssignment = `select * from assignment where section_id = ${sectionId}`;
+  const resAssignments = await conMysql.selectAssignment(queryAssignment);
+  let assignments = {};
   for (let index in resAssignments) {
-    const tmp = { ...resAssignments[index] }
-    Object.assign(assignments, { [tmp.assignment_id]: tmp })
+    const tmp = { ...resAssignments[index] };
+    Object.assign(assignments, { [tmp.assignment_id]: tmp });
   }
 
-  queryPairingSession = `select * from pairing_session where pairing_session_id = ${pairing_session_id}`
-  const resPairingSessions = await conMysql.selectPairingSession(queryPairingSession)
+  queryPairingSession = `select * from pairing_session where pairing_session_id = ${pairing_session_id}`;
+  const resPairingSessions = await conMysql.selectPairingSession(
+    queryPairingSession
+  );
 
   // console.log('Assignments, ', assignments)
   const projects = await Project.find({
-    $and: [{
-      available_project: true
-    }, {
-      createdAt: {
-        $gt: new Date(resPairingSessions[0].time_start)
-      }
-    }]
-  })
-  console.log('Projects Before, ', projects)
+    $and: [
+      {
+        available_project: true,
+      },
+      {
+        createdAt: {
+          $gt: new Date(resPairingSessions[0].time_start),
+        },
+      },
+    ],
+  });
+  console.log("Projects Before, ", projects);
 
   for (let index in projects) {
-    const assignmentId = projects[index].assignment_id
+    const assignmentId = projects[index].assignment_id;
     if (assignments[assignmentId] !== undefined) {
       const updatProject = await Project.updateOne(
         { assignment_id: assignmentId },
         { $set: { available_project: false } }
-      )
+      );
     }
   }
-  console.log('Projects After, ', projects)
+  console.log("Projects After, ", projects);
 
   res.send({
     resStatus: resStatus,
     pairingSessions: JSON.stringify(pairingSessions),
-    sectionId: cryptr.encrypt(sectionId)
+    sectionId: cryptr.encrypt(sectionId),
   });
 };
 
@@ -772,7 +775,7 @@ exports.searchStudent = async (req, res) => {
     for (let index in resStudents) {
       if (resStudents[index].username != username) {
         user = await User.findOne({
-          username: resStudents[index].username
+          username: resStudents[index].username,
         });
         if (user != null) {
           resStudents[index].avg_score = user.avgScore;
@@ -783,6 +786,7 @@ exports.searchStudent = async (req, res) => {
       }
     }
   }
+  console.log("Search Student: partnerKeys, ", req.query.partner_keys);
   res.send({
     studentId: studentId,
     students: students,
@@ -790,13 +794,13 @@ exports.searchStudent = async (req, res) => {
     sectionId: cryptr.encrypt(sectionId),
     pairingSessionId: pairingSessionId,
     partnerKeys: req.query.partner_keys,
-    pairingObjectives: req.query.pairing_objective
+    pairingObjectives: req.query.pairing_objective,
   });
 };
 
 exports.searchPartner = async (req, res) => {
   const search = req.query.search;
-  const username = req.user.username
+  const username = req.user.username;
   const sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
   const studentQuery =
     "SELECT * FROM enrollment AS\
@@ -812,14 +816,14 @@ exports.searchPartner = async (req, res) => {
     search +
     "%')";
   const resStudents = await conMysql.selectStudent(studentQuery);
-  console.log('resStudents, ', resStudents)
+  console.log("resStudents, ", resStudents);
   let students = [];
   let user = null;
   if (resStudents instanceof Array) {
     for (let index in resStudents) {
       if (resStudents[index].username != username) {
         user = await User.findOne({
-          username: resStudents[index].username
+          username: resStudents[index].username,
         });
         if (user != null) {
           resStudents[index].avgScore = user.avgScore;
@@ -848,23 +852,23 @@ exports.searchStudentByPurpose = async (req, res) => {
   if ("quality" == purpose) {
     users = await User.find({
       avgScore: { $lte: avgScore + 10, $gte: avgScore - 10 },
-      username: { $ne: username }
+      username: { $ne: username },
     });
   } else if ("experience" == purpose) {
     users = await User.find({
       $or: [
         { avgScore: { $gt: avgScore + 10, $lt: avgScore + 20 } },
-        { avgScore: { $lt: avgScore - 10, $gt: avgScore - 20 } }
+        { avgScore: { $lt: avgScore - 10, $gt: avgScore - 20 } },
       ],
-      username: { $ne: username }
+      username: { $ne: username },
     });
   } else {
     users = await User.find({
       $or: [
         { avgScore: { $gt: avgScore + 20, $lt: avgScore + 30 } },
-        { avgScore: { $lt: avgScore - 20, $gt: avgScore - 30 } }
+        { avgScore: { $lt: avgScore - 20, $gt: avgScore - 30 } },
       ],
-      username: { $ne: username }
+      username: { $ne: username },
     });
   }
   let count = 0;
@@ -890,7 +894,7 @@ exports.searchStudentByPurpose = async (req, res) => {
     purpose: purpose,
     sectionId: cryptr.encrypt(sectionId),
     partnerKeys: req.query.partnerKeys,
-    pairingObjectives: req.query.pairingObjectives
+    pairingObjectives: req.query.pairingObjectives,
   });
 };
 
@@ -908,7 +912,7 @@ exports.getPairing = async (req, res) => {
     pairingSessionId: pairingSessionId,
     sectionId: cryptr.encrypt(sectionId),
     partnerKeys: JSON.stringify(dataSets.partnerKeys),
-    pairingObjectives: JSON.stringify(dataSets.pairingObjectives)
+    pairingObjectives: JSON.stringify(dataSets.pairingObjectives),
   });
 };
 
@@ -976,7 +980,7 @@ async function getPairingByPairingSessionId(
 
   const dataSets = {
     partnerKeys: partnerKeys,
-    pairingObjectives: pairingObjectives
+    pairingObjectives: pairingObjectives,
   };
 
   return dataSets;
@@ -1108,7 +1112,7 @@ exports.updatePairing = async (req, res) => {
   for (let index in resStudents) {
     newStudents[resStudents[index].enrollment_id] = {
       username: resStudents[index].username,
-      role: pairingRecordRoles[resStudents[index].enrollment_id]
+      role: pairingRecordRoles[resStudents[index].enrollment_id],
     };
   }
 
@@ -1124,26 +1128,26 @@ exports.updatePairing = async (req, res) => {
         $or: [
           {
             creator: newStudents[key].username,
-            createdAt: { $gt: new Date(timeStart) }
+            createdAt: { $gt: new Date(timeStart) },
           },
           {
             creator: newStudents[key].username,
-            createdAt: { $eq: new Date(timeStart) }
-          }
-        ]
+            createdAt: { $eq: new Date(timeStart) },
+          },
+        ],
       });
     } else if (newStudents[key].role == "partner") {
       resProject = await Project.find({
         $or: [
           {
             collaborator: newStudents[key].username,
-            createdAt: { $gt: new Date(timeStart) }
+            createdAt: { $gt: new Date(timeStart) },
           },
           {
             collaborator: newStudents[key].username,
-            createdAt: { $eq: new Date(timeStart) }
-          }
-        ]
+            createdAt: { $eq: new Date(timeStart) },
+          },
+        ],
       });
     }
 
@@ -1178,26 +1182,26 @@ exports.updatePairing = async (req, res) => {
         $or: [
           {
             creator: newStudents[changedPartnerKeys[key]].username,
-            createdAt: { $gt: new Date(timeStart) }
+            createdAt: { $gt: new Date(timeStart) },
           },
           {
             creator: newStudents[changedPartnerKeys[key]].username,
-            createdAt: { $eq: new Date(timeStart) }
-          }
-        ]
+            createdAt: { $eq: new Date(timeStart) },
+          },
+        ],
       });
     } else if (newStudents[changedPartnerKeys[key]].role == "partner") {
       resProject = await Project.find({
         $or: [
           {
             collaborator: newStudents[changedPartnerKeys[key]].username,
-            createdAt: { $gt: new Date(timeStart) }
+            createdAt: { $gt: new Date(timeStart) },
           },
           {
             collaborator: newStudents[changedPartnerKeys[key]].username,
-            createdAt: { $eq: new Date(timeStart) }
-          }
-        ]
+            createdAt: { $eq: new Date(timeStart) },
+          },
+        ],
       });
     }
     outLoop = false;
@@ -1227,13 +1231,13 @@ exports.updatePairing = async (req, res) => {
   for (let indexMainPro in projects) {
     for (let indexSubPro in projects[indexMainPro]) {
       status = await History.deleteMany({
-        pid: projects[indexMainPro][indexSubPro]
+        pid: projects[indexMainPro][indexSubPro],
       });
       status = await Score.deleteMany({
-        pid: projects[indexMainPro][indexSubPro]
+        pid: projects[indexMainPro][indexSubPro],
       });
       status = await Message.deleteMany({
-        pid: projects[indexMainPro][indexSubPro]
+        pid: projects[indexMainPro][indexSubPro],
       });
     }
   }
@@ -1247,16 +1251,16 @@ exports.updatePairing = async (req, res) => {
         creator: newStudents[key].username,
         $or: [
           { createdAt: { $gt: new Date(timeStart) } },
-          { createdAt: { $eq: new Date(timeStart) } }
-        ]
+          { createdAt: { $eq: new Date(timeStart) } },
+        ],
       });
     } else if (newStudents[key].role == "partner") {
       status = await Project.deleteMany({
         collaborator: newStudents[key].username,
         $or: [
           { createdAt: { $gt: new Date(timeStart) } },
-          { createdAt: { $eq: new Date(timeStart) } }
-        ]
+          { createdAt: { $eq: new Date(timeStart) } },
+        ],
       });
     }
 
@@ -1265,16 +1269,16 @@ exports.updatePairing = async (req, res) => {
         creator: newStudents[changedPartnerKeys[key]].username,
         $or: [
           { createdAt: { $gt: new Date(timeStart) } },
-          { createdAt: { $eq: new Date(timeStart) } }
-        ]
+          { createdAt: { $eq: new Date(timeStart) } },
+        ],
       });
     } else if (newStudents[changedPartnerKeys[key]].role == "partner") {
       status = await Project.deleteMany({
         collaborator: newStudents[changedPartnerKeys[key]].username,
         $or: [
           { createdAt: { $gt: new Date(timeStart) } },
-          { createdAt: { $eq: new Date(timeStart) } }
-        ]
+          { createdAt: { $eq: new Date(timeStart) } },
+        ],
       });
     }
   }
@@ -1288,7 +1292,7 @@ exports.updatePairing = async (req, res) => {
     for (let index in uid) {
       await User.findOne(
         {
-          username: newStudents[uid[index]].username
+          username: newStudents[uid[index]].username,
         },
         async function (err, element) {
           if (err) {
@@ -1299,15 +1303,15 @@ exports.updatePairing = async (req, res) => {
             [
               {
                 $match: {
-                  uid: element._id.toString()
-                }
+                  uid: element._id.toString(),
+                },
               },
               {
                 $group: {
                   _id: "$uid",
-                  avg: { $avg: "$score" }
-                }
-              }
+                  avg: { $avg: "$score" },
+                },
+              },
             ],
             function (err, results) {
               if (err) {
@@ -1320,12 +1324,12 @@ exports.updatePairing = async (req, res) => {
                   // start update
                   User.updateOne(
                     {
-                      _id: result._id
+                      _id: result._id,
                     },
                     {
                       $set: {
-                        avgScore: result.avg
-                      }
+                        avgScore: result.avg,
+                      },
                     },
                     function (err, userReturn) {
                       if (err);
@@ -1339,12 +1343,12 @@ exports.updatePairing = async (req, res) => {
                 if (!results.length) {
                   User.updateOne(
                     {
-                      _id: element._id
+                      _id: element._id,
                     },
                     {
                       $set: {
-                        avgScore: 0
-                      }
+                        avgScore: 0,
+                      },
                     },
                     function (err, userReturn) {
                       if (err);
@@ -1389,8 +1393,8 @@ exports.updatePairing = async (req, res) => {
         pairingSessionId,
         parseInt(changedPartnerKeys[key]),
         pairingObjectives[key],
-        "host"
-      ]
+        "host",
+      ],
     ];
     resPairingRecord = await conMysql.insertPairingRecord(
       pairingRecordQuery,
@@ -1420,8 +1424,8 @@ exports.updatePairing = async (req, res) => {
         pairingSessionId,
         parseInt(key),
         pairingObjectives[changedPartnerKeys[key]],
-        "partner"
-      ]
+        "partner",
+      ],
     ];
     resPairingRecord = await conMysql.insertPairingRecord(
       pairingRecordQuery,
@@ -1444,11 +1448,11 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
       console.log("not null, ", totalScores[username]);
     }
   }
-  
+
   for (let username in totalScores) {
     updateAvgScores[username] = await User.findOne(
       {
-        username: username
+        username: username,
       },
       function (err, data) {
         if (err) console.log("updateTotalScores err, ", err);
@@ -1456,10 +1460,10 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
           // console.log('Success, ', data)
           User.updateOne(
             {
-              username: username
+              username: username,
             },
             {
-              $set: { avgScore: parseFloat(totalScores[username]) }
+              $set: { avgScore: parseFloat(totalScores[username]) },
             },
             function (err, data) {
               if (err) console.log(err);
@@ -1467,14 +1471,16 @@ exports.updateTotalScoreAllStudent = async (req, res) => {
             }
           );
         } else {
-          failure[username] = totalScores[username]
-          console.log('Failure, ', failure)
+          failure[username] = totalScores[username];
+          console.log("Failure, ", failure);
         }
       }
     );
   }
   // console.log('updateAvgScores, ', updateAvgScores)
-  res.status(200).send({ failure: failure, status: "Update avgScore complete!" });
+  res
+    .status(200)
+    .send({ failure: failure, status: "Update avgScore complete!" });
 };
 
 exports.startAutoPairingByScoreDiff = async (req, res) => {
@@ -1521,7 +1527,9 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
       selectPairingRecordByEnrollmentId
     );
 
-    // previous partner of each student
+    /**
+     *  previous partner of each student
+     */
     let previousPartners = [];
     for (let index in getPairingRecord) {
       if (previousPartners.indexOf(getPairingRecord[index].partner_id) < 0) {
@@ -1531,9 +1539,11 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
     previousPartnersOfEachStudents[enrollmentId] = previousPartners;
     numberAllOfStudent++;
 
-    // avg score of each student
+    /**
+     * avg score of each student
+     */
     let user = await User.findOne({
-      username: username
+      username: username,
     });
     eachStudentScores[enrollmentId] = user.avgScore;
     allOfScores.push(user.avgScore);
@@ -1570,7 +1580,7 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
           parseInt(enrollmentIdPn)
         ) < 0
       ) {
-        partnerKeys[enrollmentIdSd] = enrollmentIdPn;
+        partnerKeys[parseInt(enrollmentIdSd)] = parseInt(enrollmentIdPn);
         delete partnerKeys[enrollmentIdPn];
         delete students[enrollmentIdSd];
         delete students[enrollmentIdPn];
@@ -1588,12 +1598,18 @@ exports.startAutoPairingByScoreDiff = async (req, res) => {
     }
   }
 
+  for (let key in partnerKeys) {
+    if (partnerKeys[key] < 0) {
+      pairingObjectives[key] = -1;
+    }
+  }
+
   res.send({
     resStatus: resStatus,
     partnerKeys: JSON.stringify(partnerKeys),
     pairingObjectives: JSON.stringify(pairingObjectives),
     pairingSessionId: pairingSessionId,
-    sectionId: sectionId
+    sectionId: sectionId,
   });
 };
 
@@ -1648,7 +1664,7 @@ exports.startAutoPairingByPurpose = async (req, res) => {
 
     // avg score of each student
     let user = await User.findOne({
-      username: username
+      username: username,
     });
     eachStudentScores[enrollmentId] = user.avgScore;
     allOfScores.push(user.avgScore);
@@ -1747,7 +1763,7 @@ exports.startAutoPairingByPurpose = async (req, res) => {
            */
           if (
             eachStudentScores[enrollmentIdEx] -
-            eachStudentScores[enrollmentIdNo] >
+              eachStudentScores[enrollmentIdNo] >
             10
           ) {
             partnerKeys[enrollmentIdEx] = enrollmentIdNo;
@@ -1817,7 +1833,7 @@ exports.createPairingRecord = async (req, res) => {
     Sep: "09",
     Oct: "10",
     Nov: "11",
-    Dec: "12"
+    Dec: "12",
   };
   let numMonth = month[sliceDateTime[0]];
   numMonth === undefined ? (numMonth = "13") : null;
@@ -1857,7 +1873,7 @@ exports.createPairingRecord = async (req, res) => {
           parseInt(pairingSessionId),
           partnerKeys[key],
           pairingObjectives[key],
-          "host"
+          "host",
         ];
         count++;
 
@@ -1876,7 +1892,7 @@ exports.createPairingRecord = async (req, res) => {
             parseInt(pairingSessionId),
             parseInt(key),
             pairingObjectives[partnerKeys[key]],
-            "partner"
+            "partner",
           ];
           count++;
         }
@@ -1931,18 +1947,20 @@ exports.createPairingRecord = async (req, res) => {
       }
     }
 
+    weeks = sortNumber(weeks);
+
     let weeklyDatas = {
       assignments: JSON.stringify(assignments),
       username: req.user.info.username,
       img: req.user.img,
-      weeks: weeks
+      weeks: weeks,
     };
 
     res.send({
       status: status,
       pairingSessions: JSON.stringify(pairingSessions),
       sectionId: cryptr.encrypt(sectionId),
-      weeklyDatas: JSON.stringify(weeklyDatas)
+      weeklyDatas: JSON.stringify(weeklyDatas),
     });
   } else {
     res.send({ status: "Update failed." });
@@ -1973,7 +1991,7 @@ exports.getStudentsFromSection = async (req, res) => {
       isPairingActive = true;
     }
     let user = await User.findOne({
-      username: resStudents[index].username
+      username: resStudents[index].username,
     });
     if (user !== null) {
       resStudents[index].avg_score = user.avgScore;
@@ -2011,7 +2029,7 @@ exports.getStudentsFromSection = async (req, res) => {
        * find key from value
        */
       key = Object.keys(partnerKeys).find(
-        key => partnerKeys[key] === resPairingRecords[index].enrollment_id
+        (key) => partnerKeys[key] === resPairingRecords[index].enrollment_id
       );
       if (
         partnerKeys[resPairingRecords[index].enrollment_id] === undefined &&
@@ -2048,7 +2066,7 @@ exports.getStudentsFromSection = async (req, res) => {
     partnerKeys: partnerKeys,
     pairingObjectives: pairingObjectives,
     command: command,
-    pairingSessionStatus: resPairingSessions[0].status
+    pairingSessionStatus: resPairingSessions[0].status,
   });
 };
 
@@ -2057,14 +2075,14 @@ exports.getWeeklyAssignments = async (req, res) => {
   let weeks = [];
   if (action == "enable") {
     let project = await Project.find({
-      available_project: false
+      available_project: false,
     });
     project.forEach(function (e) {
       weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
     });
   } else if (action == "disable") {
     let project = await Project.find({
-      available_project: true
+      available_project: true,
     });
     project.forEach(function (e) {
       weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
@@ -2073,8 +2091,178 @@ exports.getWeeklyAssignments = async (req, res) => {
   res.send({ weeks: JSON.stringify(weeks) });
 };
 
+exports.getEnableAssignments = async (req, res) => {
+  const sectionId = cryptr.decrypt(req.query.sectionId);
+  const weeks = [];
+  const assignments = [];
+
+  const queryAssignment = `SELECT assignment_id FROM assignment WHERE section_id = ${sectionId}`;
+  await conMysql.selectAssignment(queryAssignment).then((data) => {
+    if (typeof data === `string`) {
+      console.log('Message from the "getEnableAssignments" function: ', data);
+    } else {
+      for (let index in data) {
+        assignments.push({ assignment_id: data[index].assignment_id });
+      }
+    }
+  });
+
+  let project = await Project.find({
+    $and: [{ available_project: true }, { $or: assignments }],
+  });
+
+  project.forEach(function (e) {
+    weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+  });
+
+  console.log("Weeks: ", weeks, ", Section id: ", sectionId);
+  res.send({
+    weeks: JSON.stringify(weeks),
+    sectionId: cryptr.encrypt(sectionId),
+  });
+};
+
+exports.getDisableAssignments = async (req, res) => {
+  const sectionId = cryptr.decrypt(req.query.sectionId);
+  const weeks = [];
+  const assignments = [];
+
+  const queryAssignment = `SELECT assignment_id FROM assignment WHERE section_id = ${sectionId}`;
+  await conMysql.selectAssignment(queryAssignment).then((data) => {
+    if (typeof data === `string`) {
+      console.log('Message from the "getEnableAssignments" function: ', data);
+    } else {
+      for (let index in data) {
+        assignments.push({ assignment_id: data[index].assignment_id });
+      }
+    }
+  });
+
+  let project = await Project.find({
+    $and: [{ available_project: false }, { $or: assignments }],
+  });
+
+  project.forEach(function (e) {
+    weeks.indexOf(e.week) == -1 ? weeks.push(e.week) : null;
+  });
+
+  res.send({
+    weeks: JSON.stringify(weeks),
+    sectionId: cryptr.encrypt(sectionId),
+  });
+};
+
+exports.enableAssignments = async (req, res) => {
+  const week = parseInt(req.body.week);
+  const sectionId = cryptr.decrypt(req.body.sectionId);
+
+  if (week < 0) {
+    res.send({ status: "Cannot enable assignment." });
+    return;
+  }
+
+  const assignments = [];
+
+  const queryAssignment = `SELECT assignment_id FROM assignment WHERE section_id = ${sectionId}`;
+  await conMysql.selectAssignment(queryAssignment).then((data) => {
+    if (typeof data === `string`) {
+      console.log('Message from the "enableAssignments" function: ', data);
+    } else {
+      for (let index in data) {
+        assignments.push({ assignment_id: data[index].assignment_id });
+      }
+    }
+  });
+
+  if (!week) {
+    await Project.updateMany(
+      { $and: [{ available_project: false }, { $or: assignments }] },
+      { $set: { available_project: true } }
+    );
+  } else if (week) {
+    await Project.updateMany(
+      { $and: [{ week: week }, { $or: assignments }] },
+      { $set: { available_project: true } }
+    );
+  }
+
+  res.send({ status: "Enable assignments successfully." });
+};
+
+exports.disableAssignments = async (req, res) => {
+  const week = parseInt(req.body.week);
+  const sectionId = cryptr.decrypt(req.body.sectionId);
+
+  if (week < 0) {
+    res.send({ status: "Cannot disable assignment." });
+    return;
+  }
+
+  const assignments = [];
+
+  const queryAssignment = `SELECT assignment_id FROM assignment WHERE section_id = ${sectionId}`;
+  await conMysql.selectAssignment(queryAssignment).then((data) => {
+    if (typeof data === `string`) {
+      console.log('Message from the "disableAssignments" function: ', data);
+    } else {
+      for (let index in data) {
+        assignments.push({ assignment_id: data[index].assignment_id });
+      }
+    }
+  });
+
+  if (!week) {
+    await Project.updateMany(
+      { $and: [{ available_project: true }, { $or: assignments }] },
+      { $set: { available_project: false } }
+    );
+  } else if (week) {
+    await Project.updateMany(
+      { $and: [{ week: week }, { $or: assignments }] },
+      { $set: { available_project: false } }
+    );
+  }
+
+  res.send({ status: "Disable assignments successfully." });
+};
+
+function checkUrl(url, search) {
+  if (url.indexOf(search)) {
+    return 1;
+  }
+  return 0;
+}
+
+exports.getAssignmentForm = async (req, res) => {
+  const section_id = req.params.section_id;
+  const originalUrl = req.originalUrl;
+
+  let perform;
+  if (checkUrl(originalUrl, "getform")) {
+    perform = "getform";
+  }
+
+  let section = {};
+  section.section_id = section_id;
+
+  dataSets = {
+    origins: { perform: perform, section: section },
+  };
+
+  console.log(dataSets);
+
+  res.render("assignment", { dataSets, title: `Assignment Form` });
+};
+
 exports.getAssignment = async (req, res) => {
   const section_id = req.params.section_id;
+  const originalUrl = req.originalUrl;
+
+  let perform;
+  if (checkUrl(originalUrl, "view")) {
+    perform = "view";
+  }
+
   const select_assignment_by_assignment_id =
     "SELECT * FROM assignment WHERE assignment_id = " +
     cryptr.decrypt(req.params.assignment_id);
@@ -2088,9 +2276,11 @@ exports.getAssignment = async (req, res) => {
 
   if (assignment.length) {
     assignment = assignment[0];
+    assignment.section_id = section_id;
     assignment.assignment_id = cryptr.encrypt(assignment.assignment_id);
     title = assignment.title;
     assignment.title = assignment.title;
+    assignment.week = assignment.week;
     assignment.description = assignment.description;
     assignment.input_specification = assignment.input_specification;
     assignment.output_specification = assignment.output_specification;
@@ -2098,8 +2288,8 @@ exports.getAssignment = async (req, res) => {
     assignment.sample_output = assignment.sample_output;
   }
   dataSets = {
-    origins: { assignment: assignment, section: section },
-    reforms: { assignment: JSON.stringify(assignment) }
+    origins: { perform: perform, assignment: assignment, section: section },
+    reforms: { assignment: JSON.stringify(assignment) },
   };
   res.render("assignment", { dataSets, title: title });
 };
@@ -2109,13 +2299,14 @@ exports.createAssignment = async (req, res) => {
   let dataSets = {};
   let section = {};
   section.section_id = cryptr.encrypt(sectionId);
-  let title = req.body.title;
-  let week = parseInt(req.body.week);
-  let description = JSON.parse(req.body.description);
-  let input_specification = JSON.parse(req.body.input_specification);
-  let output_specification = JSON.parse(req.body.output_specification);
-  let sample_input = JSON.parse(req.body.sample_input);
-  let sample_output = JSON.parse(req.body.sample_output);
+  let allInfo = JSON.parse(req.body.allInfo);
+  let title = allInfo.title;
+  let week = parseInt(allInfo.week);
+  let description = allInfo.description;
+  let input_specification = allInfo.input_specification;
+  let output_specification = allInfo.output_specification;
+  let sample_input = allInfo.sample_input;
+  let sample_output = allInfo.sample_output;
   let programming_style = req.body.programming_style;
 
   dataSets = {
@@ -2123,13 +2314,43 @@ exports.createAssignment = async (req, res) => {
     input_specification: input_specification,
     output_specification: output_specification,
     sample_input: sample_input,
-    sample_output: sample_output
+    sample_output: sample_output,
   };
 
+  console.log("Data Sets 1, ", dataSets);
+
   for (let key in dataSets) {
-    let joinData = dataSets[key].join("<br>");
-    dataSets[key] = joinData;
+    if (key === "description") {
+      for (let index in dataSets[key]) {
+        dataSets[key][index] = dataSets[key][index].replace(/ /g, "&nbsp;");
+      }
+    } else {
+      for (let i in dataSets[key]) {
+        let block = dataSets[key][i];
+        for (let j in block) {
+          dataSets[key][i][j] = block[j].replace(/ /g, "&nbsp;");
+        }
+      }
+    }
   }
+
+  // console.log('Data Sets 2, ', dataSets)
+
+  for (let key in dataSets) {
+    if (key === "description") {
+      let joinData = dataSets[key].join("<br>");
+      dataSets[key] = joinData;
+    } else {
+      for (let index in dataSets[key]) {
+        let data = dataSets[key][index];
+        let joinData = data.join("<br>");
+        let block = joinData;
+        dataSets[key][index] = block;
+      }
+    }
+  }
+
+  // console.log('Data Sets 3, ', dataSets)
 
   const insertAssignment =
     "INSERT INTO assignment (section_id, title, description, input_specification, output_specification, sample_input, sample_output, programming_style, week) VALUES ?";
@@ -2138,19 +2359,26 @@ exports.createAssignment = async (req, res) => {
       sectionId,
       title,
       dataSets.description,
-      dataSets.input_specification,
-      dataSets.output_specification,
-      dataSets.sample_input,
-      dataSets.sample_output,
+      JSON.stringify(dataSets.input_specification),
+      JSON.stringify(dataSets.output_specification),
+      JSON.stringify(dataSets.sample_input),
+      JSON.stringify(dataSets.sample_output),
       programming_style,
-      week
-    ]
+      week,
+    ],
   ];
 
-  const assignment_id = await conMysql.insertAssignment(
-    insertAssignment,
-    values
-  );
+  await conMysql.insertAssignment(insertAssignment, values).then((data) => {
+    if (typeof data === "number") {
+      const enAssignmentId = cryptr.encrypt(data);
+      res.redirect(
+        `/assignment/view/${enAssignmentId}/section/${section.section_id}`
+      );
+    } else {
+      res.redirect(`/assignment/getform/section/${section.section_id}`);
+    }
+    // console.log('Data, ', data)
+  });
 
   // const queryEnrollment = `select * from enrollment as en join student as st` +
   //   ` on st.student_id = en.student_id where en.section_id = ${sectionId}`
@@ -2164,7 +2392,6 @@ exports.createAssignment = async (req, res) => {
   /**
    * Create assignment notification
    */
-  const enAssignmentId = cryptr.encrypt(assignment_id)
   // let notifications = new Notification()
   // notifications.receiver = receivers
   // notifications.link = `/assignment/${enAssignmentId}/section/${section.section_id}`
@@ -2176,63 +2403,55 @@ exports.createAssignment = async (req, res) => {
   // notifications.info = { assignmentId: enAssignmentId }
   // notifications = await notifications.save();
 
-  if (typeof assignment_id === "number") {
-    res.redirect(`/assignment/${enAssignmentId}/section/${section.section_id}`);
-  } else {
-    res.redirect(`/classroom/${section.section_id}`);
-  }
+  // if (typeof assignment_id === "number") {
+  //   res.redirect(`/assignment/view/${enAssignmentId}/section/${section.section_id}`);
+  // } else {
+  //   res.redirect(`/assignment/getform/section/${section.section_id}`);
+  //   // res.redirect(`/classroom/${section.section_id}`);
+  // }
 };
 
 exports.updateAssignment = async (req, res) => {
-  const assignment_id = cryptr.decrypt(req.body.assignment_id);
+  const assignmentId = cryptr.decrypt(req.body.assignmentId);
   const sectionId = parseInt(cryptr.decrypt(req.body.sectionId));
-  let title = req.body.title;
-  let week = parseInt(req.body.week);
-  let description = JSON.parse(req.body.description);
-  let input_specification = JSON.parse(req.body.input_specification);
-  let output_specification = JSON.parse(req.body.output_specification);
-  let sample_input = JSON.parse(req.body.sample_input);
-  let sample_output = JSON.parse(req.body.sample_output);
-  let programming_style = req.body.programming_style;
+  const allInfo = JSON.parse(req.body.allInfo);
 
-  dataSets = {
-    description: description,
-    input_specification: input_specification,
-    output_specification: output_specification,
-    sample_input: sample_input,
-    sample_output: sample_output
-  };
+  let field = ``;
+  let count = 0;
+  for (let key in allInfo) {
+    if (count !== 0) {
+      field += `, `;
+    }
 
-  for (let key in dataSets) {
-    let joinData = dataSets[key].join("<br>");
-    dataSets[key] = joinData;
+    if (key === "week") {
+      field += key + " = " + parseInt(allInfo[key]);
+    } else {
+      if (
+        key === "input_specification" ||
+        key === "output_specification" ||
+        key === "sample_input" ||
+        key === "sample_output"
+      ) {
+        field += key + " = " + JSON.stringify(JSON.stringify(allInfo[key]));
+      } else {
+        field += key + " = '" + allInfo[key] + "'";
+      }
+    }
+
+    count++;
   }
 
   const updateAssignment =
-    "UPDATE assignment SET title = '" +
-    title +
-    "', description = '" +
-    dataSets.description +
-    "', input_specification = '" +
-    dataSets.input_specification +
-    "', output_specification = '" +
-    dataSets.output_specification +
-    "', sample_input = '" +
-    dataSets.sample_input +
-    "', sample_output = '" +
-    dataSets.sample_output +
-    "', programming_style = '" +
-    programming_style +
-    "', week = " +
-    week +
-    " WHERE assignment_id = " +
-    assignment_id;
-  await conMysql.updateAssignment(updateAssignment);
+    "UPDATE assignment SET " + field + " WHERE assignment_id = " + assignmentId;
+  await conMysql.updateAssignment(updateAssignment).then((data) => {
+    console.log(`Update Assignment Status: ${data}`);
+  });
+
   res.redirect(
-    "/assignment/" +
-    cryptr.encrypt(assignment_id) +
-    "/section/" +
-    cryptr.encrypt(sectionId)
+    "/assignment/view/" +
+      cryptr.encrypt(assignmentId) +
+      "/section/" +
+      cryptr.encrypt(sectionId)
   );
 };
 
@@ -2298,15 +2517,15 @@ exports.deleteAssignment = async (req, res) => {
         username: req.user.username,
         img: req.user.img,
         weeks: weeks,
-        pairing_session_id: pairingSessions.pairing_session_id
+        pairing_session_id: pairingSessions.pairing_session_id,
       },
-      reforms: { assignments: JSON.stringify(assignments) }
+      reforms: { assignments: JSON.stringify(assignments) },
     };
     res.send({ dataSets: dataSets });
     return;
   }
   res.send({
-    dataSets: { origins: { status: "Found error while is be processing!" } }
+    dataSets: { origins: { status: "Found error while is be processing!" } },
   });
 };
 
@@ -2337,7 +2556,7 @@ exports.assignAssignment = async (req, res) => {
       if (proStyles.length > 1) {
         res.send({
           res_status:
-            "Do not allow to assign assignment that have different programming type by once time!"
+            "Do not allow to assign assignment that have different programming type by once time!",
         });
         return;
       }
@@ -2367,7 +2586,7 @@ exports.assignAssignment = async (req, res) => {
   let proStyle = proStyles[0];
   if (!isPairing && proStyle !== "Individual") {
     res.send({
-      res_status: "Please pair all students before assign the assignment!"
+      res_status: "Please pair all students before assign the assignment!",
     });
     return;
   }
@@ -2455,27 +2674,27 @@ exports.assignAssignment = async (req, res) => {
               assignment_id: assignmentSet[_index].assignment_id,
               creator: cloneStudents[key].username,
               collaborator: cloneStudents[partnerKeys[key]].username,
-              createdAt: { $gt: new Date(timeStart) }
+              createdAt: { $gt: new Date(timeStart) },
             },
             {
               assignment_id: assignmentSet[_index].assignment_id,
               creator: cloneStudents[key].username,
               collaborator: cloneStudents[partnerKeys[key]].username,
-              createdAt: { $lt: new Date(timeStart) }
+              createdAt: { $lt: new Date(timeStart) },
             },
             {
               assignment_id: assignmentSet[_index].assignment_id,
               creator: cloneStudents[partnerKeys[key]].username,
               collaborator: cloneStudents[key].username,
-              createdAt: { $gt: new Date(timeStart) }
+              createdAt: { $gt: new Date(timeStart) },
             },
             {
               assignment_id: assignmentSet[_index].assignment_id,
               creator: cloneStudents[partnerKeys[key]].username,
               collaborator: cloneStudents[key].username,
-              createdAt: { $lt: new Date(timeStart) }
-            }
-          ]
+              createdAt: { $lt: new Date(timeStart) },
+            },
+          ],
         });
         if (findProject == null) {
           count++;
@@ -2492,14 +2711,14 @@ exports.assignAssignment = async (req, res) => {
             {
               assignment_id: assignmentSet[_index].assignment_id,
               creator: cloneStudents[key].username,
-              createdAt: { $gt: new Date(timeStart) }
+              createdAt: { $gt: new Date(timeStart) },
             },
             {
               assignment_id: assignmentSet[_index].assignment_id,
               creator: cloneStudents[key].username,
-              createdAt: { $lt: new Date(timeStart) }
-            }
-          ]
+              createdAt: { $lt: new Date(timeStart) },
+            },
+          ],
         });
 
         if (findProject == null) {
@@ -2531,7 +2750,7 @@ exports.assignAssignment = async (req, res) => {
     Sep: "09",
     Oct: "10",
     Nov: "11",
-    Dec: "12"
+    Dec: "12",
   };
   let num_month = month[slice_date_time[0]];
   num_month === undefined ? (num_month = "13") : null;
@@ -2600,16 +2819,16 @@ exports.assignAssignment = async (req, res) => {
             project = await project.save();
             await Project.updateOne(
               {
-                _id: project._id
+                _id: project._id,
               },
               {
                 $set: {
                   creator_id: creator._id,
                   collaborator_id: collaborator._id,
-                  assignment_id: assignment_id
-                }
+                  assignment_id: assignment_id,
+                },
               },
-              err => {
+              (err) => {
                 if (err) throw err;
               }
             );
@@ -2628,9 +2847,9 @@ exports.assignAssignment = async (req, res) => {
                 error_count: 0,
                 participation: {
                   enter: 0,
-                  pairing: 0
+                  pairing: 0,
                 },
-                createdAt: Date.now()
+                createdAt: Date.now(),
               };
               new Score(scoreModel).save();
             });
@@ -2642,16 +2861,16 @@ exports.assignAssignment = async (req, res) => {
           project = await project.save();
           await Project.updateOne(
             {
-              _id: project._id
+              _id: project._id,
             },
             {
               $set: {
                 creator_id: creator._id,
                 collaborator_id: collaborator,
-                assignment_id: assignment_id
-              }
+                assignment_id: assignment_id,
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );
@@ -2671,9 +2890,9 @@ exports.assignAssignment = async (req, res) => {
             error_count: 0,
             participation: {
               enter: 0,
-              pairing: 0
+              pairing: 0,
             },
-            createdAt: Date.now()
+            createdAt: Date.now(),
           };
           new Score(scoreModel).save();
           isCreatePro = true;
@@ -2738,17 +2957,17 @@ exports.getProgress = async (req, res) => {
   let pairings = [];
 
   const user = await User.findOne({
-    username: username
+    username: username,
   });
   const scores = await Score.find({
     uid: user._id,
-    pid: { $in: pid }
+    pid: { $in: pid },
   });
 
   for (var i = 0; i < scores.length; i++) {
     // project title (label)
     project = await Project.findOne({
-      pid: scores[i].pid
+      pid: scores[i].pid,
     });
     projectTitles.push(project.title);
 
@@ -2791,3 +3010,306 @@ exports.getProgress = async (req, res) => {
   data["pairings"] = pairings;
   res.send(data);
 };
+
+exports.getComments = async (req, res) => {
+  const comments = await Comment.find({});
+
+  if (Object.keys(comments).length) {
+    let tmpComments = [];
+    tmpComments.push(Object.keys(comments[0]._doc));
+
+    let exceptKeys = ["_id", "__v", "createAt"];
+    for (let index in exceptKeys) {
+      let keyIndex = tmpComments[0].indexOf(exceptKeys[index]);
+      tmpComments[0].splice(keyIndex, 1);
+    }
+
+    let comments0 = tmpComments[0];
+    for (let index in comments0) {
+      comments0[index] = toUpperCase(0, 1, comments0[index]);
+    }
+
+    for (let index in comments) {
+      tmpComments.push([
+        comments[index].file,
+        comments[index].line,
+        comments[index].pid,
+        comments[index].description,
+      ]);
+    }
+
+    res.send({ comments: tmpComments }).status(200);
+    return 0;
+  }
+  res.status(400);
+};
+
+exports.getHistories = async (req, res) => {
+  const histories = await History.find({});
+
+  if (Object.keys(histories).length) {
+    let tmpHistories = [];
+    tmpHistories.push(Object.keys(histories[0]._doc));
+
+    let exceptKeys = ["_id", "__v", "createdAt"];
+    for (let index in exceptKeys) {
+      let keyIndex = tmpHistories[0].indexOf(exceptKeys[index]);
+      tmpHistories[0].splice(keyIndex, 1);
+    }
+
+    let histories0 = tmpHistories[0];
+    for (let index in histories0) {
+      histories0[index] = toUpperCase(0, 1, histories0[index]);
+    }
+
+    for (let index in histories) {
+      tmpHistories.push([
+        histories[index].pid,
+        histories[index].file,
+        histories[index].line,
+        histories[index].ch,
+        histories[index].text,
+        histories[index].user,
+      ]);
+    }
+
+    res.send({ histories: tmpHistories }).status(200);
+    return 0;
+  }
+  res.status(400);
+};
+
+exports.getMessages = async (req, res) => {
+  const messages = await Message.find({});
+
+  if (Object.keys(messages).length) {
+    let tmpMessages = [];
+    tmpMessages.push(Object.keys(messages[0]._doc));
+
+    let exceptKeys = ["_id", "__v", "createdAt"];
+    for (let index in exceptKeys) {
+      let keyIndex = tmpMessages[0].indexOf(exceptKeys[index]);
+      tmpMessages[0].splice(keyIndex, 1);
+    }
+
+    let messages0 = tmpMessages[0];
+    for (let index in messages0) {
+      messages0[index] = toUpperCase(0, 1, messages0[index]);
+    }
+
+    for (let index in messages) {
+      tmpMessages.push([
+        messages[index].pid,
+        messages[index].uid,
+        messages[index].message,
+      ]);
+    }
+
+    console.log("Temporary Messages, ", tmpMessages);
+    res.send({ messages: tmpMessages }).status(200);
+    return 0;
+  }
+  res.status(400);
+};
+
+exports.getNotifications = async (req, res) => {
+  const notifications = await Notification.find({});
+
+  if (Object.keys(notifications).length) {
+    let tmpNotifications = [];
+    tmpNotifications.push(Object.keys(notifications[0]._doc));
+
+    let exceptKeys = ["_id", "__v", "nid", "link", "content", "status", "type", "createdBy", "info"];
+    for (let index in exceptKeys) {
+      let keyIndex = tmpNotifications[0].indexOf(exceptKeys[index]);
+      tmpNotifications[0].splice(keyIndex, 1);
+    }
+
+    let notifications0 = tmpNotifications[0];
+    for (let index in notifications0) {
+      notifications0[index] = toUpperCase(0, 1, notifications0[index]);
+    }
+
+    for (let index in notifications) {
+      tmpNotifications.push([
+        JSON.stringify(notifications[index].receiver),
+        notifications[index].createdAt,
+        notifications[index].head,
+      ]);
+    }
+
+    console.log("Temporary Notifications, ", tmpNotifications);
+    res.send({ notifications: tmpNotifications }).status(200);
+    return 0;
+  }
+  res.status(400);
+};
+
+exports.getProjects = async (req, res) => {
+  const projects = await Project.find({});
+
+  if (Object.keys(projects).length) {
+    let tmpProjects = [];
+    tmpProjects.push(Object.keys(projects[0]._doc));
+
+    let exceptKeys = [
+      "__v",
+      "_id",
+      "assignment_id",
+      "files",
+      "available_project",
+      "createdAt",
+      "disable_time",
+      "enable_time",
+      "description",
+      "collaborator_id",
+      "creator_id",
+    ];
+
+    for (let index in exceptKeys) {
+      let keyIndex = tmpProjects[0].indexOf(exceptKeys[index]);
+      tmpProjects[0].splice(keyIndex, 1);
+    }
+
+    let projects0 = tmpProjects[0];
+    for (let index in projects0) {
+      projects0[index] = toUpperCase(0, 1, projects0[index]);
+    }
+
+    for (let index in projects) {
+      let language = "Python";
+
+      if (parseInt(projects[index].language) === 1) {
+        language = "C";
+      }
+
+      tmpProjects.push([
+        language,
+        projects[index].swaptime,
+        projects[index].programming_style,
+        projects[index].week,
+        projects[index].pid,
+        projects[index].title,
+        projects[index].creator,
+        projects[index].collaborator,
+      ]);
+    }
+
+    res.send({ projects: tmpProjects }).status(200);
+    return 0;
+  }
+
+  res.status(400).end();
+};
+
+exports.getScores = async (req, res) => {
+  const scores = await Score.find({});
+  console.log("Scores, ", scores);
+
+  if (Object.keys(scores).length) {
+    let tmpScores = [];
+    tmpScores.push(Object.keys(scores[0].participation));
+    tmpScores[0].splice(tmpScores[0].indexOf("$init"), 1);
+    let scoresKey = Object.keys(scores[0]._doc);
+
+    let exceptKeys = ["participation", "_id", "__v", "createdAt"];
+    for (let index in scoresKey) {
+      if (exceptKeys.indexOf(scoresKey[index]) < 0) {
+        tmpScores[0].push(scoresKey[index]);
+      }
+    }
+
+    let scores0 = tmpScores[0];
+    for (let index in scores0) {
+      scores0[index] = toUpperCase(0, 1, scores0[index]);
+    }
+
+    for (let index in scores) {
+      tmpScores.push([
+        scores[index].participation.enter,
+        scores[index].participation.pairing,
+        scores[index].pid,
+        scores[index].uid,
+        scores[index].score,
+        scores[index].time,
+        scores[index].lines_of_code,
+        scores[index].error_count,
+      ]);
+    }
+
+    console.log("Temporary Scores, ", tmpScores);
+    res.send({ scores: tmpScores }).status(200);
+    return 0;
+  }
+  res.status(400).end();
+};
+
+exports.getUsers = async (req, res) => {
+  const users = await User.find({});
+
+  if (Object.keys(users).length) {
+    let tmpUsers = [];
+    tmpUsers.push(Object.keys(users[0].info));
+    tmpUsers[0].splice(tmpUsers[0].indexOf("$init"), 1);
+    let usersKey = Object.keys(users[0]._doc);
+
+    let exceptKeys = ["info", "__v", "password", "subjectId"];
+    for (let index in usersKey) {
+      if (exceptKeys.indexOf(usersKey[index]) < 0) {
+        tmpUsers[0].push(usersKey[index]);
+      }
+    }
+
+    let users0 = tmpUsers[0];
+    for (let index in users0) {
+      users0[index] = toUpperCase(0, 1, users0[index]);
+    }
+
+    for (let index in users) {
+      tmpUsers.push([
+        users[index].info.firstname,
+        users[index].info.lastname,
+        users[index].info.occupation,
+        users[index].info.gender,
+        users[index].avgScore,
+        users[index].totalTime,
+        users[index].systemAccessTime,
+        users[index]._id,
+        users[index].username,
+        users[index].email,
+        users[index].img,
+      ]);
+    }
+
+    res.status(200).send({ users: tmpUsers });
+    return 0;
+  }
+  res.status(400).end();
+};
+
+function toUpperCase(start = 0, end = 0, string = "") {
+  if (typeof string === "string") {
+    let newString = "";
+    if (start === 0 && end !== string.length) {
+      newString = string
+        .slice(start, end)
+        .toUpperCase()
+        .concat(string.slice(end, string.length));
+    } else if (start !== 0 && end === string.length) {
+      newString = string
+        .slice(0, start)
+        .concat(string.slice(start, end).toUpperCase());
+    } else if (start === 0 && end === string.length) {
+      newString = string.toUpperCase();
+    } else {
+      newString = string
+        .slice(0, start)
+        .concat(string.slice(start, end).toUpperCase());
+      let tmpString = newString;
+      newString = tmpString.concat(string.slice(end, string.length));
+    }
+    return newString;
+  } else {
+    return string;
+  }
+}

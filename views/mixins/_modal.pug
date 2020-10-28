@@ -315,40 +315,54 @@ mixin assignmentModal()
               label Week :
               |
               input#assWeek(type='text' name='week' placeholder='Week' maxlength='3')
-          .sixteen.wide.column
-            .field
-              label Description :
-              |
-              textarea#assignmentDesc(type='text' name='description' placeholder='Some content...' style='resize:none;')
         .ui.grid
+          //- .row
+          //-   .thirteen.wide.column
+          //-     input.file#imgSel(type='file')
+          //-   .three.wide.column
+          //-     .ui.blue.button#insertPicture(style="width:100%; height:85%;") Insert
+          .row
+            .sixteen.wide.column
+              .field
+                label Description :
+                |
+                textarea#assignmentDesc(type='text' name='description' placeholder='Some content...')
+        .ui.grid#ioSpecificationGrid
           .two.column.row
             .column
               .field
-                label Input specification :
+                label Input Specification :
                 |
-                textarea#assInSpecify(row='2' type='text' name='input_specification' placeholder='Input specification...' style='resize:none;')
+                textarea#assInSpecify(row='1' type='text' name='input_specification' placeholder='Input Specification...')
             .column
               .field
-                label Output specification :
+                label Output Specification :
                 |
-                textarea#assOutSpecify(row='2' type='text' name='output_specification' placeholder='Output specification...' style='resize:none;')
+                textarea#assOutSpecify(row='1' type='text' name='output_specification' placeholder='Output Specification...')
+          .one.column.row#ioSpecificationBtnRow
+            .column
+              .ui.blue.button(onclick='addIOSpecification()' style="width:100%;") Add
         .ui.grid
           .two.column.row
             .column
               .field
                 label Sample Input :
                 |
-                textarea#assSamInput(row='2' type='text' name='sample_input' placeholder='Sample Input...' style='resize:none;')
+                textarea#assSamInput(row='1' type='text' name='sample_input' placeholder='Sample Input...')
             .column
               .field
                 label Sample Output :
                 |
-                textarea#assSamOutput(row='2' type='text' name='sample_output' placeholder='Sample Output...' style='resize:none;')
+                textarea#assSamOutput(row='1' type='text' name='sample_output' placeholder='Sample Output...')
+          .one.column.row#sampleIOBtnRow
+            .column
+              .ui.blue.button(onclick='addSampleIO()' style="width:100%;") Add
         input(type='hidden' name='sectionId', value=`${dataSets.origins.section.section_id}`)
-        .ui.basic.center.aligned.segment
-          .actions
-            button.ui.button.approve.green#confirmToCreateAssBtn(type='button') Confirm
-            .ui.button.cancel.red(data-value='cancel') Cancel
+        .ui.two.column.grid
+          .floated.left.aligned.column
+            .ui.blue.button#centerBtn(type='button' onclick='previewAssignmentForm()') Preview
+          .floated.right.aligned.column
+            .ui.green.submit.button#rightBtn(type='button' onclick='createAssignment()') Confirm
         .ui.error.message
 
 mixin newClassroomModal()
@@ -544,3 +558,25 @@ mixin pairingSettingsModal()
           .ui.approve.green.button#startAutoPairingBtn(onclick='onClickStartAutoPairingBtn(null, null, null, null, null, null)') Start
           .ui.deny.red.button#cancelAutoPairingBtn Cancel
 
+mixin exportingFile()
+  .ui.small.modal#exportingFileModal
+    .header Exporting File
+    .content
+      .ui.doubling.one.column.grid
+        .column
+          h1(style="text-align:center;") Extension
+        .column
+          .ui.grid
+            .doubling.eight.column.row
+              .column
+                .ui.checkbox
+                  input(type="checkbox" id="JSON")
+                  label JSON
+              .column
+                .ui.checkbox
+                  input(type="checkbox" id="CSV")
+                  label CSV
+      .ui.basic.center.aligned.segment
+        .actions
+          .ui.approve.green.button Download
+          .ui.deny.red.button Cancel

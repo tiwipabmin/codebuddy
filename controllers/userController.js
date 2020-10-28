@@ -79,8 +79,8 @@ exports.validateRegister = (req, res, next) => {
   req.checkBody('firstname')
     .notEmpty()
     .withMessage('Please enter your First Name!')
-    .isAlpha()
-    .withMessage('This firstname is not valid!')
+    // .isAlpha()
+    // .withMessage('This firstname is not valid!')
   let firstname = req.body.firstname
   let isValidFirstname = validateName(firstname)
 
@@ -88,8 +88,8 @@ exports.validateRegister = (req, res, next) => {
   req.checkBody('lastname')
     .notEmpty()
     .withMessage('Please enter your Last Name!')
-    .isAlpha()
-    .withMessage('This lastname is not valid!')
+    // .isAlpha()
+    // .withMessage('This lastname is not valid!')
   let lastname = req.body.lastname
   let isValidLastname = validateName(lastname)
 
@@ -129,7 +129,14 @@ exports.validateRegister = (req, res, next) => {
  */
 exports.getProfile = async (req, res) => {
   const user = req.user;
-  dataSets = { origins: { user: user } }
+  const studentQuery = `SELECT student_id FROM student WHERE username = "${user.username}"`
+  const students = await conMysql.selectStudent(studentQuery)
+  const studentId = String(students[0].student_id)
+  let subjectId = `00000${studentId}`
+  subjectId = subjectId.slice(studentId.length, subjectId.length)
+  console.log('Subject Id, ', subjectId)
+
+  dataSets = { origins: { user: user, subjectId: subjectId } }
 
   res.render("profile", { dataSets, title: user.username + ' Profile' })
 }
@@ -209,8 +216,8 @@ exports.validateToUpdateProfile = async (req, res, next) => {
       req.checkBody('firstname')
         .notEmpty()
         .withMessage('Please enter your First Name!')
-        .isAlpha()
-        .withMessage('This firstname is not valid!')
+        // .isAlpha()
+        // .withMessage('This firstname is not valid!')
 
       dataOfMongoDb["info.firstname"] = firstname
       dataOfMySql.first_name = firstname
@@ -225,8 +232,8 @@ exports.validateToUpdateProfile = async (req, res, next) => {
       req.checkBody('lastname')
         .notEmpty()
         .withMessage('Please enter your Last Name!')
-        .isAlpha()
-        .withMessage('This lastname is not valid!')
+        // .isAlpha()
+        // .withMessage('This lastname is not valid!')
 
       dataOfMongoDb["info.lastname"] = lastname
       dataOfMySql.last_name = lastname

@@ -7,10 +7,10 @@ mixin detailSection()
             b(style='font-size:1.2em;')
               header= dataSets.origins.section.course_name
             .description
-              p   Section : !{dataSets.origins.section.section} Room : !{dataSets.origins.section.room}
-              p   !{dataSets.origins.section.day} !{dataSets.origins.section.time_start} - !{dataSets.origins.section.time_end}
+              pre Section : !{dataSets.origins.section.section} Room : !{dataSets.origins.section.room}
+              pre !{dataSets.origins.section.day} !{dataSets.origins.section.time_start} - !{dataSets.origins.section.time_end}
               if user.info.occupation === 'teacher'
-                p   Classcode : !{dataSets.origins.section.class_code}
+                pre Classcode : !{dataSets.origins.section.class_code}
       .ui.segment
         .ui.items
           .item

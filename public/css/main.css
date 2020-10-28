@@ -4,57 +4,74 @@
     overflow-y: scroll;
 } */
 
-.text-container {
-    background: #FFFF;
+.assignment-detail {
+    background-color:#F5F5F5;
+}
+
+.assignment-form {
+    padding: 30px;
+}
+
+#assignment-container {
+    /* height: 100%;
+    margin:35px;
+    margin-right:100px;
+    margin-left:100px;
+    padding:35px; */
+    background-color:#F9F9F9;
+}
+  
+#assignment-textarea {
     padding: 20px;
     height: 450px;
     position: relative;
-}
-  
-.textarea-assignment {
-    background: transparent;
-    resize: none;
-    border: 0 none;
-    width: 100%;
-    outline: none;
-    height: 100%;
-    /* position: absolute; */
+    overflow-y: auto;
 }
 
-div.ui.checkbox {
+.block-selected {
+    border-width: 1.5px;
+    border-style: solid;
+    border-color: coral;
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+/* div.ui.checkbox {
     margin: 0;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-}
+} */
 
 a {
-    word-break: break-all;
+    white-space: pre-wrap;
 }
 
 p {
-    word-break: break-all;
+    white-space: pre-wrap;
 }
 
 h1 {
-    word-break: break-all;
+    white-space: pre-wrap;
 }
 
 h2 {
-    word-break: break-all;
+    white-space: pre-wrap;
 }
 
 h3 {
-    word-break: break-all;
+    white-space: pre-wrap;
 }
 
 h4 {
-    word-break: break-all;
+    white-space: pre-wrap;
 }
 
 h5 {
-    word-break: break-all;
+    white-space: pre-wrap;
 }
 
 .CodeMirror {

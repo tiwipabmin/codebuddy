@@ -128,8 +128,8 @@ block content
                   b(style='font-size:1.2em;')
                     header= section.course_name
                   .description
-                    p   Section !{section.section} Room !{section.room}
-                    p   !{section.day} !{section.time_start} - !{section.time_end}
+                    pre Section !{section.section} Room !{section.room}
+                    pre !{section.day} !{section.time_start} - !{section.time_end}
                   .extra
                     a.ui.right.floated.alignedvertical.animated.enterToClass.button.green(href=`/classroom/section/${section.section_id}`)
                       .hidden.content Enter
@@ -150,8 +150,8 @@ block content
                   b(style='font-size:1.2em;')
                     header= section.course_name
                   .description
-                    p   Section !{section.section} Room !{section.room}
-                    p   !{section.day} !{section.time_start} - !{section.time_end}
+                    pre Section !{section.section} Room !{section.room}
+                    pre !{section.day} !{section.time_start} - !{section.time_end}
                   .extra
                     a.ui.right.floated.primary.alignedvertical.animated.enterToClass.button(href=`/classroom/section/${section.section_id}`)
                       .hidden.content Enter

@@ -204,9 +204,6 @@ function createProject() {
 }
 
 function showAssingmentModal() {
-  $("#confirmToCreateAssBtn").attr({
-    onclick: "createAssignment()"
-  });
   $("#assignment-modal").modal("show");
 }
 
@@ -688,11 +685,11 @@ function on_click_confirm_button(parameters) {
             pairing_session_id,
             opt
           );
-          $("#clear_checkbox").attr(
+          $("#clear-checkbox").attr(
             "onclick",
             "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 0)"
           );
-          $("#check_all_of_box").attr(
+          $("#check-all-box").attr(
             "onclick",
             "checkbox_event(" + JSON.stringify(assignments) + ", '-1week', 1)"
           );
@@ -712,7 +709,7 @@ function on_click_confirm_button(parameters) {
       style: "display: block; position: fixed;"
     });
     $.ajax({
-      url: "/classroom/manageAssignment",
+      url: "/classroom/disableassignments",
       type: "put",
       data: parameters,
       success: function (res) {
@@ -734,7 +731,7 @@ function on_click_confirm_button(parameters) {
       style: "display: block; position: fixed;"
     });
     $.ajax({
-      url: "/classroom/manageAssignment",
+      url: "/classroom/enableassignments",
       type: "put",
       data: parameters,
       success: function (res) {
@@ -750,7 +747,6 @@ function on_click_confirm_button(parameters) {
       }
     });
   } else if (message == "Are you sure you want to start auto pairing?") {
-    // console.log('parameters, ', parameters)
     if (parameters.scoreDiff !== undefined) {
       $.get("/classroom/startAutoPairingByScoreDiff", parameters, function (
         res
@@ -1008,7 +1004,7 @@ function onClickAddPartnerButton(
         JSON.stringify(pairing_objective) +
         ")"
       );
-      //make user list is empty on search user panel
+      // make user list is empty on search user panel
       $(".user-list").empty();
       $(".user-list").append("<div class='li ui item'>Search result</div>");
 
@@ -1029,13 +1025,16 @@ function onClickAddPartnerButton(
       let key;
       let addSamePartner = false;
 
-      // partner_id is value in partner_keys
-      // ex. partner_keys = {0: 1, 2: 3} expected {0: -1, 2: 1, 3: -1}
-      // pair student_id = 2 with partner_id = 1 will make undefined
+      /**
+       * partner_id is value in partner_keys
+       * ex. partner_keys = {0: 1, 2: 3} expected {0: -1, 2: 1, 3: -1}
+       * pair student_id = 2 with partner_id = 1 will make undefined
+       */
       if (partner_keys[partner_id] === undefined) {
         key = Object.keys(partner_keys).find(
           key => partner_keys[key] === partner_id
         );
+
         if (key == student_id) {
           addSamePartner = true;
         }
@@ -1043,10 +1042,7 @@ function onClickAddPartnerButton(
         key = partner_keys[partner_id];
       }
 
-      if (partner_keys[student_id] < 0 && pairing_objective[partner_id] != -1) {
-        partner_keys[key] = -1;
-        pairing_objective[key] = -1;
-      } else if (partner_keys[student_id] > 0 && !addSamePartner) {
+      if (partner_keys[student_id] > 0 && !addSamePartner) {
         if (pairing_objective[partner_id] == -1) {
           partner_keys[partner_keys[student_id]] = -1;
           pairing_objective[partner_keys[student_id]] = -1;
@@ -1058,7 +1054,7 @@ function onClickAddPartnerButton(
           pairing_objective[partner_keys[student_id]] = -1;
         }
       }
-      //add new partner to student
+      // add new partner to student
       partner_keys[student_id] = partner_id;
       delete partner_keys[partner_id];
 
@@ -1149,7 +1145,7 @@ function showStudentList(
           ) +
           ":" +
           pad(parseInt(students[key].total_time % 60)) +
-          "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton(" +
+          "</div></div></div></div></div></div><div class='column'><div class='ui items'><div class='item'><img class='ui avatar image' src='/images/user_img_0.jpg' style='visibility:hidden;'></img><div class='content'><div class='right floated content'><div class='ui button add-user-button' style='margin-top: 22px;' onclick='onClickAddPartnerButton(" +
           students[key].enrollment_id +
           "," +
           students[key].avg_score +
@@ -1324,7 +1320,6 @@ function onClickCreateSession(
 }
 
 function onClickCompletedSessionMenu(pairing_session_id, section_id) {
-  //console.log('pairing_session_id: ' + pairing_session_id)
   parameters = JSON.stringify({
     pairing_session_id: pairing_session_id,
     section_id: section_id,
@@ -1398,7 +1393,6 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
       ? assignment_is_selected.push(e)
       : null;
   });
-  // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
   if (assignment_is_selected.length) {
     let parameters = JSON.stringify({
       assignment_set: assignment_is_selected,
@@ -1451,7 +1445,6 @@ function onClickDeleteAssignment(assignment_of_week) {
       ? assignment_is_selected.push(e)
       : null;
   });
-  // console.log('!assignment_is_selected.length, ', !assignment_is_selected.length, ', assignment_is_selected, ', assignment_is_selected)
   if (!assignment_is_selected.length) {
     $("#alert-header").text("Select assignment");
     $("#alert-message").text(
@@ -1478,7 +1471,7 @@ function onClickDeleteAssignment(assignment_of_week) {
   }
 }
 
-function on_click_enable_assignment_button() {
+function onClickEnableAssignmentButton(sectionId) {
   $("#dropdown_amd").empty();
   $("#dropdown_amd").append(
     "<input id='week_input_amd' type='hidden'></input>"
@@ -1486,8 +1479,10 @@ function on_click_enable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "enable" }, function (res) {
-    let weeks = JSON.parse(res.weeks);
+  let parameters = { sectionId: sectionId }
+  // $.get("/classroom/getWeeklyAssignments", parameters, function (res) {
+  $.get("/classroom/getdisableassignments", parameters, function (data) {
+    let weeks = JSON.parse(data.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
         "<div class='item' id='-1_week_in_dam' data-value='-1'>No disable assignment.</div>"
@@ -1510,7 +1505,7 @@ function on_click_enable_assignment_button() {
     });
     $("#confirm_assignment_management").attr(
       "onclick",
-      "on_click_confirm_assignment_management_button('enable')"
+      "onClickEnableAssignmentConfirmation(\"" + data.sectionId + "\")"
     );
     $("#header_amd").text("Enable Assignment");
     $("#assignment_management_modal").modal("show");
@@ -1518,7 +1513,7 @@ function on_click_enable_assignment_button() {
   });
 }
 
-function on_click_disable_assignment_button() {
+function onClickDisableAssignmentButton(sectionId) {
   $("#dropdown_amd").empty();
   $("#dropdown_amd").append(
     "<input id='week_input_amd' type='hidden'></input>"
@@ -1526,10 +1521,10 @@ function on_click_disable_assignment_button() {
   $("#dropdown_amd").append("<i class='dropdown icon'></i>");
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
-  $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function (
-    res
-  ) {
-    let weeks = JSON.parse(res.weeks);
+  let parameters = { sectionId: sectionId }
+  // $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function (
+  $.get("/classroom/getenableassignments", parameters, function (data) {
+    let weeks = JSON.parse(data.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
         "<div class='item' id='-1_week_in_dam' data-value='-1'>Not yet assigned assignment.</div>"
@@ -1553,56 +1548,95 @@ function on_click_disable_assignment_button() {
     $("#header_amd").text("Disable Assignment");
     $("#confirm_assignment_management").attr(
       "onclick",
-      "on_click_confirm_assignment_management_button('disable')"
+      "onClickDisableAssignmentConfirmation(\"" + data.sectionId + "\")"
     );
     $("#assignment_management_modal").modal("show");
     $("#dropdown_amd").dropdown();
   });
 }
 
-function on_click_confirm_assignment_management_button(action) {
-  if (action == "enable") {
-    parameters = JSON.stringify({
-      week: $("#week_input_amd").val(),
-      action: "enable"
-    });
-    $("#confirm-button").attr(
-      "onclick",
-      "on_click_confirm_button(" + parameters + ")"
-    );
-    $("#confirm-header").text("Disable Assignment");
-    $("#confirm-message").attr(
-      "value",
-      "Are you sure you want to disable assignments on this week?"
-    );
-    $("#confirm-message").text(
-      "Are you sure you want to disable assignments on this week?"
-    );
-    $("#confirm-modal").modal("show");
-  } else if (action == "disable") {
-    parameters = JSON.stringify({
-      week: $("#week_input_amd").val(),
-      action: "disable"
-    });
-    $("#confirm-button").attr(
-      "onclick",
-      "on_click_confirm_button(" + parameters + ")"
-    );
-    $("#confirm-header").text("Enable Assignment");
-    $("#confirm-message").attr(
-      "value",
-      "Are you sure you want to enable assignments on this week?"
-    );
-    $("#confirm-message").text(
-      "Are you sure you want to enable assignments on this week?"
-    );
-    $("#confirm-modal").modal("show");
-  }
+function onClickEnableAssignmentConfirmation(sectionId) {
+  parameters = JSON.stringify({
+    week: $("#week_input_amd").val(),
+    sectionId: sectionId
+  });
+  $("#confirm-button").attr(
+    "onclick",
+    "on_click_confirm_button(" + parameters + ")"
+  );
+  $("#confirm-header").text("Disable Assignment");
+  $("#confirm-message").attr(
+    "value",
+    "Are you sure you want to enable assignments on this week?"
+  );
+  $("#confirm-message").text(
+    "Are you sure you want to enable assignments on this week?"
+  );
+  $("#confirm-modal").modal("show");
 }
+
+function onClickDisableAssignmentConfirmation(sectionId) {
+  parameters = JSON.stringify({
+    week: $("#week_input_amd").val(),
+    sectionId: sectionId
+  });
+  $("#confirm-button").attr(
+    "onclick",
+    "on_click_confirm_button(" + parameters + ")"
+  );
+  $("#confirm-header").text("Disable Assignment");
+  $("#confirm-message").attr(
+    "value",
+    "Are you sure you want to disable assignments on this week?"
+  );
+  $("#confirm-message").text(
+    "Are you sure you want to disable assignments on this week?"
+  );
+  $("#confirm-modal").modal("show");
+}
+
+// function on_click_confirm_assignment_management_button(action) {
+//   if (action == "enable") {
+//     parameters = JSON.stringify({
+//       week: $("#week_input_amd").val(),
+//       action: "enable"
+//     });
+//     $("#confirm-button").attr(
+//       "onclick",
+//       "on_click_confirm_button(" + parameters + ")"
+//     );
+//     $("#confirm-header").text("Disable Assignment");
+//     $("#confirm-message").attr(
+//       "value",
+//       "Are you sure you want to disable assignments on this week?"
+//     );
+//     $("#confirm-message").text(
+//       "Are you sure you want to disable assignments on this week?"
+//     );
+//     $("#confirm-modal").modal("show");
+//   } else if (action == "disable") {
+//     parameters = JSON.stringify({
+//       week: $("#week_input_amd").val(),
+//       action: "disable"
+//     });
+//     $("#confirm-button").attr(
+//       "onclick",
+//       "on_click_confirm_button(" + parameters + ")"
+//     );
+//     $("#confirm-header").text("Enable Assignment");
+//     $("#confirm-message").attr(
+//       "value",
+//       "Are you sure you want to enable assignments on this week?"
+//     );
+//     $("#confirm-message").text(
+//       "Are you sure you want to enable assignments on this week?"
+//     );
+//     $("#confirm-modal").modal("show");
+//   }
+// }
 
 function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   parameters = JSON.stringify({ enrollment_id: enrollment_id });
-  // console.log('enrollment_id, ', enrollment_id)
   $("#confirm-button").attr(
     "onclick",
     "on_click_confirm_button(" + parameters + ")"
@@ -1685,8 +1719,7 @@ function onClickAutoPairingSelectionMethod(id) {
     .addClass("active");
 }
 
-function on_click_button_in_uspm(id) {
-  // console.log('element_id_in_uspm, ', id)
+function onClickButtonInUspm(id) {
   $(".item.active.uspm").attr({
     class: "item uspm"
   });
@@ -1698,14 +1731,13 @@ function on_click_button_in_uspm(id) {
     class: "ui segment uspm",
     style: "display: none"
   });
-  $("#" + id + "_segment").attr({
+  $("#" + id + "-segment").attr({
     class: "ui segment active uspm",
     style: "display: block"
   });
 }
 
 function create_weeks_dropdown(id, pairing_session_id, dataSets) {
-  console.log('Create Week Dropdown')
   $("" + id).append(
     "<div class='week item' id='-1week' data-value='-1' onclick='onClickWeekDropdownInFirstContainer(\"-1week\", " +
     dataSets.assignments +
@@ -1754,7 +1786,7 @@ function onClickWeekDropdownInFirstContainer(
   let assignment_of_week_ = res_obj.items_of_week;
   let pagination = res_obj.pagination;
 
-  $("#assign_button").attr(
+  $("#assign-button").attr(
     "onclick",
     "on_click_assign_button(" +
     JSON.stringify(JSON.stringify(assignment_of_week_)) +
@@ -1762,7 +1794,7 @@ function onClickWeekDropdownInFirstContainer(
     pairing_session_id +
     ")"
   );
-  $("#delete_assignment_button").attr(
+  $("#delete-assignment-button").attr(
     "onclick",
     "onClickDeleteAssignment(" + JSON.stringify(assignment_of_week_) + ")"
   );
@@ -1968,7 +2000,7 @@ function createAssignmentPageInFirstContainer(
               "<div class='item' id='a" + assignment.assignment_id + "'></div>"
             );
             content = $(
-              "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/assignment/" +
+              "<div class='content'><b style='font-size:1.5em; padding-left:15px; padding-right:15px;'><a class='header' href='/assignment/view/" +
               assignment.assignment_id +
               "/section/" +
               assignment.section_id +
@@ -1981,11 +2013,11 @@ function createAssignmentPageInFirstContainer(
             fourteen_wide_column = $(
               "<div class='fourteen wide column assignment_is_selected' onclick='on_click_assignment(1, \"" +
               assignment.assignment_id +
-              "_is_selected\")'><p style='padding-left:15px; padding-right:15px;'>" +
+              "_is_selected\")'><pre style='padding-left:15px; padding-right:15px;'>" +
               assignment.description +
-              "</p><p style='padding-left:15px; padding-right:15px;'>Programming Style : " +
+              "</pre><pre style='padding-left:15px; padding-right:15px;'>Programming Style : " +
               assignment.programming_style +
-              "</p></div>"
+              "</pre></div>"
             );
             two_wide_column = $("<div class='two wide column'></div>");
             checkbox = $(
@@ -2256,11 +2288,11 @@ function set_item_pagination_in_second_container(
               section_id +
               "&username=" +
               student.username +
-              "'><p> " +
+              "'><pre> " +
               student.first_name +
               " " +
               student.last_name +
-              " </p></a></div>"
+              " </pre></a></div>"
             );
             right_floated_content.append(tag_a);
             item.append(right_floated_content);
@@ -2270,11 +2302,11 @@ function set_item_pagination_in_second_container(
             break;
           default:
             content = $(
-              "<div class='content'><p> " +
+              "<div class='content'><pre> " +
               student.first_name +
               " " +
               student.last_name +
-              " </p></div>"
+              " </pre></div>"
             );
             item.append(img);
             item.append(content);
@@ -2379,18 +2411,17 @@ function set_item_pagination_in_third_container(
             eleven_wide_column = $("<div class='eleven wide column'></div>");
             five_wide_column = $("<div class='five wide column'></div>");
             if (pairing_session.status == 0) {
-              // console.log('pairing_session.status, ', pairing_session.status)
               tag_b = $(
                 "<b style='font-size:1.5em;'><header style='color:#5D5D5D;'> Session : " +
                 (pairing_times - _index_o) +
                 " </header></b>"
               );
               description = $(
-                "<p><b style='color:#5D5D5D'> Start at : </b><font style='color:#5D5D5D'>" +
+                "<pre><b style='color:#5D5D5D'>Start at : </b><font style='color:#5D5D5D'>" +
                 pairing_session.time_start +
-                "</font><br><b style='color:#5D5D5D'> End at : </b><font style='color:#5D5D5D'>" +
+                "</font><br><b style='color:#5D5D5D'>End at : </b><font style='color:#5D5D5D'>" +
                 pairing_session.time_end +
-                "</font></p>"
+                "</font></pre>"
               );
               button = $(
                 "<div class='ui right floated alignedvertical animated button' onclick='onClickViewPairingRecord(" +
@@ -2409,11 +2440,11 @@ function set_item_pagination_in_third_container(
                 " </header></b>"
               );
               description = $(
-                "<p><b> Start at : </b><font>" +
+                "<pre><b>Start at : </b><font>" +
                 pairing_session.time_start +
-                "</font><br><b> End at : </b><font>" +
+                "</font><br><b>End at : </b><font>" +
                 pairing_session.time_end +
-                "</font></p>"
+                "</font></pre>"
               );
               button = $(
                 "<div class='ui top right floated pointing dropdown button blue' ><font color='white'> Select </font><div class='menu'><div class='item' onclick='onClickViewPairingRecord(" +
@@ -2447,7 +2478,7 @@ function set_item_pagination_in_third_container(
             item = $("<div class='item'></div>");
             content = $("<div class='content'></div>");
             tag_a = $(
-              "<a href='/assignment/" +
+              "<a href='/assignment/view/" +
               assignment.assignment_id +
               "/section/" +
               section_id +
@@ -2456,9 +2487,9 @@ function set_item_pagination_in_third_container(
               "</b></a>"
             );
             description = $(
-              "<div class='description'><p style='padding-left:15px; padding-right:15px;'>" +
+              "<div class='description'><pre style='padding-left:15px; padding-right:15px;'>" +
               assignment.description +
-              "</p></div>"
+              "</pre></div>"
             );
             item.append(content);
             content.append(tag_a);

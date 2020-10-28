@@ -14,7 +14,7 @@ const router = express.Router()
  * Finding user projects from database and pass results to the dashboard file
  * @method {GET} return rendered `dashboard.pug`
  */
-router.get('/', auth.isSignedIn, catchErrors(webController.getNotifications))
+// router.get('/', auth.isSignedIn, catchErrors(webController.getNotifications))
 router.put('/changeProjectNotificationStatus', auth.isSignedIn, catchErrors(webController.changeProjectNotificationStatus))
 
 /**
