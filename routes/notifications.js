@@ -15,6 +15,7 @@ const router = express.Router()
  * @method {GET} return rendered `dashboard.pug`
  */
 // router.get('/', auth.isSignedIn, catchErrors(webController.getNotifications))
+router.put('/change/system/usage/status', auth.isSignedIn, catchErrors(webController.changeSystemUsageStatus))
 router.put('/changeProjectNotificationStatus', auth.isSignedIn, catchErrors(webController.changeProjectNotificationStatus))
 
 /**

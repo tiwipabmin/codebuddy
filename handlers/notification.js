@@ -1,7 +1,7 @@
 const winston = require("winston");
 const mongoose = require("mongoose");
-const conMysql = require('../mySql');
 
+const conMysql = require('../mySql');
 const Notification = mongoose.model("Notification");
 const Project = mongoose.model("Project");
 
@@ -277,23 +277,29 @@ module.exports = (io, client, keyStores, timerIds) => {
             info: 1
         })
 
-        for (let index in notifications) {
-            const tmpNotifications = notifications[index]
+        for (let key in notifications) {
+            const tmpNotifications = notifications[key]
             if (notificationsId.indexOf(tmpNotifications.nid) < 0) {
                 if (tmpNotifications.type === `project`) {
                     notificationsId.push(tmpNotifications.nid)
                     const projects = await Project.findOne({
                         pid: tmpNotifications.info.pid
                     })
-                    Object.assign(notifications[index]._doc, {
+                    Object.assign(notifications[key]._doc, {
                         available_project: projects.available_project,
-                        nid: reverseId(notifications[index]._doc.nid),
+                        nid: reverseId(notifications[key]._doc.nid),
                         [tmpNotifications.receiver[0].username]: tmpNotifications.receiver[0].status
                     })
                 } else if (tmpNotifications.type === `assignment`) {
                     notificationsId.push(tmpNotifications.nid)
-                    Object.assign(notifications[index]._doc, {
-                        nid: reverseId(notifications[index]._doc.nid),
+                    Object.assign(notifications[key]._doc, {
+                        nid: reverseId(notifications[key]._doc.nid),
+                        [tmpNotifications.receiver[0].username]: tmpNotifications.receiver[0].status
+                    })
+                } else if (tmpNotifications.type === `systemUsage` && tmpNotifications.createdBy !== curUser) {
+                    notificationsId.push(tmpNotifications.nid)
+                    Object.assign(notifications[key]._doc, {
+                        nid: reverseId(notifications[key]._doc.nid),
                         [tmpNotifications.receiver[0].username]: tmpNotifications.receiver[0].status
                     })
                 }

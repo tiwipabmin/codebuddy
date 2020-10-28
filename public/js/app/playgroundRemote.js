@@ -644,7 +644,7 @@ function clearTerminal() {
 }
 
 /**
- * Send Message
+ * Send Message on Chatbox
  */
 function sendMessage() {
   if (document.getElementById("inputMessage").value != "") {
@@ -775,7 +775,7 @@ socket.on("term update", payload => {
 });
 
 /**
- * Update message
+ * Update message on Chatbox.
  */
 socket.on("update message", payload => {
   updateScroll();
@@ -837,7 +837,7 @@ function videoEvent(b) {
 }
 
 /**
- * attach ready event -- Video Toggle
+ * attach ready event -- Video Toggle and Chatbox status.
  **/
 $(document).ready(function () {
   $(".ui.video.toggle.button").state({
