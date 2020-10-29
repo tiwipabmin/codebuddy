@@ -323,6 +323,18 @@ block content
           .ui.secondary.segment
             #xterm-container(onmouseup='resizeTerm()')
 
+  style.
+    .face-tracking {
+      width: 320;
+      height: 240px;
+      position: relative;
+      background: #eee;
+      overflow: hidden;
+    }
+    .face-tracking video,canvas {
+      position: absolute;
+    }
+    
   .ui.chatbox(id="live-chat")
     header.clearfix
       eight.wide.column(style="float: left;") 
@@ -347,7 +359,6 @@ block content
                   .content
                   .curve-box-user #{message.message}
                   //- a.header Thara
-
       .ui.chatbottom
         p#show-is-typing
           .ui.form(action='/project' method='POST')
@@ -358,18 +369,7 @@ block content
                 .four.wide.column
                   button.ui.button.icon(type='submit' onClick='sendMessage()')
                     i.send.icon
-      .twelve.wide.column.right
-    style.
-      .face-tracking {
-        width: 320;
-        height: 240px;
-        position: relative;
-        background: #eee;
-        overflow: hidden;
-      }
-      .face-tracking video,canvas {
-        position: absolute;
-      }
+      //- .twelve.wide.column.right
 
   //- script.
   //-   let user="#{user.username}"

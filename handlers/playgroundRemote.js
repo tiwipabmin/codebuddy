@@ -28,41 +28,41 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let index = null;
   let pythonProcess = null;
   let beat = 0;
-  let pingPongId = ''
-  let autoDiscId = ''
+  let pingPongId = "";
+  let autoDiscId = "";
 
   function sendHeartbeat() {
-    client.emit('PING', { beat: beat })
+    client.emit("PING", { beat: beat });
   }
 
   function automaticallyDisconnect() {
-    client.disconnect()
+    client.disconnect();
   }
 
-  client.on('PONG', (payload) => {
+  client.on("PONG", (payload) => {
     if (payload.beat > beat) {
-      beat = payload.beat
-      pingPongId = setTimeout(sendHeartbeat, 5000)
-      clearTimeout(autoDiscId)
-      autoDiscId = setTimeout(automaticallyDisconnect, 6000)
+      beat = payload.beat;
+      pingPongId = setTimeout(sendHeartbeat, 5000);
+      clearTimeout(autoDiscId);
+      autoDiscId = setTimeout(automaticallyDisconnect, 6000);
     } else {
-      clearTimeout(pingPongId)
+      clearTimeout(pingPongId);
     }
-  })
+  });
 
   /**
    * `join project` evnet trigged when user joining project in playground page
    * @param {Object} payload receive project id from client payload
    * after that socket will fire `init state` with editor code to initiate local editor
    */
-  client.on("join project", async payload => {
+  client.on("join project", async (payload) => {
     try {
-      pingPongId = setTimeout(sendHeartbeat, 5000)
-      autoDiscId = setTimeout(automaticallyDisconnect, 6000)
+      pingPongId = setTimeout(sendHeartbeat, 5000);
+      autoDiscId = setTimeout(automaticallyDisconnect, 6000);
 
       projectId = payload.pid;
       curUser = payload.username;
-      sectionId = cryptr.decrypt(payload.sectionId)
+      sectionId = cryptr.decrypt(payload.sectionId);
 
       /**
        * Join session socket with project id
@@ -78,20 +78,20 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         comments.push({
           file: allcomment[i].file,
           line: allcomment[i].line,
-          description: allcomment[i].description
+          description: allcomment[i].description,
         });
       }
 
       const updateProject = await Project.updateOne(
         {
-          pid: projectId
+          pid: projectId,
         },
         {
           $set: {
-            enable_time: Date.now()
-          }
+            enable_time: Date.now(),
+          },
         },
-        err => {
+        (err) => {
           if (err) throw err;
         }
       );
@@ -124,9 +124,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           roles: {
             coder: "",
             reviewer: "",
-            reviews: []
+            reviews: [],
           },
-          active_user: active_user
+          active_user: active_user,
         };
         // client.emit("role selection", { partner: partner });
 
@@ -136,20 +136,25 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
          * Create project notification
          */
         const role = curUser !== project.creator ? `creator` : `collaborator`;
-        const partnerShip = curUser !== project.creator ? project.creator : project.collaborator;
-        console.log('Role, ', role, ', partnerShip, ', partnerShip)
+        const partnerShip =
+          curUser !== project.creator ? project.creator : project.collaborator;
+        // console.log('Role, ', role, ', partnerShip, ', partnerShip)
 
-        let notifications = new Notification()
-        notifications.receiver = [{ username: curUser, status: `interacted` }, { username: partnerShip, status: `no interact` }]
-        notifications.link = `/project/${project.pid}/section/${cryptr.encrypt(sectionId)}/role/${role}`
-        notifications.head = `Project: ${project.title}`
-        notifications.content = `${project.description}`
-        notifications.status = `pending`
-        notifications.type = `project`
-        notifications.createdBy = curUser
-        notifications.info = { pid: project.pid }
+        let notifications = new Notification();
+        notifications.receiver = [
+          { username: curUser, status: `interacted` },
+          { username: partnerShip, status: `no interact` },
+        ];
+        notifications.link = `/project/${project.pid}/section/${cryptr.encrypt(
+          sectionId
+        )}/role/${role}`;
+        notifications.head = `Project: ${project.title}`;
+        notifications.content = `${project.description}`;
+        notifications.status = `pending`;
+        notifications.type = `project`;
+        notifications.createdBy = curUser;
+        notifications.info = { pid: project.pid };
         notifications = await notifications.save();
-
       } else {
         if (projects[projectId].active_user[curUser] === undefined) {
           await Project.findOne({ pid: projectId }, async function (err, res) {
@@ -174,14 +179,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             // });
             io.in(projectId).emit("update status", {
               status: 1,
-              numUser: numUser
+              numUser: numUser,
             });
 
             initRemainder(projectId);
 
             io.in(projectId).emit("role selection", {
               activeUsers: projects[projectId].active_user,
-              partner: curUser
+              partner: curUser,
             });
           });
         } else {
@@ -191,7 +196,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           client.emit("reject joining");
         }
       }
-
     } catch (error) {
       winston.info(`catching error: ${error}`);
     }
@@ -199,11 +203,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
   async function initRemainder(proId) {
     client.emit("init state", {
-      editor: await redis.hget(
-        `project:${proId}`,
-        "editor",
-        (err, res) => res
-      )
+      editor: await redis.hget(`project:${proId}`, "editor", (err, res) => res),
     });
     io.in(proId).emit("auto update score");
     client.emit("init reviews", comments);
@@ -235,86 +235,93 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
            **/
           io.in(projectId).emit("clear interval");
 
-          delete projects[projectId].active_user[curUser]
+          delete projects[projectId].active_user[curUser];
           io.in(projectId).emit("confirm role change", {
             roles: projects[projectId].roles,
             activeUsers: projects[projectId].active_user,
             status: "disconnect",
-            numUser: numUser
+            numUser: numUser,
           });
           io.in(projectId).emit("update status", {
             status: 0,
-            numUser: numUser
+            numUser: numUser,
           });
 
           delete projects[projectId];
           client.leave(projectId);
-          clearTimeout(pingPongId)
-          clearTimeout(autoDiscId)
+          clearTimeout(pingPongId);
+          clearTimeout(autoDiscId);
 
           await Project.updateOne(
             {
-              pid: projectId
+              pid: projectId,
             },
             {
               $set: {
-                disable_time: Date.now()
-              }
+                disable_time: Date.now(),
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );
 
-          const queryNotifications = await Notification.find({
-            $and: [
-              { "receiver.username": curUser },
-              { "receiver.status": `no interact` },
-              { type: `project` }
-            ]
-          }, {
-            nid: 1
-          }).sort({ createdAt: -1 })
+          const queryNotifications = await Notification.find(
+            {
+              $and: [
+                { "receiver.username": curUser },
+                { "receiver.status": `no interact` },
+                { type: `project` },
+              ],
+            },
+            {
+              nid: 1,
+            }
+          ).sort({ createdAt: -1 });
 
-          const notificationsId = []
+          const notificationsId = [];
           for (let index in queryNotifications) {
-            notificationsId.push(queryNotifications[index].nid)
+            notificationsId.push(queryNotifications[index].nid);
           }
 
           if (notificationsId.length) {
             await Notification.updateMany(
               { nid: { $in: notificationsId } },
               { $set: { "receiver.$[].status": `interacted` } }
-            )
+            );
 
-            const reversedNotificationsId = []
+            const reversedNotificationsId = [];
             for (let index in notificationsId) {
-              let nid = notificationsId[index]
-              let reversedNid = ``
+              let nid = notificationsId[index];
+              let reversedNid = ``;
               for (let indexId = nid.length - 1; indexId >= 0; indexId--) {
-                reversedNid += nid[indexId]
+                reversedNid += nid[indexId];
               }
-              reversedNotificationsId.push(reversedNid)
+              reversedNotificationsId.push(reversedNid);
             }
 
-            if (reversedNotificationsId.length && keyStores[sectionId] !== undefined) {
-
+            if (
+              reversedNotificationsId.length &&
+              keyStores[sectionId] !== undefined
+            ) {
               let guest = Object.keys(keyStores[sectionId]).find(
-                username => keyStores[sectionId][username].guest === curUser
-              )
+                (username) => keyStores[sectionId][username].guest === curUser
+              );
 
               if (keyStores[sectionId][curUser] !== undefined || guest) {
-                let tmpTimerId = Object.keys(timerIds).length + 1
+                let tmpTimerId = Object.keys(timerIds).length + 1;
 
                 timerIds[tmpTimerId] = setInterval(() => {
-                  let pnSessionKey = guest === undefined ? curUser + sectionId : guest + sectionId;
+                  let pnSessionKey =
+                    guest === undefined
+                      ? curUser + sectionId
+                      : guest + sectionId;
 
                   io.in(pnSessionKey).emit("disable project notification", {
                     reversedNotificationsId: reversedNotificationsId,
-                    timerId: tmpTimerId
-                  })
-
-                }, 5000)
+                    timerId: tmpTimerId,
+                  });
+                }, 5000);
               }
             }
           }
@@ -330,7 +337,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   /**
    * set review to mongoDB
    **/
-  client.on("submit review", payload => {
+  client.on("submit review", (payload) => {
     var found = false;
 
     /**
@@ -356,7 +363,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           Comment.findOne({
             file: payload.file,
             pid: projectId,
-            line: payload.line
+            line: payload.line,
           })
             .remove()
             .exec();
@@ -366,14 +373,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             {
               file: payload.file,
               pid: projectId,
-              line: payload.line
+              line: payload.line,
             },
             {
               $set: {
-                description: payload.description
-              }
+                description: payload.description,
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );
@@ -386,11 +393,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     io.in(projectId).emit("new review", comments);
   });
 
-  client.on("delete review", payload => {
+  client.on("delete review", (payload) => {
     Comment.findOne({
       file: payload.file,
       pid: projectId,
-      line: payload.line
+      line: payload.line,
     })
       .remove()
       .exec();
@@ -410,14 +417,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     io.in(projectId).emit("update after delete review", {
       comments: comments,
       file: payload.file,
-      deleteline: payload.line
+      deleteline: payload.line,
     });
   });
 
   /**
    * move hilight when enter or delete
    **/
-  client.on("move hilight", payload => {
+  client.on("move hilight", (payload) => {
     var fileName = payload.fileName;
     var enterline = payload.enterline;
     var remove = payload.remove;
@@ -436,14 +443,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             {
               file: fileName,
               pid: projectId,
-              description: comments[i].description
+              description: comments[i].description,
             },
             {
               $set: {
-                line: comments[i].line
-              }
+                line: comments[i].line,
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );
@@ -464,14 +471,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             {
               file: fileName,
               pid: projectId,
-              description: comments[i].description
+              description: comments[i].description,
             },
             {
               $set: {
-                line: comments[i].line
-              }
+                line: comments[i].line,
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );
@@ -484,20 +491,20 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `create file` event fired when user click create new file
    * @param {Ibject} payload fileName
    **/
-  client.on("create file", payload => {
+  client.on("create file", (payload) => {
     /**
      * save file name to mongoDB
      **/
     Project.updateOne(
       {
-        pid: projectId
+        pid: projectId,
       },
       {
         $push: {
-          files: payload
-        }
+          files: payload,
+        },
       },
-      err => {
+      (err) => {
         if (err) throw err;
       }
     );
@@ -516,7 +523,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
     io.in(projectId).emit("update tab", {
       fileName: payload,
-      action: "create"
+      action: "create",
     });
   });
 
@@ -524,20 +531,20 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `delete file` event fired when user click delete file
    * @param {Ibject} payload fileName
    **/
-  client.on("delete file", async payload => {
+  client.on("delete file", async (payload) => {
     /**
      * delete file in mongoDB
      **/
     Project.updateOne(
       {
-        pid: projectId
+        pid: projectId,
       },
       {
         $pull: {
-          files: payload
-        }
+          files: payload,
+        },
       },
-      err => {
+      (err) => {
         if (err) throw err;
       }
     );
@@ -566,7 +573,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
     io.in(projectId).emit("update tab", {
       fileName: payload,
-      action: "delete"
+      action: "delete",
     });
   });
 
@@ -575,7 +582,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * @param {Ibject} payload user selected role and partner username
    * then socket will broadcast the role to his partner
    **/
-  client.on("role selected", payload => {
+  client.on("role selected", (payload) => {
     countdownTimer();
     if (payload.select === 0) {
       projects[projectId].roles.reviewer = curUser;
@@ -588,12 +595,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       if (err) return handleError(err);
       io.in(projectId).emit("role updated", {
         roles: projects[projectId].roles,
-        project: res
+        project: res,
       });
     });
   });
 
-  client.on("switch role", payload => {
+  client.on("switch role", (payload) => {
     if (payload.action === undefined) {
       payload.action = "switch role";
     }
@@ -605,7 +612,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `code change` event fired when user typing in editor
    * @param {Object} payload receive code from client payload
    **/
-  client.on("code change", payload => {
+  client.on("code change", (payload) => {
     const origin = !!payload.code.origin && payload.code.origin !== "setValue";
     /**
      * origin mustn't be an `undefined` or `setValue` type
@@ -697,7 +704,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                 pid: projectId,
                 file: fileName,
                 line: fromLine,
-                ch: { $gte: fromCh }
+                ch: { $gte: fromCh },
               },
               { line: 1, ch: 1, text: 1, _id: 0 },
               function (err, res) {
@@ -710,15 +717,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                       file: fileName,
                       line: textInLine[i].line,
                       ch: textInLine[i].ch,
-                      text: textInLine[i].text
+                      text: textInLine[i].text,
                     },
                     {
                       $set: {
                         line: fromLine,
-                        ch: fromCh + i + 1
-                      }
+                        ch: fromCh + i + 1,
+                      },
                     },
-                    err => {
+                    (err) => {
                       if (err) throw err;
                     }
                   );
@@ -737,9 +744,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             ch: fromCh,
             text: payload.code.text.toString(),
             user: payload.user,
-            createdAt: Date.now()
+            createdAt: Date.now(),
           };
-          new History(historyModel, err => {
+          new History(historyModel, (err) => {
             if (err) throw err;
           }).save();
         } else if (enterText.length == 2) {
@@ -759,7 +766,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
               pid: projectId,
               file: fileName,
               line: fromLine,
-              ch: { $gte: fromCh }
+              ch: { $gte: fromCh },
             },
             { line: 1, ch: 1, text: 1, _id: 0 },
             function (err, res) {
@@ -772,15 +779,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                     file: fileName,
                     line: textInLine[i].line,
                     ch: textInLine[i].ch,
-                    text: textInLine[i].text
+                    text: textInLine[i].text,
                   },
                   {
                     $set: {
                       line: fromLine + 1,
-                      ch: i
-                    }
+                      ch: i,
+                    },
                   },
-                  err => {
+                  (err) => {
                     if (err) throw err;
                   }
                 );
@@ -804,14 +811,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                     file: fileName,
                     line: textInLine[i].line,
                     ch: textInLine[i].ch,
-                    text: textInLine[i].text
+                    text: textInLine[i].text,
                   },
                   {
                     $set: {
-                      line: textInLine[i].line + 1
-                    }
+                      line: textInLine[i].line + 1,
+                    },
                   },
-                  err => {
+                  (err) => {
                     if (err) throw err;
                   }
                 );
@@ -864,13 +871,13 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("run code", payload => {
+  client.on("run code", (payload) => {
     var code = payload.code;
     Object.keys(code).forEach(function (key) {
       fs.writeFile(
         "./public/project_files/" + projectId + "/" + key + ".py",
         code[key],
-        err => {
+        (err) => {
           if (err) throw err;
         }
       );
@@ -890,7 +897,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       );
     }
 
-    pythonProcess.on("data", data => {
+    pythonProcess.on("data", (data) => {
       /**
        * check is code error
        **/
@@ -910,14 +917,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             Score.updateOne(
               {
                 pid: projectId,
-                uid: payload.uid
+                uid: payload.uid,
               },
               {
                 $set: {
-                  error_count: parseInt(score.error_count) + 1
-                }
+                  error_count: parseInt(score.error_count) + 1,
+                },
               },
-              err => {
+              (err) => {
                 if (err) throw err;
               }
             );
@@ -944,7 +951,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("typing input on term", payload => {
+  client.on("typing input on term", (payload) => {
     let inputTerm = payload.inputTerm;
     detectInput = inputTerm;
     if (pythonProcess !== undefined) {
@@ -956,7 +963,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `pause running code` event fired when user click on pause button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("pause run code", payload => {
+  client.on("pause run code", (payload) => {
     if (pythonProcess != undefined) {
       setTimeout(pythonProcess.kill.bind(pythonProcess), 0);
     }
@@ -967,16 +974,16 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `send message` event fired when user send chat message from front-end
    * @param {Object} payload code from editor
    */
-  client.on("send message", payload => {
+  client.on("send message", (payload) => {
     const message = payload.message;
     const uid = payload.uid;
     const messageModel = {
       pid: projectId,
       uid: uid,
       message: message,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
-    new Message(messageModel, err => {
+    new Message(messageModel, (err) => {
       if (err) throw err;
     }).save();
     User.where({ _id: uid }).findOne(function (err, user) {
@@ -984,7 +991,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       if (user) {
         const response = {
           user: user,
-          message: messageModel
+          message: messageModel,
         };
         io.in(projectId).emit("update message", response);
       }
@@ -995,11 +1002,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `send active tab` event fired when user change tab
    * @param {Object} payload active tab
    */
-  client.on("send active tab", payload => {
+  client.on("send active tab", (payload) => {
     io.in(projectId).emit("show partner active tab", payload);
   });
 
-  client.on("open tab", async payload => {
+  client.on("open tab", async (payload) => {
     let fileName = payload;
     var code = await redis.hget(
       `project:${projectId}`,
@@ -1008,11 +1015,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     );
     io.in(projectId).emit("set editor open tab", {
       fileName: fileName,
-      editor: code
+      editor: code,
     });
   });
 
-  client.on("is typing", payload => {
+  client.on("is typing", (payload) => {
     io.in(projectId).emit("is typing", payload);
   });
 
@@ -1020,48 +1027,48 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `reviewer active time` event fired reviewer active time every 1 sec
    * @param {Object} payload time from face detection on main.js
    */
-  client.on("reviewer active time", payload => {
+  client.on("reviewer active time", (payload) => {
     io.in(projectId).emit("show reviewer active time", payload);
   });
 
-  client.on("save active time", async payload => {
+  client.on("save active time", async (payload) => {
     const score = await Score.findOne({
       pid: projectId,
-      uid: payload.uid
+      uid: payload.uid,
     });
 
     await Score.updateOne(
       {
         pid: projectId,
-        uid: payload.uid
+        uid: payload.uid,
       },
       {
         $set: {
-          time: parseInt(score.time) + parseInt(payload.time)
-        }
+          time: parseInt(score.time) + parseInt(payload.time),
+        },
       }
     );
 
     const user = await User.findOne({
-      _id: payload.uid
+      _id: payload.uid,
     });
 
     await User.updateOne(
       {
-        _id: payload.uid
+        _id: payload.uid,
       },
       {
         $set: {
-          totalTime: parseInt(user.totalTime) + parseInt(payload.time)
-        }
+          totalTime: parseInt(user.totalTime) + parseInt(payload.time),
+        },
       }
     );
   });
 
-  client.on("save lines of code", payload => {
+  client.on("save lines of code", (payload) => {
     History.aggregate([
       { $match: { user: curUser, pid: projectId } },
-      { $group: { _id: { file: "$file", line: "$line" } } }
+      { $group: { _id: { file: "$file", line: "$line" } } },
     ]).then(function (res) {
       Score.where({ pid: projectId, uid: payload.uid }).findOne(function (
         err,
@@ -1072,14 +1079,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           Score.updateOne(
             {
               pid: projectId,
-              uid: payload.uid
+              uid: payload.uid,
             },
             {
               $set: {
-                lines_of_code: parseInt(res.length)
-              }
+                lines_of_code: parseInt(res.length),
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );
@@ -1092,7 +1099,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `submit code` event fired when user click on submit button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("submit code", payload => {
+  client.on("submit code", (payload) => {
     const mode = payload.mode;
     const code = payload.code;
 
@@ -1128,7 +1135,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       fs.writeFile(
         "./public/project_files/" + projectId + "/" + key + ".py",
         code[key],
-        err => {
+        (err) => {
           if (err) throw err;
         }
       );
@@ -1143,7 +1150,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     /**
      * This listener may be send data three times per one process or more
      **/
-    pylintProcess.on("data", data => {
+    pylintProcess.on("data", (data) => {
       /** get score from the message of pylint that's
        *  " ************* Module main
        *    public\project_files\FUNmY7nU8h\main.py:1:0: C0304: Final newline missing (missi
@@ -1170,11 +1177,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
        * so the score of project must to save once.
        * The line of process is 757 to 903
        **/
-      if ((!empty &&
-        score == 0 &&
-        data.indexOf("(syntax-error)") != -1 &&
-        countError == 0 &&
-        countFile == 1) ||
+      if (
+        (!empty &&
+          score == 0 &&
+          data.indexOf("(syntax-error)") != -1 &&
+          countError == 0 &&
+          countFile == 1) ||
         (!empty && data.indexOf("Your code has been rated at") != -1) ||
         (empty && score == 0 && data.indexOf("public\\project_files\\") == -1)
       ) {
@@ -1196,9 +1204,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                   error_count: 0,
                   participation: {
                     enter: 0,
-                    pairing: 0
+                    pairing: 0,
                   },
-                  createdAt: Date.now()
+                  createdAt: Date.now(),
                 };
                 Score.where({ pid: projectId, uid: element }).findOne(function (
                   err,
@@ -1206,7 +1214,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                 ) {
                   if (err) throw err;
                   if (!oldScore) {
-                    new Score(scoreModel, err => {
+                    new Score(scoreModel, (err) => {
                       if (err) throw err;
                     }).save();
 
@@ -1217,15 +1225,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                       [
                         {
                           $match: {
-                            uid: element
-                          }
+                            uid: element,
+                          },
                         },
                         {
                           $group: {
                             _id: "$uid",
-                            avg: { $avg: "$score" }
-                          }
-                        }
+                            avg: { $avg: "$score" },
+                          },
+                        },
                       ],
                       function (err, results) {
                         if (err) {
@@ -1239,12 +1247,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                              **/
                             User.updateOne(
                               {
-                                _id: element
+                                _id: element,
                               },
                               {
                                 $set: {
-                                  avgScore: result.avg
-                                }
+                                  avgScore: result.avg,
+                                },
                               },
                               function (err, userReturn) {
                                 if (err);
@@ -1260,7 +1268,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                             const shownScore = {
                               score: score,
                               uid: element,
-                              avgScore: result.avg
+                              avgScore: result.avg,
                             };
                             if (mode == "auto") {
                               io.in(projectId).emit(
@@ -1286,12 +1294,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                     Score.updateOne(
                       {
                         pid: projectId,
-                        uid: element
+                        uid: element,
                       },
                       {
                         $set: {
-                          score: score
-                        }
+                          score: score,
+                        },
                       },
                       async function (err, scoreReturn) {
                         if (err) throw err;
@@ -1303,15 +1311,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                             [
                               {
                                 $match: {
-                                  uid: element
-                                }
+                                  uid: element,
+                                },
                               },
                               {
                                 $group: {
                                   _id: "$uid",
-                                  avg: { $avg: "$score" }
-                                }
-                              }
+                                  avg: { $avg: "$score" },
+                                },
+                              },
                             ],
                             function (err, results) {
                               if (err) {
@@ -1325,12 +1333,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                                    **/
                                   User.updateOne(
                                     {
-                                      _id: element
+                                      _id: element,
                                     },
                                     {
                                       $set: {
-                                        avgScore: result.avg
-                                      }
+                                        avgScore: result.avg,
+                                      },
                                     },
                                     function (err, userReturn) {
                                       if (err);
@@ -1345,7 +1353,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                                   const shownScore = {
                                     score: score,
                                     uid: element,
-                                    avgScore: result.avg
+                                    avgScore: result.avg,
                                   };
                                   if (mode == "auto") {
                                     io.in(projectId).emit(
@@ -1379,15 +1387,13 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           }
         });
       }
-      if (data.indexOf(".pylintrc") == -1 &&
-        data.indexOf("U") != 16
-      ) {
+      if (data.indexOf(".pylintrc") == -1 && data.indexOf("U") != 16) {
         io.in(projectId).emit("term update", data);
       }
     });
   });
 
-  client.on("export file", payload => {
+  client.on("export file", (payload) => {
     let fileNameList = payload.fileNameList;
     let fileNameListLength = Object.keys(fileNameList).length;
     let code = payload.code;
@@ -1396,12 +1402,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     for (let index in fileNameList) {
       fs.writeFile(
         "./public/project_files/" +
-        projectId +
-        "/" +
-        fileNameList[index] +
-        ".py",
+          projectId +
+          "/" +
+          fileNameList[index] +
+          ".py",
         code[fileNameList[index]],
-        err => {
+        (err) => {
           if (err) throw er;
         }
       );
@@ -1418,7 +1424,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         /**
          * Sets the compression level.
          **/
-        zlib: { level: 9 }
+        zlib: { level: 9 },
       });
 
       archive.on("error", function (err) {
@@ -1443,7 +1449,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     client.emit("download file", {
       projectId: projectId,
       fileNameListLength: fileNameListLength,
-      filePath: cryptr.encrypt(filePath)
+      filePath: cryptr.encrypt(filePath),
     });
   });
 
@@ -1469,7 +1475,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         }
         io.in(projectId).emit("countdown", {
           minutes: minutes,
-          seconds: seconds
+          seconds: seconds,
         });
         if (minutes <= 0 && seconds <= 0) {
           let numUser = Object.keys(projects[projectId].active_user).length;
@@ -1478,7 +1484,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             roles: projects[projectId].roles,
             activeUsers: projects[projectId].active_user,
             status: "connect",
-            numUser: numUser
+            numUser: numUser,
           });
         }
       });
@@ -1507,10 +1513,10 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         roles: {
           coder: "",
           reviewer: "",
-          reviews: []
+          reviews: [],
         },
         count: 1,
-        active_user: active_user
+        active_user: active_user,
       };
       client.emit("role selection");
     } else if (payload.action === "switch role") {
@@ -1526,7 +1532,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           if (err) return handleError(err);
           io.in(projectId).emit("role updated", {
             roles: projects[projectId].roles,
-            project: res
+            project: res,
           });
         });
       }
@@ -1539,15 +1545,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       line: parseInt(payload.line),
       pid: projectId,
       description: payload.description,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
-    new Comment(commentModel, err => {
+    new Comment(commentModel, (err) => {
       if (err) throw err;
     }).save();
     comments.push({
       file: payload.file,
       line: parseInt(payload.line),
-      description: payload.description
+      description: payload.description,
     });
   }
 
@@ -1565,7 +1571,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       pid: projectId,
       file: fileName,
       line: fromLine,
-      ch: { $gte: fromCh, $lt: toCh }
+      ch: { $gte: fromCh, $lt: toCh },
     })
       .remove()
       .exec();
@@ -1590,7 +1596,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           pid: projectId,
           file: fileName,
           line: i,
-          ch: { $gte: fromCh }
+          ch: { $gte: fromCh },
         });
         console.log("Delete more line, ", resHis);
 
@@ -1598,7 +1604,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           pid: projectId,
           file: fileName,
           line: i,
-          ch: { $gte: fromCh }
+          ch: { $gte: fromCh },
         })
           .remove()
           .exec();
@@ -1609,7 +1615,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         History.find({
           pid: projectId,
           file: fileName,
-          line: i
+          line: i,
         })
           .remove()
           .exec();
@@ -1621,7 +1627,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           pid: projectId,
           file: fileName,
           line: i,
-          ch: { $lt: toCh }
+          ch: { $lt: toCh },
         })
           .remove()
           .exec();
@@ -1649,15 +1655,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
               file: fileName,
               line: textInLine[i].line,
               ch: textInLine[i].ch,
-              text: textInLine[i].text
+              text: textInLine[i].text,
             },
             {
               $set: {
                 line: fromLine,
-                ch: fromCh + i
-              }
+                ch: fromCh + i,
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );

@@ -17,7 +17,71 @@ exports.getHomepage = (req, res) => {
   res.render("index");
 };
 
-exports.userSignout = (req, res) => {
+exports.userSignout = async (req, res) => {
+  
+  const user = req.user
+  let sections = {};
+  const occupation = user.info.occupation;
+  const username = user.username;
+  if (occupation === "student") {
+    const queryStudent = `select enrollment_id from student as std
+              join enrollment as en on en.student_id = std.student_id
+              where std.username = \"${username}\"`;
+    const resEnrollmentId = await conMysql
+      .selectEnrollment(queryStudent)
+      .catch((err) => {
+        throw err;
+      });
+
+    for (let index in resEnrollmentId) {
+      const enrollmentId = resEnrollmentId[index].enrollment_id;
+      const querySection = `select * from enrollment as en
+                join section as sec on sec.section_id = en.section_id
+                join course as c on c.course_id = sec.course_id
+                where en.enrollment_id = ${enrollmentId}`;
+      const resSections = await conMysql
+        .selectSection(querySection)
+        .catch((err) => {
+          throw err;
+        });
+
+      const tmps = { ...resSections[0] };
+      Object.assign(sections, { [resSections[0].section_id]: tmps });
+    }
+
+    for (let key in sections) {
+      const queryPartner =
+        "select * from student as st join enrollment as e on e.student_id = st.student_id where e.enrollment_id = " +
+        sections[key].partner_id;
+      const resPartners = await conMysql
+        .selectStudent(queryPartner)
+        .catch((err) => {
+          throw err;
+        });
+      const tmps = { ...resPartners[0] };
+      sections[key].partner_info = tmps;
+    }
+  }
+
+  for (let key in sections) {
+    let notifications = new Notification();
+    notifications.receiver = [
+      { username: username, status: `interacted` },
+      {
+        username: sections[key].partner_info.username,
+        status: `no interact`,
+      },
+    ];
+    notifications.link = `/`;
+    notifications.head = `Partner: การแจ้งเตือนจากเพื่อนโปรเจ็กต์ของคุณ`;
+    notifications.content = `${username} ออกจากระบบ Codebuddy แล้ว.`;
+    notifications.status = `pending`;
+    notifications.type = `systemUsage`;
+    notifications.createdBy = username;
+    notifications.info = { operation: `sign out` };
+    notifications = await notifications.save();
+  }
+
   req.logout();
   res.redirect("/");
 };
@@ -238,6 +302,28 @@ exports.getProfileByTeacher = async (req, res) => {
 // };
 
 exports.changeProjectNotificationStatus = async function (req, res) {
+  const nid = reverseId(req.body.nid);
+
+  try {
+    const disable = await Notification.updateOne(
+      {
+        $and: [{ nid: nid }, { "receiver.username": req.user.username }],
+      },
+      {
+        $set: { "receiver.$[element].status": `interacted` },
+      },
+      {
+        arrayFilters: [{ "element.username": req.user.username }],
+      }
+    );
+    res.status(200).send("OK").end();
+  } catch (err) {
+    res.status(400).send("Bad Request").end();
+    // console.log(`Error: ${err}`)
+  }
+};
+
+exports.changeSystemUsageStatus = async function (req, res) {
   const nid = reverseId(req.body.nid);
 
   try {
@@ -555,10 +641,7 @@ exports.updateSection = async (req, res) => {
 exports.getMyProjects = async (req, res) => {
   let projects = req.query.projects;
   let resProjects = await Project.find({
-    $or: [
-      { creator: req.user.username },
-      { collaborator: req.user.username },
-    ]
+    $or: [{ creator: req.user.username }, { collaborator: req.user.username }],
   }).sort({ createdAt: -1 });
 
   let cloneProjects = [];
@@ -3119,7 +3202,17 @@ exports.getNotifications = async (req, res) => {
     let tmpNotifications = [];
     tmpNotifications.push(Object.keys(notifications[0]._doc));
 
-    let exceptKeys = ["_id", "__v", "nid", "link", "content", "status", "type", "createdBy", "info"];
+    let exceptKeys = [
+      "_id",
+      "__v",
+      "nid",
+      "link",
+      "content",
+      "status",
+      "type",
+      "createdBy",
+      "info",
+    ];
     for (let index in exceptKeys) {
       let keyIndex = tmpNotifications[0].indexOf(exceptKeys[index]);
       tmpNotifications[0].splice(keyIndex, 1);
