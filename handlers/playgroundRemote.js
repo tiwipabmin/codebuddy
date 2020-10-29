@@ -103,7 +103,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       const project = await Project.findOne({ pid: projectId });
       await Score.updateOne(
         { pid: projectId, uid: user._id },
-        { $inc: { "participation.enter": 1 } }
+        { $push: { "participation.enter": new Date() } }
       );
 
       /**
@@ -166,11 +166,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
              **/
             await Score.updateOne(
               { pid: projectId, uid: project.creator_id },
-              { $inc: { "participation.pairing": 1 } }
+              { $push: { "participation.pairing": new Date() } }
             );
             await Score.updateOne(
               { pid: projectId, uid: project.collaborator_id },
-              { $inc: { "participation.pairing": 1 } }
+              { $push: { "participation.pairing": new Date() } }
             );
             let numUser = Object.keys(projects[projectId].active_user).length;
             // client.emit("role updated", {
@@ -1203,8 +1203,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                   lines_of_code: 0,
                   error_count: 0,
                   participation: {
-                    enter: 0,
-                    pairing: 0,
+                    enter: [new Date()],
+                    pairing: [new Date()],
                   },
                   createdAt: Date.now(),
                 };
