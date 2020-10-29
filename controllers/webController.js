@@ -18,8 +18,7 @@ exports.getHomepage = (req, res) => {
 };
 
 exports.userSignout = async (req, res) => {
-  
-  const user = req.user
+  const user = req.user;
   let sections = {};
   const occupation = user.info.occupation;
   const username = user.username;
@@ -50,36 +49,40 @@ exports.userSignout = async (req, res) => {
     }
 
     for (let key in sections) {
-      const queryPartner =
-        "select * from student as st join enrollment as e on e.student_id = st.student_id where e.enrollment_id = " +
-        sections[key].partner_id;
-      const resPartners = await conMysql
-        .selectStudent(queryPartner)
-        .catch((err) => {
-          throw err;
-        });
-      const tmps = { ...resPartners[0] };
-      sections[key].partner_info = tmps;
+      if (sections[key].partner_id !== null) {
+        const queryPartner =
+          "select * from student as st join enrollment as e on e.student_id = st.student_id where e.enrollment_id = " +
+          sections[key].partner_id;
+        const resPartners = await conMysql
+          .selectStudent(queryPartner)
+          .catch((err) => {
+            throw err;
+          });
+        const tmps = { ...resPartners[0] };
+        sections[key].partner_info = tmps;
+      }
     }
   }
 
   for (let key in sections) {
-    let notifications = new Notification();
-    notifications.receiver = [
-      { username: username, status: `interacted` },
-      {
-        username: sections[key].partner_info.username,
-        status: `no interact`,
-      },
-    ];
-    notifications.link = `/`;
-    notifications.head = `Partner: การแจ้งเตือนจากเพื่อนโปรเจ็กต์ของคุณ`;
-    notifications.content = `${username} ออกจากระบบ Codebuddy แล้ว.`;
-    notifications.status = `pending`;
-    notifications.type = `systemUsage`;
-    notifications.createdBy = username;
-    notifications.info = { operation: `sign out` };
-    notifications = await notifications.save();
+    if (sections[key].partner_id !== null) {
+      let notifications = new Notification();
+      notifications.receiver = [
+        { username: username, status: `interacted` },
+        {
+          username: sections[key].partner_info.username,
+          status: `no interact`,
+        },
+      ];
+      notifications.link = `/`;
+      notifications.head = `Partner: การแจ้งเตือนจากเพื่อนโปรเจ็กต์ของคุณ`;
+      notifications.content = `${username} ออกจากระบบ Codebuddy แล้ว.`;
+      notifications.status = `pending`;
+      notifications.type = `systemUsage`;
+      notifications.createdBy = username;
+      notifications.info = { operation: `sign out` };
+      notifications = await notifications.save();
+    }
   }
 
   req.logout();
