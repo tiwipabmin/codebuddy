@@ -2931,10 +2931,6 @@ exports.assignAssignment = async (req, res) => {
                 time: 0,
                 lines_of_code: 0,
                 error_count: 0,
-                participation: {
-                  enter: 0,
-                  pairing: 0,
-                },
                 createdAt: Date.now(),
               };
               new Score(scoreModel).save();
@@ -2974,10 +2970,6 @@ exports.assignAssignment = async (req, res) => {
             time: 0,
             lines_of_code: 0,
             error_count: 0,
-            participation: {
-              enter: 0,
-              pairing: 0,
-            },
             createdAt: Date.now(),
           };
           new Score(scoreModel).save();
