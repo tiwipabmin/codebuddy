@@ -266,31 +266,31 @@ module.exports = (io, client, keyStores, timerIds) => {
       // winston.info(`${curUser} join classroom['${secKey}']`);
     }
 
-    const notifications = await getAllNotifications(curUser);
+    const notifications = await getAllNotifications(curUser, notificationsId);
     if (notifications.length) {
       client.emit("notify all", { notifications: notifications, init: 1 });
     }
 
     timerIds[curUser] = setInterval(async function () {
-      const notifications = await getAllNotifications(curUser);
+      const notifications = await getAllNotifications(curUser, notificationsId);
       if (notifications.length) {
         client.emit("notify all", { notifications: notifications, init: 0 });
       }
     }, 5000);
   });
 
-  async function getAllNotifications(curUser) {
-    let notifications = await Notification.find(
+  async function getAllNotifications(username, idContainers) {
+    let resNotifications = await Notification.find(
       {
         $and: [
-          { "receiver.username": curUser },
-          { nid: { $nin: notificationsId } },
+          { "receiver.username": username },
+          { nid: { $nin: idContainers } },
           { status: { $eq: `pending` } },
         ],
       },
       {
         nid: 1,
-        receiver: { $elemMatch: { username: curUser } },
+        receiver: { $elemMatch: { username: username } },
         link: 1,
         head: 1,
         content: 1,
@@ -302,37 +302,40 @@ module.exports = (io, client, keyStores, timerIds) => {
       }
     );
 
-    for (let key in notifications) {
-      const tmpNotifications = notifications[key];
-      if (notificationsId.indexOf(tmpNotifications.nid) < 0) {
+    let notifications = [];
+    for (let index in resNotifications) {
+      const tmpNotifications = resNotifications[index];
+      if (idContainers.indexOf(tmpNotifications.nid) < 0) {
         if (tmpNotifications.type === `project`) {
-          notificationsId.push(tmpNotifications.nid);
+          idContainers.push(tmpNotifications.nid);
           const projects = await Project.findOne({
             pid: tmpNotifications.info.pid,
           });
-          Object.assign(notifications[key]._doc, {
+          Object.assign(resNotifications[index]._doc, {
             available_project: projects.available_project,
-            nid: reverseId(notifications[key]._doc.nid),
+            nid: reverseId(resNotifications[index]._doc.nid),
             [tmpNotifications.receiver[0].username]:
               tmpNotifications.receiver[0].status,
           });
+          notifications.push(resNotifications[index]);
         } else if (tmpNotifications.type === `assignment`) {
-          notificationsId.push(tmpNotifications.nid);
-          Object.assign(notifications[key]._doc, {
-            nid: reverseId(notifications[key]._doc.nid),
+          idContainers.push(tmpNotifications.nid);
+          Object.assign(resNotifications[index]._doc, {
+            nid: reverseId(resNotifications[index]._doc.nid),
             [tmpNotifications.receiver[0].username]:
               tmpNotifications.receiver[0].status,
           });
-        } else if (
-          tmpNotifications.type === `systemUsage` &&
-          tmpNotifications.createdBy !== curUser
-        ) {
-          notificationsId.push(tmpNotifications.nid);
-          Object.assign(notifications[key]._doc, {
-            nid: reverseId(notifications[key]._doc.nid),
-            [tmpNotifications.receiver[0].username]:
-              tmpNotifications.receiver[0].status,
-          });
+          notifications.push(resNotifications[index]);
+        } else if (tmpNotifications.type === `systemUsage`) {
+          if (tmpNotifications.createdBy !== curUser) {
+            idContainers.push(tmpNotifications.nid);
+            Object.assign(resNotifications[index]._doc, {
+              nid: reverseId(resNotifications[index]._doc.nid),
+              [tmpNotifications.receiver[0].username]:
+                tmpNotifications.receiver[0].status,
+            });
+            notifications.push(resNotifications[index]);
+          }
         }
       }
     }
