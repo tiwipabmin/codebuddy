@@ -766,6 +766,56 @@ exports.updatePairingSession = async (req, res) => {
   let queryPairingSession = "";
   let pairingSessions = [];
   if (resStatus == "Update completed.") {
+    const queryStudent = `SELECT * FROM enrollment AS en JOIN student AS st ON en.student_id = st.student_id WHERE en.section_id = ${sectionId}`;
+    const resStudents = await conMysql.selectStudent(queryStudent);
+
+    for (let index in resStudents) {
+      let partner = resStudents.find((e) => {
+        return (e.enrollment_id = resStudents[index].partner_id);
+      });
+
+      if (partner !== undefined) {
+        await Notification.updateMany(
+          {
+            $and: [
+              {
+                $or: [
+                  {
+                    "receiver.username": resStudents[index].username,
+                  },
+                  {
+                    "receiver.username": partner.username,
+                  },
+                ],
+              },
+              {
+                $or: [
+                  {
+                    type: `project`,
+                  },
+                  {
+                    type: `systemUsage`,
+                  },
+                ],
+              },
+              {
+                status: `pending`,
+              },
+            ],
+          },
+          { $set: { status: `finished` } }
+        );
+
+        let partnerIndex = resStudents
+          .map((e) => {
+            return e.username;
+          })
+          .indexOf(partner.username);
+
+        resStudents.splice(partnerIndex, 1);
+      }
+    }
+
     const resetPartner =
       "UPDATE enrollment SET partner_id = NULL WHERE section_id = " + sectionId;
     resStatus = await conMysql.updateEnrollment(resetPartner);
@@ -805,7 +855,7 @@ exports.updatePairingSession = async (req, res) => {
       },
     ],
   });
-  console.log("Projects Before, ", projects);
+  // console.log("Projects Before, ", projects);
 
   for (let index in projects) {
     const assignmentId = projects[index].assignment_id;
@@ -816,7 +866,7 @@ exports.updatePairingSession = async (req, res) => {
       );
     }
   }
-  console.log("Projects After, ", projects);
+  // console.log("Projects After, ", projects);
 
   res.send({
     resStatus: resStatus,
