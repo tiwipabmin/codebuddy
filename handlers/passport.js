@@ -115,18 +115,14 @@ function config(passport) {
           }
           let verifyPassword = await user.verifyPassword(password);
           if (verifyPassword) {
-            const systemAccessTime = user.systemAccessTime + 1;
-            const resStatus = await User.updateOne(
+            await User.updateOne(
               {
-                $or: [{ email }, { username: email }],
+                $or: [{ email: email }, { username: email }],
               },
               {
-                $set: {
-                  systemAccessTime: systemAccessTime,
+                $push: {
+                  systemAccessTime: new Date(),
                 },
-              },
-              (err) => {
-                if (err) throw err;
               }
             );
 
@@ -196,7 +192,6 @@ function config(passport) {
               }
             }
 
-            // console.log('user, user , verifyPassword, ', verifyPassword, ', username, ', user.username, ', resStatus, ', resStatus)
             return done(null, user);
           } else {
             return done(null, false, { message: "Wrong password" });
