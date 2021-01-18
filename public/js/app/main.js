@@ -110,23 +110,23 @@ window.onload = function() {
 };
 
 function pad ( val ) { return val > 9 ? val : "0" + val; }
-	//export modal
+	//- export modal
 	$('.ui.master.checkbox').checkbox({
-		// check all children
+		//- check all children
 		onChecked: function() {
 		  var $childCheckbox  = $(this).closest('.checkbox').siblings('.list').find('.checkbox')
 		  $childCheckbox.checkbox('check');
 		},
-		// uncheck all children
+		//- uncheck all children
 		onUnchecked: function() {
 		  var $childCheckbox  = $(this).closest('.checkbox').siblings('.list').find('.checkbox');
 		  $childCheckbox.checkbox('uncheck');
 		}
 	  })
 	$('.list .child.checkbox').checkbox({
-		// Fire on load to set parent value
+		//- Fire on load to set parent value
 		fireOnInit : true,
-		// Change parent state on each child checkbox change
+		//- Change parent state on each child checkbox change
 		onChange   : function() {
 		  var
 			$listGroup      = $(this).closest('.list'),
@@ -135,7 +135,7 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 			allChecked      = true,
 			allUnchecked    = true
 		  ;
-		  // check to see if all other siblings are checked or unchecked
+		  //- check to see if all other siblings are checked or unchecked
 		  $checkbox.each(function() {
 			if( $(this).checkbox('is checked') ) {
 			  allUnchecked = false;
@@ -144,7 +144,7 @@ function pad ( val ) { return val > 9 ? val : "0" + val; }
 			  allChecked = false;
 			}
 		  });
-		  // set parent checkbox state, but dont trigger its onChange callback
+		  //- set parent checkbox state, but dont trigger its onChange callback
 		  if(allChecked) {
 			$parentCheckbox.checkbox('set checked');
 		  }

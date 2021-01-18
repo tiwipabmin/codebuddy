@@ -205,7 +205,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     client.emit("init state", {
       editor: await redis.hget(`project:${proId}`, "editor", (err, res) => res),
     });
-    io.in(proId).emit("auto update score");
+    client.emit("auto update score");
     client.emit("init reviews", comments);
   }
 
@@ -872,7 +872,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * @param {Object} payload code from editor
    */
   client.on("run code", (payload) => {
-    var code = payload.code;
+    let code = payload.code;
     Object.keys(code).forEach(function (key) {
       fs.writeFile(
         "./public/project_files/" + projectId + "/" + key + ".py",
@@ -1271,12 +1271,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                               avgScore: result.avg,
                             };
                             if (mode == "auto") {
-                              io.in(projectId).emit(
+                              client.emit(
                                 "show auto update score",
                                 shownScore
                               );
                             } else {
-                              io.in(projectId).emit("show score", shownScore);
+                              client.emit("show score", shownScore);
                               io.in(projectId).emit(
                                 "show auto update score",
                                 shownScore
@@ -1356,12 +1356,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                                     avgScore: result.avg,
                                   };
                                   if (mode == "auto") {
-                                    io.in(projectId).emit(
+                                    client.emit(
                                       "show auto update score",
                                       shownScore
                                     );
                                   } else {
-                                    io.in(projectId).emit(
+                                    client.emit(
                                       "show score",
                                       shownScore
                                     );
@@ -1388,7 +1388,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
       }
       if (data.indexOf(".pylintrc") == -1 && data.indexOf("U") != 16) {
-        io.in(projectId).emit("term update", data);
+        client.emit("term update", data);
       }
     });
   });
@@ -1466,13 +1466,13 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         let seconds = moment
           .duration(swaptime - (Date.now() - start))
           .seconds();
-        flag = 0;
-        if (seconds == 0 && flag != 1) {
-          flag = 1;
-          io.in(projectId).emit("auto update score");
-        } else {
-          flag = 0;
-        }
+        // flag = 0;
+        // if (seconds == 0 && flag != 1) {
+        //   flag = 1;
+        //   io.in(projectId).emit("auto update score");
+        // } else {
+        //   flag = 0;
+        // }
         io.in(projectId).emit("countdown", {
           minutes: minutes,
           seconds: seconds,
@@ -1480,6 +1480,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         if (minutes <= 0 && seconds <= 0) {
           let numUser = Object.keys(projects[projectId].active_user).length;
           clearInterval(timerId["codebuddy"]);
+          io.in(projectId).emit("auto update score");
           io.in(projectId).emit("confirm role change", {
             roles: projects[projectId].roles,
             activeUsers: projects[projectId].active_user,
