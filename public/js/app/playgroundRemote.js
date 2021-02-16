@@ -1087,6 +1087,7 @@ function createFile() {
 }
 
 function showExportModal() {
+  $(".checkbox-item").prop("checked", false)
   $("#export-modal").modal("show");
 }
 
@@ -1110,8 +1111,6 @@ function onClickExport() {
       fileNameList: fileNameList,
       code: getAllFileEditor()
     });
-  } else {
-    alert('Please, selected file before click "Export" button.');
   }
 }
 
