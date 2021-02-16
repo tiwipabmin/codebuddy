@@ -37,17 +37,17 @@ block content
     .content  
       .item
         .ui.master.checkbox
-          input(type="checkbox" name="allfile")
+          input.checkbox-item(type="checkbox" name="allfile")
           label Select all file
         .list#export-checklist
           each file in dataSets.origins.project.files
             .item.export-file-item(id=file+'-export-file-item')
               .ui.child.checkbox
-                input(type="checkbox" name='checkbox-file', value=file)
+                input.checkbox-item(type="checkbox" name='checkbox-file' value=file)
                 label=file+'.py'
     .actions
       button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
-      .ui.button.approve.red(data-value='cancel') Cancel
+      .ui.button.deny.red(data-value='cancel') Cancel
 
   //- reject joining project
   .ui.basic.modal#rejectJoining
@@ -87,6 +87,8 @@ block content
           .ui.blue.massive.inverted.negative.button
             i.remove.icon
             |       Close
+  
+  //- code review modal
   .ui.modal
   .ui.reviewer.small.modal
     .header Code Review
