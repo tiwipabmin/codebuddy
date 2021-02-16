@@ -24,6 +24,24 @@ block content
             i.check.icon
             |       ตกลง
 
+  //- exporting file modal
+  .ui.small.modal#export-modal
+    .header Export File
+    .content  
+      .item
+        .ui.master.checkbox
+          input(type="checkbox" name="allfile")
+          label Select all file
+        .list#export-checklist
+          each file in dataSets.origins.project.files
+            .item.export-file-item(id=file+'-export-file-item')
+              .ui.child.checkbox
+                input(type="checkbox" name='checkbox-file', value=file)
+                label=file+'.py'
+    .actions
+      button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
+      .ui.button.approve.red(data-value='cancel') Cancel
+
   //- select role modal
   .ui.basic.modal#selectRole-modal
     .ui.icon.header
@@ -110,26 +128,7 @@ block content
                                   p='Do you want to delete ' + file + '.py?'
                                 .actions
                                   button.ui.button.approve.green(onClick=`deleteFile(${JSON.stringify(file)})`) Delete
-                                  .ui.button.approve.red(data-value='cancel') Cancel 
-
-        //- Export file modal
-        .ui.small.modal#export-modal
-          .header Export File
-          .content  
-            .item
-              .ui.master.checkbox
-                input(type="checkbox" name="allfile")
-                label Select all file
-              .list#export-checklist
-                each file in dataSets.origins.project.files
-                  .item.export-file-item(id=file+'-export-file-item')
-                    .ui.child.checkbox
-                      input(type="checkbox" name='checkbox-file', value=file)
-                      label=file+'.py'       
-          .actions
-            button.ui.button.approve.green(id='exportBtn' onClick='onClickExport()') Export
-            .ui.button.approve.red(data-value='cancel') Cancel  
-
+                                  .ui.button.approve.red(data-value='cancel') Cancel  
         .ui.bottom.attached.tab.segment(data-tab='second')
           .ui.toggle.lightmodetoggle.checkbox
             input(type='checkbox' onChange='changeTheme()')#lightmodetoggle
@@ -155,6 +154,8 @@ block content
                 a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py' 
                   span(onClick=`closeTab(${JSON.stringify(file)})`)
                     i.delete.icon(id='close-tab-icon')
+            a.item(class='add-file' onClick='addFile()') 
+              i.plus.icon
           .ui.tab-content
             each file,index in dataSets.origins.project.files
               if index == 0
@@ -164,6 +165,8 @@ block content
                 .ui.bottom.attached.tab.segment(id=file+'-tab' data-tab=file)
                   textarea(id=file+'text').show
           input(type='hidden' id='projectFiles' value=dataSets.origins.project.files)
+
+        //- filename modal
         .ui.small.modal#filename-modal
           .header Filename
           .content
@@ -197,5 +200,6 @@ block content
   script(src='/xterm/addons/fit/fit.js')
   script(src='/js/static/countdown.min.js')
   script(src='/js/app/playgroundIndividual.js' data-username=`${user.username}` data-partnerImg=`${partner_img}` data-uid=`${user._id}`)
+  script(src='/js/app/main.js')
   script(src='/trackingjs/build/tracking-min.js')
   script(src='/trackingjs/build/data/face-min.js')

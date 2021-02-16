@@ -93,7 +93,7 @@ module.exports = (io, client, redis, projects) => {
         (err, res) => res
       )
     });
-    io.in(projectId).emit("auto update score");
+    client.emit("auto update score");
   }
 
   /**
@@ -813,12 +813,12 @@ module.exports = (io, client, redis, projects) => {
                               avgScore: result.avg
                             };
                             if (mode == "auto") {
-                              io.in(projectId).emit(
+                              client.emit(
                                 "show auto update score",
                                 shownScore
                               );
                             } else {
-                              io.in(projectId).emit("show score", shownScore);
+                              client.emit("show score", shownScore);
                               io.in(projectId).emit(
                                 "show auto update score",
                                 shownScore
@@ -899,12 +899,12 @@ module.exports = (io, client, redis, projects) => {
                                     avgScore: result.avg
                                   };
                                   if (mode == "auto") {
-                                    io.in(projectId).emit(
+                                    client.emit(
                                       "show auto update score",
                                       shownScore
                                     );
                                   } else {
-                                    io.in(projectId).emit(
+                                    client.emit(
                                       "show score",
                                       shownScore
                                     );
