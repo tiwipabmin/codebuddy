@@ -32,6 +32,7 @@ require('./models/history')
 require('./models/message')
 require('./models/notification')
 require('./models/project')
+require('./models/projectSession')
 require('./models/score')
 require('./models/user')
 

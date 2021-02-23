@@ -13,28 +13,28 @@ block content
     //- $('#global_loader').attr({
     //-   'style': 'display: block; position: fixed;'
     //- })
-  
+
   //- Playground Remote Loader
-  .ui.active.inverted.dimmer#playground-remote-loader(style='position:fixed; display:block;')
+  .ui.active.inverted.dimmer#playground-remote-loader(style='position:fixed; display:none;')
     .ui.text.loader#pr-text-loader รอเพื่อนของคุณเข้าร่วมโปรเจ็กต์.
 
   //- confirm role change
-  .ui.basic.modal#confirmRoleChange
-    .ui.icon.header#header_srm ถึงเวลาสลับบทบาทแล้วครับ/ค่ะ
+  .ui.basic.modal#cnfr-rl-chng
+    .ui.icon.header#hdr-crc ถึงเวลาสลับบทบาทแล้วครับ/ค่ะ
     .content
       .actions
         center
-          .ui.green.massive.inverted.positive.button#ok_button_srm
+          .ui.green.massive.inverted.positive.button#acpt-btn-crc
             i.check.icon
-            |       ตกลง
-          .ui.green.massive.inverted.negative.button#close_button_srm
-            i.check.icon
-            |       ตกลง
+            |       ยอมรับ
+          .ui.red.massive.inverted.negative.button#dcln-btn-crc(style="display:none;")
+            i.close.icon
+            |       ปฏิเสธ
 
   //- exporting file modal
   .ui.small.modal#export-modal
     .header Export File
-    .content  
+    .content
       .item
         .ui.master.checkbox
           input.checkbox-item(type="checkbox" name="allfile")
@@ -58,7 +58,7 @@ block content
           a.ui.green.massive.inverted.positive.button#backToClass(href='/classroom/section/'+`${dataSets.origins.section.section_id}`)
             i.check.icon
             |       ตกลง
-  
+
   //- select role modal
   .ui.basic.modal#selectRole-modal
     .ui.icon.header#header_serm
@@ -87,7 +87,7 @@ block content
           .ui.blue.massive.inverted.negative.button
             i.remove.icon
             |       Close
-  
+
   //- code review modal
   .ui.modal
   .ui.reviewer.small.modal
@@ -159,7 +159,7 @@ block content
               .countdown
               .auto-swap-warning
             div.margin-top-15
-              button.ui.primary.labeled.icon.button.margin-top-15(onClick='switchRole()')
+              button.ui.primary.labeled.icon.button.margin-top-15#swtc-rl-btn(disabled onClick=`switchRole(\"${user.username}\")`)
                 i.refresh.icon
                 |  Switch Role
             //- - let partner_obj = partner_obj
@@ -338,7 +338,7 @@ block content
     .face-tracking video,canvas {
       position: absolute;
     }
-    
+
   .ui.chatbox(id="live-chat")
     header.clearfix
       eight.wide.column(style="float: left;") 
