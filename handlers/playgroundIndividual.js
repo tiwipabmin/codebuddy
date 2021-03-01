@@ -7,6 +7,7 @@ const Cryptr = require("cryptr");
 const cryptr = new Cryptr("codebuddy");
 
 const Project = mongoose.model("Project");
+const ProjectSession = mongoose.model("ProjectSession");
 const Score = mongoose.model("Score");
 const User = mongoose.model("User");
 const History = mongoose.model("History");
@@ -19,6 +20,8 @@ module.exports = (io, client, redis, projects) => {
   let curUser = "";
   let detectInput = "empty@Codebuddy";
   let pythonProcess = null;
+  let timerId = {};
+  let projectSessionId = "";
 
   winston.info("Client connected");
 
@@ -27,7 +30,7 @@ module.exports = (io, client, redis, projects) => {
    * @param {Object} payload receive project id from client payload
    * after that socket will fire `init state` with editor code to initiate local editor
    */
-  client.on("join project", async payload => {
+  client.on("join project", async (payload) => {
     try {
       projectId = payload.pid;
       curUser = payload.username;
@@ -36,14 +39,14 @@ module.exports = (io, client, redis, projects) => {
 
       Project.update(
         {
-          pid: projectId
+          pid: projectId,
         },
         {
           $set: {
-            enable_time: Date.now()
-          }
+            enable_time: Date.now(),
+          },
         },
-        err => {
+        (err) => {
           if (err) throw err;
         }
       );
@@ -68,11 +71,12 @@ module.exports = (io, client, redis, projects) => {
           roles: {
             coder: "",
             reviewer: "",
-            reviews: []
+            reviews: [],
           },
-          active_user: active_user
+          active_user: active_user,
         };
 
+        initializeProjectSession(curUser, projectId)
         initRemainder();
       } else {
         if (projects[projectId].reject === undefined) {
@@ -91,9 +95,67 @@ module.exports = (io, client, redis, projects) => {
         `project:${projectId}`,
         "editor",
         (err, res) => res
-      )
+      ),
     });
     io.in(projectId).emit("auto update score");
+  }
+
+  /**
+   *
+   * @param {*}
+   */
+  async function initializeProjectSession(username, pid) {
+    try {
+
+      const user = await User.findOne({ username: username }, (err, res) => {
+        if (err) throw err;
+        return res;
+      });
+
+      const project = await Project.findOne({ pid: pid }, (err, res) => {
+        if (err) throw err;
+        return res;
+      });
+
+      const projectSessions = await new ProjectSession(
+        {
+          uid: user._id,
+          pid: project.pid,
+          noOfActiveUser: 1,
+        },
+        (err, res) => {
+          if (err) throw err;
+          return res;
+        }
+      ).save();
+      projectSessionId = projectSessions.psid;
+
+      dwellingTimer(projectSessionId);
+    } catch (err) {
+      console.error(`Catching err: ${err}`);
+    }
+  }
+
+  /**
+   *
+   * @param {*} user
+   * @param {*} project
+   */
+  function dwellingTimer(psid) {
+    timerId[`${psid}dwellingtimer`] = setInterval(() => {
+      console.log(`${curUser} Dwelling Timer of ${psid}: ${1000}`);
+      ProjectSession.updateOne(
+        {
+          psid: psid,
+        },
+        {
+          $inc: { dwellingTime: 1000 },
+        },
+        (err) => {
+          if (err) console.error(`Catching err: ${err}`);
+        }
+      );
+    }, 1000);
   }
 
   /**
@@ -113,18 +175,19 @@ module.exports = (io, client, redis, projects) => {
         client.leave(projectId);
       } else {
         delete projects[projectId];
+        clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
 
         client.leave(projectId);
         Project.updateOne(
           {
-            pid: projectId
+            pid: projectId,
           },
           {
             $set: {
-              disable_time: Date.now()
-            }
+              disable_time: Date.now(),
+            },
           },
-          err => {
+          (err) => {
             if (err) throw err;
           }
         );
@@ -140,20 +203,20 @@ module.exports = (io, client, redis, projects) => {
    * `create file` event fired when user click create new file
    * @param {Ibject} payload fileName
    */
-  client.on("create file", payload => {
+  client.on("create file", (payload) => {
     /**
      * save file name to mongoDB
      **/
     Project.update(
       {
-        pid: projectId
+        pid: projectId,
       },
       {
         $push: {
-          files: payload
-        }
+          files: payload,
+        },
       },
-      err => {
+      (err) => {
         if (err) throw err;
       }
     );
@@ -164,14 +227,14 @@ module.exports = (io, client, redis, projects) => {
     fs.open(
       "./public/project_files/" + projectId + "/" + payload + ".py",
       "w",
-      function(err, file) {
+      function (err, file) {
         if (err) throw err;
       }
     );
 
     io.in(projectId).emit("update tab", {
       fileName: payload,
-      action: "create"
+      action: "create",
     });
   });
 
@@ -179,20 +242,20 @@ module.exports = (io, client, redis, projects) => {
    * `delete file` event fired when user click delete file
    * @param {Ibject} payload fileName
    */
-  client.on("delete file", async payload => {
+  client.on("delete file", async (payload) => {
     /**
      * delete file in mongoDB
      **/
     Project.update(
       {
-        pid: projectId
+        pid: projectId,
       },
       {
         $pull: {
-          files: payload
-        }
+          files: payload,
+        },
       },
-      err => {
+      (err) => {
         if (err) throw err;
       }
     );
@@ -213,14 +276,14 @@ module.exports = (io, client, redis, projects) => {
      **/
     fs.unlink(
       "./public/project_files/" + projectId + "/" + payload + ".py",
-      function(err) {
+      function (err) {
         if (err) throw err;
       }
     );
 
     io.in(projectId).emit("update tab", {
       fileName: payload,
-      action: "delete"
+      action: "delete",
     });
   });
 
@@ -228,7 +291,7 @@ module.exports = (io, client, redis, projects) => {
    * `code change` event fired when user typing in editor
    * @param {Object} payload receive code from client payload
    */
-  client.on("code change", payload => {
+  client.on("code change", (payload) => {
     const origin = !!payload.code.origin && payload.code.origin !== "setValue";
     /**
      * origin mustn't be an `undefined` or `setValue` type
@@ -238,7 +301,7 @@ module.exports = (io, client, redis, projects) => {
       payload.code.fileName = payload.fileName;
       client.to(projectId).emit("editor update", payload.code);
       editorName = payload.fileName;
-      redis.hgetall(`project:${projectId}`, function(err, obj) {
+      redis.hgetall(`project:${projectId}`, function (err, obj) {
         var editorJson = {};
         if (obj.editor != undefined) {
           var editorJson = JSON.parse(obj.editor);
@@ -320,10 +383,10 @@ module.exports = (io, client, redis, projects) => {
                 pid: projectId,
                 file: fileName,
                 line: fromLine,
-                ch: { $gte: fromCh }
+                ch: { $gte: fromCh },
               },
               { line: 1, ch: 1, text: 1, _id: 0 },
-              function(err, res) {
+              function (err, res) {
                 if (err) return handleError(err);
                 var textInLine = res;
                 for (var i = 0; i < textInLine.length; i++) {
@@ -333,15 +396,15 @@ module.exports = (io, client, redis, projects) => {
                       file: fileName,
                       line: textInLine[i].line,
                       ch: textInLine[i].ch,
-                      text: textInLine[i].text
+                      text: textInLine[i].text,
                     },
                     {
                       $set: {
                         line: fromLine,
-                        ch: fromCh + i + 1
-                      }
+                        ch: fromCh + i + 1,
+                      },
                     },
-                    err => {
+                    (err) => {
                       if (err) throw err;
                     }
                   );
@@ -360,9 +423,9 @@ module.exports = (io, client, redis, projects) => {
             ch: fromCh,
             text: payload.code.text.toString(),
             user: payload.user,
-            createdAt: Date.now()
+            createdAt: Date.now(),
           };
-          new History(historyModel, err => {
+          new History(historyModel, (err) => {
             if (err) throw err;
           }).save();
         } else if (enterText.length == 2) {
@@ -382,10 +445,10 @@ module.exports = (io, client, redis, projects) => {
               pid: projectId,
               file: fileName,
               line: fromLine,
-              ch: { $gte: fromCh }
+              ch: { $gte: fromCh },
             },
             { line: 1, ch: 1, text: 1, _id: 0 },
-            function(err, res) {
+            function (err, res) {
               if (err) return handleError(err);
               var textInLine = res;
 
@@ -396,15 +459,15 @@ module.exports = (io, client, redis, projects) => {
                     file: fileName,
                     line: textInLine[i].line,
                     ch: textInLine[i].ch,
-                    text: textInLine[i].text
+                    text: textInLine[i].text,
                   },
                   {
                     $set: {
                       line: fromLine + 1,
-                      ch: i
-                    }
+                      ch: i,
+                    },
                   },
-                  err => {
+                  (err) => {
                     if (err) throw err;
                   }
                 );
@@ -418,7 +481,7 @@ module.exports = (io, client, redis, projects) => {
           History.find(
             { pid: projectId, file: fileName, line: { $gt: fromLine } },
             { line: 1, ch: 1, text: 1, _id: 0 },
-            function(err, res) {
+            function (err, res) {
               if (err) return handleError(err);
               var textInLine = res;
 
@@ -429,14 +492,14 @@ module.exports = (io, client, redis, projects) => {
                     file: fileName,
                     line: textInLine[i].line,
                     ch: textInLine[i].ch,
-                    text: textInLine[i].text
+                    text: textInLine[i].text,
                   },
                   {
                     $set: {
-                      line: textInLine[i].line + 1
-                    }
+                      line: textInLine[i].line + 1,
+                    },
                   },
-                  err => {
+                  (err) => {
                     if (err) throw err;
                   }
                 );
@@ -489,13 +552,13 @@ module.exports = (io, client, redis, projects) => {
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("run code", payload => {
+  client.on("run code", (payload) => {
     var code = payload.code;
-    Object.keys(code).forEach(function(key) {
+    Object.keys(code).forEach(function (key) {
       fs.writeFile(
         "./public/project_files/" + projectId + "/" + key + ".py",
         code[key],
-        err => {
+        (err) => {
           if (err) throw err;
         }
       );
@@ -515,7 +578,7 @@ module.exports = (io, client, redis, projects) => {
       );
     }
 
-    pythonProcess.on("data", data => {
+    pythonProcess.on("data", (data) => {
       /**
        * check is code error
        **/
@@ -526,7 +589,7 @@ module.exports = (io, client, redis, projects) => {
         /**
          * increase error_count of user
          **/
-        Score.where({ pid: projectId, uid: payload.uid }).findOne(function(
+        Score.where({ pid: projectId, uid: payload.uid }).findOne(function (
           err,
           score
         ) {
@@ -535,14 +598,14 @@ module.exports = (io, client, redis, projects) => {
             Score.update(
               {
                 pid: projectId,
-                uid: payload.uid
+                uid: payload.uid,
               },
               {
                 $set: {
-                  error_count: parseInt(score.error_count) + 1
-                }
+                  error_count: parseInt(score.error_count) + 1,
+                },
               },
-              err => {
+              (err) => {
                 if (err) throw err;
               }
             );
@@ -570,7 +633,7 @@ module.exports = (io, client, redis, projects) => {
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("typing input on term", payload => {
+  client.on("typing input on term", (payload) => {
     var inputTerm = payload.inputTerm;
     detectInput = inputTerm;
     if (pythonProcess !== undefined) {
@@ -582,7 +645,7 @@ module.exports = (io, client, redis, projects) => {
    * `pause running code` event fired when user click on pause button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("pause run code", payload => {
+  client.on("pause run code", (payload) => {
     if (pythonProcess != undefined) {
       setTimeout(pythonProcess.kill.bind(pythonProcess), 0);
     }
@@ -593,11 +656,11 @@ module.exports = (io, client, redis, projects) => {
    * `send active tab` event fired when user change tab
    * @param {Object} payload active tab
    */
-  client.on("send active tab", payload => {
+  client.on("send active tab", (payload) => {
     io.in(projectId).emit("show partner active tab", payload);
   });
 
-  client.on("open tab", async payload => {
+  client.on("open tab", async (payload) => {
     var fileName = payload;
     var code = await redis.hget(
       `project:${projectId}`,
@@ -606,16 +669,16 @@ module.exports = (io, client, redis, projects) => {
     );
     io.in(projectId).emit("set editor open tab", {
       fileName: fileName,
-      editor: code
+      editor: code,
     });
   });
 
-  client.on("save lines of code", payload => {
+  client.on("save lines of code", (payload) => {
     History.aggregate([
       { $match: { user: curUser, pid: projectId } },
-      { $group: { _id: { file: "$file", line: "$line" } } }
-    ]).then(function(res) {
-      Score.where({ pid: projectId, uid: payload.uid }).findOne(function(
+      { $group: { _id: { file: "$file", line: "$line" } } },
+    ]).then(function (res) {
+      Score.where({ pid: projectId, uid: payload.uid }).findOne(function (
         err,
         score
       ) {
@@ -624,14 +687,14 @@ module.exports = (io, client, redis, projects) => {
           Score.update(
             {
               pid: projectId,
-              uid: payload.uid
+              uid: payload.uid,
             },
             {
               $set: {
-                lines_of_code: parseInt(res.length)
-              }
+                lines_of_code: parseInt(res.length),
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );
@@ -644,7 +707,7 @@ module.exports = (io, client, redis, projects) => {
    * `submit code` event fired when user click on submit button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("submit code", payload => {
+  client.on("submit code", (payload) => {
     const mode = payload.mode;
     const uid = payload.uid;
     const code = payload.code;
@@ -676,12 +739,12 @@ module.exports = (io, client, redis, projects) => {
     let pylintProcess;
     var args = ["-j", "1"];
 
-    Object.keys(code).forEach(function(key) {
+    Object.keys(code).forEach(function (key) {
       args.push("./public/project_files/" + projectId + "/" + key + ".py");
       fs.writeFile(
         "./public/project_files/" + projectId + "/" + key + ".py",
         code[key],
-        err => {
+        (err) => {
           if (err) throw err;
         }
       );
@@ -696,7 +759,7 @@ module.exports = (io, client, redis, projects) => {
     /**
      * This listener may be send data three times per one process or more
      **/
-    pylintProcess.on("data", data => {
+    pylintProcess.on("data", (data) => {
       /** get score from the message of pylint that's
        *  " ************* Module main
        *    public\project_files\FUNmY7nU8h\main.py:1:0: C0304: Final newline missing (missi
@@ -735,7 +798,7 @@ module.exports = (io, client, redis, projects) => {
         if (data.indexOf("(syntax-error)") != -1) {
           count_error++;
         }
-        Project.where({ pid: projectId }).findOne(function(err, project) {
+        Project.where({ pid: projectId }).findOne(function (err, project) {
           if (err);
           if (project) {
             if (project.creator_id != null && project.collaborator_id != null) {
@@ -743,7 +806,7 @@ module.exports = (io, client, redis, projects) => {
               if (project.programming_style !== "Individual") {
                 users = [project.creator_id, project.collaborator_id];
               }
-              users.forEach(function(element) {
+              users.forEach(function (element) {
                 const scoreModel = {
                   pid: projectId,
                   uid: element,
@@ -753,17 +816,17 @@ module.exports = (io, client, redis, projects) => {
                   error_count: 0,
                   participation: {
                     enter: [new Date()],
-                    pairing: []
+                    pairing: [],
                   },
-                  createdAt: Date.now()
+                  createdAt: Date.now(),
                 };
-                Score.where({ pid: projectId, uid: element }).findOne(function(
+                Score.where({ pid: projectId, uid: element }).findOne(function (
                   err,
                   oldScore
                 ) {
                   if (err) throw err;
                   if (!oldScore) {
-                    new Score(scoreModel, err => {
+                    new Score(scoreModel, (err) => {
                       if (err) throw err;
                     }).save();
 
@@ -774,37 +837,37 @@ module.exports = (io, client, redis, projects) => {
                       [
                         {
                           $match: {
-                            uid: element
-                          }
+                            uid: element,
+                          },
                         },
                         {
                           $group: {
                             _id: "$uid",
-                            avg: { $avg: "$score" }
-                          }
-                        }
+                            avg: { $avg: "$score" },
+                          },
+                        },
                       ],
-                      function(err, results) {
+                      function (err, results) {
                         if (err) {
                           console.log(err);
                           return;
                         }
                         if (results) {
                           // sum = 0;
-                          results.forEach(function(result) {
+                          results.forEach(function (result) {
                             /**
                              * start update
                              **/
                             User.update(
                               {
-                                _id: element
+                                _id: element,
                               },
                               {
                                 $set: {
-                                  avgScore: result.avg
-                                }
+                                  avgScore: result.avg,
+                                },
                               },
-                              function(err, userReturn) {
+                              function (err, userReturn) {
                                 if (err);
                                 if (userReturn) {
                                   console.log(userReturn);
@@ -817,7 +880,7 @@ module.exports = (io, client, redis, projects) => {
                             const shownScore = {
                               score: score,
                               uid: element,
-                              avgScore: result.avg
+                              avgScore: result.avg,
                             };
                             if (mode == "auto") {
                               io.in(projectId).emit(
@@ -843,14 +906,14 @@ module.exports = (io, client, redis, projects) => {
                     Score.update(
                       {
                         pid: projectId,
-                        uid: element
+                        uid: element,
                       },
                       {
                         $set: {
-                          score: score
-                        }
+                          score: score,
+                        },
                       },
-                      async function(err, scoreReturn) {
+                      async function (err, scoreReturn) {
                         if (err) throw err;
                         if (scoreReturn) {
                           /**
@@ -860,37 +923,37 @@ module.exports = (io, client, redis, projects) => {
                             [
                               {
                                 $match: {
-                                  uid: element
-                                }
+                                  uid: element,
+                                },
                               },
                               {
                                 $group: {
                                   _id: "$uid",
-                                  avg: { $avg: "$score" }
-                                }
-                              }
+                                  avg: { $avg: "$score" },
+                                },
+                              },
                             ],
-                            function(err, results) {
+                            function (err, results) {
                               if (err) {
                                 console.log(err);
                                 return;
                               }
                               if (results) {
                                 // sum = 0;
-                                results.forEach(function(result) {
+                                results.forEach(function (result) {
                                   /**
                                    * start update
                                    **/
                                   User.update(
                                     {
-                                      _id: element
+                                      _id: element,
                                     },
                                     {
                                       $set: {
-                                        avgScore: result.avg
-                                      }
+                                        avgScore: result.avg,
+                                      },
                                     },
-                                    function(err, userReturn) {
+                                    function (err, userReturn) {
                                       if (err);
                                       if (userReturn) {
                                         console.log(userReturn);
@@ -903,7 +966,7 @@ module.exports = (io, client, redis, projects) => {
                                   const shownScore = {
                                     score: score,
                                     uid: element,
-                                    avgScore: result.avg
+                                    avgScore: result.avg,
                                   };
                                   if (mode == "auto") {
                                     io.in(projectId).emit(
@@ -941,7 +1004,7 @@ module.exports = (io, client, redis, projects) => {
     });
   });
 
-  client.on("export file", payload => {
+  client.on("export file", (payload) => {
     let fileNameList = payload.fileNameList;
     let fileNameListLength = Object.keys(fileNameList).length;
     let code = payload.code;
@@ -955,7 +1018,7 @@ module.exports = (io, client, redis, projects) => {
           fileNameList[index] +
           ".py",
         code[fileNameList[index]],
-        err => {
+        (err) => {
           if (err) throw er;
         }
       );
@@ -972,10 +1035,10 @@ module.exports = (io, client, redis, projects) => {
         /**
          * Sets the compression level.
          **/
-        zlib: { level: 9 }
+        zlib: { level: 9 },
       });
 
-      archive.on("error", function(err) {
+      archive.on("error", function (err) {
         throw err;
       });
       /**
@@ -985,7 +1048,7 @@ module.exports = (io, client, redis, projects) => {
       /**
        * append files
        **/
-      fileNameList.forEach(function(fileName) {
+      fileNameList.forEach(function (fileName) {
         archive.file(
           "./public/project_files/" + projectId + "/" + fileName + ".py",
           { name: fileName + ".py" }
@@ -997,7 +1060,7 @@ module.exports = (io, client, redis, projects) => {
     client.emit("download file", {
       projectId: projectId,
       fileNameListLength: fileNameListLength,
-      filePath: cryptr.encrypt(filePath)
+      filePath: cryptr.encrypt(filePath),
     });
   });
 
@@ -1006,7 +1069,7 @@ module.exports = (io, client, redis, projects) => {
       pid: projectId,
       file: fileName,
       line: fromLine,
-      ch: { $gte: fromCh, $lt: toCh }
+      ch: { $gte: fromCh, $lt: toCh },
     })
       .remove()
       .exec();
@@ -1031,7 +1094,7 @@ module.exports = (io, client, redis, projects) => {
           pid: projectId,
           file: fileName,
           line: i,
-          ch: { $gte: fromCh }
+          ch: { $gte: fromCh },
         })
           .remove()
           .exec();
@@ -1042,7 +1105,7 @@ module.exports = (io, client, redis, projects) => {
         History.find({
           pid: projectId,
           file: fileName,
-          line: i
+          line: i,
         })
           .remove()
           .exec();
@@ -1054,7 +1117,7 @@ module.exports = (io, client, redis, projects) => {
           pid: projectId,
           file: fileName,
           line: i,
-          ch: { $lt: toCh }
+          ch: { $lt: toCh },
         })
           .remove()
           .exec();
@@ -1072,7 +1135,7 @@ module.exports = (io, client, redis, projects) => {
     History.find(
       { pid: projectId, file: fileName, line: line, ch: { $gte: toCh } },
       { line: 1, ch: 1, text: 1, _id: 0 },
-      function(err, res) {
+      function (err, res) {
         if (err) return handleError(err);
         var textInLine = res;
         console.log(res);
@@ -1083,15 +1146,15 @@ module.exports = (io, client, redis, projects) => {
               file: fileName,
               line: textInLine[i].line,
               ch: textInLine[i].ch,
-              text: textInLine[i].text
+              text: textInLine[i].text,
             },
             {
               $set: {
                 line: fromLine,
-                ch: fromCh + i
-              }
+                ch: fromCh + i,
+              },
             },
-            err => {
+            (err) => {
               if (err) throw err;
             }
           );

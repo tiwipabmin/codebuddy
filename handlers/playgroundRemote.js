@@ -5,9 +5,11 @@ const fs = require("fs");
 const archiver = require("archiver");
 const nodepty = require("node-pty");
 const Cryptr = require("cryptr");
+const { disconnect } = require("process");
 const cryptr = new Cryptr("codebuddy");
 
 const Project = mongoose.model("Project");
+const ProjectSession = mongoose.model("ProjectSession");
 const Message = mongoose.model("Message");
 const Notification = mongoose.model("Notification");
 const Score = mongoose.model("Score");
@@ -22,6 +24,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let projectId = "";
   let sectionId = "";
   let curUser = "";
+  let projectSessionId = "";
   let detectInput = "empty@Codebuddy";
   let timerId = {};
   let comments = [];
@@ -31,186 +34,221 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let pingPongId = "";
   let autoDiscId = "";
 
+  /**
+   * `sendHeartbeat` function that sends heartbeat to client so that client send it back.
+   */
   function sendHeartbeat() {
     client.emit("PING", { beat: beat });
   }
 
-  function automaticallyDisconnect() {
+  /**
+   * `autoDisconnect` function that automatically disconnects from client.
+   */
+  function autoDisconnect() {
     client.disconnect();
   }
 
+  /**
+   * `PONG` event that check the client is connected.
+   */
   client.on("PONG", (payload) => {
     if (payload.beat > beat) {
       beat = payload.beat;
       pingPongId = setTimeout(sendHeartbeat, 5000);
       clearTimeout(autoDiscId);
-      autoDiscId = setTimeout(automaticallyDisconnect, 6000);
+      autoDiscId = setTimeout(autoDisconnect, 6000);
     } else {
       clearTimeout(pingPongId);
     }
   });
 
   /**
-   * `join project` evnet trigged when user joining project in playground page
+   * `join project` event trigged when user joining project in playground page
    * @param {Object} payload receive project id from client payload
    * after that socket will fire `init state` with editor code to initiate local editor
    */
   client.on("join project", async (payload) => {
     try {
-      pingPongId = setTimeout(sendHeartbeat, 5000);
-      autoDiscId = setTimeout(automaticallyDisconnect, 6000);
-
       projectId = payload.pid;
       curUser = payload.username;
       sectionId = cryptr.decrypt(payload.sectionId);
 
-      /**
-       * Join session socket with project id
-       */
-      client.join(projectId);
+      const user = await User.findOne({ username: curUser }, (err, res) => {
+        if (err) throw err;
+        return res;
+      });
 
-      let allcomment = await Comment.find(
-        { pid: payload.pid },
-        { file: 1, line: 1, description: 1, _id: 0 }
-      ).sort({ line: 1 });
+      const project = await Project.findOne({ pid: projectId }, (err, res) => {
+        if (err) throw err;
+        return res;
+      });
 
-      for (let i in allcomment) {
-        comments.push({
-          file: allcomment[i].file,
-          line: allcomment[i].line,
-          description: allcomment[i].description,
-        });
-      }
-
-      const updateProject = await Project.updateOne(
-        {
-          pid: projectId,
-        },
-        {
-          $set: {
-            enable_time: Date.now(),
-          },
-        },
-        (err) => {
-          if (err) throw err;
-        }
-      );
-
-      /**
-       * Increase users' enter count
-       **/
-      const user = await User.findOne({ username: curUser });
-      const project = await Project.findOne({ pid: projectId });
-      await Score.updateOne(
-        { pid: projectId, uid: user._id },
-        { $push: { "participation.enter": new Date() } }
-      );
-
-      /**
-       * Check this project doesn't have any roles assigned.
-       **/
       if (!projects[projectId]) {
-        // winston.info(`created new projects['${projectId}']`);
+        const partner =
+          curUser !== project.creator ? project.creator : project.collaborator;
 
-        let active_user = {};
-        active_user[curUser] = 1;
-        // let partner = null;
-        // if (curUser === project.creator) {
-        //   partner = project.collaborator;
-        // } else {
-        //   partner = project.creator;
-        // }
+        const activeUsers = {};
+        activeUsers[curUser] = 1;
         projects[projectId] = {
           roles: {
-            coder: "",
-            reviewer: "",
-            reviews: [],
+            coder: curUser,
+            reviewer: partner,
           },
-          active_user: active_user,
+          activeUsers: activeUsers,
         };
-        // client.emit("role selection", { partner: partner });
-
-        initRemainder(projectId);
 
         /**
-         * Create project notification
+         * Join session socket with project id
          */
-        const role = curUser !== project.creator ? `creator` : `collaborator`;
-        const partnerShip =
-          curUser !== project.creator ? project.creator : project.collaborator;
-        // console.log('Role, ', role, ', partnerShip, ', partnerShip)
+        client.join(projectId);
+        startHeartbeat();
 
-        let notifications = new Notification();
-        notifications.receiver = [
-          { username: curUser, status: `interacted` },
-          { username: partnerShip, status: `no interact` },
-        ];
-        notifications.link = `/project/${project.pid}/section/${cryptr.encrypt(
-          sectionId
-        )}/role/${role}`;
-        notifications.head = `Project: ${project.title}`;
-        notifications.content = `${project.description}`;
-        notifications.status = `pending`;
-        notifications.type = `project`;
-        notifications.createdBy = curUser;
-        notifications.info = { pid: project.pid };
-        notifications = await notifications.save();
+        client.emit("start the project session", {});
+
+        initRemainder(curUser, project);
+        createProjectNotification(curUser, project);
       } else {
-        if (projects[projectId].active_user[curUser] === undefined) {
+        if (projects[projectId].activeUsers[curUser] === undefined) {
           await Project.findOne({ pid: projectId }, async function (err, res) {
-            if (err) return handleError(err);
-            projects[projectId].active_user[curUser] = 2;
+            if (err) throw err;
+            if (res) {
+              projects[projectId].activeUsers[curUser] = 1;
 
-            /**
-             * Increase users' pairing count
-             **/
-            await Score.updateOne(
-              { pid: projectId, uid: project.creator_id },
-              { $push: { "participation.pairing": new Date() } }
-            );
-            await Score.updateOne(
-              { pid: projectId, uid: project.collaborator_id },
-              { $push: { "participation.pairing": new Date() } }
-            );
-            let numUser = Object.keys(projects[projectId].active_user).length;
-            // client.emit("role updated", {
-            //   roles: projects[projectId].roles,
-            //   project: res
-            // });
-            io.in(projectId).emit("update status", {
-              status: 1,
-              numUser: numUser,
-            });
+              /**
+               * Join session socket with project id
+               */
+              client.join(projectId);
+              startHeartbeat();
 
-            initRemainder(projectId);
+              io.in(projectId).emit("update status", {
+                status: 1,
+              });
 
-            io.in(projectId).emit("role selection", {
-              activeUsers: projects[projectId].active_user,
-              partner: curUser,
-            });
+              io.in(projectId).emit("clear interval", `dwellingtimer`);
+              io.in(projectId).emit("start the project session", {});
+
+              initRemainder(curUser, project);
+              countdownTimer();
+            } else {
+              client.disconnect();
+            }
           });
         } else {
-          if (projects[projectId].reject === undefined) {
-            projects[projectId].reject = 1;
+          if (projects[projectId].kickOff === undefined) {
+            projects[projectId].kickOff = 1;
+          } else {
+            projects[projectId].kickOff += 1;
           }
-          client.emit("reject joining");
+          client.emit("denied to join");
         }
       }
-    } catch (error) {
-      winston.info(`catching error: ${error}`);
+    } catch (err) {
+      console.error(`Catching err: ${err}`);
     }
   });
 
-  async function initRemainder(proId) {
+  /**
+   * `startHeartbeat` function that starts checking the client is connected.
+   */
+  function startHeartbeat() {
+    pingPongId = setTimeout(sendHeartbeat, 5000);
+    autoDiscId = setTimeout(autoDisconnect, 6000);
+  }
+
+  /**
+   * `initRemainder` function that initialize the remainder of the "join project" event.
+   * @param {String} proId the project id
+   */
+  async function initRemainder(username, project) {
+    await Project.updateOne(
+      {
+        pid: project.pid,
+      },
+      {
+        $set: {
+          enable_time: Date.now(),
+        },
+      },
+      (err, res) => {
+        if (err) throw err;
+        return res;
+      }
+    );
+
+    let allComment = await Comment.find(
+      { pid: project.pid },
+      { file: 1, line: 1, description: 1, _id: 0 },
+      (err, res) => {
+        if (err) throw err;
+        return res;
+      }
+    ).sort({ line: 1 });
+
+    for (let i in allComment) {
+      comments.push({
+        file: allComment[i].file,
+        line: allComment[i].line,
+        description: allComment[i].description,
+      });
+    }
+
     client.emit("init state", {
-      editor: await redis.hget(`project:${proId}`, "editor", (err, res) => res),
+      editor: await redis.hget(
+        `project:${project.pid}`,
+        "editor",
+        (err, res) => res
+      ),
     });
     client.emit("auto update score");
     client.emit("init reviews", comments);
+
+    /**
+     * Assign role to user.
+     */
+    io.in(projectId).emit("update role", {
+      roles: projects[project.pid].roles,
+      connected: username,
+    });
   }
 
-  client.on("clear interval", () => {
-    clearInterval(timerId["codebuddy"]);
+  /**
+   * `createProjectNotification` function that create the project notification.
+   * @param {Object} project project instance
+   * @param {String} curUser the current user
+   */
+  async function createProjectNotification(curUser, project) {
+    const role = curUser !== project.creator ? `creator` : `collaborator`;
+    const partner =
+      curUser !== project.creator ? project.creator : project.collaborator;
+
+    let notifications = new Notification();
+    notifications.receiver = [
+      { username: curUser, status: `interacted` },
+      { username: partner, status: `no interact` },
+    ];
+    notifications.link = `/project/${project.pid}/section/${cryptr.encrypt(
+      sectionId
+    )}/role/${role}`;
+    notifications.head = `Project: ${project.title}`;
+    notifications.content = `${project.description}`;
+    notifications.status = `pending`;
+    notifications.type = `project`;
+    notifications.createdBy = curUser;
+    notifications.info = { pid: project.pid };
+    notifications = await notifications.save();
+  }
+
+  client.on("initialize the project session", () => {
+    initializeProjectSession(curUser, projectId, 0);
+  });
+
+  client.on("clear interval", (name) => {
+    if (name === `countdowntimer`) {
+      console.log("countdowntimer");
+      clearInterval(timerId[`${projectId}countdowntimer`]);
+    } else if (name === `dwellingtimer`) {
+      clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+    }
   });
 
   /**
@@ -220,37 +258,49 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   client.on("disconnect", async () => {
     try {
       if (projects[projectId] !== undefined) {
-        let numUser = Object.keys(projects[projectId].active_user).length;
-        // winston.info(
-        //   `user left project ${projectId} now has ${numUser} user(s) online`
-        // );
-
-        if (projects[projectId].reject) {
-          delete projects[projectId].reject;
+        if (projects[projectId].kickOff) {
+          if (projects[projectId].kickOff > 1) projects[projectId].kickOff -= 1;
+          else delete projects[projectId].kickOff;
           client.leave(projectId);
         } else {
-          clearInterval(timerId["codebuddy"]);
+          clearInterval(timerId[`${projectId}countdowntimer`]);
+          clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
           /**
-           * Some time, countdownTimer() is started by only one users.
+           * `countdownTimer()` function is started by only one user.
            **/
-          io.in(projectId).emit("clear interval");
+          io.in(projectId).emit("clear interval", `countdowntimer`);
+          /**
+           * Clear "dwellingtimer" interval's any user who hasn't left the project at the moment.
+           */
+          io.in(projectId).emit("clear interval", `dwellingtimer`);
 
-          delete projects[projectId].active_user[curUser];
-          io.in(projectId).emit("confirm role change", {
-            roles: projects[projectId].roles,
-            activeUsers: projects[projectId].active_user,
-            status: "disconnect",
-            numUser: numUser,
-          });
-          io.in(projectId).emit("update status", {
-            status: 0,
-            numUser: numUser,
-          });
+          delete projects[projectId].activeUsers[curUser];
 
-          delete projects[projectId];
+          let numUser = Object.keys(projects[projectId].activeUsers).length;
+
+          /**
+           * Leave the project at a certain time.
+           */
           client.leave(projectId);
           clearTimeout(pingPongId);
           clearTimeout(autoDiscId);
+
+          if (numUser >= 1) {
+            if (curUser === projects[projectId].roles.coder) {
+              projects[projectId].roles = swapRole(projects[projectId].roles);
+            }
+            io.in(projectId).emit("auto role change", {
+              roles: projects[projectId].roles,
+              status: `disconnected`,
+            });
+            io.in(projectId).emit("update status", {
+              status: 0,
+            });
+            // clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+            io.in(projectId).emit("start the project session", {});
+          } else {
+            delete projects[projectId];
+          }
 
           await Project.updateOne(
             {
@@ -261,8 +311,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                 disable_time: Date.now(),
               },
             },
-            (err) => {
+            (err, res) => {
               if (err) throw err;
+              return res;
             }
           );
 
@@ -327,10 +378,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           }
         }
       }
-
-      // winston.info("Client disconnected");
-    } catch (error) {
-      winston.info(`catching error: ${error}`);
+    } catch (err) {
+      winston.error(`Catching error: ${err}`);
     }
   });
 
@@ -517,7 +566,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       "w",
       function (err, file) {
         if (err) throw err;
-        console.log("file " + payload + ".py is created");
       }
     );
 
@@ -566,7 +614,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     fs.unlink(
       "./public/project_files/" + projectId + "/" + payload + ".py",
       function (err) {
-        if (err) throw err;
+        if (err) console.error(err);
         console.log(payload + ".py is deleted!");
       }
     );
@@ -579,7 +627,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
   /**
    * `role selected` event fired when one of the project user select his role
-   * @param {Ibject} payload user selected role and partner username
+   * @param {Object} payload user selected role and partner username
    * then socket will broadcast the role to his partner
    **/
   client.on("role selected", (payload) => {
@@ -593,19 +641,66 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     }
     Project.findOne({ pid: projectId }, function (err, res) {
       if (err) return handleError(err);
-      io.in(projectId).emit("role updated", {
+      io.in(projectId).emit("update role", {
         roles: projects[projectId].roles,
         project: res,
       });
     });
   });
 
+  /**
+   * The `switch role` event have 2 cases of this events as follows:
+   * 1. the event fired when the one of users want to switch his role.
+   * 2. The one of users leave the project session at a certain time.
+   * @param {Object} payload contain `requestedBy` var,
+   * @param {String} requestedBy the username of user requesting to switch role.
+   */
   client.on("switch role", (payload) => {
-    if (payload.action === undefined) {
-      payload.action = "switch role";
+    let numUser = Object.keys(projects[projectId].activeUsers).length;
+    try {
+      if (numUser >= 2 && payload.requestedBy !== "disconnected") {
+        const roles = swapRole(projects[projectId].roles);
+        io.in(projectId).emit(
+          "manually switch role",
+          roles,
+          payload.requestedBy
+        );
+      } else {
+        io.in(projectId).emit("update role", {
+          roles: projects[projectId].roles,
+        });
+      }
+    } catch (err) {
+      console.error(`Catching err: ${err}`);
     }
-    clearInterval(timerId["codebuddy"]);
-    switchRole(payload);
+  });
+
+  /**
+   * `confirm to switch role` event fired when `switch role` event occured.
+   * @param {String} answer The confirmation for changing role.
+   * @param {Object} roles The roles instance contain coder, reviewer and requestedBy.
+   */
+  client.on("confirm to switch role", (answer, roles) => {
+    try {
+      if (answer === "accept") {
+        delete roles.requestedBy;
+        projects[projectId].roles = roles;
+        /**
+         * The switch role request is accepted.
+         */
+        countdownTimer();
+        io.in(projectId).emit("update role", {
+          roles: projects[projectId].roles,
+        });
+      } else {
+        io.in(projectId).emit("update role", {
+          roles: null,
+          requestedBy: roles.requestedBy,
+        });
+      }
+    } catch (err) {
+      console.error(`Catching err: ${err}`);
+    }
   });
 
   /**
@@ -1063,6 +1158,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         },
       }
     );
+
+    await ProjectSession.updateOne(
+      { psid: projectSessionId },
+      { $inc: { activeTime: payload.time } }
+    );
   });
 
   client.on("save lines of code", (payload) => {
@@ -1167,7 +1267,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         score = data.slice(before_score + 28, after_score);
       }
       // else if (data.indexOf('E:') < 0) {
-      //   // console.log('data, ', data, ', data.indexOf(\'E:\'), ', data.indexOf('E:'))
       //   score = 0
       // }
       data = data.replace(/\/10/g, "/100.00");
@@ -1237,7 +1336,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                       ],
                       function (err, results) {
                         if (err) {
-                          console.log(err);
+                          console.error(err);
                           return;
                         }
                         if (results) {
@@ -1255,7 +1354,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                                 },
                               },
                               function (err, userReturn) {
-                                if (err);
+                                if (err) console.error(err);
                                 if (userReturn) {
                                   console.log(userReturn);
                                 }
@@ -1271,10 +1370,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                               avgScore: result.avg,
                             };
                             if (mode == "auto") {
-                              client.emit(
-                                "show auto update score",
-                                shownScore
-                              );
+                              client.emit("show auto update score", shownScore);
                             } else {
                               client.emit("show score", shownScore);
                               io.in(projectId).emit(
@@ -1323,7 +1419,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                             ],
                             function (err, results) {
                               if (err) {
-                                console.log(err);
+                                console.error(err);
                                 return;
                               }
                               if (results) {
@@ -1361,10 +1457,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                                       shownScore
                                     );
                                   } else {
-                                    client.emit(
-                                      "show score",
-                                      shownScore
-                                    );
+                                    client.emit("show score", shownScore);
                                     io.in(projectId).emit(
                                       "show auto update score",
                                       shownScore
@@ -1466,27 +1559,18 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         let seconds = moment
           .duration(swaptime - (Date.now() - start))
           .seconds();
-        // flag = 0;
-        // if (seconds == 0 && flag != 1) {
-        //   flag = 1;
-        //   io.in(projectId).emit("auto update score");
-        // } else {
-        //   flag = 0;
-        // }
         io.in(projectId).emit("countdown", {
           minutes: minutes,
           seconds: seconds,
         });
         if (minutes <= 0 && seconds <= 0) {
-          let numUser = Object.keys(projects[projectId].active_user).length;
-          clearInterval(timerId["codebuddy"]);
           io.in(projectId).emit("auto update score");
-          io.in(projectId).emit("confirm role change", {
+
+          projects[projectId].roles = swapRole(projects[projectId].roles);
+          io.in(projectId).emit("update role", {
             roles: projects[projectId].roles,
-            activeUsers: projects[projectId].active_user,
-            status: "connect",
-            numUser: numUser,
           });
+          countdownTimer();
         }
       });
     }
@@ -1497,47 +1581,112 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         return (swaptime = parseInt(project.swaptime) * 60 * 1000);
       }
     });
-    timerId["codebuddy"] = setInterval(intervalFunc, 1000);
-    redis.hset(`project:${projectId}`, "startTime", Date.now().toString());
+    if (timerId[`${projectId}countdowntimer`] === undefined) {
+      timerId[`${projectId}countdowntimer`] = setInterval(intervalFunc, 1000);
+      redis.hset(`project:${projectId}`, "startTime", Date.now().toString());
+      return
+    } else {
+      clearInterval(timerId[`${projectId}countdowntimer`])
+      delete timerId[`${projectId}countdowntimer`]
+      countdownTimer()
+      return
+    }
   }
 
-  function switchRole(payload) {
-    countdownTimer();
-    /**
-     * if This project hasn't have any roles assigned.
-     **/
-    if (!projects[projectId]) {
-      // winston.info(`created new projects['${projectId}'] - fix bug version`);
-      let active_user = {};
-      active_user[curUser] = 1;
-      projects[projectId] = {
-        roles: {
-          coder: "",
-          reviewer: "",
-          reviews: [],
-        },
-        count: 1,
-        active_user: active_user,
-      };
-      client.emit("role selection");
-    } else if (payload.action === "switch role") {
-      let numUser = Object.keys(projects[projectId].active_user).length;
-      if (
-        numUser == 2 ||
-        (projects[projectId].roles.reviewer === payload.user && numUser == 1)
-      ) {
-        const temp = projects[projectId].roles.coder;
-        projects[projectId].roles.coder = projects[projectId].roles.reviewer;
-        projects[projectId].roles.reviewer = temp;
-        Project.findOne({ pid: projectId }, function (err, res) {
-          if (err) return handleError(err);
-          io.in(projectId).emit("role updated", {
-            roles: projects[projectId].roles,
-            project: res,
+  /**
+   *
+   * @param {*}
+   */
+  async function initializeProjectSession(username, pid, count) {
+    if (projects[projectId].activeUsers[username]) {
+      if (projectSessionId === "") {
+        try {
+          const numUser = Object.keys(projects[projectId].activeUsers).length;
+          console.log(
+            `The Project Session of ${username} is initialized. There's ${numUser} users.`
+          );
+
+          const user = await User.findOne(
+            { username: username },
+            (err, res) => {
+              if (err) throw err;
+              return res;
+            }
+          );
+
+          const project = await Project.findOne({ pid: pid }, (err, res) => {
+            if (err) throw err;
+            return res;
           });
-        });
+
+          const projectSessions = await new ProjectSession(
+            {
+              uid: user._id,
+              pid: project.pid,
+              noOfActiveUser: numUser,
+            },
+            (err, res) => {
+              if (err) throw err;
+              return res;
+            }
+          ).save();
+          projectSessionId = projectSessions.psid;
+
+          dwellingTimer(projectSessionId);
+        } catch (err) {
+          console.error(`Catching err: ${err}`);
+        }
+        return;
+      } else {
+        if (count === 5) {
+          return;
+        }
+        console.log(`Initialize Project Session, ${count}`);
+        count += 1;
+        clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+        projectSessionId = "";
+        initializeProjectSession(username, pid, count);
+        return;
       }
     }
+  }
+
+  /**
+   *
+   * @param {*}
+   */
+  function completeProjectSession() {}
+
+  /**
+   *
+   * @param {*} user
+   * @param {*} project
+   */
+  function dwellingTimer(psid) {
+    timerId[`${psid}dwellingtimer`] = setInterval(() => {
+      console.log(`${curUser} Dwelling Timer of ${psid}: ${1000}`);
+      ProjectSession.updateOne(
+        {
+          psid: psid,
+        },
+        {
+          $inc: { dwellingTime: 1000 },
+        },
+        (err) => {
+          if (err) console.error(`Catching err: ${err}`);
+        }
+      );
+    }, 1000);
+  }
+
+  function swapRole(roles) {
+    const tempRoles = {
+      coder: "",
+      reviewer: "",
+    };
+    tempRoles.coder = roles.reviewer;
+    tempRoles.reviewer = roles.coder;
+    return tempRoles;
   }
 
   function saveComment(payload) {
@@ -1599,7 +1748,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           line: i,
           ch: { $gte: fromCh },
         });
-        console.log("Delete more line, ", resHis);
 
         History.findOne({
           pid: projectId,
