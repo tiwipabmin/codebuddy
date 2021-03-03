@@ -33,6 +33,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let beat = 0;
   let pingPongId = "";
   let autoDiscId = "";
+  let countTest = 0;
 
   /**
    * `sendHeartbeat` function that sends heartbeat to client so that client send it back.
@@ -129,6 +130,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
               initRemainder(curUser, project);
               countdownTimer();
+              io.in(projectId).emit("role timer")
             } else {
               client.disconnect();
             }
@@ -249,6 +251,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     } else if (name === `dwellingtimer`) {
       clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
     }
+    clearInterval(timerId[`codertimer`]);
+    clearInterval(timerId[`reviewertimer`]);
   });
 
   /**
@@ -265,6 +269,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         } else {
           clearInterval(timerId[`${projectId}countdowntimer`]);
           clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+          clearInterval(timerId[`codertimer`])
+          clearInterval(timerId[`reviewertimer`])
           /**
            * `countdownTimer()` function is started by only one user.
            **/
@@ -689,6 +695,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
          * The switch role request is accepted.
          */
         countdownTimer();
+        io.in(projectId).emit("role timer")
         io.in(projectId).emit("update role", {
           roles: projects[projectId].roles,
         });
@@ -701,6 +708,13 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     } catch (err) {
       console.error(`Catching err: ${err}`);
     }
+  });
+
+  /**
+   * 
+   */
+  client.on("role timer started", () => {
+    verifyRoles()
   });
 
   /**
@@ -1547,9 +1561,55 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   });
 
   /**
+   * CoderTime interval
+   */
+  async function coderTimeInterval() {
+    await ProjectSession.updateOne(
+      { psid: projectSessionId },
+      { $inc: { coderTime: 1000 } }
+    );
+  }
+
+  /**
+   * ReviewerTime interval
+   */
+  async function reviewerTimeInterval() {
+    await ProjectSession.updateOne(
+      { psid: projectSessionId },
+      { $inc: { reviewerTime: 1000 } }
+    );
+  }
+
+  /**
+   * Verify curUser in the roles
+   */
+  function verifyRoles() {
+    if (projects[projectId].roles.coder === curUser) {
+      console.log(
+        "CodeBuddy: projects[projectId].roles.coder",
+        projects[projectId].roles.coder
+      );
+      clearInterval(timerId[`reviewertimer`]);
+      countTest++
+      timerId[`codertimer`] = setInterval(coderTimeInterval, 1000);
+    } else if (projects[projectId].roles.reviewer === curUser) {
+      console.log(
+        "CodeBuddy: projects[projectId].roles.reviewer",
+        projects[projectId].roles.reviewer
+      );
+      clearInterval(timerId[`codertimer`]);
+      countTest++
+      timerId[`reviewertimer`] = setInterval(reviewerTimeInterval, 1000);
+    }
+  }
+
+  /**
    * This function is started by first only user.
    */
   function countdownTimer() {
+    /**
+     * Countdown interval
+     */
     function intervalFunc() {
       redis.hgetall(`project:${projectId}`, function (err, obj) {
         var start = new Date(parseInt(obj.startTime));
@@ -1571,6 +1631,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             roles: projects[projectId].roles,
           });
           countdownTimer();
+          io.in(projectId).emit("role timer")
         }
       });
     }
@@ -1584,12 +1645,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     if (timerId[`${projectId}countdowntimer`] === undefined) {
       timerId[`${projectId}countdowntimer`] = setInterval(intervalFunc, 1000);
       redis.hset(`project:${projectId}`, "startTime", Date.now().toString());
-      return
+      return;
     } else {
-      clearInterval(timerId[`${projectId}countdowntimer`])
-      delete timerId[`${projectId}countdowntimer`]
-      countdownTimer()
-      return
+      clearInterval(timerId[`${projectId}countdowntimer`]);
+      delete timerId[`${projectId}countdowntimer`];
+      countdownTimer();
+      return;
     }
   }
 
@@ -1664,7 +1725,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   function dwellingTimer(psid) {
     timerId[`${psid}dwellingtimer`] = setInterval(() => {
-      console.log(`${curUser} Dwelling Timer of ${psid}: ${1000}`);
+      // console.log(`${curUser} Dwelling Timer of ${psid}: ${1000}`);
       ProjectSession.updateOne(
         {
           psid: psid,
