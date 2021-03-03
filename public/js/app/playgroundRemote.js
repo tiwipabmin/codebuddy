@@ -425,6 +425,10 @@ socket.on("clear interval", (name) => {
   socket.emit("clear interval", name);
 });
 
+socket.on("role timer", () => {
+  socket.emit("role timer started");
+});
+
 /**
  * `update role` event fired when the project initialize and
  * the role is manually changed by the one of users.
