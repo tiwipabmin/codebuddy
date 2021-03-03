@@ -33,7 +33,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let beat = 0;
   let pingPongId = "";
   let autoDiscId = "";
-  let countTest = 0;
 
   /**
    * `sendHeartbeat` function that sends heartbeat to client so that client send it back.
@@ -1590,7 +1589,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         projects[projectId].roles.coder
       );
       clearInterval(timerId[`reviewertimer`]);
-      countTest++
       timerId[`codertimer`] = setInterval(coderTimeInterval, 1000);
     } else if (projects[projectId].roles.reviewer === curUser) {
       console.log(
@@ -1598,7 +1596,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         projects[projectId].roles.reviewer
       );
       clearInterval(timerId[`codertimer`]);
-      countTest++
       timerId[`reviewertimer`] = setInterval(reviewerTimeInterval, 1000);
     }
   }

@@ -22,8 +22,37 @@ module.exports = (io, client, redis, projects) => {
   let pythonProcess = null;
   let timerId = {};
   let projectSessionId = "";
+  let beat = 0;
+  let pingPongId = "";
+  let autoDiscId = "";
 
-  winston.info("Client connected");
+  /**
+   * `sendHeartbeat` function that sends heartbeat to client so that client send it back.
+   */
+  function sendHeartbeat() {
+    client.emit("PING", { beat: beat });
+  }
+
+  /**
+   * `autoDisconnect` function that automatically disconnects from client.
+   */
+  function autoDisconnect() {
+    client.disconnect();
+  }
+
+  /**
+   * `PONG` event that check the client is connected.
+   */
+  client.on("PONG", (payload) => {
+    if (payload.beat > beat) {
+      beat = payload.beat;
+      pingPongId = setTimeout(sendHeartbeat, 5000);
+      clearTimeout(autoDiscId);
+      autoDiscId = setTimeout(autoDisconnect, 6000);
+    } else {
+      clearTimeout(pingPongId);
+    }
+  });
 
   /**
    * `join project` evnet trigged when user joining project in playground page
@@ -36,6 +65,7 @@ module.exports = (io, client, redis, projects) => {
       curUser = payload.username;
       winston.info(`User ${payload.username} joined at pid: ${payload.pid}`);
       client.join(projectId);
+      startHeartbeat();
 
       Project.update(
         {
@@ -76,7 +106,7 @@ module.exports = (io, client, redis, projects) => {
           active_user: active_user,
         };
 
-        initializeProjectSession(curUser, projectId)
+        initializeProjectSession(curUser, projectId);
         initRemainder();
       } else {
         if (projects[projectId].reject === undefined) {
@@ -101,12 +131,19 @@ module.exports = (io, client, redis, projects) => {
   }
 
   /**
+   * `startHeartbeat` function that starts checking the client is connected.
+   */
+  function startHeartbeat() {
+    pingPongId = setTimeout(sendHeartbeat, 5000);
+    autoDiscId = setTimeout(autoDisconnect, 6000);
+  }
+
+  /**
    *
    * @param {*}
    */
   async function initializeProjectSession(username, pid) {
     try {
-
       const user = await User.findOne({ username: username }, (err, res) => {
         if (err) throw err;
         return res;
@@ -143,7 +180,6 @@ module.exports = (io, client, redis, projects) => {
    */
   function dwellingTimer(psid) {
     timerId[`${psid}dwellingtimer`] = setInterval(() => {
-      console.log(`${curUser} Dwelling Timer of ${psid}: ${1000}`);
       ProjectSession.updateOne(
         {
           psid: psid,

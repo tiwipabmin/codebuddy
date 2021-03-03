@@ -108,6 +108,11 @@ socket.emit("join project", {
   username: getVarFromScript('playgroundIndividual', 'data-username')
 });
 
+socket.on("PING", (payload) => {
+  let newBeat = payload.beat + 1;
+  socket.emit("PONG", { beat: newBeat });
+});
+
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
  */
