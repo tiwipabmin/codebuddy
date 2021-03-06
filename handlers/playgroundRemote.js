@@ -999,7 +999,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       );
     } else {
       pythonProcess = nodepty.spawn(
-        "python",
+        "python3",
         ["./public/project_files/" + projectId + "/" + "main.py"],
         {}
       );
