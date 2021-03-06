@@ -505,7 +505,7 @@ module.exports = (io, client, redis, projects) => {
       );
     } else {
       pythonProcess = nodepty.spawn(
-        "python",
+        "python3",
         ["./public/project_files/" + projectId + "/" + "main.py"],
         {}
       );
