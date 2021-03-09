@@ -129,7 +129,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
               initRemainder(curUser, project);
               countdownTimer();
-              io.in(projectId).emit("role timer")
+              io.in(projectId).emit("role timer");
             } else {
               client.disconnect();
             }
@@ -144,7 +144,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         }
       }
     } catch (err) {
-      console.error(`Catching err: ${err}`);
+      console.error(`Catching error: ${err}`);
     }
   });
 
@@ -268,8 +268,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         } else {
           clearInterval(timerId[`${projectId}countdowntimer`]);
           clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
-          clearInterval(timerId[`codertimer`])
-          clearInterval(timerId[`reviewertimer`])
+          clearInterval(timerId[`codertimer`]);
+          clearInterval(timerId[`reviewertimer`]);
           /**
            * `countdownTimer()` function is started by only one user.
            **/
@@ -676,7 +676,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
       }
     } catch (err) {
-      console.error(`Catching err: ${err}`);
+      console.error(`Catching error: ${err}`);
     }
   });
 
@@ -694,7 +694,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
          * The switch role request is accepted.
          */
         countdownTimer();
-        io.in(projectId).emit("role timer")
+        io.in(projectId).emit("role timer");
         io.in(projectId).emit("update role", {
           roles: projects[projectId].roles,
         });
@@ -705,15 +705,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
       }
     } catch (err) {
-      console.error(`Catching err: ${err}`);
+      console.error(`Catching error: ${err}`);
     }
   });
 
   /**
-   * 
+   *
    */
   client.on("role timer started", () => {
-    verifyRoles()
+    verifyRoles();
   });
 
   /**
@@ -1172,9 +1172,13 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       }
     );
 
-    await ProjectSession.updateOne(
+    ProjectSession.updateOne(
       { psid: projectSessionId },
-      { $inc: { activeTime: payload.time } }
+      { $inc: { activeTime: payload.time } },
+      (err, res) => {
+        if (err) console.error(`Catching error: ${err}`);
+        console.log(`Updating PrjtSsss --> activeTime: `, res);
+      }
     );
   });
 
@@ -1562,20 +1566,28 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   /**
    * CoderTime interval
    */
-  async function coderTimeInterval() {
-    await ProjectSession.updateOne(
+  function coderTimeInterval() {
+    ProjectSession.updateOne(
       { psid: projectSessionId },
-      { $inc: { coderTime: 1000 } }
+      { $inc: { coderTime: 1000 } },
+      (err, res) => {
+        if (err) console.error(`Catching error: ${err}`);
+        console.log(`Updating PrjtSsss --> coderTime: `, res);
+      }
     );
   }
 
   /**
    * ReviewerTime interval
    */
-  async function reviewerTimeInterval() {
-    await ProjectSession.updateOne(
+  function reviewerTimeInterval() {
+    ProjectSession.updateOne(
       { psid: projectSessionId },
-      { $inc: { reviewerTime: 1000 } }
+      { $inc: { reviewerTime: 1000 } },
+      (err, res) => {
+        if (err) console.error(`Catching error: ${err}`);
+        console.log(`Updating PrjtSsss --> reviewerTime: `, res);
+      }
     );
   }
 
@@ -1628,7 +1640,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             roles: projects[projectId].roles,
           });
           countdownTimer();
-          io.in(projectId).emit("role timer")
+          io.in(projectId).emit("role timer");
         }
       });
     }
@@ -1672,15 +1684,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             }
           );
 
-          const project = await Project.findOne({ pid: pid }, (err, res) => {
-            if (err) throw err;
-            return res;
-          });
+          // const project = await Project.findOne({ pid: pid }, (err, res) => {
+          //   if (err) throw err;
+          //   return res;
+          // });
 
           const projectSessions = await new ProjectSession(
             {
               uid: user._id,
-              pid: project.pid,
+              pid: pid,
               noOfActiveUser: numUser,
             },
             (err, res) => {
@@ -1692,7 +1704,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
           dwellingTimer(projectSessionId);
         } catch (err) {
-          console.error(`Catching err: ${err}`);
+          console.error(`Catching error: ${err}`);
         }
         return;
       } else {
@@ -1731,7 +1743,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           $inc: { dwellingTime: 1000 },
         },
         (err) => {
-          if (err) console.error(`Catching err: ${err}`);
+          if (err) console.error(`Catching error: ${err}`);
         }
       );
     }, 1000);
