@@ -149,15 +149,15 @@ module.exports = (io, client, redis, projects) => {
         return res;
       });
 
-      const project = await Project.findOne({ pid: pid }, (err, res) => {
-        if (err) throw err;
-        return res;
-      });
+      // const project = await Project.findOne({ pid: pid }, (err, res) => {
+      //   if (err) throw err;
+      //   return res;
+      // });
 
       const projectSessions = await new ProjectSession(
         {
           uid: user._id,
-          pid: project.pid,
+          pid: pid,
           noOfActiveUser: 1,
         },
         (err, res) => {
@@ -169,7 +169,7 @@ module.exports = (io, client, redis, projects) => {
 
       dwellingTimer(projectSessionId);
     } catch (err) {
-      console.error(`Catching err: ${err}`);
+      console.error(`Catching error: ${err}`);
     }
   }
 
@@ -188,7 +188,7 @@ module.exports = (io, client, redis, projects) => {
           $inc: { dwellingTime: 1000 },
         },
         (err) => {
-          if (err) console.error(`Catching err: ${err}`);
+          if (err) console.error(`Catching error: ${err}`);
         }
       );
     }, 1000);
