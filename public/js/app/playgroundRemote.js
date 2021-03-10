@@ -164,19 +164,45 @@ socket.on("start the project session", () => {
   socket.emit("initialize the project session", {});
 });
 
+let reconTimer = 0;
+let reconIntervalId = "";
+
 socket.on("PING", (payload) => {
-  let newBeat = payload.beat + 1;
-  console.log(`Beat: ${newBeat}`);
-  socket.emit("PONG", { beat: newBeat });
+  beat = payload.beat;
+  if (!beat) {
+    reconIntervalId = setInterval(() => {
+      reconTimer++;
+      console.log(`Reconnect Timer: ${reconTimer}`);
+      /**
+       * Reconnect to socket.io
+       */
+      if (reconTimer >= 2) {
+        console.log(`Started Reconnection~`)
+        socket.emit("join project", {
+          pid: getParameterByName("project"),
+          username: getVarFromScript("playgroundRemote", "data-username"),
+          sectionId: getParameterByName("section"),
+          state: "Starting Reconnection"
+        });
+        // clearInterval(reconIntervalId);
+      }
+    }, 5000);
+  }
+  reconTimer = 0;
+  console.log(`Beat: ${beat++}`);
+  socket.emit("PONG", { beat: beat++ });
 });
+
+socket.on("reconnected", () => {
+  clearInterval(reconIntervalId)
+  console.log(`ReconIntervalId was destroyed!`)
+})
 
 webrtc.on("readyToCall", function () {
   // you can name it anything
   webrtc.createRoom(getParameterByName("project"));
   webrtc.joinRoom(getParameterByName("project"));
 });
-
-
 
 /**
  * After user join the project, user will recieve initiate data to perform in local editor

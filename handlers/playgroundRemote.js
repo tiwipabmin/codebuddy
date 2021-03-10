@@ -54,9 +54,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   client.on("PONG", (payload) => {
     if (payload.beat > beat) {
       beat = payload.beat;
-      pingPongId = setTimeout(sendHeartbeat, 5000);
+      pingPongId = setTimeout(sendHeartbeat, 3000);
       clearTimeout(autoDiscId);
-      autoDiscId = setTimeout(autoDisconnect, 6000);
+      autoDiscId = setTimeout(autoDisconnect, 4000);
     } else {
       clearTimeout(pingPongId);
     }
@@ -69,6 +69,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   client.on("join project", async (payload) => {
     try {
+      
+      if (payload.state) {
+        console.log(`Join Project --> ${payload.state}`)
+        client.emit("reconnected")
+      }
+
       projectId = payload.pid;
       curUser = payload.username;
       sectionId = cryptr.decrypt(payload.sectionId);
@@ -152,8 +158,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `startHeartbeat` function that starts checking the client is connected.
    */
   function startHeartbeat() {
-    pingPongId = setTimeout(sendHeartbeat, 5000);
-    autoDiscId = setTimeout(autoDisconnect, 6000);
+    pingPongId = setTimeout(sendHeartbeat, 3000);
+    autoDiscId = setTimeout(autoDisconnect, 4000);
   }
 
   /**
@@ -1671,7 +1677,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         try {
           const numUser = Object.keys(projects[projectId].activeUsers).length;
           console.log(
-            `The Project Session of ${username} is initialized. There's ${numUser} users.`
+            `The Project Session of ${username} is initialized. This Project consists of `,
+            projects[projectId].activeUsers
           );
 
           const user = await User.findOne(
