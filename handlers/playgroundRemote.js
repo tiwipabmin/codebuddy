@@ -54,9 +54,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   client.on("PONG", (payload) => {
     if (payload.beat > beat) {
       beat = payload.beat;
-      pingPongId = setTimeout(sendHeartbeat, 3000);
+      pingPongId = setTimeout(sendHeartbeat, 1000);
       clearTimeout(autoDiscId);
-      autoDiscId = setTimeout(autoDisconnect, 4000);
+      autoDiscId = setTimeout(autoDisconnect, 2000);
     } else {
       clearTimeout(pingPongId);
     }
@@ -69,15 +69,17 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   client.on("join project", async (payload) => {
     try {
-      
-      if (payload.state) {
-        console.log(`Join Project --> ${payload.state}`)
-        client.emit("reconnected")
-      }
-
       projectId = payload.pid;
       curUser = payload.username;
       sectionId = cryptr.decrypt(payload.sectionId);
+
+       /**
+        * Server had reconnection event occurred.
+        */ 
+      if (payload.state) {
+        console.log(`${curUser} Join Project --> ${payload.state}`);
+        client.emit("reconnected");
+      }
 
       const user = await User.findOne({ username: curUser }, (err, res) => {
         if (err) throw err;
