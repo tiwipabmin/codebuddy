@@ -187,6 +187,7 @@ socket.on("PING", (payload) => {
         $(".countdown").empty();
         $(".auto-swap-warning").empty();
 
+        socket.connect();
         socket.emit("load playground", { programming_style: "Remote" });
         socket.emit("join project", {
           pid: getParameterByName("project"),
@@ -194,7 +195,9 @@ socket.on("PING", (payload) => {
           sectionId: getParameterByName("section"),
           state: "Starting Reconnection",
         });
-        clearInterval(reconIntervalId);
+        console.log(`Reconnect Timer: ${reconTimer}`);
+        console.log(`Socket: `, socket);
+        // clearInterval(reconIntervalId);
       }
     }, 3000);
   }
@@ -205,9 +208,9 @@ socket.on("PING", (payload) => {
 });
 
 socket.on("reconnected", () => {
-  // clearInterval(reconIntervalId);
+  clearInterval(reconIntervalId);
   $("#playground-remote-loader").attr("style", "display: none");
-  // console.log(`ReconIntervalId was destroyed!`);
+  console.log(`ReconIntervalId was destroyed!`);
 });
 
 webrtc.on("readyToCall", function () {

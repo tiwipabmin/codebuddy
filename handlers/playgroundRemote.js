@@ -160,8 +160,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `startHeartbeat` function that starts checking the client is connected.
    */
   function startHeartbeat() {
-    pingPongId = setTimeout(sendHeartbeat, 3000);
-    autoDiscId = setTimeout(autoDisconnect, 4000);
+    pingPongId = setTimeout(sendHeartbeat, 1000);
+    autoDiscId = setTimeout(autoDisconnect, 2000);
   }
 
   /**
