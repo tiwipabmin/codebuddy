@@ -172,7 +172,7 @@ socket.on("PING", (payload) => {
   if (!beat) {
     reconIntervalId = setInterval(() => {
       reconTimer++;
-      // console.log(`Reconnect Timer: ${reconTimer}`);
+      console.log(`Reconnect Timer: ${reconTimer}`);
       /**
        * Reconnect to socket.io
        */
@@ -197,14 +197,14 @@ socket.on("PING", (payload) => {
   }
   reconTimer = 0;
   beat++
-  // console.log(`Beat: ${beat++}`);
+  console.log(`Beat: ${beat}`);
   socket.emit("PONG", { beat: beat });
 });
 
 socket.on("reconnected", () => {
   // clearInterval(reconIntervalId);
   $("#playground-remote-loader").attr("style", "display: none");
-  // console.log(`ReconIntervalId was destroyed!`);
+  console.log(`ReconIntervalId was destroyed!`);
 });
 
 webrtc.on("readyToCall", function () {
