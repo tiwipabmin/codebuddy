@@ -296,7 +296,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           client.leave(projectId);
           clearTimeout(pingPongId);
           clearTimeout(autoDiscId);
-          console.log(`The Project Session of ${username} was disconnected.`);
+          console.log(`The Project Session of ${curUser} was disconnected.`);
 
           if (numUser >= 1) {
             if (curUser === projects[projectId].roles.coder) {
