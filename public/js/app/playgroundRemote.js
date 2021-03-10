@@ -57,12 +57,7 @@ function getParameterByName(name) {
 /**
  * Dependencies declaration
  */
-const socket = io("ws://127.0.0.1:8080", {
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: Infinity,
-});
+const socket = io("");
 
 const roles = {
   username: "",
