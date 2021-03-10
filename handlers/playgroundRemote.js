@@ -245,7 +245,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
   client.on("clear interval", (name) => {
     if (name === `countdowntimer`) {
-      console.log("countdowntimer");
       clearInterval(timerId[`${projectId}countdowntimer`]);
     } else if (name === `dwellingtimer`) {
       clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
@@ -620,7 +619,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       "./public/project_files/" + projectId + "/" + payload + ".py",
       function (err) {
         if (err) console.error(err);
-        console.log(payload + ".py is deleted!");
       }
     );
 

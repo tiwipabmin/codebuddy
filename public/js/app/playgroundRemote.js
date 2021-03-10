@@ -166,6 +166,7 @@ socket.on("start the project session", () => {
 
 socket.on("PING", (payload) => {
   let newBeat = payload.beat + 1;
+  console.log(`Beat: ${newBeat}`);
   socket.emit("PONG", { beat: newBeat });
 });
 
@@ -174,6 +175,8 @@ webrtc.on("readyToCall", function () {
   webrtc.createRoom(getParameterByName("project"));
   webrtc.joinRoom(getParameterByName("project"));
 });
+
+
 
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
