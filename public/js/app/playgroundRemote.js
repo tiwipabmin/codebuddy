@@ -57,7 +57,13 @@ function getParameterByName(name) {
 /**
  * Dependencies declaration
  */
-const socket = io("");
+const socket = io("ws://127.0.0.1:8080", {
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: Infinity,
+});
+
 const roles = {
   username: "",
   partner: "",
@@ -172,12 +178,14 @@ socket.on("PING", (payload) => {
   if (!beat) {
     reconIntervalId = setInterval(() => {
       reconTimer++;
-      console.log(`Reconnect Timer: ${reconTimer}`);
+      // console.log(`Reconnect Timer: ${reconTimer}`);
       /**
        * Reconnect to socket.io
        */
       if (reconTimer >= 2) {
-        $("#pr-text-loader").text("อินเทอร์เน็ตของคุณไม่เสถียร.");
+        $("#pr-text-loader").text(
+          "อินเทอร์เน็ตของคุณไม่เสถียร กรุณารีเฟรชหน้านี้ค่ะ."
+        );
         $("#playground-remote-loader").attr("style", "display: block");
 
         $("#swtc-rl-btn").attr("disabled", "disabled");
@@ -196,15 +204,15 @@ socket.on("PING", (payload) => {
     }, 3000);
   }
   reconTimer = 0;
-  beat++
-  console.log(`Beat: ${beat}`);
+  beat++;
+  // console.log(`Beat: ${beat}`);
   socket.emit("PONG", { beat: beat });
 });
 
 socket.on("reconnected", () => {
   // clearInterval(reconIntervalId);
   $("#playground-remote-loader").attr("style", "display: none");
-  console.log(`ReconIntervalId was destroyed!`);
+  // console.log(`ReconIntervalId was destroyed!`);
 });
 
 webrtc.on("readyToCall", function () {

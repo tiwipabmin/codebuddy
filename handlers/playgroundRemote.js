@@ -73,9 +73,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       curUser = payload.username;
       sectionId = cryptr.decrypt(payload.sectionId);
 
-       /**
-        * Server had reconnection event occurred.
-        */ 
+      /**
+       * Server had reconnection event occurred.
+       */
       if (payload.state) {
         console.log(`${curUser} Join Project --> ${payload.state}`);
         client.emit("reconnected");
@@ -296,6 +296,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           client.leave(projectId);
           clearTimeout(pingPongId);
           clearTimeout(autoDiscId);
+          console.log(`The Project Session of ${username} was disconnected.`);
 
           if (numUser >= 1) {
             if (curUser === projects[projectId].roles.coder) {
@@ -1181,9 +1182,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     ProjectSession.updateOne(
       { psid: projectSessionId },
       { $inc: { activeTime: payload.time } },
-      (err, res) => {
+      (err) => {
         if (err) console.error(`Catching error: ${err}`);
-        console.log(`Updating PrjtSsss --> activeTime: `, res);
       }
     );
   });
@@ -1576,9 +1576,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     ProjectSession.updateOne(
       { psid: projectSessionId },
       { $inc: { coderTime: 1000 } },
-      (err, res) => {
+      (err) => {
         if (err) console.error(`Catching error: ${err}`);
-        console.log(`Updating PrjtSsss --> coderTime: `, res);
       }
     );
   }
@@ -1590,9 +1589,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     ProjectSession.updateOne(
       { psid: projectSessionId },
       { $inc: { reviewerTime: 1000 } },
-      (err, res) => {
+      (err) => {
         if (err) console.error(`Catching error: ${err}`);
-        console.log(`Updating PrjtSsss --> reviewerTime: `, res);
       }
     );
   }
@@ -1602,17 +1600,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   function verifyRoles() {
     if (projects[projectId].roles.coder === curUser) {
-      console.log(
-        "CodeBuddy: projects[projectId].roles.coder",
-        projects[projectId].roles.coder
-      );
       clearInterval(timerId[`reviewertimer`]);
       timerId[`codertimer`] = setInterval(coderTimeInterval, 1000);
     } else if (projects[projectId].roles.reviewer === curUser) {
-      console.log(
-        "CodeBuddy: projects[projectId].roles.reviewer",
-        projects[projectId].roles.reviewer
-      );
       clearInterval(timerId[`codertimer`]);
       timerId[`reviewertimer`] = setInterval(reviewerTimeInterval, 1000);
     }
@@ -1679,7 +1669,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         try {
           const numUser = Object.keys(projects[projectId].activeUsers).length;
           console.log(
-            `The Project Session of ${username} is initialized. This Project consists of `,
+            `The Project Session of ${username} is initialized. This Project Session consists of `,
             projects[projectId].activeUsers
           );
 
@@ -1718,7 +1708,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         if (count === 5) {
           return;
         }
-        console.log(`Initialize Project Session, ${count}`);
         count += 1;
         clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
         projectSessionId = "";
@@ -1741,7 +1730,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   function dwellingTimer(psid) {
     timerId[`${psid}dwellingtimer`] = setInterval(() => {
-      // console.log(`${curUser} Dwelling Timer of ${psid}: ${1000}`);
       ProjectSession.updateOne(
         {
           psid: psid,
