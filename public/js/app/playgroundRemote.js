@@ -58,6 +58,7 @@ function getParameterByName(name) {
  * Dependencies declaration
  */
 const socket = io("");
+
 const roles = {
   username: "",
   partner: "",
@@ -177,7 +178,9 @@ socket.on("PING", (payload) => {
        * Reconnect to socket.io
        */
       if (reconTimer >= 2) {
-        $("#pr-text-loader").text("อินเทอร์เน็ตของคุณไม่เสถียร.");
+        $("#pr-text-loader").text(
+          "อินเทอร์เน็ตของคุณไม่เสถียร กรุณารีเฟรชหน้านี้ค่ะ."
+        );
         $("#playground-remote-loader").attr("style", "display: block");
 
         $("#swtc-rl-btn").attr("disabled", "disabled");
@@ -196,8 +199,8 @@ socket.on("PING", (payload) => {
     }, 3000);
   }
   reconTimer = 0;
-  beat++
-  // console.log(`Beat: ${beat++}`);
+  beat++;
+  // console.log(`Beat: ${beat}`);
   socket.emit("PONG", { beat: beat });
 });
 
