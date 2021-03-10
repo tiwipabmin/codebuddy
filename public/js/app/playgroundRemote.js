@@ -172,31 +172,40 @@ socket.on("PING", (payload) => {
   if (!beat) {
     reconIntervalId = setInterval(() => {
       reconTimer++;
-      console.log(`Reconnect Timer: ${reconTimer}`);
+      // console.log(`Reconnect Timer: ${reconTimer}`);
       /**
        * Reconnect to socket.io
        */
       if (reconTimer >= 2) {
-        console.log(`Started Reconnection~`)
+        $("#pr-text-loader").text("อินเทอร์เน็ตของคุณไม่เสถียร.");
+        $("#playground-remote-loader").attr("style", "display: block");
+
+        $("#swtc-rl-btn").attr("disabled", "disabled");
+        $(".countdown").empty();
+        $(".auto-swap-warning").empty();
+
+        socket.emit("load playground", { programming_style: "Remote" });
         socket.emit("join project", {
           pid: getParameterByName("project"),
           username: getVarFromScript("playgroundRemote", "data-username"),
           sectionId: getParameterByName("section"),
-          state: "Starting Reconnection"
+          state: "Starting Reconnection",
         });
-        // clearInterval(reconIntervalId);
+        clearInterval(reconIntervalId);
       }
-    }, 5000);
+    }, 3000);
   }
   reconTimer = 0;
-  console.log(`Beat: ${beat++}`);
-  socket.emit("PONG", { beat: beat++ });
+  beat++
+  // console.log(`Beat: ${beat++}`);
+  socket.emit("PONG", { beat: beat });
 });
 
 socket.on("reconnected", () => {
-  clearInterval(reconIntervalId)
-  console.log(`ReconIntervalId was destroyed!`)
-})
+  // clearInterval(reconIntervalId);
+  $("#playground-remote-loader").attr("style", "display: none");
+  // console.log(`ReconIntervalId was destroyed!`);
+});
 
 webrtc.on("readyToCall", function () {
   // you can name it anything
