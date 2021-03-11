@@ -1,10 +1,10 @@
 function getVarFromScript(scriptName, name) {
-  const data = $(`script[src*=${scriptName}]`)
-  const variable = data.attr(name)
+  const data = $(`script[src*=${scriptName}]`);
+  const variable = data.attr(name);
   if (typeof variable === undefined) {
-    console.log('Error: ', variable)
+    console.log("Error: ", variable);
   }
-  return variable
+  return variable;
 }
 
 /**
@@ -14,11 +14,11 @@ function getVarFromScript(scriptName, name) {
  */
 function getParameterByName(name) {
   const url = window.location.href;
-  const terms = url.split('\/')
-  const index = terms.indexOf(name)
+  const terms = url.split("/");
+  const index = terms.indexOf(name);
   try {
-    const result = terms[index + 1]
-    return result
+    const result = terms[index + 1];
+    return result;
   } catch (err) {
     return null;
   }
@@ -27,8 +27,8 @@ function getParameterByName(name) {
 /**
  * Dependencies declaration
  */
-const socket = io('');
-const uid = getVarFromScript('playgroundIndividual', 'data-uid')
+const socket = io("");
+const uid = getVarFromScript("playgroundIndividual", "data-uid");
 var comments = [];
 var code = null;
 
@@ -55,23 +55,23 @@ function setEditor(fileName) {
           singleLineStringErrors: false,
           styleActiveLine: true,
           lineNumbers: true,
-          lineWrapping: true
+          lineWrapping: true,
         },
         theme: "material",
         indentUnit: 4,
-        matchBrackets: true
+        matchBrackets: true,
       }
     );
     cm.addKeyMap({
-      "Alt-R": function(cm) {
+      "Alt-R": function (cm) {
         runCode();
       },
-      "Alt-S": function(cm) {
+      "Alt-S": function (cm) {
         pauseRunCode();
       },
-      "Alt-V": function(cm) {
+      "Alt-V": function (cm) {
         submitCode();
-      }
+      },
     });
     editor[fileName] = cm;
   }
@@ -105,18 +105,62 @@ function changeTheme() {
 socket.emit("load playground", { programming_style: "Individual" });
 socket.emit("join project", {
   pid: getParameterByName("project"),
-  username: getVarFromScript('playgroundIndividual', 'data-username')
+  username: getVarFromScript("playgroundIndividual", "data-username"),
+});
+
+let reconTimer = 0;
+let reconIntervalId = "";
+
+$(window).focus(() => {
+  if (reconIntervalId === "") {
+    reconIntervalId = setInterval(() => {
+      reconTimer++;
+      // console.log(`Reconnect Timer: ${reconTimer}`);
+      /**
+       * Reconnect to server
+       */
+      if (reconTimer >= 1) {
+        $("#pr-text-loader").text("กำลังโหลดข้อมูลล่าสุด กรุณารอสักครู่.");
+        $("#plyg-indv-ldr").attr("style", "display: block");
+
+        socket.connect();
+        socket.emit("load playground", { programming_style: "Individual" });
+        socket.emit("join project", {
+          pid: getParameterByName("project"),
+          username: getVarFromScript("playgroundIndividual", "data-username"),
+          sectionId: getParameterByName("section"),
+          state: "Starting Reconnection",
+        });
+        console.log(`Reconnect Timer: ${reconTimer}`);
+        console.log(`Socket: `, socket);
+        // clearInterval(reconIntervalId);
+      }
+    }, 3000);
+    let beat = 1;
+    console.log(`PONG~`);
+    socket.emit("PONG", { beat: beat });
+  }
 });
 
 socket.on("PING", (payload) => {
-  let newBeat = payload.beat + 1;
-  socket.emit("PONG", { beat: newBeat });
+  console.log(`PING~`);
+  clearInterval(reconIntervalId);
+  reconIntervalId = "";
+  reconTimer = 0;
+});
+
+socket.on("reconnected", () => {
+  clearInterval(reconIntervalId);
+  reconTimer = 0;
+  reconIntervalId = "";
+  $("#plyg-indv-ldr").attr("style", "display: none");
+  // console.log(`ReconIntervalId was destroyed!`);
 });
 
 /**
  * After user join the project, user will recieve initiate data to perform in local editor
  */
-socket.on("init state", payload => {
+socket.on("init state", (payload) => {
   if (payload.editor != null) {
     var editorValues = JSON.parse(payload.editor);
     projectFiles.forEach(setEditorValue);
@@ -133,15 +177,10 @@ socket.on("init state", payload => {
   code = payload.editor;
 });
 
-socket.on("reject joining", () => {
-  let a = document.getElementById("backToClass");
-  a.click();
-});
-
 /**
  * After user join the project, user will recieve initiate review to hilight in local editor
  */
-socket.on("init reviews", payload => {
+socket.on("init reviews", (payload) => {
   comments = payload;
   for (var i in comments) {
     editor[comments[i].file].addLineClass(
@@ -155,7 +194,7 @@ socket.on("init reviews", payload => {
 /**
  * Update tab when create or delete
  */
-socket.on("update tab", payload => {
+socket.on("update tab", (payload) => {
   var fileName = payload.fileName;
   var action = payload.action;
   if (action == "create") {
@@ -246,11 +285,13 @@ socket.on("update tab", payload => {
       fileName + "-export-file-item"
     );
     exportFileItem.remove();
-    $(".file.menu")
-      .children("a")
-      .first()
-      .click();
+    $(".file.menu").children("a").first().click();
   }
+});
+
+socket.on("denied to join", (curUser) => {
+  let a = document.getElementById("backToClass");
+  a.click();
 });
 
 /**
@@ -261,25 +302,25 @@ $(window).on("beforeunload", () => {
   socket.emit("submit code", {
     mode: "auto",
     uid: uid,
-    code: getAllFileEditor()
+    code: getAllFileEditor(),
   });
   socket.disconnect();
 });
 
-$(window).bind("hashchange", function() {
+$(window).bind("hashchange", function () {
   socket.emit("submit code", {
     mode: "auto",
     uid: uid,
-    code: getAllFileEditor()
+    code: getAllFileEditor(),
   });
 });
 
 /**
  * Recieve new changes editor value from server and applied them to local editor
  */
-socket.on("editor update", payload => {
+socket.on("editor update", (payload) => {
   editor[payload.fileName].replaceRange(payload.text, payload.from, payload.to);
-  setTimeout(function() {
+  setTimeout(function () {
     editor[payload.fileName].refresh();
   }, 1);
 });
@@ -288,7 +329,7 @@ function submitReview() {
   socket.emit("submit review", {
     file: $("input.hidden.file.name").val(),
     line: parseInt($("input.disabled.line.no").val()),
-    description: $("textarea.line.reviewer.description").val()
+    description: $("textarea.line.reviewer.description").val(),
   });
   $("textarea.line.description").val("");
 }
@@ -299,30 +340,30 @@ function submitReview() {
 const term = new Terminal({
   cols: 60,
   rows: 10,
-  cursorBlink: true
+  cursorBlink: true,
 });
 term.open(document.getElementById("xterm-container"), false);
 term._initialized = true;
 
 function resizeTerm() {
-  term.fit()
+  term.fit();
 }
 
 var shellprompt = "\033[1;3;31m$ \033[0m";
 var inputTerm = "input@codebuddy";
 
-term.prompt = function() {
+term.prompt = function () {
   term.write("\r\n" + shellprompt);
 };
 term.prompt();
-term.on("key", function(key, ev) {
+term.on("key", function (key, ev) {
   var printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
 
   if (ev.keyCode == 13) {
     if (inputTerm !== "input@codebuddy") {
       inputTerm = inputTerm.slice(inputTerm.indexOf("y") + 1, inputTerm.length);
       socket.emit("typing input on term", {
-        inputTerm: inputTerm
+        inputTerm: inputTerm,
       });
       // console.log('inputTerm, ', inputTerm)
       inputTerm = "input@codebuddy";
@@ -341,7 +382,7 @@ term.on("key", function(key, ev) {
   }
 });
 
-term.on("keypress", function(key) {
+term.on("keypress", function (key) {
   inputTerm += key;
 });
 
@@ -358,10 +399,10 @@ function pauseRunCode() {
 function runCode() {
   socket.emit("run code", {
     uid: uid,
-    code: getAllFileEditor()
+    code: getAllFileEditor(),
   });
   socket.emit("save lines of code", {
-    uid: uid
+    uid: uid,
   });
   term.writeln("Running pytest.py...");
 }
@@ -370,13 +411,14 @@ function runCode() {
  * Submit code
  */
 function submitCode() {
-  $("#global_loader").attr({
-    style: "display: block; position: fixed;"
+  $("#pr-text-loader").text("กำลังตรวจสอบ กรุณารอสักครู่.");
+  $("#plyg-indv-ldr").attr({
+    style: "display: block; position: fixed;",
   });
   socket.emit("submit code", {
     mode: "button submit",
     uid: uid,
-    code: getAllFileEditor()
+    code: getAllFileEditor(),
   });
   term.writeln("Scoring pytest.py...");
 }
@@ -394,14 +436,14 @@ function clearTerminal() {
 function sendActiveTab(tab) {
   socket.emit("send active tab", {
     uid: uid,
-    activeTab: tab
+    activeTab: tab,
   });
 }
 
 /**
  * Show score dialog
  */
-socket.on("show score", payload => {
+socket.on("show score", (payload) => {
   $("p#show-point").text(
     "Your score is " + parseFloat(payload.score).toFixed(2) + " points."
   );
@@ -413,9 +455,9 @@ socket.on("show score", payload => {
   $("#showScore-modal")
     .modal({
       closable: false,
-      onDeny: function() {
-        $("#global_loader").attr("style", "display: none");
-      }
+      onDeny: function () {
+        $("#plyg-indv-ldr").attr("style", "display: none");
+      },
     })
     .modal("show");
 });
@@ -423,18 +465,18 @@ socket.on("show score", payload => {
 /**
  * Pause run code
  */
-socket.on("pause run code", payload => {
+socket.on("pause run code", (payload) => {
   term.writeln("Stop running pytest.py...");
 });
 
 /**
  * Auto update score
  */
-socket.on("auto update score", payload => {
+socket.on("auto update score", (payload) => {
   socket.emit("submit code", {
     mode: "auto",
     uid: uid,
-    code: getAllFileEditor()
+    code: getAllFileEditor(),
   });
   term.writeln("Scoring pytest.py...");
 });
@@ -442,7 +484,7 @@ socket.on("auto update score", payload => {
 /**
  * Show auto update score
  */
-socket.on("show auto update score", payload => {
+socket.on("show auto update score", (payload) => {
   $("#project-score-point").text(
     "project score : " + parseFloat(payload.score)
   );
@@ -450,15 +492,15 @@ socket.on("show auto update score", payload => {
     $("#user-point-label").text(
       "average score: " + parseFloat(payload.avgScore).toFixed(2)
     );
-    console.log('Display: none!!')
-    $("#global_loader").attr("style", "display: none");
+    console.log("Display: none!!");
+    $("#plyg-indv-ldr").attr("style", "display: none");
   }
 });
 
 /**
  * Set editor value into open tab
  */
-socket.on("set editor open tab", payload => {
+socket.on("set editor open tab", (payload) => {
   var code = JSON.parse(payload.editor);
   var fileName = payload.fileName;
   editor[fileName].setValue(code[fileName]);
@@ -476,12 +518,12 @@ var lastInput = "";
 /**
  * Terminal socket
  */
-socket.on("term update", payload => {
+socket.on("term update", (payload) => {
   term.writeln(payload);
   term.prompt();
 });
 
-socket.on("download file", payload => {
+socket.on("download file", (payload) => {
   let fileNameListLength = payload.fileNameListLength;
   let projectId = payload.projectId;
   let a = document.createElement("a");
@@ -591,7 +633,7 @@ function getActiveTab(fileName) {
   $("#" + fileName + "-header").addClass("file-active");
 
   currentTab = fileName;
-  setTimeout(function() {
+  setTimeout(function () {
     editor[fileName].refresh();
   }, 1);
   sendActiveTab(currentTab);
@@ -604,10 +646,7 @@ function closeTab(fileName) {
   var tabContent = document.getElementById(fileName + "-tab");
   tabContent.remove();
   delete editor[fileName];
-  $(".file.menu")
-    .children("a")
-    .first()
-    .click();
+  $(".file.menu").children("a").first().click();
   $("#main").click();
   isCloseTab = true;
   var fileTab = document.getElementById("file-tabs").children;
@@ -662,7 +701,7 @@ function deleteFile(fileName) {
 
 function onClickExport() {
   let fileNameList = [];
-  $('[name="checkbox-file"]').each(function() {
+  $('[name="checkbox-file"]').each(function () {
     if ($(this).prop("checked") == true) {
       fileNameList.push($(this).val());
     }
@@ -670,7 +709,7 @@ function onClickExport() {
   if (fileNameList.length) {
     socket.emit("export file", {
       fileNameList: fileNameList,
-      code: getAllFileEditor()
+      code: getAllFileEditor(),
     });
   } else {
     alert('Please, selected file before click "Export" button.');
@@ -687,7 +726,7 @@ function setOnChangeEditer(fileName) {
     let remove = data.removed;
     let isEnter = false;
     let isDelete = false;
-    let username = getVarFromScript('playgroundIndividual', 'data-username')
+    let username = getVarFromScript("playgroundIndividual", "data-username");
 
     /**
      * Check when enter new line
@@ -704,7 +743,7 @@ function setOnChangeEditer(fileName) {
         fileName: fileName,
         comments: comments,
         enterline: enterline,
-        isEnter: isEnter
+        isEnter: isEnter,
       });
     }
 
@@ -722,7 +761,7 @@ function setOnChangeEditer(fileName) {
         fileName: fileName,
         comments: comments,
         enterline: enterline,
-        isDelete: isDelete
+        isDelete: isDelete,
       });
     }
 
@@ -734,7 +773,7 @@ function setOnChangeEditer(fileName) {
       isEnter: isEnter,
       isDelete: isDelete,
       currentTab: fileName,
-      fileName: fileName
+      fileName: fileName,
     });
   });
 }
