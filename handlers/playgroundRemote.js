@@ -52,14 +52,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `PONG` event that check the client is connected.
    */
   client.on("PONG", (payload) => {
-    if (payload.beat > beat) {
-      beat = payload.beat;
-      pingPongId = setTimeout(sendHeartbeat, 1000);
-      clearTimeout(autoDiscId);
-      autoDiscId = setTimeout(autoDisconnect, 2000);
-    } else {
-      clearTimeout(pingPongId);
-    }
+    client.emit("PING", { beat: beat });
+    // if (payload.beat > beat) {
+    //   beat = payload.beat;
+    //   pingPongId = setTimeout(sendHeartbeat, 1000);
+    //   clearTimeout(autoDiscId);
+    //   autoDiscId = setTimeout(autoDisconnect, 2000);
+    // } else {
+    //   clearTimeout(pingPongId);
+    // }
   });
 
   /**
@@ -77,6 +78,20 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
        * Server had reconnection event occurred.
        */
       if (payload.state) {
+        if (projects[projectId] !== undefined) {
+          console.log("CodeBuddy: projects[projectId]", projects[projectId]);
+          if (projects[projectId].activeUsers !== undefined) {
+            if (projects[projectId].activeUsers[curUser] !== undefined) {
+              console.log(
+                "CodeBuddy: projects[projectId].activeUsers",
+                projects[projectId].activeUsers
+              );
+              console.log(`${curUser} Join Project --> ${payload.state}`);
+              client.emit("reconnected");
+              return;
+            }
+          }
+        }
         console.log(`${curUser} Join Project --> ${payload.state}`);
         client.emit("reconnected");
       }
@@ -109,7 +124,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
          * Join session socket with project id
          */
         client.join(projectId);
-        startHeartbeat();
+        // startHeartbeat();
 
         client.emit("start the project session", {});
 
@@ -126,7 +141,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
                * Join session socket with project id
                */
               client.join(projectId);
-              startHeartbeat();
+              // startHeartbeat();
 
               io.in(projectId).emit("update status", {
                 status: 1,
@@ -148,7 +163,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           } else {
             projects[projectId].kickOff += 1;
           }
-          client.emit("denied to join");
+          client.join(projectId);
+          io.in(projectId).emit("denied to join", curUser);
         }
       }
     } catch (err) {
@@ -271,8 +287,116 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         if (projects[projectId].kickOff) {
           if (projects[projectId].kickOff > 1) projects[projectId].kickOff -= 1;
           else delete projects[projectId].kickOff;
-          client.leave(projectId);
+          // client.leave(projectId);
+          console.log(`${curUser} was kicked from the Project Session.`);
         } else {
+          // clearInterval(timerId[`${projectId}countdowntimer`]);
+          // clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+          // clearInterval(timerId[`codertimer`]);
+          // clearInterval(timerId[`reviewertimer`]);
+          // /**
+          //  * `countdownTimer()` function is started by only one user.
+          //  **/
+          // io.in(projectId).emit("clear interval", `countdowntimer`);
+          // /**
+          //  * Clear "dwellingtimer" interval's any user who hasn't left the project at the moment.
+          //  */
+          // io.in(projectId).emit("clear interval", `dwellingtimer`);
+          // delete projects[projectId].activeUsers[curUser];
+          // let numUser = Object.keys(projects[projectId].activeUsers).length;
+          // /**
+          //  * Leave the project at a certain time.
+          //  */
+          // client.leave(projectId);
+          // clearTimeout(pingPongId);
+          // clearTimeout(autoDiscId);
+          // console.log(`The Project Session of ${curUser} was disconnected.`);
+          // if (numUser >= 1) {
+          //   if (curUser === projects[projectId].roles.coder) {
+          //     projects[projectId].roles = swapRole(projects[projectId].roles);
+          //   }
+          //   io.in(projectId).emit("auto role change", {
+          //     roles: projects[projectId].roles,
+          //     status: `disconnected`,
+          //   });
+          //   io.in(projectId).emit("update status", {
+          //     status: 0,
+          //   });
+          //   // clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+          //   io.in(projectId).emit("start the project session", {});
+          // } else {
+          //   delete projects[projectId];
+          // }
+          // await Project.updateOne(
+          //   {
+          //     pid: projectId,
+          //   },
+          //   {
+          //     $set: {
+          //       disable_time: Date.now(),
+          //     },
+          //   },
+          //   (err, res) => {
+          //     if (err) throw err;
+          //     return res;
+          //   }
+          // );
+          // const queryNotifications = await Notification.find(
+          //   {
+          //     $and: [
+          //       { "receiver.username": curUser },
+          //       { "receiver.status": `no interact` },
+          //       { type: `project` },
+          //     ],
+          //   },
+          //   {
+          //     nid: 1,
+          //   }
+          // ).sort({ createdAt: -1 });
+          // const notificationsId = [];
+          // for (let index in queryNotifications) {
+          //   notificationsId.push(queryNotifications[index].nid);
+          // }
+          // if (notificationsId.length) {
+          //   await Notification.updateMany(
+          //     { nid: { $in: notificationsId } },
+          //     { $set: { "receiver.$[].status": `interacted` } }
+          //   );
+          //   const reversedNotificationsId = [];
+          //   for (let index in notificationsId) {
+          //     let nid = notificationsId[index];
+          //     let reversedNid = ``;
+          //     for (let indexId = nid.length - 1; indexId >= 0; indexId--) {
+          //       reversedNid += nid[indexId];
+          //     }
+          //     reversedNotificationsId.push(reversedNid);
+          //   }
+          //   if (
+          //     reversedNotificationsId.length &&
+          //     keyStores[sectionId] !== undefined
+          //   ) {
+          //     let guest = Object.keys(keyStores[sectionId]).find(
+          //       (username) => keyStores[sectionId][username].guest === curUser
+          //     );
+          //     if (keyStores[sectionId][curUser] !== undefined || guest) {
+          //       let tmpTimerId = Object.keys(timerIds).length + 1;
+          //       timerIds[tmpTimerId] = setInterval(() => {
+          //         let pnSessionKey =
+          //           guest === undefined
+          //             ? curUser + sectionId
+          //             : guest + sectionId;
+          //         io.in(pnSessionKey).emit("disable project notification", {
+          //           reversedNotificationsId: reversedNotificationsId,
+          //           timerId: tmpTimerId,
+          //         });
+          //       }, 5000);
+          //     }
+          //   }
+          // }
+        }
+
+        if (projects[projectId].activeUsers[curUser] !== undefined) {
+          console.log("Disconnected -->", curUser);
           clearInterval(timerId[`${projectId}countdowntimer`]);
           clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
           clearInterval(timerId[`codertimer`]);

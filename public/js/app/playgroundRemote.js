@@ -168,19 +168,16 @@ socket.on("start the project session", () => {
 let reconTimer = 0;
 let reconIntervalId = "";
 
-socket.on("PING", (payload) => {
-  beat = payload.beat;
-  if (!beat) {
+$(window).focus(() => {
+  if (reconIntervalId === "") {
     reconIntervalId = setInterval(() => {
       reconTimer++;
       // console.log(`Reconnect Timer: ${reconTimer}`);
       /**
        * Reconnect to server
        */
-      if (reconTimer >= 2) {
-        $("#pr-text-loader").text(
-          "อินเทอร์เน็ตของคุณไม่เสถียร กรุณารอสักครู่."
-        );
+      if (reconTimer >= 1) {
+        $("#pr-text-loader").text("กำลังโหลดข้อมูลล่าสุด กรุณารอสักครู่.");
         $("#playground-remote-loader").attr("style", "display: block");
 
         $("#swtc-rl-btn").attr("disabled", "disabled");
@@ -195,20 +192,62 @@ socket.on("PING", (payload) => {
           sectionId: getParameterByName("section"),
           state: "Starting Reconnection",
         });
-        // console.log(`Reconnect Timer: ${reconTimer}`);
-        // console.log(`Socket: `, socket);
+        console.log(`Reconnect Timer: ${reconTimer}`);
+        console.log(`Socket: `, socket);
         // clearInterval(reconIntervalId);
       }
     }, 3000);
+    let beat = 1;
+    console.log(`PONG~`);
+    socket.emit("PONG", { beat: beat });
   }
+});
+
+socket.on("PING", (payload) => {
+  console.log(`PING~`);
+  clearInterval(reconIntervalId);
+  reconIntervalId = "";
   reconTimer = 0;
-  beat++;
+  // beat = payload.beat;
+  // if (!beat) {
+  //   reconIntervalId = setInterval(() => {
+  //     reconTimer++;
+  //     // console.log(`Reconnect Timer: ${reconTimer}`);
+  //     /**
+  //      * Reconnect to server
+  //      */
+  //     if (reconTimer >= 2) {
+  //       $("#pr-text-loader").text(
+  //         "อินเทอร์เน็ตของคุณไม่เสถียร กรุณารอสักครู่."
+  //       );
+  //       $("#playground-remote-loader").attr("style", "display: block");
+  //       $("#swtc-rl-btn").attr("disabled", "disabled");
+  //       $(".countdown").empty();
+  //       $(".auto-swap-warning").empty();
+  //       socket.connect();
+  //       socket.emit("load playground", { programming_style: "Remote" });
+  //       socket.emit("join project", {
+  //         pid: getParameterByName("project"),
+  //         username: getVarFromScript("playgroundRemote", "data-username"),
+  //         sectionId: getParameterByName("section"),
+  //         state: "Starting Reconnection",
+  //       });
+  //       // console.log(`Reconnect Timer: ${reconTimer}`);
+  //       // console.log(`Socket: `, socket);
+  //       // clearInterval(reconIntervalId);
+  //     }
+  //   }, 3000);
+  // }
+  // reconTimer = 0;
+  // beat++;
   // console.log(`Beat: ${beat}`);
-  socket.emit("PONG", { beat: beat });
+  // socket.emit("PONG", { beat: beat });
 });
 
 socket.on("reconnected", () => {
   clearInterval(reconIntervalId);
+  reconTimer = 0;
+  reconIntervalId = "";
   $("#playground-remote-loader").attr("style", "display: none");
   // console.log(`ReconIntervalId was destroyed!`);
 });
@@ -460,9 +499,12 @@ socket.on("countdown", (payload) => {
   }
 });
 
-socket.on("denied to join", (payload) => {
-  let a = document.getElementById("backToClass");
-  a.click();
+socket.on("denied to join", (curUser) => {
+  username = getVarFromScript("playgroundRemote", "data-username");
+  if (curUser === username) {
+    let a = document.getElementById("backToClass");
+    a.click();
+  }
 });
 
 socket.on("clear interval", (name) => {

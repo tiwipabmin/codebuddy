@@ -44,14 +44,15 @@ module.exports = (io, client, redis, projects) => {
    * `PONG` event that check the client is connected.
    */
   client.on("PONG", (payload) => {
-    if (payload.beat > beat) {
-      beat = payload.beat;
-      pingPongId = setTimeout(sendHeartbeat, 5000);
-      clearTimeout(autoDiscId);
-      autoDiscId = setTimeout(autoDisconnect, 6000);
-    } else {
-      clearTimeout(pingPongId);
-    }
+    client.emit("PING", { beat: beat });
+    // if (payload.beat > beat) {
+    //   beat = payload.beat;
+    //   pingPongId = setTimeout(sendHeartbeat, 5000);
+    //   clearTimeout(autoDiscId);
+    //   autoDiscId = setTimeout(autoDisconnect, 6000);
+    // } else {
+    //   clearTimeout(pingPongId);
+    // }
   });
 
   /**
@@ -63,9 +64,23 @@ module.exports = (io, client, redis, projects) => {
     try {
       projectId = payload.pid;
       curUser = payload.username;
+
+      /**
+       * Server had reconnection event occurred.
+       */
+      if (payload.state) {
+        if (projects[projectId] !== undefined) {
+          console.log("CodeBuddy: projects[projectId]", projects[projectId]);
+          console.log(`${curUser} Join Project --> ${payload.state}`);
+          return;
+        }
+        console.log(`${curUser} Join Project --> ${payload.state}`);
+        client.emit("reconnected");
+      }
+
       winston.info(`User ${payload.username} joined at pid: ${payload.pid}`);
       client.join(projectId);
-      startHeartbeat();
+      // startHeartbeat();
 
       Project.update(
         {
@@ -84,6 +99,7 @@ module.exports = (io, client, redis, projects) => {
       /**
        * Increase user's enter count
        */
+      console.log("curUser, ", curUser)
       const user = await User.findOne({ username: curUser });
       await Score.update(
         { pid: projectId, uid: user._id },
@@ -112,7 +128,7 @@ module.exports = (io, client, redis, projects) => {
         if (projects[projectId].reject === undefined) {
           projects[projectId].reject = 1;
         }
-        client.emit("reject joining");
+        io.in(projectId).emit("denied to join");
       }
     } catch (error) {
       winston.info(`catching error: ${error}`);
@@ -200,20 +216,38 @@ module.exports = (io, client, redis, projects) => {
    */
   client.on("disconnect", () => {
     try {
-      let numUser = Object.keys(projects[projectId].active_user).length;
-      winston.info(
-        `user left project ${projectId} now has ${numUser} user(s) online`
-      );
+      // let numUser = Object.keys(projects[projectId].active_user).length;
+      // winston.info(
+      //   `user left project ${projectId} now has ${numUser} user(s) online`
+      // );
 
-      if (projects[projectId].reject) {
-        delete projects[projectId].reject;
+      // if (projects[projectId].reject) {
+      //   delete projects[projectId].reject;
 
-        client.leave(projectId);
-      } else {
+      //   client.leave(projectId);
+      // } else {
+      //   delete projects[projectId];
+      //   clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+      //   client.leave(projectId);
+      //   Project.updateOne(
+      //     {
+      //       pid: projectId,
+      //     },
+      //     {
+      //       $set: {
+      //         disable_time: Date.now(),
+      //       },
+      //     },
+      //     (err) => {
+      //       if (err) throw err;
+      //     }
+      //   );
+      // }
+
+      if (projects[projectId] !== undefined) {
         delete projects[projectId];
         clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
 
-        client.leave(projectId);
         Project.updateOne(
           {
             pid: projectId,
@@ -228,6 +262,8 @@ module.exports = (io, client, redis, projects) => {
           }
         );
       }
+
+      client.leave(projectId);
 
       winston.info("Client disconnected");
     } catch (error) {
