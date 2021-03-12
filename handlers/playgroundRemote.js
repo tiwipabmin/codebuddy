@@ -25,7 +25,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let sectionId = "";
   let curUser = "";
   let projectSessionId = "";
-  let detectInput = "empty@Codebuddy";
+  let detectInputLst = [];
   let timerId = {};
   let comments = [];
   let index = null;
@@ -1171,17 +1171,27 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
       }
 
+      console.log("Data Before, ", data);
       /**
        * Resolve the output get echo the input ex. input is 'input', output is 'input input'
        **/
-      let splitData = data.split("\n");
-      if (detectInput !== "empty@Codebuddy") {
-        if (splitData[0].indexOf(String.valueOf(detectInput))) {
-          data = splitData.slice(1, splitData.length).join("\n");
-          detectInput = "empty@Codebuddy";
-        }
+      // let splitData = data.split("\n");
+      // if (detectInputLst !== "empty@Codebuddy") {
+      //   if (splitData[0].indexOf(String.valueOf(detectInputLst))) {
+      //     data = splitData.slice(1, splitData.length).join("\n");
+      //     detectInputLst = "empty@Codebuddy";
+      //   }
+      // }
+      if (detectInputLst.length) {
+        detectInputLst = [];
+      } else {
+        io.in(projectId).emit("term update", data, "running");
       }
-      io.in(projectId).emit("term update", data);
+      console.log("Data After, ", data);
+    });
+
+    pythonProcess.on("close", () => {
+      io.in(projectId).emit("term update", "", "closed");
     });
     // setTimeout(pythonProcess.kill.bind(pythonProcess), 1000);
   });
@@ -1190,11 +1200,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("typing input on term", (payload) => {
-    let inputTerm = payload.inputTerm;
-    detectInput = inputTerm;
+  client.on("get input", (payload) => {
+    let termInput = payload.termInput;
+    detectInputLst.push(termInput);
     if (pythonProcess !== undefined) {
-      pythonProcess.write(inputTerm + "\r");
+      pythonProcess.write(termInput + "\r");
     }
   });
 
@@ -1628,8 +1638,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
       }
       if (data.indexOf(".pylintrc") == -1 && data.indexOf("U") != 16) {
-        client.emit("term update", data);
+        client.emit("term update", data, "running");
       }
+    });
+
+    pylintProcess.on("close", () => {
+      client.emit("term update", "", "closed");
     });
   });
 

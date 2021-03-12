@@ -18,7 +18,7 @@ module.exports = (io, client, redis, projects) => {
    **/
   let projectId = "";
   let curUser = "";
-  let detectInput = "empty@Codebuddy";
+  let detectInputLst = [];
   let pythonProcess = null;
   let timerId = {};
   let projectSessionId = "";
@@ -99,7 +99,7 @@ module.exports = (io, client, redis, projects) => {
       /**
        * Increase user's enter count
        */
-      console.log("curUser, ", curUser)
+      console.log("curUser, ", curUser);
       const user = await User.findOne({ username: curUser });
       await Score.update(
         { pid: projectId, uid: user._id },
@@ -685,18 +685,27 @@ module.exports = (io, client, redis, projects) => {
         });
       }
 
+      console.log("Data Before, ", data);
       /**
        * Resolve the output get echo the input ex. input is 'input', output is 'input input'
        **/
-      var splitData = data.split("\n");
-      if (detectInput !== "empty@Codebuddy") {
-        if (splitData[0].indexOf(String.valueOf(detectInput))) {
-          data = splitData.slice(1, splitData.length).join("\n");
-          detectInput = "empty@Codebuddy";
-        }
+      // var splitData = data.split("\n");
+      // if (detectInputLst !== "empty@Codebuddy") {
+      //   if (splitData[0].indexOf(String.valueOf(detectInputLst))) {
+      //     data = splitData.slice(1, splitData.length).join("\n");
+      //     detectInputLst = "empty@Codebuddy";
+      //   }
+      // }
+      if (detectInputLst.length) {
+        detectInputLst = [];
+      } else {
+        client.emit("term update", data, "running");
       }
+      console.log("Data After, ", data);
+    });
 
-      io.in(projectId).emit("term update", data);
+    pythonProcess.on("close", () => {
+      client.emit("term update", "", "closed");
     });
     // setTimeout(pythonProcess.kill.bind(pythonProcess), 1000);
   });
@@ -705,11 +714,11 @@ module.exports = (io, client, redis, projects) => {
    * `run code` event fired when user click on run button from front-end
    * @param {Object} payload code from editor
    */
-  client.on("typing input on term", (payload) => {
-    var inputTerm = payload.inputTerm;
-    detectInput = inputTerm;
+  client.on("get input", (payload) => {
+    var termInput = payload.termInput;
+    detectInputLst.push(termInput);
     if (pythonProcess !== undefined) {
-      pythonProcess.write(inputTerm + "\r");
+      pythonProcess.write(termInput + "\r");
     }
   });
 
@@ -1072,7 +1081,13 @@ module.exports = (io, client, redis, projects) => {
           }
         });
       }
-      io.in(projectId).emit("term update", data);
+      if (data.indexOf(".pylintrc") == -1 && data.indexOf("U") != 16) {
+        client.emit("term update", data, "running");
+      }
+    });
+
+    pylintProcess.on("close", () => {
+      client.emit("term update", "", "closed");
     });
   });
 

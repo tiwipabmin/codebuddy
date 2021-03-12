@@ -28,6 +28,11 @@ function getParameterByName(name) {
  * Dependencies declaration
  */
 const socket = io("");
+const term = new Terminal({
+  cols: 60,
+  rows: 10,
+  cursorBlink: true,
+});
 const uid = getVarFromScript("playgroundIndividual", "data-uid");
 var comments = [];
 var code = null;
@@ -39,7 +44,13 @@ var projectFiles = JSON.parse(document.getElementById("projectFiles").value);
 var currentTab = "main";
 var partnerTab = "main";
 var isCloseTab = false;
+var isLight = false;
+let shellprompt = "\033[1;3;31m$ \033[0m";
+let termInputm = "";
+let isCodeRunning = false;
 let editor = {};
+let reconTimer = 0;
+let reconIntervalId = "";
 projectFiles.forEach(newEditorFacade);
 getActiveTab("main");
 
@@ -80,8 +91,6 @@ function setEditor(fileName) {
 /**
  * Code Mirror Change Theme
  */
-var isLight = false;
-
 function changeTheme() {
   if (!isLight) {
     var theme = "default";
@@ -107,9 +116,6 @@ socket.emit("join project", {
   pid: getParameterByName("project"),
   username: getVarFromScript("playgroundIndividual", "data-username"),
 });
-
-let reconTimer = 0;
-let reconIntervalId = "";
 
 $(window).focus(() => {
   if (reconIntervalId === "") {
@@ -337,20 +343,12 @@ function submitReview() {
 /**
  * Run code
  */
-const term = new Terminal({
-  cols: 60,
-  rows: 10,
-  cursorBlink: true,
-});
 term.open(document.getElementById("xterm-container"), false);
 term._initialized = true;
 
 function resizeTerm() {
   term.fit();
 }
-
-var shellprompt = "\033[1;3;31m$ \033[0m";
-var inputTerm = "input@codebuddy";
 
 term.prompt = function () {
   term.write("\r\n" + shellprompt);
@@ -360,31 +358,50 @@ term.on("key", function (key, ev) {
   var printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
 
   if (ev.keyCode == 13) {
-    if (inputTerm !== "input@codebuddy") {
-      inputTerm = inputTerm.slice(inputTerm.indexOf("y") + 1, inputTerm.length);
-      socket.emit("typing input on term", {
-        inputTerm: inputTerm,
+    // if (termInput !== "input@codebuddy") {
+    //   termInput = termInput.slice(termInput.indexOf("y") + 1, termInput.length);
+    //   socket.emit("get input", {
+    //     termInput: termInput,
+    //   });
+    //   term.writeln("");
+    //   termInput = "input@codebuddy";
+    //   return;
+    // }
+    if (isCodeRunning) {
+      socket.emit("get input", {
+        termInput: termInput,
       });
-      // console.log('inputTerm, ', inputTerm)
-      inputTerm = "input@codebuddy";
+      termInput = "";
+      term.writeln("");
+      return;
     }
     term.prompt();
   } else if (ev.keyCode == 8) {
-    /**
-     * Do not delete the prompt
-     **/
-    if (term.x > 2) {
+    if (isCodeRunning) {
       term.write("\b \b");
+      if (termInput.length) {
+        termInput = termInput.slice(0, termInput.length - 1);
+      }
+      console.log(`Term Input: ${termInput}`);
+    } else {
+      /**
+       * Don't remove the prompt
+       **/
+      if (term.x > 2) {
+        term.write("\b \b");
+      }
     }
   } else if (printable) {
-    // console.log(`printable : ${key}`)
+    if (isCodeRunning) {
+      termInput += key;
+    }
     term.write(key);
   }
 });
 
-term.on("keypress", function (key) {
-  inputTerm += key;
-});
+// term.on("keypress", function (key) {
+//   termInput += key;
+// });
 
 /**
  * Pause running code
@@ -397,6 +414,7 @@ function pauseRunCode() {
  * Run code
  */
 function runCode() {
+  isCodeRunning = true;
   socket.emit("run code", {
     uid: uid,
     code: getAllFileEditor(),
@@ -513,14 +531,17 @@ socket.on("set editor open tab", (payload) => {
   }
 });
 
-var lastInput = "";
-
 /**
  * Terminal socket
  */
-socket.on("term update", (payload) => {
-  term.writeln(payload);
-  term.prompt();
+socket.on("term update", (data="", state="closed") => {
+  if (state === "running") {
+    term.write(data);
+  } else {
+    termInput = "";
+    isCodeRunning = false;
+    term.prompt();
+  }
 });
 
 socket.on("download file", (payload) => {

@@ -325,7 +325,8 @@ block content
               .six.wide.column
                 button.ui.button.float-right(id='clearTerm' onClick='clearTerminal()') Clear
           .ui.secondary.segment
-            #xterm-container(onmouseup='resizeTerm()')
+            #xterm-container(onmouseup="resizeTerm()")
+            //- #xterm-container(onmousemove='resizeTerm()' onmousedown="startResizingTerm()" onmouseup="stopResizingTerm()")
 
   style.
     .face-tracking {
