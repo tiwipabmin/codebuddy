@@ -93,6 +93,9 @@ var isLight = false;
 let shellprompt = "\033[1;3;31m$ \033[0m";
 let termInput = "";
 let isCodeRunning = false;
+new ResizeSensor($("#xterm-container"), function () {
+  term.fit();
+});
 let editor = {};
 let reconTimer = 0;
 let reconIntervalId = "";
@@ -710,18 +713,19 @@ socket.on("is typing", (payload) => {
 /**
  * Run code
  */
-
-// const term = new Terminal({
-//   cursorBlink: true
-// })
-// const fitAddon = require('xterm-addon-fit')
-// term.loadAddon(fitAddon)
 term.open(document.getElementById("xterm-container"), false);
 term._initialized = true;
-// fitAddon.fit()
 
-function resizeTerm() {
-  term.fit();
+function smallSize() {
+  $("#xterm-container").height(190);
+}
+
+function mediumSize() {
+  $("#xterm-container").height(380);
+}
+
+function largeSize() {
+  $("#xterm-container").height(570);
 }
 
 term.prompt = function () {

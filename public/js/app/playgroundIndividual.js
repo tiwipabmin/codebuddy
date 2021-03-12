@@ -48,6 +48,9 @@ var isLight = false;
 let shellprompt = "\033[1;3;31m$ \033[0m";
 let termInputm = "";
 let isCodeRunning = false;
+new ResizeSensor($("#xterm-container"), function () {
+  term.fit();
+});
 let editor = {};
 let reconTimer = 0;
 let reconIntervalId = "";
@@ -346,8 +349,16 @@ function submitReview() {
 term.open(document.getElementById("xterm-container"), false);
 term._initialized = true;
 
-function resizeTerm() {
-  term.fit();
+function smallSize() {
+  $("#xterm-container").height(190);
+}
+
+function mediumSize() {
+  $("#xterm-container").height(380);
+}
+
+function largeSize() {
+  $("#xterm-container").height(570);
 }
 
 term.prompt = function () {
@@ -510,7 +521,6 @@ socket.on("show auto update score", (payload) => {
     $("#user-point-label").text(
       "average score: " + parseFloat(payload.avgScore).toFixed(2)
     );
-    console.log("Display: none!!");
     $("#plyg-indv-ldr").attr("style", "display: none");
   }
 });
@@ -534,7 +544,7 @@ socket.on("set editor open tab", (payload) => {
 /**
  * Terminal socket
  */
-socket.on("term update", (data="", state="closed") => {
+socket.on("term update", (data = "", state = "closed") => {
   if (state === "running") {
     term.write(data);
   } else {
