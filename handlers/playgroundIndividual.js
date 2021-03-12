@@ -685,23 +685,11 @@ module.exports = (io, client, redis, projects) => {
         });
       }
 
-      console.log("Data Before, ", data);
-      /**
-       * Resolve the output get echo the input ex. input is 'input', output is 'input input'
-       **/
-      // var splitData = data.split("\n");
-      // if (detectInputLst !== "empty@Codebuddy") {
-      //   if (splitData[0].indexOf(String.valueOf(detectInputLst))) {
-      //     data = splitData.slice(1, splitData.length).join("\n");
-      //     detectInputLst = "empty@Codebuddy";
-      //   }
-      // }
       if (detectInputLst.length) {
         detectInputLst = [];
       } else {
         client.emit("term update", data, "running");
       }
-      console.log("Data After, ", data);
     });
 
     pythonProcess.on("close", () => {

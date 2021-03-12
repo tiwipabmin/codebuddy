@@ -92,7 +92,6 @@ var isCloseTab = false;
 var isLight = false;
 let shellprompt = "\033[1;3;31m$ \033[0m";
 let termInput = "";
-let isTermResizable = false;
 let isCodeRunning = false;
 let editor = {};
 let reconTimer = 0;
@@ -722,18 +721,7 @@ term._initialized = true;
 // fitAddon.fit()
 
 function resizeTerm() {
-  // if (isTermResizable) {
-  //   term.fit();
-  // }
   term.fit();
-}
-
-function startResizingTerm() {
-  isTermResizable = true;
-}
-
-function stopResizingTerm() {
-  isTermResizable = false;
 }
 
 term.prompt = function () {
