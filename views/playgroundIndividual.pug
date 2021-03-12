@@ -184,13 +184,20 @@ block content
 
         .ui.segments
           .ui.segment
-            .ui.grid
-              .ten.wide.column
+            .ui.doubling.two.column.grid
+              .two.wide.column
                 p Terminal
-              .six.wide.column
-                button.ui.button.float-right(id='clearTerm' onClick='clearTerminal()') Clear
+              .fourteen.wide.column
+                .column
+                  button.ui.button.float-right(id='clearTerm' onClick='clearTerminal()') Clear Terminal
+                .column
+                  button.ui.button.float-right(onClick='largeSize()') L Size
+                .column
+                  button.ui.button.float-right(onClick='mediumSize()') M Size
+                .column
+                  button.ui.button.float-right(onClick='smallSize()') S Size
           .ui.secondary.segment
-            #xterm-container(onmouseup='resizeTerm()')
+            #xterm-container
 
   script(type='text/javascript').
     $(document).ready(function(){
@@ -203,6 +210,7 @@ block content
   script(src='/xterm/xterm.js')
   script(src='/xterm/addons/fit/fit.js')
   script(src='/js/static/countdown.min.js')
+  script(src='/js/static/ResizeSensor.js')
   script(src='/js/app/playgroundIndividual.js' data-username=`${user.username}` data-partnerImg=`${partner_img}` data-uid=`${user._id}`)
   script(src='/js/app/main.js')
   script(src='/trackingjs/build/tracking-min.js')
