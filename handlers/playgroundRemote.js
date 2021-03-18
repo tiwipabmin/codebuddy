@@ -816,9 +816,35 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * @param {String} answer The confirmation for changing role.
    * @param {Object} roles The roles instance contain coder, reviewer and requestedBy.
    */
-  client.on("confirm to switch role", (answer, roles) => {
+  client.on("confirm to switch role", async (answer, roles) => {
     try {
       if (answer === "accept") {
+        // const user = await User.findOne({
+        //   username: roles.requestedBy,
+        // });
+
+        // const curProjectSession = await ProjectSession.find(
+        //   {
+        //     uid: user._id,
+        //   },
+        //   {
+        //     psid: 1,
+        //   }
+        // ).sort({ joinedAt: -1 });
+
+        // ProjectSession.updateOne(
+        //   {
+        //     psid: curProjectSession[0].psid,
+        //   },
+        //   {
+        //     $inc: { noOfManualRoleSwitching: 1 },
+        //   },
+        //   (err) => {
+        //     if (err) console.error(`Catching error: ${err}`);
+        //   }
+        // );
+        await updateNoOfRoleSwitching(roles.requestedBy, "manual")
+
         delete roles.requestedBy;
         projects[projectId].roles = roles;
         /**
@@ -1735,6 +1761,56 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   }
 
   /**
+   * Update
+   */
+  async function updateNoOfRoleSwitching(username, type) {
+    try {
+      const user = await User.findOne({
+        username: username,
+      });
+
+      const curProjectSession = await ProjectSession.find(
+        {
+          uid: user._id,
+        },
+        {
+          psid: 1,
+        }
+      ).sort({ joinedAt: -1 });
+
+      if (type === "manual") {
+        console.log(`Update Number of Manual Role Switching of ${username}`);
+        ProjectSession.updateOne(
+          {
+            psid: curProjectSession[0].psid,
+          },
+          {
+            $inc: { noOfManualRoleSwitching: 1 },
+          },
+          (err) => {
+            if (err) throw err;
+          }
+        );
+      } else if (type === "automatic") {
+        console.log(`Update Number of Automatic Role Switching of ${username}`);
+        ProjectSession.updateOne(
+          {
+            psid: curProjectSession[0].psid,
+          },
+          {
+            $inc: { noOfAutomaticRoleSwitching: 1 },
+          },
+          (err) => {
+            if (err) throw err;
+          }
+        );
+      }
+    } catch (err) {
+      console.error(`Catching error: ${err}`);
+    }
+  }
+
+  /**
    * This function is started by first only user.
    */
   function countdownTimer() {
@@ -1742,7 +1818,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
      * Countdown interval
      */
     function intervalFunc() {
-      redis.hgetall(`project:${projectId}`, function (err, obj) {
+      redis.hgetall(`project:${projectId}`, async function (err, obj) {
         var start = new Date(parseInt(obj.startTime));
         let minutes = moment
           .duration(swaptime - (Date.now() - start))
@@ -1756,6 +1832,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
         if (minutes <= 0 && seconds <= 0) {
           io.in(projectId).emit("auto update score");
+          await updateNoOfRoleSwitching(projects[projectId].roles.coder, "automatic")
+          await updateNoOfRoleSwitching(projects[projectId].roles.reviewer, "automatic")
 
           projects[projectId].roles = swapRole(projects[projectId].roles);
           io.in(projectId).emit("update role", {
