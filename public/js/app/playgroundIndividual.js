@@ -122,6 +122,12 @@ socket.emit("join project", {
 
 $(window).focus(() => {
   if (reconIntervalId === "") {
+    $("#pr-text-loader").text("กำลังตรวจสอบการเชื่อมต่อ กรุณารอสักครู่.");
+    $("#plyg-indv-ldr").attr("style", {
+      display: "initial",
+      position: "fixed",
+    });
+
     reconIntervalId = setInterval(() => {
       reconTimer++;
       // console.log(`Reconnect Timer: ${reconTimer}`);
@@ -130,7 +136,7 @@ $(window).focus(() => {
        */
       if (reconTimer >= 1) {
         $("#pr-text-loader").text("กำลังโหลดข้อมูลล่าสุด กรุณารอสักครู่.");
-        $("#plyg-indv-ldr").attr("style", "display: block");
+        $("#plyg-indv-ldr").attr("style", "display: initial");
 
         socket.connect();
         socket.emit("load playground", { programming_style: "Individual" });
@@ -153,6 +159,7 @@ $(window).focus(() => {
 
 socket.on("PING", (payload) => {
   console.log(`PING~`);
+  $("#plyg-indv-ldr").attr("style", "display: none");
   clearInterval(reconIntervalId);
   reconIntervalId = "";
   reconTimer = 0;
@@ -440,7 +447,7 @@ function runCode() {
  * Submit code
  */
 function submitCode() {
-  $("#pr-text-loader").text("กำลังตรวจสอบ กรุณารอสักครู่.");
+  $("#pr-text-loader").text("กำลังตรวจสอบคุณภาพโค้ด กรุณารอสักครู่.");
   $("#plyg-indv-ldr").attr({
     style: "display: block; position: fixed;",
   });
@@ -548,6 +555,7 @@ socket.on("term update", (data = "", state = "closed") => {
   if (state === "running") {
     term.write(data);
   } else {
+    $("#plyg-indv-ldr").attr("style", "display: none");
     termInput = "";
     isCodeRunning = false;
     term.prompt();

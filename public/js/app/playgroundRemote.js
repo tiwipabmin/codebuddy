@@ -180,6 +180,9 @@ socket.on("start the project session", () => {
 
 $(window).focus(() => {
   if (reconIntervalId === "") {
+    $("#pr-text-loader").text("กำลังตรวจสอบการเชื่อมต่อ กรุณารอสักครู่.");
+    $("#playground-remote-loader").attr("style", "display: initial");
+
     reconIntervalId = setInterval(() => {
       reconTimer++;
       // console.log(`Reconnect Timer: ${reconTimer}`);
@@ -188,7 +191,7 @@ $(window).focus(() => {
        */
       if (reconTimer >= 1) {
         $("#pr-text-loader").text("กำลังโหลดข้อมูลล่าสุด กรุณารอสักครู่.");
-        $("#playground-remote-loader").attr("style", "display: block");
+        $("#playground-remote-loader").attr("style", "display: initial");
 
         $("#swtc-rl-btn").attr("disabled", "disabled");
         $(".countdown").empty();
@@ -215,6 +218,7 @@ $(window).focus(() => {
 
 socket.on("PING", (payload) => {
   console.log(`PING~`);
+  $("#playground-remote-loader").attr("style", "display: none");
   clearInterval(reconIntervalId);
   reconIntervalId = "";
   reconTimer = 0;
@@ -810,7 +814,7 @@ function submitCode() {
   // $("#global_loader").attr({
   //   style: "display: block; position: fixed;"
   // });
-  $("#pr-text-loader").text("Loading...");
+  $("#pr-text-loader").text("กำลังตรวจสอบคุณภาพโค้ด กรุณารอสักครู่.");
   $("#playground-remote-loader").attr(
     "style",
     "display: block; position: fixed;"
@@ -958,6 +962,7 @@ socket.on("term update", (data = "", state = "closed") => {
   if (state === "running") {
     term.write(data);
   } else {
+    $("#playground-remote-loader").attr("style", "display: none");
     termInput = "";
     isCodeRunning = false;
     term.prompt();

@@ -87,6 +87,7 @@ h5 {
 }
 
 #xterm-container {
+    height: 190;
     resize: vertical;
     overflow: auto !important;
 }
