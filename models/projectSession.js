@@ -18,6 +18,7 @@ const projectSessionSchema = new mongoose.Schema({
   activeTime: { type: Number, default: 0 },
   coderTime: { type: Number, default: 0 },
   noOfManualRoleSwitching: { type: Number, default: 0 },
+  noOfAutomaticRoleSwitching: { type: Number, default: 0 },
   reviewerTime: { type: Number, default: 0 },
   joinedAt: { type: Date, default: Date.now },
   leftAt: { type: Date, default: Date.now },
