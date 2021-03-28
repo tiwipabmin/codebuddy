@@ -636,6 +636,18 @@ module.exports = (io, client, redis, projects) => {
       );
     });
 
+    let isForced = false;
+    if (pythonProcess) {
+      console.log("Terminate!");
+      isForced = true;
+      pythonProcess.kill("SIGTERM");
+      pythonProcess = null;
+      return;
+    } else {
+      console.log("Started~");
+      io.in(projectId).emit("term update", "", "started");
+    }
+
     if (process.platform === "win32") {
       pythonProcess = nodepty.spawn(
         "python.exe",
@@ -693,9 +705,24 @@ module.exports = (io, client, redis, projects) => {
     });
 
     pythonProcess.on("close", () => {
-      client.emit("term update", "", "closed");
+      if (pythonProcess) {
+        client.emit("term update", "", "closed");
+      } else {
+        client.emit("term update", "", "forced");
+      }
+      pythonProcess = null;
     });
     // setTimeout(pythonProcess.kill.bind(pythonProcess), 1000);
+  });
+
+  /**
+   * `terminate child process` event fired when user decides to stop the executed code.
+   */
+  client.on("terminate child process", (requestedBy) => {
+    pythonProcess.kill("SIGTERM");
+    // if (projects[projectId].roles.coder === requestedBy && pythonProcess ) {
+    //   pythonProcess.kill("SIGTERM");
+    // }
   });
 
   /**
@@ -1075,7 +1102,7 @@ module.exports = (io, client, redis, projects) => {
     });
 
     pylintProcess.on("close", () => {
-      client.emit("term update", "", "closed");
+      client.emit("term update", "Finished scoring.", "closed");
     });
   });
 

@@ -2,7 +2,7 @@ function getVarFromScript(scriptName, name) {
   const data = $(`script[src*=${scriptName}]`);
   const variable = data.attr(name);
   if (typeof variable === undefined) {
-    console.log("Error: ", variable);
+    console.error("Error: ", variable);
   }
   return variable;
 }
@@ -46,7 +46,7 @@ var partnerTab = "main";
 var isCloseTab = false;
 var isLight = false;
 let shellprompt = "\033[1;3;31m$ \033[0m";
-let termInputm = "";
+let termInput = "";
 let isCodeRunning = false;
 new ResizeSensor($("#xterm-container"), function () {
   term.fit();
@@ -123,9 +123,8 @@ socket.emit("join project", {
 $(window).focus(() => {
   if (reconIntervalId === "") {
     $("#pr-text-loader").text("กำลังตรวจสอบการเชื่อมต่อ กรุณารอสักครู่.");
-    $("#plyg-indv-ldr").attr("style", {
-      display: "initial",
-      position: "fixed",
+    $("#plyg-indv-ldr").attr({
+      style: "display: block; position: fixed;",
     });
 
     reconIntervalId = setInterval(() => {
@@ -136,7 +135,9 @@ $(window).focus(() => {
        */
       if (reconTimer >= 1) {
         $("#pr-text-loader").text("กำลังโหลดข้อมูลล่าสุด กรุณารอสักครู่.");
-        $("#plyg-indv-ldr").attr("style", "display: initial");
+        $("#plyg-indv-ldr").attr({
+          style: "display: block; position: fixed;",
+        });
 
         socket.connect();
         socket.emit("load playground", { programming_style: "Individual" });
@@ -146,19 +147,14 @@ $(window).focus(() => {
           sectionId: getParameterByName("section"),
           state: "Starting Reconnection",
         });
-        console.log(`Reconnect Timer: ${reconTimer}`);
-        console.log(`Socket: `, socket);
-        // clearInterval(reconIntervalId);
       }
     }, 3000);
     let beat = 1;
-    console.log(`PONG~`);
     socket.emit("PONG", { beat: beat });
   }
 });
 
 socket.on("PING", (payload) => {
-  console.log(`PING~`);
   $("#plyg-indv-ldr").attr("style", "display: none");
   clearInterval(reconIntervalId);
   reconIntervalId = "";
@@ -170,7 +166,6 @@ socket.on("reconnected", () => {
   reconTimer = 0;
   reconIntervalId = "";
   $("#plyg-indv-ldr").attr("style", "display: none");
-  // console.log(`ReconIntervalId was destroyed!`);
 });
 
 /**
@@ -372,19 +367,11 @@ term.prompt = function () {
   term.write("\r\n" + shellprompt);
 };
 term.prompt();
+
 term.on("key", function (key, ev) {
-  var printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
+  var printable = !ev.altKey && !ev.altGraphKey && !ev.metaKey;
 
   if (ev.keyCode == 13) {
-    // if (termInput !== "input@codebuddy") {
-    //   termInput = termInput.slice(termInput.indexOf("y") + 1, termInput.length);
-    //   socket.emit("get input", {
-    //     termInput: termInput,
-    //   });
-    //   term.writeln("");
-    //   termInput = "input@codebuddy";
-    //   return;
-    // }
     if (isCodeRunning) {
       socket.emit("get input", {
         termInput: termInput,
@@ -400,7 +387,6 @@ term.on("key", function (key, ev) {
       if (termInput.length) {
         termInput = termInput.slice(0, termInput.length - 1);
       }
-      console.log(`Term Input: ${termInput}`);
     } else {
       /**
        * Don't remove the prompt
@@ -411,15 +397,35 @@ term.on("key", function (key, ev) {
     }
   } else if (printable) {
     if (isCodeRunning) {
-      termInput += key;
+      /**
+       * This 67 KeyCode is equivalent to the "Ctrl + c" KeyMap.
+       * This 86 KeyCode is equivalent to the "Ctrl + v" KeyMap.
+       */
+      if (ev.keyCode == 67) {
+        const username = getVarFromScript("playgroundRemote", "data-username");
+        term.write("^C");
+        socket.emit("terminate child process", username);
+      } else if (ev.keyCode == 86) {
+        theClipboard = navigator.clipboard;
+        theClipboard.readText().then((clipText) => {
+          let clipTexts = clipText.split("\n");
+          termInput += clipText;
+
+          for (let index in clipTexts) {
+            if (parseInt(index) === clipTexts.length - 1) {
+              term.write(clipTexts[index]);
+            } else {
+              term.writeln(clipTexts[index]);
+            }
+          }
+        });
+      } else {
+        termInput += key;
+      }
     }
     term.write(key);
   }
 });
-
-// term.on("keypress", function (key) {
-//   termInput += key;
-// });
 
 /**
  * Pause running code
@@ -440,7 +446,6 @@ function runCode() {
   socket.emit("save lines of code", {
     uid: uid,
   });
-  term.writeln("Running pytest.py...");
 }
 
 /**
@@ -552,13 +557,21 @@ socket.on("set editor open tab", (payload) => {
  * Terminal socket
  */
 socket.on("term update", (data = "", state = "closed") => {
-  if (state === "running") {
-    term.write(data);
-  } else {
+  if (state === "started") {
+    term.writeln("Running pytest.py...");
+  } else if (state === "forced") {
+    term.prompt();
+    runCode();
+  } else if (state === "closed") {
     $("#plyg-indv-ldr").attr("style", "display: none");
     termInput = "";
     isCodeRunning = false;
+    if (data != "") {
+      term.writeln(data);
+    }
     term.prompt();
+  } else {
+    term.write(data);
   }
 });
 
@@ -771,7 +784,6 @@ function setOnChangeEditer(fileName) {
      * Check when enter new line
      **/
     if (text == 44) {
-      // console.log('enter '+enterline)
       for (var i in comments) {
         if (comments[i].line > enterline && comments[i].file == fileName) {
           isEnter = true;

@@ -843,7 +843,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         //     if (err) console.error(`Catching error: ${err}`);
         //   }
         // );
-        await updateNoOfRoleSwitching(roles.requestedBy, "manual")
+        await updateNoOfRoleSwitching(roles.requestedBy, "manual");
 
         delete roles.requestedBy;
         projects[projectId].roles = roles;
@@ -1148,6 +1148,18 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       );
     });
 
+    let isForced = false;
+    if (pythonProcess) {
+      console.log("Terminate!");
+      isForced = true;
+      pythonProcess.kill("SIGTERM");
+      pythonProcess = null;
+      return;
+    } else {
+      console.log("Started~");
+      io.in(projectId).emit("term update", "", "started");
+    }
+
     if (process.platform === "win32") {
       pythonProcess = nodepty.spawn(
         "python.exe",
@@ -1200,14 +1212,27 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       if (detectInputLst.length) {
         detectInputLst = [];
       } else {
-        io.in(projectId).emit("term update", data, "running");
+        io.in(projectId).emit("term update", data, "pending");
       }
     });
 
     pythonProcess.on("close", () => {
-      io.in(projectId).emit("term update", "", "closed");
+      if (pythonProcess) {
+        io.in(projectId).emit("term update", "", "closed");
+      } else {
+        io.in(projectId).emit("term update", "", "forced");
+      }
+      pythonProcess = null;
     });
-    // setTimeout(pythonProcess.kill.bind(pythonProcess), 1000);
+  });
+
+  /**
+   * `terminate child process` event fired when user decides to stop the executed code.
+   */
+  client.on("terminate child process", (requestedBy) => {
+    if (projects[projectId].roles.coder === requestedBy && pythonProcess ) {
+      pythonProcess.kill("SIGTERM");
+    }
   });
 
   /**
@@ -1657,7 +1682,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     });
 
     pylintProcess.on("close", () => {
-      client.emit("term update", "", "closed");
+      client.emit("term update", "Finished scoring.", "closed");
     });
   });
 
@@ -1832,8 +1857,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
         if (minutes <= 0 && seconds <= 0) {
           io.in(projectId).emit("auto update score");
-          await updateNoOfRoleSwitching(projects[projectId].roles.coder, "automatic")
-          await updateNoOfRoleSwitching(projects[projectId].roles.reviewer, "automatic")
+          await updateNoOfRoleSwitching(
+            projects[projectId].roles.coder,
+            "automatic"
+          );
+          await updateNoOfRoleSwitching(
+            projects[projectId].roles.reviewer,
+            "automatic"
+          );
 
           projects[projectId].roles = swapRole(projects[projectId].roles);
           io.in(projectId).emit("update role", {

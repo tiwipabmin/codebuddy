@@ -732,12 +732,14 @@ function largeSize() {
   $("#xterm-container").height(570);
 }
 
-term.prompt = function () {
-  term.write("\r\n" + shellprompt);
+term.prompt = function (text = "") {
+  term.write("\r\n" + shellprompt + text);
 };
+
 term.prompt();
+
 term.on("key", function (key, ev) {
-  var printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
+  var printable = !ev.altKey && !ev.altGraphKey && !ev.metaKey;
 
   if (ev.keyCode == 13) {
     // if (termInput !== "input@codebuddy") {
@@ -775,15 +777,35 @@ term.on("key", function (key, ev) {
     }
   } else if (printable) {
     if (isCodeRunning) {
-      termInput += key;
+      /**
+       * This 67 KeyCode is equivalent to the "Ctrl + c" KeyMap.
+       * This 86 KeyCode is equivalent to the "Ctrl + v" KeyMap.
+       */
+      if (ev.keyCode == 67) {
+        const username = getVarFromScript("playgroundRemote", "data-username");
+        term.write("^C");
+        socket.emit("terminate child process", username);
+      } else if (ev.keyCode == 86) {
+        theClipboard = navigator.clipboard;
+        theClipboard.readText().then((clipText) => {
+          let clipTexts = clipText.split("\n");
+          termInput += clipText;
+
+          for (let index in clipTexts) {
+            if (parseInt(index) === clipTexts.length - 1) {
+              term.write(clipTexts[index]);
+            } else {
+              term.writeln(clipTexts[index]);
+            }
+          }
+        });
+      } else {
+        termInput += key;
+      }
     }
     term.write(key);
   }
 });
-
-// term.on("keypress", function (key) {
-//   termInput += key;
-// });
 
 /**
  * Pause running code
@@ -804,7 +826,6 @@ function runCode() {
   socket.emit("save lines of code", {
     uid: uid,
   });
-  term.writeln("Running pytest.py...");
 }
 
 /**
@@ -959,13 +980,22 @@ socket.on("set editor open tab", (payload) => {
  * Terminal update data
  */
 socket.on("term update", (data = "", state = "closed") => {
-  if (state === "running") {
-    term.write(data);
-  } else {
+  if (state === "started") {
+    term.writeln("Running pytest.py...");
+  } else if (state === "forced") {
+    console.log("Run code again!");
+    term.prompt();
+    runCode();
+  } else if (state === "closed") {
     $("#playground-remote-loader").attr("style", "display: none");
     termInput = "";
     isCodeRunning = false;
+    if (data != "") {
+      term.writeln(data);
+    }
     term.prompt();
+  } else {
+    term.write(data);
   }
 });
 
