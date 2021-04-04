@@ -79,7 +79,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
        */
       if (payload.state) {
         if (projects[projectId] !== undefined) {
-          console.log("CodeBuddy: projects[projectId]", projects[projectId]);
           if (projects[projectId].activeUsers !== undefined) {
             if (projects[projectId].activeUsers[curUser] !== undefined) {
               console.log(
@@ -310,7 +309,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           // client.leave(projectId);
           // clearTimeout(pingPongId);
           // clearTimeout(autoDiscId);
-          // console.log(`The Project Session of ${curUser} was disconnected.`);
           // if (numUser >= 1) {
           //   if (curUser === projects[projectId].roles.coder) {
           //     projects[projectId].roles = swapRole(projects[projectId].roles);
@@ -677,7 +675,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `create file` event fired when user click create new file
    * @param {Ibject} payload fileName
    **/
-  client.on("create file", (payload) => {
+  client.on("create file", (fileName, username) => {
     /**
      * save file name to mongoDB
      **/
@@ -687,7 +685,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       },
       {
         $push: {
-          files: payload,
+          files: fileName,
         },
       },
       (err) => {
@@ -699,7 +697,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
      * create new file  ./public/project_files/projectId/fileName.py
      **/
     fs.open(
-      "./public/project_files/" + projectId + "/" + payload + ".py",
+      "./public/project_files/" + projectId + "/" + fileName + ".py",
       "w",
       function (err, file) {
         if (err) throw err;
@@ -707,16 +705,18 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     );
 
     io.in(projectId).emit("update tab", {
-      fileName: payload,
+      fileName: fileName,
       action: "create",
+      username: username,
     });
   });
 
   /**
    * `delete file` event fired when user click delete file
-   * @param {Ibject} payload fileName
+   * @param {String} fileName fileName
+   * @param {String} username username
    **/
-  client.on("delete file", async (payload) => {
+  client.on("delete file", async (fileName, username) => {
     /**
      * delete file in mongoDB
      **/
@@ -726,7 +726,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       },
       {
         $pull: {
-          files: payload,
+          files: fileName,
         },
       },
       (err) => {
@@ -741,7 +741,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       await redis.hget(`project:${projectId}`, "editor", (err, ret) => ret)
     );
     if (code != null) {
-      delete code[payload];
+      delete code[fileName];
       redis.hset(`project:${projectId}`, "editor", JSON.stringify(code));
     }
 
@@ -749,14 +749,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
      * delete file
      **/
     fs.unlink(
-      "./public/project_files/" + projectId + "/" + payload + ".py",
+      "./public/project_files/" + projectId + "/" + fileName + ".py",
       function (err) {
         if (err) console.error(err);
       }
     );
 
     io.in(projectId).emit("update tab", {
-      fileName: payload,
+      fileName: fileName,
+      username: username,
       action: "delete",
     });
   });
@@ -1150,13 +1151,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
     let isForced = false;
     if (pythonProcess) {
-      console.log("Terminate!");
       isForced = true;
       pythonProcess.kill("SIGTERM");
       pythonProcess = null;
       return;
     } else {
-      console.log("Started~");
       io.in(projectId).emit("term update", "", "started");
     }
 
@@ -1230,7 +1229,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `terminate child process` event fired when user decides to stop the executed code.
    */
   client.on("terminate child process", (requestedBy) => {
-    if (projects[projectId].roles.coder === requestedBy && pythonProcess ) {
+    if (projects[projectId].roles.coder === requestedBy && pythonProcess) {
       pythonProcess.kill("SIGTERM");
     }
   });
@@ -1804,7 +1803,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       ).sort({ joinedAt: -1 });
 
       if (type === "manual") {
-        console.log(`Update Number of Manual Role Switching of ${username}`);
         ProjectSession.updateOne(
           {
             psid: curProjectSession[0].psid,
@@ -1817,7 +1815,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           }
         );
       } else if (type === "automatic") {
-        console.log(`Update Number of Automatic Role Switching of ${username}`);
         ProjectSession.updateOne(
           {
             psid: curProjectSession[0].psid,

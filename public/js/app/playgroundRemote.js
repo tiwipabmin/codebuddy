@@ -60,7 +60,7 @@ function getParameterByName(name) {
 const socket = io("");
 
 const roles = {
-  username: "",
+  user: "",
   partner: "",
 };
 const term = new Terminal({
@@ -71,7 +71,8 @@ const term = new Terminal({
 const uid = getVarFromScript("playgroundRemote", "data-uid");
 const sectionId = getVarFromScript("playgroundRemote", "data-sectionId");
 let comments = [];
-let code = null;
+// let code = null;
+let editorValues = { main: "" };
 
 let webrtc = new SimpleWebRTC({
   // the id/element dom element that will hold "our" video
@@ -205,19 +206,19 @@ $(window).focus(() => {
           sectionId: getParameterByName("section"),
           state: "Starting Reconnection",
         });
-        console.log(`Reconnect Timer: ${reconTimer}`);
-        console.log(`Socket: `, socket);
+        // console.log(`Reconnect Timer: ${reconTimer}`);
+        // console.log(`Socket: `, socket);
         // clearInterval(reconIntervalId);
       }
     }, 3000);
     let beat = 1;
-    console.log(`PONG~`);
+    // console.log(`PONG~`);
     socket.emit("PONG", { beat: beat });
   }
 });
 
 socket.on("PING", (payload) => {
-  console.log(`PING~`);
+  // console.log(`PING~`);
   $("#playground-remote-loader").attr("style", "display: none");
   clearInterval(reconIntervalId);
   reconIntervalId = "";
@@ -277,19 +278,35 @@ webrtc.on("readyToCall", function () {
  */
 socket.on("init state", (payload) => {
   if (payload.editor != null) {
-    var editorValues = JSON.parse(payload.editor);
+    editorValues = JSON.parse(payload.editor);
     projectFiles.forEach(setEditorValue);
   } else {
     editor["main"].setValue("");
   }
 
+  // function getRulers(values) {
+  //   let rulers = [];
+  //   for (let i = 0; i <= values.length; i++) {
+  //     rulers.push({
+  //       color: "#FFFFF",
+  //       column: i * 4,
+  //       lineStyle: "dashed",
+  //       width: 1,
+  //     });
+  //   }
+  //   return rulers;
+  // }
+
   function setEditorValue(fileName) {
     if (editorValues != null) {
+      // let rulers = getRulers(editorValues[fileName].split("\n"));
+      // console.log("Rulers, ", rulers);
       editor[fileName].setValue(editorValues[fileName]);
+      // editor[fileName].setOption("rulers", rulers);
     }
   }
 
-  code = payload.editor;
+  // code = payload.editor;
 });
 
 /**
@@ -312,6 +329,7 @@ socket.on("init reviews", (payload) => {
 socket.on("update tab", (payload) => {
   var fileName = payload.fileName;
   var action = payload.action;
+  let username = getVarFromScript("playgroundRemote", "data-username");
   if (action == "create") {
     var id = document.getElementById("file-tabs").childElementCount;
     $(".add-file")
@@ -345,6 +363,15 @@ socket.on("update tab", (payload) => {
      **/
     projectFiles.push(fileName);
     newEditorFacade(fileName);
+    switch (roles.user) {
+      case "coder":
+        setOptionFileShowCursor(fileName);
+        break;
+      case "reviewer":
+        setOptionFileNoCursor(fileName);
+        break;
+    }
+
     var html =
       '<div class="item cursor-pointer" id="' +
       fileName +
@@ -391,18 +418,39 @@ socket.on("update tab", (payload) => {
         fileName +
         ".py</label></div></div>"
     );
+
+    if (username === payload.username) {
+      $(`#${fileName}-file`).click();
+    }
   } else {
+    if (username !== payload.username) {
+      $("#alert-header").text("การลบไฟล์");
+      $("#alert-message").text(
+        `เพื่อนของคุณลบไฟล์ที่ชื่อว่า "${fileName}.py" แล้ว`
+      );
+      $("#alert-modal").modal("show");
+    }
+
     var tab = document.getElementById(fileName);
-    tab.remove();
+    if (tab) {
+      tab.remove();
+      var tabContent = document.getElementById(fileName + "-tab");
+      tabContent.remove();
+      var modal = document.getElementById(fileName + "-delete-file-modal");
+      modal.remove();
+    }
     var fileItem = document.getElementById(fileName + "-file");
     fileItem.remove();
-    var modal = document.getElementById(fileName + "-delete-file-modal");
-    modal.remove();
     var exportFileItem = document.getElementById(
       fileName + "-export-file-item"
     );
     exportFileItem.remove();
     $(".file.menu").children("a").first().click();
+
+    fileIndex = projectFiles.indexOf(fileName);
+    delete projectFiles[fileIndex];
+    delete editorValues[fileName];
+    delete editor[fileName];
   }
 });
 
@@ -530,6 +578,17 @@ socket.on("role timer", () => {
 });
 
 /**
+ * Editor is configured cursor according to the user's role.
+ * @param {object} fileName receive a file name.
+ */
+function setOptionFileNoCursor(fileName) {
+  editor[fileName].setOption("readOnly", "nocursor");
+}
+function setOptionFileShowCursor(fileName) {
+  editor[fileName].setOption("readOnly", false);
+}
+
+/**
  * `update role` event fired when the project initialize and
  * the role is manually changed by the one of users.
  * @param {Object} payload the object instance
@@ -592,16 +651,16 @@ socket.on("update role", (payload) => {
       }
     }
 
-    /**
-     * Editor is configured cursor according to the user's role.
-     * @param {object} fileName receive a file name.
-     */
-    function setOptionFileNoCursor(fileName) {
-      editor[fileName].setOption("readOnly", "nocursor");
-    }
-    function setOptionFileShowCursor(fileName) {
-      editor[fileName].setOption("readOnly", false);
-    }
+    // /**
+    //  * Editor is configured cursor according to the user's role.
+    //  * @param {object} fileName receive a file name.
+    //  */
+    // function setOptionFileNoCursor(fileName) {
+    //   editor[fileName].setOption("readOnly", "nocursor");
+    // }
+    // function setOptionFileShowCursor(fileName) {
+    //   editor[fileName].setOption("readOnly", false);
+    // }
 
     $(".partner-role-label").text(`${roles.partner}`);
     $(".user-role-label").text(`${roles.user}`);
@@ -766,7 +825,7 @@ term.on("key", function (key, ev) {
       if (termInput.length) {
         termInput = termInput.slice(0, termInput.length - 1);
       }
-      console.log(`Term Input: ${termInput}`);
+      // console.log(`Term Input: ${termInput}`);
     } else {
       /**
        * Don't remove the prompt
@@ -947,7 +1006,7 @@ socket.on("show partner active tab", (payload) => {
     );
 
     /**
-     * set new partner actice tab
+     * set new partner active tab
      **/
     partnerTab = payload.activeTab;
     $("#" + partnerTab + "-file-icon").replaceWith(
@@ -983,7 +1042,7 @@ socket.on("term update", (data = "", state = "closed") => {
   if (state === "started") {
     term.writeln("Running pytest.py...");
   } else if (state === "forced") {
-    console.log("Run code again!");
+    // console.log("Run code again!");
     term.prompt();
     runCode();
   } else if (state === "closed") {
@@ -1308,7 +1367,8 @@ function openTab(fileName) {
 
 function createFile() {
   var fileName = $(".filename").val();
-  socket.emit("create file", fileName);
+  let username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("create file", fileName, username);
 }
 
 function showExportModal() {
@@ -1321,7 +1381,8 @@ function showDeleteFileModal(fileName) {
 }
 
 function deleteFile(fileName) {
-  socket.emit("delete file", fileName);
+  let username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("delete file", fileName, username);
 }
 
 function onClickExport() {
@@ -1397,6 +1458,8 @@ function setOnChangeEditer(fileName) {
       currentTab: fileName,
       fileName: fileName,
     });
+
+    editorValues[fileName] = editor[fileName].getValue();
   });
 }
 
@@ -1457,12 +1520,23 @@ function setOnDoubleClickEditor(fileName) {
 }
 
 function getAllFileEditor() {
-  let codeEditors = {};
-  projectFiles.forEach(runCodeEachFile);
-  function runCodeEachFile(fileName) {
-    codeEditors[fileName] = editor[fileName].getValue();
-  }
-  return codeEditors;
+  // let codeEditors = {};
+  // try {
+  //   projectFiles.forEach(runCodeEachFile);
+  //   return codeEditors;
+  // } catch (err) {
+  // $("#alert-header").text("ข้อผิดพลาดการนำเข้า");
+  // $("#alert-message").text(
+  //   "ข้อผิดพลาดของการนำเข้าฟังก์ชันหรือคำสั่งจากไฟล์อื่นที่ถูกปิดไปแล้ว"
+  // );
+  // $("#alert-modal").modal("show");
+  //   console.error(`Catching error: ${err}`);
+  //   return null;
+  // }
+  // function runCodeEachFile(fileName) {
+  //   codeEditors[fileName] = editor[fileName].getValue();
+  // }
+  return editorValues;
 }
 
 function newEditorFacade(fileName) {

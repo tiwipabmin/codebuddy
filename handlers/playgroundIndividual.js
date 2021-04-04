@@ -99,7 +99,7 @@ module.exports = (io, client, redis, projects) => {
       /**
        * Increase user's enter count
        */
-      console.log("curUser, ", curUser);
+      // console.log("curUser, ", curUser);
       const user = await User.findOne({ username: curUser });
       await Score.update(
         { pid: projectId, uid: user._id },
@@ -275,7 +275,7 @@ module.exports = (io, client, redis, projects) => {
    * `create file` event fired when user click create new file
    * @param {Ibject} payload fileName
    */
-  client.on("create file", (payload) => {
+  client.on("create file", (fileName, username) => {
     /**
      * save file name to mongoDB
      **/
@@ -285,7 +285,7 @@ module.exports = (io, client, redis, projects) => {
       },
       {
         $push: {
-          files: payload,
+          files: fileName,
         },
       },
       (err) => {
@@ -297,7 +297,7 @@ module.exports = (io, client, redis, projects) => {
      * create new file  ./public/project_files/projectId/fileName.py
      **/
     fs.open(
-      "./public/project_files/" + projectId + "/" + payload + ".py",
+      "./public/project_files/" + projectId + "/" + fileName + ".py",
       "w",
       function (err, file) {
         if (err) throw err;
@@ -305,8 +305,9 @@ module.exports = (io, client, redis, projects) => {
     );
 
     io.in(projectId).emit("update tab", {
-      fileName: payload,
+      fileName: fileName,
       action: "create",
+      username: username,
     });
   });
 
@@ -314,7 +315,7 @@ module.exports = (io, client, redis, projects) => {
    * `delete file` event fired when user click delete file
    * @param {Ibject} payload fileName
    */
-  client.on("delete file", async (payload) => {
+  client.on("delete file", async (fileName, username) => {
     /**
      * delete file in mongoDB
      **/
@@ -324,7 +325,7 @@ module.exports = (io, client, redis, projects) => {
       },
       {
         $pull: {
-          files: payload,
+          files: fileName,
         },
       },
       (err) => {
@@ -339,7 +340,7 @@ module.exports = (io, client, redis, projects) => {
       await redis.hget(`project:${projectId}`, "editor", (err, ret) => ret)
     );
     if (code != null) {
-      delete code[payload];
+      delete code[fileName];
       redis.hset(`project:${projectId}`, "editor", JSON.stringify(code));
     }
 
@@ -347,14 +348,15 @@ module.exports = (io, client, redis, projects) => {
      * delete file
      **/
     fs.unlink(
-      "./public/project_files/" + projectId + "/" + payload + ".py",
+      "./public/project_files/" + projectId + "/" + fileName + ".py",
       function (err) {
         if (err) throw err;
       }
     );
 
     io.in(projectId).emit("update tab", {
-      fileName: payload,
+      fileName: fileName,
+      username: username,
       action: "delete",
     });
   });
@@ -638,13 +640,13 @@ module.exports = (io, client, redis, projects) => {
 
     let isForced = false;
     if (pythonProcess) {
-      console.log("Terminate!");
+      // console.log("Terminate!");
       isForced = true;
       pythonProcess.kill("SIGTERM");
       pythonProcess = null;
       return;
     } else {
-      console.log("Started~");
+      // console.log("Started~");
       io.in(projectId).emit("term update", "", "started");
     }
 
@@ -945,7 +947,7 @@ module.exports = (io, client, redis, projects) => {
                       ],
                       function (err, results) {
                         if (err) {
-                          console.log(err);
+                          console.error(err);
                           return;
                         }
                         if (results) {
@@ -1031,7 +1033,7 @@ module.exports = (io, client, redis, projects) => {
                             ],
                             function (err, results) {
                               if (err) {
-                                console.log(err);
+                                console.error(err);
                                 return;
                               }
                               if (results) {
@@ -1240,7 +1242,7 @@ module.exports = (io, client, redis, projects) => {
       function (err, res) {
         if (err) return handleError(err);
         var textInLine = res;
-        console.log(res);
+        // console.log(res);
         for (var i = 0; i < textInLine.length; i++) {
           History.update(
             {

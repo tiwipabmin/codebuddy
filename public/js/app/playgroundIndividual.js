@@ -35,7 +35,8 @@ const term = new Terminal({
 });
 const uid = getVarFromScript("playgroundIndividual", "data-uid");
 var comments = [];
-var code = null;
+// var code = null;
+let editorValues = { main: "" };
 
 /**
  * Initiate local editor
@@ -173,7 +174,8 @@ socket.on("reconnected", () => {
  */
 socket.on("init state", (payload) => {
   if (payload.editor != null) {
-    var editorValues = JSON.parse(payload.editor);
+    // var editorValues = JSON.parse(payload.editor);
+    editorValues = JSON.parse(payload.editor);
     projectFiles.forEach(setEditorValue);
   } else {
     editor["main"].setValue("");
@@ -185,7 +187,7 @@ socket.on("init state", (payload) => {
     }
   }
 
-  code = payload.editor;
+  // code = payload.editor;
 });
 
 /**
@@ -285,18 +287,29 @@ socket.on("update tab", (payload) => {
         fileName +
         ".py</label></div></div>"
     );
+
+    $(`#${fileName}-file`).click();
   } else {
     var tab = document.getElementById(fileName);
-    tab.remove();
+    if (tab) {
+      tab.remove();
+      var tabContent = document.getElementById(fileName + "-tab");
+      tabContent.remove();
+      var modal = document.getElementById(fileName + "-delete-file-modal");
+      modal.remove();
+    }
     var fileItem = document.getElementById(fileName + "-file");
     fileItem.remove();
-    var modal = document.getElementById(fileName + "-delete-file-modal");
-    modal.remove();
     var exportFileItem = document.getElementById(
       fileName + "-export-file-item"
     );
     exportFileItem.remove();
     $(".file.menu").children("a").first().click();
+
+    fileIndex = projectFiles.indexOf(fileName);
+    delete projectFiles[fileIndex];
+    delete editorValues[fileName];
+    delete editor[fileName];
   }
 });
 
@@ -736,7 +749,8 @@ function openTab(fileName) {
 
 function createFile() {
   var fileName = $(".filename").val();
-  socket.emit("create file", fileName);
+  let username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("create file", fileName, username);
 }
 
 function showExportModal() {
@@ -748,7 +762,8 @@ function showDeleteFileModal(fileName) {
 }
 
 function deleteFile(fileName) {
-  socket.emit("delete file", fileName);
+  let username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("delete file", fileName, username);
 }
 
 function onClickExport() {
@@ -826,16 +841,19 @@ function setOnChangeEditer(fileName) {
       currentTab: fileName,
       fileName: fileName,
     });
+
+    editorValues[fileName] = editor[fileName].getValue();
   });
 }
 
 function getAllFileEditor() {
-  var codeEditors = {};
-  projectFiles.forEach(runCodeEachFile);
-  function runCodeEachFile(fileName) {
-    codeEditors[fileName] = editor[fileName].getValue();
-  }
-  return codeEditors;
+  // var codeEditors = {};
+  // projectFiles.forEach(runCodeEachFile);
+  // function runCodeEachFile(fileName) {
+  //   codeEditors[fileName] = editor[fileName].getValue();
+  // }
+  // return codeEditors;
+  return editorValues;
 }
 
 function newEditorFacade(fileName) {
