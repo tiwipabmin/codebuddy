@@ -1230,7 +1230,10 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   client.on("terminate child process", (requestedBy) => {
     if (projects[projectId].roles.coder === requestedBy && pythonProcess) {
+      console.log("Term is destroyed.");
       pythonProcess.kill("SIGTERM");
+    } else {
+      console.log("Term is not destroyed.");
     }
   });
 
@@ -1736,6 +1739,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         );
       });
       archive.finalize();
+    } else {
+      filePath =
+        "../project_files/" + projectId + "/" + fileNameList[0] + ".py";
     }
 
     client.emit("download file", {

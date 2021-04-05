@@ -619,6 +619,9 @@ socket.on("update role", (payload) => {
       }
       roles.user = "reviewer";
       roles.partner = "coder";
+      $("#run").attr("style", "display:none;");
+      $("#pause").attr("style", "display:none;");
+      $("#clearTerm").attr("style", "display:none;");
 
       projectFiles.forEach(setOptionFileNoCursor);
     } else if (username === payload.roles.coder) {
@@ -639,6 +642,9 @@ socket.on("update role", (payload) => {
       }
       roles.user = "coder";
       roles.partner = "reviewer";
+      $("#run").attr("style", "display:initial;");
+      $("#pause").attr("style", "display:initial;");
+      $("#clearTerm").attr("style", "display:initial;");
 
       projectFiles.forEach(setOptionFileShowCursor);
     } else {
@@ -800,69 +806,74 @@ term.prompt();
 term.on("key", function (key, ev) {
   var printable = !ev.altKey && !ev.altGraphKey && !ev.metaKey;
 
-  if (ev.keyCode == 13) {
-    // if (termInput !== "input@codebuddy") {
-    //   termInput = termInput.slice(termInput.indexOf("y") + 1, termInput.length);
-    //   socket.emit("get input", {
-    //     termInput: termInput,
-    //   });
-    //   term.writeln("");
-    //   termInput = "input@codebuddy";
-    //   return;
-    // }
-    if (isCodeRunning) {
-      socket.emit("get input", {
-        termInput: termInput,
-      });
-      termInput = "";
-      term.writeln("");
-      return;
-    }
-    term.prompt();
-  } else if (ev.keyCode == 8) {
-    if (isCodeRunning) {
-      term.write("\b \b");
-      if (termInput.length) {
-        termInput = termInput.slice(0, termInput.length - 1);
-      }
-      // console.log(`Term Input: ${termInput}`);
-    } else {
-      /**
-       * Don't remove the prompt
-       **/
-      if (term.x > 2) {
-        term.write("\b \b");
-      }
-    }
-  } else if (printable) {
-    if (isCodeRunning) {
-      /**
-       * This 67 KeyCode is equivalent to the "Ctrl + c" KeyMap.
-       * This 86 KeyCode is equivalent to the "Ctrl + v" KeyMap.
-       */
-      if (ev.keyCode == 67) {
-        const username = getVarFromScript("playgroundRemote", "data-username");
-        term.write("^C");
-        socket.emit("terminate child process", username);
-      } else if (ev.keyCode == 86) {
-        theClipboard = navigator.clipboard;
-        theClipboard.readText().then((clipText) => {
-          let clipTexts = clipText.split("\n");
-          termInput += clipText;
-
-          for (let index in clipTexts) {
-            if (parseInt(index) === clipTexts.length - 1) {
-              term.write(clipTexts[index]);
-            } else {
-              term.writeln(clipTexts[index]);
-            }
-          }
+  if (roles.user === "coder") {
+    if (ev.keyCode == 13) {
+      // if (termInput !== "input@codebuddy") {
+      //   termInput = termInput.slice(termInput.indexOf("y") + 1, termInput.length);
+      //   socket.emit("get input", {
+      //     termInput: termInput,
+      //   });
+      //   term.writeln("");
+      //   termInput = "input@codebuddy";
+      //   return;
+      // }
+      if (isCodeRunning) {
+        socket.emit("get input", {
+          termInput: termInput,
         });
-      } else {
-        termInput += key;
+        termInput = "";
+        term.writeln("");
+        return;
       }
+      term.prompt();
+    } else if (ev.keyCode == 8) {
+      if (isCodeRunning) {
+        term.write("\b \b");
+        if (termInput.length) {
+          termInput = termInput.slice(0, termInput.length - 1);
+        }
+        // console.log(`Term Input: ${termInput}`);
+      } else {
+        /**
+         * Don't remove the prompt
+         **/
+        if (term.x > 2) {
+          term.write("\b \b");
+        }
+      }
+    } else if (printable) {
+      if (isCodeRunning) {
+        /**
+         * This 67 KeyCode is equivalent to the "Ctrl + c" KeyMap.
+         * This 86 KeyCode is equivalent to the "Ctrl + v" KeyMap.
+         */
+        if (ev.keyCode == 67) {
+          const username = getVarFromScript(
+            "playgroundRemote",
+            "data-username"
+          );
+          term.write("^C");
+          socket.emit("terminate child process", username);
+        } else if (ev.keyCode == 86) {
+          theClipboard = navigator.clipboard;
+          theClipboard.readText().then((clipText) => {
+            let clipTexts = clipText.split("\n");
+            termInput += clipText;
+
+            for (let index in clipTexts) {
+              if (parseInt(index) === clipTexts.length - 1) {
+                term.write(clipTexts[index]);
+              } else {
+                term.writeln(clipTexts[index]);
+              }
+            }
+          });
+        } else {
+          termInput += key;
+        }
+      }
+      term.write(key);
     }
-    term.write(key);
   }
 });
 
@@ -912,6 +923,8 @@ function submitCode() {
  */
 function clearTerminal() {
   term.clear();
+  const username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("terminate child process", username);
 }
 
 /**
@@ -1295,32 +1308,57 @@ function getActiveTab(fileName) {
     }
   }
 
-  if (isCloseTab) {
-    currentTab = "main";
-    fileName = "main";
+  if (!isCloseTab) {
+    /**
+     * old tab
+     **/
+    $("#" + currentTab).removeClass("active");
+    $("#" + currentTab + "-tab").removeClass("active");
+    $("#" + currentTab + "-file").removeClass("file-active");
+    $("#" + currentTab + "-header").removeClass("file-active");
+
+    /**
+     * new tab
+     **/
+    $("#" + fileName).addClass("active");
+    $("#" + fileName + "-tab").addClass("active");
+    $("#" + fileName + "-file").addClass("file-active");
+    $("#" + fileName + "-header").addClass("file-active");
+
+    currentTab = fileName;
+    setTimeout(function () {
+      editor[fileName].refresh();
+    }, 1);
+    sendActiveTab(currentTab);
+  } else {
+    isCloseTab = false;
   }
-  /**
-   * old tab
-   **/
-  $("#" + currentTab).removeClass("active");
-  $("#" + currentTab + "-tab").removeClass("active");
-  $("#" + currentTab + "-file").removeClass("file-active");
-  $("#" + currentTab + "-header").removeClass("file-active");
+  // if (!isCloseTab) {
+  //   currentTab = "main";
+  //   fileName = "main";
+  // }
+  // /**
+  //  * old tab
+  //  **/
+  // $("#" + currentTab).removeClass("active");
+  // $("#" + currentTab + "-tab").removeClass("active");
+  // $("#" + currentTab + "-file").removeClass("file-active");
+  // $("#" + currentTab + "-header").removeClass("file-active");
 
-  /**
-   * new tab
-   **/
-  $("#" + fileName).addClass("active");
-  $("#" + fileName + "-tab").addClass("active");
-  $("#" + fileName + "-file").addClass("file-active");
-  $("#" + fileName + "-header").addClass("file-active");
+  // /**
+  //  * new tab
+  //  **/
+  // $("#" + fileName).addClass("active");
+  // $("#" + fileName + "-tab").addClass("active");
+  // $("#" + fileName + "-file").addClass("file-active");
+  // $("#" + fileName + "-header").addClass("file-active");
 
-  currentTab = fileName;
-  setTimeout(function () {
-    editor[fileName].refresh();
-  }, 1);
-  sendActiveTab(currentTab);
-  isCloseTab = false;
+  // currentTab = fileName;
+  // setTimeout(function () {
+  //   editor[fileName].refresh();
+  // }, 1);
+  // sendActiveTab(currentTab);
+  // isCloseTab = false;
 }
 
 function closeTab(fileName) {
@@ -1329,8 +1367,10 @@ function closeTab(fileName) {
   var tabContent = document.getElementById(fileName + "-tab");
   tabContent.remove();
   delete editor[fileName];
-  $(".file.menu").children("a").first().click();
-  $("#main").click();
+  if (fileName === currentTab) {
+    $(".file.menu").children("a").first().click();
+  }
+  // $("#main").click();
   isCloseTab = true;
   var fileTab = document.getElementById("file-tabs").children;
 }

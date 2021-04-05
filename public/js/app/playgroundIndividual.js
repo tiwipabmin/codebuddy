@@ -482,6 +482,8 @@ function submitCode() {
  */
 function clearTerminal() {
   term.clear();
+  const username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("terminate child process", username);
 }
 
 /**
@@ -677,32 +679,58 @@ function getActiveTab(fileName) {
     }
   }
 
-  if (isCloseTab) {
-    currentTab = "main";
-    fileName = "main";
+  if (!isCloseTab) {
+    /**
+     * Old tab
+     **/
+    $("#" + currentTab).removeClass("active");
+    $("#" + currentTab + "-tab").removeClass("active");
+    $("#" + currentTab + "-file").removeClass("file-active");
+    $("#" + currentTab + "-header").removeClass("file-active");
+
+    /**
+     * New tab
+     **/
+    $("#" + fileName).addClass("active");
+    $("#" + fileName + "-tab").addClass("active");
+    $("#" + fileName + "-file").addClass("file-active");
+    $("#" + fileName + "-header").addClass("file-active");
+
+    currentTab = fileName;
+    setTimeout(function () {
+      editor[fileName].refresh();
+    }, 1);
+    sendActiveTab(currentTab);
+  } else {
+    isCloseTab = false;
   }
-  /**
-   * Old tab
-   **/
-  $("#" + currentTab).removeClass("active");
-  $("#" + currentTab + "-tab").removeClass("active");
-  $("#" + currentTab + "-file").removeClass("file-active");
-  $("#" + currentTab + "-header").removeClass("file-active");
 
-  /**
-   * New tab
-   **/
-  $("#" + fileName).addClass("active");
-  $("#" + fileName + "-tab").addClass("active");
-  $("#" + fileName + "-file").addClass("file-active");
-  $("#" + fileName + "-header").addClass("file-active");
+  // if (isCloseTab) {
+  //   currentTab = "main";
+  //   fileName = "main";
+  // }
+  // /**
+  //  * Old tab
+  //  **/
+  // $("#" + currentTab).removeClass("active");
+  // $("#" + currentTab + "-tab").removeClass("active");
+  // $("#" + currentTab + "-file").removeClass("file-active");
+  // $("#" + currentTab + "-header").removeClass("file-active");
 
-  currentTab = fileName;
-  setTimeout(function () {
-    editor[fileName].refresh();
-  }, 1);
-  sendActiveTab(currentTab);
-  isCloseTab = false;
+  // /**
+  //  * New tab
+  //  **/
+  // $("#" + fileName).addClass("active");
+  // $("#" + fileName + "-tab").addClass("active");
+  // $("#" + fileName + "-file").addClass("file-active");
+  // $("#" + fileName + "-header").addClass("file-active");
+
+  // currentTab = fileName;
+  // setTimeout(function () {
+  //   editor[fileName].refresh();
+  // }, 1);
+  // sendActiveTab(currentTab);
+  // isCloseTab = false;
 }
 
 function closeTab(fileName) {
@@ -711,8 +739,10 @@ function closeTab(fileName) {
   var tabContent = document.getElementById(fileName + "-tab");
   tabContent.remove();
   delete editor[fileName];
-  $(".file.menu").children("a").first().click();
-  $("#main").click();
+  if (fileName === currentTab) {
+    $(".file.menu").children("a").first().click();
+  }
+  // $("#main").click();
   isCloseTab = true;
   var fileTab = document.getElementById("file-tabs").children;
 }

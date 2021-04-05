@@ -1159,6 +1159,9 @@ module.exports = (io, client, redis, projects) => {
         );
       });
       archive.finalize();
+    } else {
+      filePath =
+        "../project_files/" + projectId + "/" + fileNameList[0] + ".py";
     }
 
     client.emit("download file", {
