@@ -720,11 +720,10 @@ module.exports = (io, client, redis, projects) => {
   /**
    * `terminate child process` event fired when user decides to stop the executed code.
    */
-  client.on("terminate child process", (requestedBy) => {
-    pythonProcess.kill("SIGTERM");
-    // if (projects[projectId].roles.coder === requestedBy && pythonProcess ) {
-    //   pythonProcess.kill("SIGTERM");
-    // }
+  client.on("terminate child process", () => {
+    if (pythonProcess) {
+      pythonProcess.kill("SIGTERM");
+    }
   });
 
   /**
