@@ -50,6 +50,9 @@ let shellprompt = "\033[1;3;31m$ \033[0m";
 let termInput = "";
 let isCodeRunning = false;
 new ResizeSensor($("#xterm-container"), function () {
+  $("#xterm").height($("#xterm-container").height() - 10);
+});
+new ResizeSensor($("#xterm"), function () {
   term.fit();
 });
 let editor = {};
@@ -361,7 +364,7 @@ function submitReview() {
 /**
  * Run code
  */
-term.open(document.getElementById("xterm-container"), false);
+term.open(document.getElementById("xterm"), false);
 term._initialized = true;
 
 function smallSize() {
@@ -417,7 +420,7 @@ term.on("key", function (key, ev) {
       if (ev.keyCode == 67) {
         const username = getVarFromScript("playgroundRemote", "data-username");
         term.write("^C");
-        socket.emit("terminate child process", username);
+        socket.emit("terminate child process");
       } else if (ev.keyCode == 86) {
         theClipboard = navigator.clipboard;
         theClipboard.readText().then((clipText) => {
@@ -483,7 +486,7 @@ function submitCode() {
 function clearTerminal() {
   term.clear();
   const username = getVarFromScript("playgroundRemote", "data-username");
-  socket.emit("terminate child process", username);
+  socket.emit("terminate child process");
 }
 
 /**
@@ -704,33 +707,6 @@ function getActiveTab(fileName) {
   } else {
     isCloseTab = false;
   }
-
-  // if (isCloseTab) {
-  //   currentTab = "main";
-  //   fileName = "main";
-  // }
-  // /**
-  //  * Old tab
-  //  **/
-  // $("#" + currentTab).removeClass("active");
-  // $("#" + currentTab + "-tab").removeClass("active");
-  // $("#" + currentTab + "-file").removeClass("file-active");
-  // $("#" + currentTab + "-header").removeClass("file-active");
-
-  // /**
-  //  * New tab
-  //  **/
-  // $("#" + fileName).addClass("active");
-  // $("#" + fileName + "-tab").addClass("active");
-  // $("#" + fileName + "-file").addClass("file-active");
-  // $("#" + fileName + "-header").addClass("file-active");
-
-  // currentTab = fileName;
-  // setTimeout(function () {
-  //   editor[fileName].refresh();
-  // }, 1);
-  // sendActiveTab(currentTab);
-  // isCloseTab = false;
 }
 
 function closeTab(fileName) {
@@ -742,7 +718,6 @@ function closeTab(fileName) {
   if (fileName === currentTab) {
     $(".file.menu").children("a").first().click();
   }
-  // $("#main").click();
   isCloseTab = true;
   var fileTab = document.getElementById("file-tabs").children;
 }

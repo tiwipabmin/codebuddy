@@ -139,10 +139,11 @@ block content
             .ui.button.approve.red(data-value='cancel') Close
 
   .ui.container.segment
-    .ui.grid
-      .six.wide.column
-        .ui.grid
-          .sixteen.wide.column.padding-left-20.padding-right-20
+    .ui.doubling.three.column.grid(id="profile")
+      .column
+        .ui.one.column.grid
+          //- .sixteen.wide.column.padding-left-20.padding-right-20
+          .column.padding-left-20.padding-right-20.center-horizontally-block
             div.ui.relaxed.items
               div.item
                 div
@@ -153,7 +154,7 @@ block content
                   p.header #{user.info.firstname}   #{user.info.lastname} <b> (@#{user.username}) </b>
                   div.description
                     label.ui.teal.circular.label#user-point-label average score : 0
-      .four.wide.column
+      .column
         center
           h1.ui.header= dataSets.origins.project.title
           #swapTimer(style='margin: 0 0 10 0')
@@ -170,9 +171,9 @@ block content
             - while (partner_img == user.img) {partner_img = '/images/user_img_' + Math.floor((Math.random() * 7) + 0) + '.jpg'}
             //- - let partner = user.username === dataSets.origins.project.creator ? dataSets.origins.project.creator : dataSets.origins.project.collaborator
             - let curUser = user.username === dataSets.origins.project.creator ? dataSets.origins.project.creator : dataSets.origins.project.collaborator
-      .six.wide.column
-        .ui.grid    
-          .sixteen.wide.column.padding-left-20.padding-right-20
+      .column
+        .ui.one.column.grid 
+          .column.padding-left-20.padding-right-20.center-horizontally-block
             div.ui.relaxed.items
               div.item
                 div
@@ -189,7 +190,7 @@ block content
                     label.ui.teal.circular.label#partner-point-label average score : 0
     .ui.divider
     br
-    .ui.grid
+    .ui.doubling.two.column.grid
       .four.wide.column
         .ui.top.attached.tabular.demo.menu
           a.active.item(data-tab='first') Project
@@ -216,7 +217,7 @@ block content
                             .header(id=file+'-header') main.py
                             .description Main python file
                           else
-                            .header(id=file+'-header')=file+'.py'
+                            .header.file-name(id=file+'-header')=file+'.py'
                             .delete-file
                               span(onClick=`showDeleteFileModal(${JSON.stringify(file)})`)
                                 i.trash.alternate.outline.icon(id='delete-icon')
@@ -233,11 +234,17 @@ block content
             label Enable Light Mode
         .ui.segments
           .ui.segment
-            p Video Chat 
-              button.ui.mute.toggle.button.active(onClick='muteEvent(this)')
-                i.unmute.icon
-              button.ui.video.toggle.button.active(onClick='videoEvent(this)')
-                i.video.play.icon
+            .ui.doubling.one.column.grid
+              .column
+                center
+                  p Video Chat
+              .ui.doubling.two.column.row
+                .column
+                  button.ui.mute.toggle.button.active(style="width:100%;" onClick='muteEvent(this)')
+                    i.unmute.icon
+                .column
+                  button.ui.video.toggle.button.active(style="width:100%;" onClick='videoEvent(this)')
+                    i.video.play.icon
           .ui.secondary.segment
             style.
               .videoContainer {
@@ -336,6 +343,12 @@ block content
                   button.ui.button.float-right(onClick='smallSize()') S Size
           .ui.secondary.segment
             #xterm-container
+              #xterm
+  
+    //- .ui.right.fixed.vertical.menu
+    //-   a.item Camera
+    //-   a.item Voice
+    //-   a.item Theme
 
   style.
     .face-tracking {
@@ -349,19 +362,61 @@ block content
       position: absolute;
     }
 
+  //- .ui.bottom-menu-bar
+  //-   .ui.chatbox(id="live-chat")
+  //-     header.clearfix
+  //-       eight.wide.column(style="float: left;") 
+  //-         i.comments.icon(style="float: left;") 
+  //-         p Chat
+  //-       eight.wide.column(style="float: right;") 
+  //-         i.angle.up.icon(id="angle-up")
+  //-     .chat
+  //-       .chat-history
+  //-         .ui.items.message-list(id="chatheight")
+  //-           if dataSets.reforms.messages.length == 0
+  //-             .ui.item
+  //-             | Send message to your partner.
+  //-           else
+  //-             each message in dataSets.reforms.messages
+  //-               .ui.item
+  //-                 if (message.uid != user._id)
+  //-                   img.ui.avatar.image(src=partner_img)
+  //-                   .curve-box #{message.message}
+  //-                 else
+  //-                   //- img.ui.avatar.image(src=`${user.img}`)
+  //-                   .content
+  //-                   .curve-box-user #{message.message}
+  //-                   //- a.header Thara
+  //-       .ui.chatbottom
+  //-         p#show-is-typing
+  //-           .ui.form(action='/project' method='POST')
+  //-             .field
+  //-               .ui.grid
+  //-                 .twelve.wide.column
+  //-                   input.ui.input(type='text' id="inpt-msg" name='message' placeholder='Type here')
+  //-                 .four.wide.column
+  //-                   button.ui.button.icon(type='submit' onClick='sendMessage()')
+  //-                     i.send.icon
+  //-   .ui.bottom.attached.menu.tools-bar
+  //-     .right.menu
+  //-       .ui.bottom.right.floating.icon.dropdown.item.setting
+  //-         span
+  //-         | Setting
+  //-         i.angle.up.icon(style="margin-right:15px;")
+  //-         .menu
   .ui.chatbox(id="live-chat")
-    header.clearfix
-      eight.wide.column(style="float: left;") 
-        i.comments.icon(style="float: left;") 
-        p Chat
-      eight.wide.column(style="float: right;") 
+    header.clearfix(data-is-opened="false" onclick="onClickChat($(this))")
+      eight.wide.column(style="float: left;")
+        i.comments.icon(style="float: left;")
+        p#text-header-chat Chat
+      eight.wide.column(style="float: right;")
         i.angle.up.icon(id="angle-up")
     .chat
       .chat-history
         .ui.items.message-list(id="chatheight")
           if dataSets.reforms.messages.length == 0
-            .ui.item
-            | Send message to your pair.
+            .ui.item.msg-item-default
+              font.font-default= "Send message to your parner."
           else
             each message in dataSets.reforms.messages
               .ui.item
@@ -379,11 +434,10 @@ block content
             .field
               .ui.grid
                 .twelve.wide.column
-                  input.ui.input(type='text' id="inputMessage" name='message' placeholder='Type here')
+                  input.ui.input(type='text' id="inpt-msg" name='message' placeholder='Type here')
                 .four.wide.column
                   button.ui.button.icon(type='submit' onClick='sendMessage()')
                     i.send.icon
-      //- .twelve.wide.column.right
 
   //- script.
   //-   let user="#{user.username}"

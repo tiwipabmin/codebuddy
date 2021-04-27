@@ -34,13 +34,13 @@ classNotiSocket.on("PING", (payload) => {
 function createProjectNotificationElement(info, own) {
   if (own === `receiver`) {
     const item = $(
-      `<div id="${info.nid}Item" class="item" style="width: 420px; padding: 10px; margin: 5px; background-color:#E5EAF2;">` +
+      `<div id="${info.nid}" class="receiver notification-project-item item">` +
         `</div>`
     );
     const content = $(
       `<div class="content">` +
         `<div class="header">${info.head}</div>` +
-        `<div class="description"><p>${info.content}</p></div>` +
+        `<div class="description"><pre>${info.content}</pre></div>` +
         `</div>`
     );
     const extra = $(
@@ -54,13 +54,12 @@ function createProjectNotificationElement(info, own) {
     return item;
   } else if (own === `sender`) {
     const item = $(
-      `<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">` +
-        `</div>`
+      `<div class="sender notification-project-item item">` + `</div>`
     );
     const content = $(
       `<div class="content">` +
         `<div class="header">${info.head}</div>` +
-        `<div class="description"><p>${info.content}</p></div>` +
+        `<div class="description"><pre>${info.content}</pre></div>` +
         `<div class="extra">` +
         `<i class="edit icon"></i>${moment(info.createdAt).fromNow()}</div>` +
         `</div>`
@@ -80,7 +79,7 @@ function createAssignmentNotificationElement(info, own) {
     const content = $(
       `<div class="content">` +
         `<div class="header">${info.head}</div>` +
-        `<div class="description"><p>${info.content}</p></div>` +
+        `<div class="description"><pre>${info.content}</pre></div>` +
         `<div class="extra">` +
         `<i class="edit icon"></i>${moment(info.createdAt).fromNow()}</div>` +
         `</div>`
@@ -97,7 +96,7 @@ function createAssignmentNotificationElement(info, own) {
     const content = $(
       `<div class="content">` +
         `<div class="header">${info.head}</div>` +
-        `<div class="description"><p>${info.content}</p></div>` +
+        `<div class="description"><pre>${info.content}</pre></div>` +
         `<div class="extra">` +
         `<i class="edit icon"></i>${moment(info.createdAt).fromNow()}</div>` +
         `</div>`
@@ -117,12 +116,14 @@ function createSystemUsageNotificationElement(info, status) {
     const content = $(
       `<div class="content">` +
         `<div class="header">${info.head}</div>` +
-        `<div class="description"><p>${info.content}</p></div>` +
+        `<div class="description"><pre>${info.content}</pre></div>` +
         `</div>`
     );
     const extra = $(
       `<div class="extra">` +
-        `<i class="sign in alternate icon"></i>${moment(info.createdAt).fromNow()}` +
+        `<i class="sign in alternate icon"></i>${moment(
+          info.createdAt
+        ).fromNow()}` +
         `</div>`
     );
     content.append(extra);
@@ -136,9 +137,11 @@ function createSystemUsageNotificationElement(info, status) {
     const content = $(
       `<div class="content">` +
         `<div class="header">${info.head}</div>` +
-        `<div class="description"><p>${info.content}</p></div>` +
+        `<div class="description"><pre>${info.content}</pre></div>` +
         `<div class="extra">` +
-        `<i class="sign in alternate icon"></i>${moment(info.createdAt).fromNow()}</div>` +
+        `<i class="sign in alternate icon"></i>${moment(
+          info.createdAt
+        ).fromNow()}</div>` +
         `</div>`
     );
     item.append(content);
@@ -155,10 +158,14 @@ function onClickSysmtemUsageElement(nid, type) {
       data: data,
       success: function (data) {
         if (data === "OK") {
-          count = parseInt($("#alarmNoti").text()) - 1;
-          $("#alarmNoti").text(count);
+          count = parseInt($("#num-of-notification").text()) - 1;
+          if (count < 0) {
+            count = 0;
+          }
+          $("#num-of-notification").text(count);
           $(`#${nid}Item`).attr({
-            style: "pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;"
+            style:
+              "pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;",
           });
         } else {
           alert(`The server has a problem!`);
@@ -209,25 +216,26 @@ classNotiSocket.on("disable project notification", (payload) => {
         ` background-color:white;`,
     });
   }
-  let count = parseInt($("#alarmNoti").text()) - reversedNotificationsId.length;
+  let count =
+    parseInt($("#num-of-notification").text()) - reversedNotificationsId.length;
   if (count < 0) {
     count = 0;
   }
-  $("#alarmNoti").text(count);
+  $("#num-of-notification").text(count);
 });
 
 classNotiSocket.on("notify all", (payload) => {
   const username = getVarFromScript("notification", "data-username");
   const notifications = payload.notifications;
   if (notifications !== null) {
-    if ($("#noNotifications").length) {
-      $("#noNotifications").remove();
-      $("#notiItems").empty();
+    if ($("#notification-text").length) {
+      $("#notification-text").remove();
+      $("#notification-items").empty();
     }
 
     let count = 0;
     if (!payload.init) {
-      count = parseInt($("#alarmNoti").text());
+      count = parseInt($("#num-of-notification").text());
     }
 
     for (let key in notifications) {
@@ -242,7 +250,7 @@ classNotiSocket.on("notify all", (payload) => {
           notifications[key],
           `receiver`
         );
-        $("#notiItems").prepend(notificationElement);
+        $("#notification-items").prepend(notificationElement);
       } else if (
         notifications[key].type === `project` &&
         notifications[key][username] === `interacted`
@@ -251,7 +259,7 @@ classNotiSocket.on("notify all", (payload) => {
           notifications[key],
           `sender`
         );
-        $("#notiItems").prepend(notificationElement);
+        $("#notification-items").prepend(notificationElement);
       } else if (
         notifications[key].type === `assignment` &&
         notifications[key][username] === `no interact`
@@ -261,7 +269,7 @@ classNotiSocket.on("notify all", (payload) => {
           notifications[key],
           `receiver`
         );
-        $("#notiItems").prepend(notificationElement);
+        $("#notification-items").prepend(notificationElement);
       } else if (
         notifications[key].type === `assignment` &&
         notifications[key][username] === `interacted`
@@ -270,7 +278,7 @@ classNotiSocket.on("notify all", (payload) => {
           notifications[key],
           `sender`
         );
-        $("#notiItems").prepend(notificationElement);
+        $("#notification-items").prepend(notificationElement);
       } else if (
         notifications[key].type === `systemUsage` &&
         notifications[key].createdBy !== username
@@ -283,10 +291,10 @@ classNotiSocket.on("notify all", (payload) => {
           notifications[key],
           status
         );
-        $("#notiItems").prepend(notificationElement);
+        $("#notification-items").prepend(notificationElement);
       }
     }
-    $("#alarmNoti").text(count);
+    $("#num-of-notification").text(count);
   }
 });
 

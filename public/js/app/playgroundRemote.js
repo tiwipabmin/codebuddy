@@ -26,6 +26,8 @@ $(document).ready(function () {
       );
     },
   });
+
+  changeProfileGrid($(window).width());
 });
 
 function getVarFromScript(scriptName, name) {
@@ -95,6 +97,9 @@ let shellprompt = "\033[1;3;31m$ \033[0m";
 let termInput = "";
 let isCodeRunning = false;
 new ResizeSensor($("#xterm-container"), function () {
+  $("#xterm").height($("#xterm-container").height() - 10);
+});
+new ResizeSensor($("#xterm"), function () {
   term.fit();
 });
 let editor = {};
@@ -712,6 +717,15 @@ $(window).bind("hashchange", function () {
   });
 });
 
+$(window).on("resize", function () {
+  $(`#file-tabs`).width($(`#main-tab`).width());
+
+  wndWidth = $(window).width();
+  wndHeight = $(window).height();
+
+  changeProfileGrid(wndWidth);
+});
+
 /**
  * Recieve new changes editor value from server and applied them to local editor
  */
@@ -776,13 +790,16 @@ socket.on("is typing", (payload) => {
   let username = getVarFromScript("playgroundRemote", "data-username");
   if (username != payload.username) {
     $("#show-is-typing").text(payload.text);
+    if ($(".clearfix").attr("data-is-opened") == "false") {
+      $("#text-header-chat").text(payload.textHeader);
+    }
   }
 });
 
 /**
  * Run code
  */
-term.open(document.getElementById("xterm-container"), false);
+term.open(document.getElementById("xterm"), false);
 term._initialized = true;
 
 function smallSize() {
@@ -808,15 +825,6 @@ term.on("key", function (key, ev) {
 
   if (roles.user === "coder") {
     if (ev.keyCode == 13) {
-      // if (termInput !== "input@codebuddy") {
-      //   termInput = termInput.slice(termInput.indexOf("y") + 1, termInput.length);
-      //   socket.emit("get input", {
-      //     termInput: termInput,
-      //   });
-      //   term.writeln("");
-      //   termInput = "input@codebuddy";
-      //   return;
-      // }
       if (isCodeRunning) {
         socket.emit("get input", {
           termInput: termInput,
@@ -931,10 +939,10 @@ function clearTerminal() {
  * Send Message on Chatbox
  */
 function sendMessage() {
-  if (document.getElementById("inputMessage").value != "") {
+  if (document.getElementById("inpt-msg").value != "") {
     socket.emit("send message", {
       uid: uid,
-      message: document.getElementById("inputMessage").value,
+      message: document.getElementById("inpt-msg").value,
     });
   }
 }
@@ -1075,6 +1083,10 @@ socket.on("term update", (data = "", state = "closed") => {
  * Update message on Chatbox.
  */
 socket.on("update message", (payload) => {
+  if ($(".msg-item-default").length) {
+    console.log('$(".msg-item-default")\'s removed');
+    $(".msg-item-default").remove();
+  }
   updateScroll();
   if (payload.user._id === uid) {
     $(".message-list").append(
@@ -1082,7 +1094,7 @@ socket.on("update message", (payload) => {
         payload.message.message +
         "</p></div></li>"
     );
-    $("#inputMessage").val("");
+    $("#inpt-msg").val("");
   } else {
     $(".message-list").append(
       "<li class='ui item'><a class='ui avatar image'><img src='" +
@@ -1114,6 +1126,18 @@ socket.on("download file", (payload) => {
     document.body.removeChild(a);
   }
 });
+
+/**
+ * Change the "profile" grid.
+ * @param {integer} wndWidth window width
+ */
+function changeProfileGrid(wndWidth) {
+  if (wndWidth <= 991) {
+    $("#profile").attr("class", "ui doubling one column grid");
+  } else {
+    $("#profile").attr("class", "ui doubling three column grid");
+  }
+}
 
 /**
  * WebRTC TEST MUTING
@@ -1149,26 +1173,31 @@ $(document).ready(function () {
       active: '<i class="unmute icon"/>',
     },
   });
-  $("#inputMessage").keydown(function () {
+  $("#inpt-msg").keydown(function () {
+    text = `${getVarFromScript(
+      "playgroundRemote",
+      "data-username"
+    )} is typing...`;
+
     socket.emit("is typing", {
       username: getVarFromScript("playgroundRemote", "data-username"),
-      text: `${getVarFromScript(
-        "playgroundRemote",
-        "data-username"
-      )} is typing...`,
+      textHeader: text,
+      text: text,
     });
-    clearTimeout(parseInt($("#inputMessage").attr("data-timeId")));
+    clearTimeout(parseInt($("#inpt-msg").attr("data-time-id")));
   });
-  $("#inputMessage").keyup(function () {
+  $("#inpt-msg").keyup(function () {
     let timeId = setTimeout(function () {
       socket.emit("is typing", {
         username: getVarFromScript("playgroundRemote", "data-username"),
+        textHeader: "Chat",
         text: "",
       });
+      $("#inpt-msg").removeAttr("data-time-id");
     }, 5000);
-    $("#inputMessage").attr("data-timeId", timeId);
+    $("#inpt-msg").attr("data-time-id", timeId);
   });
-  $("#inputMessage").keydown(function (e) {
+  $("#inpt-msg").keydown(function (e) {
     if (e.keyCode == 13) {
       sendMessage();
     }
@@ -1333,32 +1362,6 @@ function getActiveTab(fileName) {
   } else {
     isCloseTab = false;
   }
-  // if (!isCloseTab) {
-  //   currentTab = "main";
-  //   fileName = "main";
-  // }
-  // /**
-  //  * old tab
-  //  **/
-  // $("#" + currentTab).removeClass("active");
-  // $("#" + currentTab + "-tab").removeClass("active");
-  // $("#" + currentTab + "-file").removeClass("file-active");
-  // $("#" + currentTab + "-header").removeClass("file-active");
-
-  // /**
-  //  * new tab
-  //  **/
-  // $("#" + fileName).addClass("active");
-  // $("#" + fileName + "-tab").addClass("active");
-  // $("#" + fileName + "-file").addClass("file-active");
-  // $("#" + fileName + "-header").addClass("file-active");
-
-  // currentTab = fileName;
-  // setTimeout(function () {
-  //   editor[fileName].refresh();
-  // }, 1);
-  // sendActiveTab(currentTab);
-  // isCloseTab = false;
 }
 
 function closeTab(fileName) {
@@ -1370,7 +1373,6 @@ function closeTab(fileName) {
   if (fileName === currentTab) {
     $(".file.menu").children("a").first().click();
   }
-  // $("#main").click();
   isCloseTab = true;
   var fileTab = document.getElementById("file-tabs").children;
 }
@@ -1588,6 +1590,9 @@ function newEditorFacade(fileName) {
    * setup partner active tab
    **/
   if (fileName == "main") {
+    // console.log(`Main Tab, ${$(`#main-tab`).width()}`)
+    // $(`#file-tabs`).width($(`#main-tab`).width())
+    // console.log(`File Tabs, ${$(`#file-tabs`).width()}`)
     $("#" + partnerTab + "-file-icon").replaceWith(
       '<img id="' +
         partnerTab +
@@ -1609,5 +1614,14 @@ function storeActiveTime() {
       uid: uid,
       time: counts,
     });
+  }
+}
+
+function onClickChat(chat) {
+  $("#text-header-chat").text("Chat");
+  if (chat.attr("data-is-opened") == "false") {
+    chat.attr("data-is-opened", "true")
+  } else {
+    chat.attr("data-is-opened", "false")
   }
 }
