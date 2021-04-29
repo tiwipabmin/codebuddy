@@ -1156,7 +1156,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       pythonProcess = null;
       return;
     } else {
-      io.in(projectId).emit("term update", "", "started");
+      io.in(projectId).emit("term update", "", "started", { io: "output" });
     }
 
     if (process.platform === "win32") {
@@ -1211,15 +1211,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       if (detectInputLst.length) {
         detectInputLst = [];
       } else {
-        io.in(projectId).emit("term update", data, "pending");
+        io.in(projectId).emit("term update", data, "running", { io: "output" });
       }
     });
 
     pythonProcess.on("close", () => {
       if (pythonProcess) {
-        io.in(projectId).emit("term update", "", "closed");
+        io.in(projectId).emit("term update", "", "closed", { io: "output" });
       } else {
-        io.in(projectId).emit("term update", "", "forced");
+        io.in(projectId).emit("term update", "", "forced", { io: "output" });
       }
       pythonProcess = null;
     });
@@ -1228,12 +1228,16 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   /**
    * `terminate child process` event fired when user decides to stop the executed code.
    */
-  client.on("terminate child process", (requestedBy) => {
+  client.on("terminate child process", (requestedBy = null, state = null) => {
     if (projects[projectId].roles.coder === requestedBy && pythonProcess) {
-      console.log("Term is destroyed.");
       pythonProcess.kill("SIGTERM");
-    } else {
-      console.log("Term is not destroyed.");
+    }
+
+    /**
+     * Clear data on the terminal in the client side.
+     */
+    if (state === "clear terminal") {
+      io.in(projectId).emit("term update", "", "clear", { io: "output" });
     }
   });
 
@@ -1243,6 +1247,10 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   client.on("get input", (payload) => {
     let termInput = payload.termInput;
+    io.in(projectId).emit("term update", termInput, "running", {
+      io: payload.io,
+      coder: payload.coder,
+    });
     detectInputLst.push(termInput);
     if (pythonProcess !== undefined) {
       pythonProcess.write(termInput + "\r");
@@ -1679,12 +1687,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
       }
       if (data.indexOf(".pylintrc") == -1 && data.indexOf("U") != 16) {
-        client.emit("term update", data, "running");
+        client.emit("term update", data, "running", { io: "output" });
       }
     });
 
     pylintProcess.on("close", () => {
-      client.emit("term update", "Finished scoring.", "closed");
+      client.emit("term update", "Finished scoring.", "closed", {
+        io: "output",
+      });
     });
   });
 

@@ -821,13 +821,16 @@ term.prompt = function (text = "") {
 term.prompt();
 
 term.on("key", function (key, ev) {
-  var printable = !ev.altKey && !ev.altGraphKey && !ev.metaKey;
+  const printable = !ev.altKey && !ev.altGraphKey && !ev.metaKey;
+  const username = getVarFromScript("playgroundRemote", "data-username");
 
   if (roles.user === "coder") {
     if (ev.keyCode == 13) {
       if (isCodeRunning) {
         socket.emit("get input", {
           termInput: termInput,
+          io: "input",
+          coder: username,
         });
         termInput = "";
         term.writeln("");
@@ -856,12 +859,8 @@ term.on("key", function (key, ev) {
          * This 86 KeyCode is equivalent to the "Ctrl + v" KeyMap.
          */
         if (ev.keyCode == 67) {
-          const username = getVarFromScript(
-            "playgroundRemote",
-            "data-username"
-          );
           term.write("^C");
-          socket.emit("terminate child process", username);
+          socket.emit("terminate child process", username, "terminate process");
         } else if (ev.keyCode == 86) {
           theClipboard = navigator.clipboard;
           theClipboard.readText().then((clipText) => {
@@ -930,9 +929,8 @@ function submitCode() {
  * Clear Terminal
  */
 function clearTerminal() {
-  term.clear();
   const username = getVarFromScript("playgroundRemote", "data-username");
-  socket.emit("terminate child process", username);
+  socket.emit("terminate child process", username, "clear terminal");
 }
 
 /**
@@ -1059,23 +1057,31 @@ socket.on("set editor open tab", (payload) => {
 /**
  * Terminal update data
  */
-socket.on("term update", (data = "", state = "closed") => {
-  if (state === "started") {
-    term.writeln("Running pytest.py...");
-  } else if (state === "forced") {
-    // console.log("Run code again!");
-    term.prompt();
-    runCode();
-  } else if (state === "closed") {
-    $("#playground-remote-loader").attr("style", "display: none");
-    termInput = "";
-    isCodeRunning = false;
-    if (data != "") {
+socket.on("term update", (data = "", state = "closed", payload) => {
+  if (payload.io == "output") {
+    if (state === "started") {
+      term.writeln("Running pytest.py...");
+    } else if (state === "forced") {
+      term.prompt();
+      runCode();
+    } else if (state === "closed") {
+      $("#playground-remote-loader").attr("style", "display: none");
+      termInput = "";
+      isCodeRunning = false;
+      if (data != "") {
+        term.writeln(data);
+      }
+      term.prompt();
+    } else if (state === "clear") {
+      term.clear();
+    } else if (state === "running") {
+      term.write(data);
+    }
+  } else {
+    username = getVarFromScript("playgroundRemote", "data-username");
+    if (payload.coder != username) {
       term.writeln(data);
     }
-    term.prompt();
-  } else {
-    term.write(data);
   }
 });
 
@@ -1620,8 +1626,8 @@ function storeActiveTime() {
 function onClickChat(chat) {
   $("#text-header-chat").text("Chat");
   if (chat.attr("data-is-opened") == "false") {
-    chat.attr("data-is-opened", "true")
+    chat.attr("data-is-opened", "true");
   } else {
-    chat.attr("data-is-opened", "false")
+    chat.attr("data-is-opened", "false");
   }
 }
