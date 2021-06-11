@@ -4,7 +4,7 @@
 const express = require('express')
 
 const auth = require('../middlewares/auth')
-const webController = require('../controllers/webController')
+const lobbyController = require('../controllers/lobbyController')
 const { catchErrors } = require('../handlers/errorHandlers')
 
 const router = express.Router()
@@ -14,9 +14,9 @@ const router = express.Router()
  * Finding user projects from database and pass results to the dashboard file
  * @method {GET} return rendered `dashboard.pug`
  */
-router.get('/', auth.isSignedIn, catchErrors(webController.getLobby))
-router.get('/getProgress', auth.isSignedIn, catchErrors(webController.getProgress))
-router.delete('/deleteSection', auth.isSignedIn, catchErrors(webController.deleteSection))
+router.get('/', auth.isSignedIn, catchErrors(lobbyController.getLobby))
+router.get('/getProgress', auth.isSignedIn, catchErrors(lobbyController.getProgress))
+router.delete('/deleteSection', auth.isSignedIn, catchErrors(lobbyController.deleteSection))
 
 /**
  * Expose `router`
