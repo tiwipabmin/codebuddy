@@ -158,6 +158,7 @@ block content
                 a.item(id=file data-tab=file onClick=`getActiveTab(${JSON.stringify(file)})`)=file+'.py' 
                   span(onClick=`closeTab(${JSON.stringify(file)})`)
                     i.delete.icon(id='close-tab-icon')
+            //- a.active.item(id=dataSets.origins.project.files[0] data-tab='main' onClick=`getActiveTab(${JSON.stringify(dataSets.origins.project.files[0])})`) main.py
             a.item(class='add-file' onClick='addFile()') 
               i.plus.icon
           .ui.tab-content
@@ -198,6 +199,7 @@ block content
                   button.ui.button.float-right(onClick='smallSize()') S Size
           .ui.secondary.segment
             #xterm-container
+              #xterm
 
   script(type='text/javascript').
     $(document).ready(function(){

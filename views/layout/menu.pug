@@ -18,39 +18,40 @@
         a.item(href='/classroom/section/'+dataSets.origins.section.section_id)
           i.laptop.layout.icon
           |  Classroom
-      .ui.dropdown.right.item#notifications
-        i.Alarm.icon
-        .ui.red.horizontal.label#alarmNoti= 0
-        .menu#notiMenu
-          p#noNotifications(style="text-align:center; padding-top:177.5px;")= `No notification.`
-          .ui.items#notiItems
-            .item
-      script(type="text/javascript").
-        $(function () {
-          $('#notifications').dropdown();
-        })
-      .ui.simple.dropdown.right.item
-        //- i.user.icon
-        img.ui.avatar.image(src=user.img)
-        = `${user.info.firstname} ${user.info.lastname}`
-        i.dropdown.icon
-        .menu
-          .item
-            i.info.icon
-            | Signed in as 
-            = user.username
-          .ui.inverted.divider
-          if user.info.occupation === 'teacher'
-          else
-            a.item(href='/profile/'+user.username)
-              i.unhide.icon
-              |  Your Profile
-          //- a.item(href='/profile/'+user.username)
-          //-   i.setting.icon
-          //-   |  Setting Profile
-          a.item(href='/signout')
-            i.sign.out.icon
-            |  Sign Out
+      .right.stackable.menu
+        .ui.top.right.floating.dropdown.item#notifications
+          i.Alarm.icon
+          .ui.red.horizontal.label#num-of-notification= 0
+          .menu#notification-menu
+            p#notification-text(style="text-align:center; padding-top:161.5px;")= `No notification.`
+            .ui.items#notification-items
+              .item
+        .ui.top.right.floating.dropdown.item
+          //- i.user.icon
+          img.ui.avatar.image(src=user.img)
+          = `${user.info.firstname} ${user.info.lastname}`
+          i.dropdown.icon
+          .menu
+            .header
+              i.info.icon
+              | Signed in as 
+              = user.username
+            .ui.inverted.divider
+            if user.info.occupation === 'teacher'
+            else
+              a.item(href='/profile/'+user.username)
+                i.unhide.icon
+                |  Your Profile
+            //- a.item(href='/profile/'+user.username)
+            //-   i.setting.icon
+            //-   |  Setting Profile
+            a.item(href='/signout')
+              i.sign.out.icon
+              |  Sign Out
+        script(type="text/javascript").
+          $(function () {
+            $('.dropdown').dropdown();
+          })
     else
         a.item(href='/')
           i.home.icon

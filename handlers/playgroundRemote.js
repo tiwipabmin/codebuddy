@@ -79,7 +79,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
        */
       if (payload.state) {
         if (projects[projectId] !== undefined) {
-          console.log("CodeBuddy: projects[projectId]", projects[projectId]);
           if (projects[projectId].activeUsers !== undefined) {
             if (projects[projectId].activeUsers[curUser] !== undefined) {
               console.log(
@@ -310,7 +309,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           // client.leave(projectId);
           // clearTimeout(pingPongId);
           // clearTimeout(autoDiscId);
-          // console.log(`The Project Session of ${curUser} was disconnected.`);
           // if (numUser >= 1) {
           //   if (curUser === projects[projectId].roles.coder) {
           //     projects[projectId].roles = swapRole(projects[projectId].roles);
@@ -677,7 +675,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * `create file` event fired when user click create new file
    * @param {Ibject} payload fileName
    **/
-  client.on("create file", (payload) => {
+  client.on("create file", (fileName, username) => {
     /**
      * save file name to mongoDB
      **/
@@ -687,7 +685,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       },
       {
         $push: {
-          files: payload,
+          files: fileName,
         },
       },
       (err) => {
@@ -699,7 +697,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
      * create new file  ./public/project_files/projectId/fileName.py
      **/
     fs.open(
-      "./public/project_files/" + projectId + "/" + payload + ".py",
+      "./public/project_files/" + projectId + "/" + fileName + ".py",
       "w",
       function (err, file) {
         if (err) throw err;
@@ -707,16 +705,18 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     );
 
     io.in(projectId).emit("update tab", {
-      fileName: payload,
+      fileName: fileName,
       action: "create",
+      username: username,
     });
   });
 
   /**
    * `delete file` event fired when user click delete file
-   * @param {Ibject} payload fileName
+   * @param {String} fileName fileName
+   * @param {String} username username
    **/
-  client.on("delete file", async (payload) => {
+  client.on("delete file", async (fileName, username) => {
     /**
      * delete file in mongoDB
      **/
@@ -726,7 +726,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       },
       {
         $pull: {
-          files: payload,
+          files: fileName,
         },
       },
       (err) => {
@@ -741,7 +741,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       await redis.hget(`project:${projectId}`, "editor", (err, ret) => ret)
     );
     if (code != null) {
-      delete code[payload];
+      delete code[fileName];
       redis.hset(`project:${projectId}`, "editor", JSON.stringify(code));
     }
 
@@ -749,14 +749,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
      * delete file
      **/
     fs.unlink(
-      "./public/project_files/" + projectId + "/" + payload + ".py",
+      "./public/project_files/" + projectId + "/" + fileName + ".py",
       function (err) {
         if (err) console.error(err);
       }
     );
 
     io.in(projectId).emit("update tab", {
-      fileName: payload,
+      fileName: fileName,
+      username: username,
       action: "delete",
     });
   });
@@ -843,7 +844,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         //     if (err) console.error(`Catching error: ${err}`);
         //   }
         // );
-        await updateNoOfRoleSwitching(roles.requestedBy, "manual")
+        await updateNoOfRoleSwitching(roles.requestedBy, "manual");
 
         delete roles.requestedBy;
         projects[projectId].roles = roles;
@@ -1148,6 +1149,16 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       );
     });
 
+    let isForced = false;
+    if (pythonProcess) {
+      isForced = true;
+      pythonProcess.kill("SIGTERM");
+      pythonProcess = null;
+      return;
+    } else {
+      io.in(projectId).emit("term update", "", "started", { io: "output" });
+    }
+
     if (process.platform === "win32") {
       pythonProcess = nodepty.spawn(
         "python.exe",
@@ -1200,14 +1211,34 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       if (detectInputLst.length) {
         detectInputLst = [];
       } else {
-        io.in(projectId).emit("term update", data, "running");
+        io.in(projectId).emit("term update", data, "running", { io: "output" });
       }
     });
 
     pythonProcess.on("close", () => {
-      io.in(projectId).emit("term update", "", "closed");
+      if (pythonProcess) {
+        io.in(projectId).emit("term update", "", "closed", { io: "output" });
+      } else {
+        io.in(projectId).emit("term update", "", "forced", { io: "output" });
+      }
+      pythonProcess = null;
     });
-    // setTimeout(pythonProcess.kill.bind(pythonProcess), 1000);
+  });
+
+  /**
+   * `terminate child process` event fired when user decides to stop the executed code.
+   */
+  client.on("terminate child process", (requestedBy = null, state = null) => {
+    if (projects[projectId].roles.coder === requestedBy && pythonProcess) {
+      pythonProcess.kill("SIGTERM");
+    }
+
+    /**
+     * Clear data on the terminal in the client side.
+     */
+    if (state === "clear terminal") {
+      io.in(projectId).emit("term update", "", "clear", { io: "output" });
+    }
   });
 
   /**
@@ -1216,6 +1247,10 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   client.on("get input", (payload) => {
     let termInput = payload.termInput;
+    io.in(projectId).emit("term update", termInput, "running", {
+      io: payload.io,
+      coder: payload.coder,
+    });
     detectInputLst.push(termInput);
     if (pythonProcess !== undefined) {
       pythonProcess.write(termInput + "\r");
@@ -1652,12 +1687,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
       }
       if (data.indexOf(".pylintrc") == -1 && data.indexOf("U") != 16) {
-        client.emit("term update", data, "running");
+        client.emit("term update", data, "running", { io: "output" });
       }
     });
 
     pylintProcess.on("close", () => {
-      client.emit("term update", "", "closed");
+      client.emit("term update", "Finished scoring.", "closed", {
+        io: "output",
+      });
     });
   });
 
@@ -1712,6 +1749,9 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         );
       });
       archive.finalize();
+    } else {
+      filePath =
+        "../project_files/" + projectId + "/" + fileNameList[0] + ".py";
     }
 
     client.emit("download file", {
@@ -1779,7 +1819,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
       ).sort({ joinedAt: -1 });
 
       if (type === "manual") {
-        console.log(`Update Number of Manual Role Switching of ${username}`);
         ProjectSession.updateOne(
           {
             psid: curProjectSession[0].psid,
@@ -1792,7 +1831,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           }
         );
       } else if (type === "automatic") {
-        console.log(`Update Number of Automatic Role Switching of ${username}`);
         ProjectSession.updateOne(
           {
             psid: curProjectSession[0].psid,
@@ -1832,8 +1870,14 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         });
         if (minutes <= 0 && seconds <= 0) {
           io.in(projectId).emit("auto update score");
-          await updateNoOfRoleSwitching(projects[projectId].roles.coder, "automatic")
-          await updateNoOfRoleSwitching(projects[projectId].roles.reviewer, "automatic")
+          await updateNoOfRoleSwitching(
+            projects[projectId].roles.coder,
+            "automatic"
+          );
+          await updateNoOfRoleSwitching(
+            projects[projectId].roles.reviewer,
+            "automatic"
+          );
 
           projects[projectId].roles = swapRole(projects[projectId].roles);
           io.in(projectId).emit("update role", {

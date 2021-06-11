@@ -26,6 +26,8 @@ $(document).ready(function () {
       );
     },
   });
+
+  changeProfileGrid($(window).width());
 });
 
 function getVarFromScript(scriptName, name) {
@@ -60,7 +62,7 @@ function getParameterByName(name) {
 const socket = io("");
 
 const roles = {
-  username: "",
+  user: "",
   partner: "",
 };
 const term = new Terminal({
@@ -71,7 +73,8 @@ const term = new Terminal({
 const uid = getVarFromScript("playgroundRemote", "data-uid");
 const sectionId = getVarFromScript("playgroundRemote", "data-sectionId");
 let comments = [];
-let code = null;
+// let code = null;
+let editorValues = { main: "" };
 
 let webrtc = new SimpleWebRTC({
   // the id/element dom element that will hold "our" video
@@ -94,6 +97,9 @@ let shellprompt = "\033[1;3;31m$ \033[0m";
 let termInput = "";
 let isCodeRunning = false;
 new ResizeSensor($("#xterm-container"), function () {
+  $("#xterm").height($("#xterm-container").height() - 10);
+});
+new ResizeSensor($("#xterm"), function () {
   term.fit();
 });
 let editor = {};
@@ -205,19 +211,19 @@ $(window).focus(() => {
           sectionId: getParameterByName("section"),
           state: "Starting Reconnection",
         });
-        console.log(`Reconnect Timer: ${reconTimer}`);
-        console.log(`Socket: `, socket);
+        // console.log(`Reconnect Timer: ${reconTimer}`);
+        // console.log(`Socket: `, socket);
         // clearInterval(reconIntervalId);
       }
     }, 3000);
     let beat = 1;
-    console.log(`PONG~`);
+    // console.log(`PONG~`);
     socket.emit("PONG", { beat: beat });
   }
 });
 
 socket.on("PING", (payload) => {
-  console.log(`PING~`);
+  // console.log(`PING~`);
   $("#playground-remote-loader").attr("style", "display: none");
   clearInterval(reconIntervalId);
   reconIntervalId = "";
@@ -277,19 +283,35 @@ webrtc.on("readyToCall", function () {
  */
 socket.on("init state", (payload) => {
   if (payload.editor != null) {
-    var editorValues = JSON.parse(payload.editor);
+    editorValues = JSON.parse(payload.editor);
     projectFiles.forEach(setEditorValue);
   } else {
     editor["main"].setValue("");
   }
 
+  // function getRulers(values) {
+  //   let rulers = [];
+  //   for (let i = 0; i <= values.length; i++) {
+  //     rulers.push({
+  //       color: "#FFFFF",
+  //       column: i * 4,
+  //       lineStyle: "dashed",
+  //       width: 1,
+  //     });
+  //   }
+  //   return rulers;
+  // }
+
   function setEditorValue(fileName) {
     if (editorValues != null) {
+      // let rulers = getRulers(editorValues[fileName].split("\n"));
+      // console.log("Rulers, ", rulers);
       editor[fileName].setValue(editorValues[fileName]);
+      // editor[fileName].setOption("rulers", rulers);
     }
   }
 
-  code = payload.editor;
+  // code = payload.editor;
 });
 
 /**
@@ -312,6 +334,7 @@ socket.on("init reviews", (payload) => {
 socket.on("update tab", (payload) => {
   var fileName = payload.fileName;
   var action = payload.action;
+  let username = getVarFromScript("playgroundRemote", "data-username");
   if (action == "create") {
     var id = document.getElementById("file-tabs").childElementCount;
     $(".add-file")
@@ -345,6 +368,15 @@ socket.on("update tab", (payload) => {
      **/
     projectFiles.push(fileName);
     newEditorFacade(fileName);
+    switch (roles.user) {
+      case "coder":
+        setOptionFileShowCursor(fileName);
+        break;
+      case "reviewer":
+        setOptionFileNoCursor(fileName);
+        break;
+    }
+
     var html =
       '<div class="item cursor-pointer" id="' +
       fileName +
@@ -391,18 +423,39 @@ socket.on("update tab", (payload) => {
         fileName +
         ".py</label></div></div>"
     );
+
+    if (username === payload.username) {
+      $(`#${fileName}-file`).click();
+    }
   } else {
+    if (username !== payload.username) {
+      $("#alert-header").text("การลบไฟล์");
+      $("#alert-message").text(
+        `เพื่อนของคุณลบไฟล์ที่ชื่อว่า "${fileName}.py" แล้ว`
+      );
+      $("#alert-modal").modal("show");
+    }
+
     var tab = document.getElementById(fileName);
-    tab.remove();
+    if (tab) {
+      tab.remove();
+      var tabContent = document.getElementById(fileName + "-tab");
+      tabContent.remove();
+      var modal = document.getElementById(fileName + "-delete-file-modal");
+      modal.remove();
+    }
     var fileItem = document.getElementById(fileName + "-file");
     fileItem.remove();
-    var modal = document.getElementById(fileName + "-delete-file-modal");
-    modal.remove();
     var exportFileItem = document.getElementById(
       fileName + "-export-file-item"
     );
     exportFileItem.remove();
     $(".file.menu").children("a").first().click();
+
+    fileIndex = projectFiles.indexOf(fileName);
+    delete projectFiles[fileIndex];
+    delete editorValues[fileName];
+    delete editor[fileName];
   }
 });
 
@@ -530,6 +583,17 @@ socket.on("role timer", () => {
 });
 
 /**
+ * Editor is configured cursor according to the user's role.
+ * @param {object} fileName receive a file name.
+ */
+function setOptionFileNoCursor(fileName) {
+  editor[fileName].setOption("readOnly", "nocursor");
+}
+function setOptionFileShowCursor(fileName) {
+  editor[fileName].setOption("readOnly", false);
+}
+
+/**
  * `update role` event fired when the project initialize and
  * the role is manually changed by the one of users.
  * @param {Object} payload the object instance
@@ -560,6 +624,9 @@ socket.on("update role", (payload) => {
       }
       roles.user = "reviewer";
       roles.partner = "coder";
+      $("#run").attr("style", "display:none;");
+      $("#pause").attr("style", "display:none;");
+      $("#clearTerm").attr("style", "display:none;");
 
       projectFiles.forEach(setOptionFileNoCursor);
     } else if (username === payload.roles.coder) {
@@ -580,6 +647,9 @@ socket.on("update role", (payload) => {
       }
       roles.user = "coder";
       roles.partner = "reviewer";
+      $("#run").attr("style", "display:initial;");
+      $("#pause").attr("style", "display:initial;");
+      $("#clearTerm").attr("style", "display:initial;");
 
       projectFiles.forEach(setOptionFileShowCursor);
     } else {
@@ -592,16 +662,16 @@ socket.on("update role", (payload) => {
       }
     }
 
-    /**
-     * Editor is configured cursor according to the user's role.
-     * @param {object} fileName receive a file name.
-     */
-    function setOptionFileNoCursor(fileName) {
-      editor[fileName].setOption("readOnly", "nocursor");
-    }
-    function setOptionFileShowCursor(fileName) {
-      editor[fileName].setOption("readOnly", false);
-    }
+    // /**
+    //  * Editor is configured cursor according to the user's role.
+    //  * @param {object} fileName receive a file name.
+    //  */
+    // function setOptionFileNoCursor(fileName) {
+    //   editor[fileName].setOption("readOnly", "nocursor");
+    // }
+    // function setOptionFileShowCursor(fileName) {
+    //   editor[fileName].setOption("readOnly", false);
+    // }
 
     $(".partner-role-label").text(`${roles.partner}`);
     $(".user-role-label").text(`${roles.user}`);
@@ -645,6 +715,15 @@ $(window).bind("hashchange", function () {
     mode: "auto",
     code: getAllFileEditor(),
   });
+});
+
+$(window).on("resize", function () {
+  $(`#file-tabs`).width($(`#main-tab`).width());
+
+  wndWidth = $(window).width();
+  wndHeight = $(window).height();
+
+  changeProfileGrid(wndWidth);
 });
 
 /**
@@ -711,13 +790,16 @@ socket.on("is typing", (payload) => {
   let username = getVarFromScript("playgroundRemote", "data-username");
   if (username != payload.username) {
     $("#show-is-typing").text(payload.text);
+    if ($(".clearfix").attr("data-is-opened") == "false") {
+      $("#text-header-chat").text(payload.textHeader);
+    }
   }
 });
 
 /**
  * Run code
  */
-term.open(document.getElementById("xterm-container"), false);
+term.open(document.getElementById("xterm"), false);
 term._initialized = true;
 
 function smallSize() {
@@ -732,58 +814,75 @@ function largeSize() {
   $("#xterm-container").height(570);
 }
 
-term.prompt = function () {
-  term.write("\r\n" + shellprompt);
+term.prompt = function (text = "") {
+  term.write("\r\n" + shellprompt + text);
 };
-term.prompt();
-term.on("key", function (key, ev) {
-  var printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
 
-  if (ev.keyCode == 13) {
-    // if (termInput !== "input@codebuddy") {
-    //   termInput = termInput.slice(termInput.indexOf("y") + 1, termInput.length);
-    //   socket.emit("get input", {
-    //     termInput: termInput,
-    //   });
-    //   term.writeln("");
-    //   termInput = "input@codebuddy";
-    //   return;
-    // }
-    if (isCodeRunning) {
-      socket.emit("get input", {
-        termInput: termInput,
-      });
-      termInput = "";
-      term.writeln("");
-      return;
-    }
-    term.prompt();
-  } else if (ev.keyCode == 8) {
-    if (isCodeRunning) {
-      term.write("\b \b");
-      if (termInput.length) {
-        termInput = termInput.slice(0, termInput.length - 1);
+term.prompt();
+
+term.on("key", function (key, ev) {
+  const printable = !ev.altKey && !ev.altGraphKey && !ev.metaKey;
+  const username = getVarFromScript("playgroundRemote", "data-username");
+
+  if (roles.user === "coder") {
+    if (ev.keyCode == 13) {
+      if (isCodeRunning) {
+        socket.emit("get input", {
+          termInput: termInput,
+          io: "input",
+          coder: username,
+        });
+        termInput = "";
+        term.writeln("");
+        return;
       }
-      console.log(`Term Input: ${termInput}`);
-    } else {
-      /**
-       * Don't remove the prompt
-       **/
-      if (term.x > 2) {
+      term.prompt();
+    } else if (ev.keyCode == 8) {
+      if (isCodeRunning) {
         term.write("\b \b");
+        if (termInput.length) {
+          termInput = termInput.slice(0, termInput.length - 1);
+        }
+        // console.log(`Term Input: ${termInput}`);
+      } else {
+        /**
+         * Don't remove the prompt
+         **/
+        if (term.x > 2) {
+          term.write("\b \b");
+        }
       }
+    } else if (printable) {
+      if (isCodeRunning) {
+        /**
+         * This 67 KeyCode is equivalent to the "Ctrl + c" KeyMap.
+         * This 86 KeyCode is equivalent to the "Ctrl + v" KeyMap.
+         */
+        if (ev.keyCode == 67) {
+          term.write("^C");
+          socket.emit("terminate child process", username, "terminate process");
+        } else if (ev.keyCode == 86) {
+          theClipboard = navigator.clipboard;
+          theClipboard.readText().then((clipText) => {
+            let clipTexts = clipText.split("\n");
+            termInput += clipText;
+
+            for (let index in clipTexts) {
+              if (parseInt(index) === clipTexts.length - 1) {
+                term.write(clipTexts[index]);
+              } else {
+                term.writeln(clipTexts[index]);
+              }
+            }
+          });
+        } else {
+          termInput += key;
+        }
+      }
+      term.write(key);
     }
-  } else if (printable) {
-    if (isCodeRunning) {
-      termInput += key;
-    }
-    term.write(key);
   }
 });
-
-// term.on("keypress", function (key) {
-//   termInput += key;
-// });
 
 /**
  * Pause running code
@@ -804,7 +903,6 @@ function runCode() {
   socket.emit("save lines of code", {
     uid: uid,
   });
-  term.writeln("Running pytest.py...");
 }
 
 /**
@@ -831,17 +929,18 @@ function submitCode() {
  * Clear Terminal
  */
 function clearTerminal() {
-  term.clear();
+  const username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("terminate child process", username, "clear terminal");
 }
 
 /**
  * Send Message on Chatbox
  */
 function sendMessage() {
-  if (document.getElementById("inputMessage").value != "") {
+  if (document.getElementById("inpt-msg").value != "") {
     socket.emit("send message", {
       uid: uid,
-      message: document.getElementById("inputMessage").value,
+      message: document.getElementById("inpt-msg").value,
     });
   }
 }
@@ -926,7 +1025,7 @@ socket.on("show partner active tab", (payload) => {
     );
 
     /**
-     * set new partner actice tab
+     * set new partner active tab
      **/
     partnerTab = payload.activeTab;
     $("#" + partnerTab + "-file-icon").replaceWith(
@@ -958,14 +1057,31 @@ socket.on("set editor open tab", (payload) => {
 /**
  * Terminal update data
  */
-socket.on("term update", (data = "", state = "closed") => {
-  if (state === "running") {
-    term.write(data);
+socket.on("term update", (data = "", state = "closed", payload) => {
+  if (payload.io == "output") {
+    if (state === "started") {
+      term.writeln("Running pytest.py...");
+    } else if (state === "forced") {
+      term.prompt();
+      runCode();
+    } else if (state === "closed") {
+      $("#playground-remote-loader").attr("style", "display: none");
+      termInput = "";
+      isCodeRunning = false;
+      if (data != "") {
+        term.writeln(data);
+      }
+      term.prompt();
+    } else if (state === "clear") {
+      term.clear();
+    } else if (state === "running") {
+      term.write(data);
+    }
   } else {
-    $("#playground-remote-loader").attr("style", "display: none");
-    termInput = "";
-    isCodeRunning = false;
-    term.prompt();
+    username = getVarFromScript("playgroundRemote", "data-username");
+    if (payload.coder != username) {
+      term.writeln(data);
+    }
   }
 });
 
@@ -973,6 +1089,10 @@ socket.on("term update", (data = "", state = "closed") => {
  * Update message on Chatbox.
  */
 socket.on("update message", (payload) => {
+  if ($(".msg-item-default").length) {
+    console.log('$(".msg-item-default")\'s removed');
+    $(".msg-item-default").remove();
+  }
   updateScroll();
   if (payload.user._id === uid) {
     $(".message-list").append(
@@ -980,7 +1100,7 @@ socket.on("update message", (payload) => {
         payload.message.message +
         "</p></div></li>"
     );
-    $("#inputMessage").val("");
+    $("#inpt-msg").val("");
   } else {
     $(".message-list").append(
       "<li class='ui item'><a class='ui avatar image'><img src='" +
@@ -1012,6 +1132,18 @@ socket.on("download file", (payload) => {
     document.body.removeChild(a);
   }
 });
+
+/**
+ * Change the "profile" grid.
+ * @param {integer} wndWidth window width
+ */
+function changeProfileGrid(wndWidth) {
+  if (wndWidth <= 991) {
+    $("#profile").attr("class", "ui doubling one column grid");
+  } else {
+    $("#profile").attr("class", "ui doubling three column grid");
+  }
+}
 
 /**
  * WebRTC TEST MUTING
@@ -1047,26 +1179,31 @@ $(document).ready(function () {
       active: '<i class="unmute icon"/>',
     },
   });
-  $("#inputMessage").keydown(function () {
+  $("#inpt-msg").keydown(function () {
+    text = `${getVarFromScript(
+      "playgroundRemote",
+      "data-username"
+    )} is typing...`;
+
     socket.emit("is typing", {
       username: getVarFromScript("playgroundRemote", "data-username"),
-      text: `${getVarFromScript(
-        "playgroundRemote",
-        "data-username"
-      )} is typing...`,
+      textHeader: text,
+      text: text,
     });
-    clearTimeout(parseInt($("#inputMessage").attr("data-timeId")));
+    clearTimeout(parseInt($("#inpt-msg").attr("data-time-id")));
   });
-  $("#inputMessage").keyup(function () {
+  $("#inpt-msg").keyup(function () {
     let timeId = setTimeout(function () {
       socket.emit("is typing", {
         username: getVarFromScript("playgroundRemote", "data-username"),
+        textHeader: "Chat",
         text: "",
       });
+      $("#inpt-msg").removeAttr("data-time-id");
     }, 5000);
-    $("#inputMessage").attr("data-timeId", timeId);
+    $("#inpt-msg").attr("data-time-id", timeId);
   });
-  $("#inputMessage").keydown(function (e) {
+  $("#inpt-msg").keydown(function (e) {
     if (e.keyCode == 13) {
       sendMessage();
     }
@@ -1206,32 +1343,31 @@ function getActiveTab(fileName) {
     }
   }
 
-  if (isCloseTab) {
-    currentTab = "main";
-    fileName = "main";
+  if (!isCloseTab) {
+    /**
+     * old tab
+     **/
+    $("#" + currentTab).removeClass("active");
+    $("#" + currentTab + "-tab").removeClass("active");
+    $("#" + currentTab + "-file").removeClass("file-active");
+    $("#" + currentTab + "-header").removeClass("file-active");
+
+    /**
+     * new tab
+     **/
+    $("#" + fileName).addClass("active");
+    $("#" + fileName + "-tab").addClass("active");
+    $("#" + fileName + "-file").addClass("file-active");
+    $("#" + fileName + "-header").addClass("file-active");
+
+    currentTab = fileName;
+    setTimeout(function () {
+      editor[fileName].refresh();
+    }, 1);
+    sendActiveTab(currentTab);
+  } else {
+    isCloseTab = false;
   }
-  /**
-   * old tab
-   **/
-  $("#" + currentTab).removeClass("active");
-  $("#" + currentTab + "-tab").removeClass("active");
-  $("#" + currentTab + "-file").removeClass("file-active");
-  $("#" + currentTab + "-header").removeClass("file-active");
-
-  /**
-   * new tab
-   **/
-  $("#" + fileName).addClass("active");
-  $("#" + fileName + "-tab").addClass("active");
-  $("#" + fileName + "-file").addClass("file-active");
-  $("#" + fileName + "-header").addClass("file-active");
-
-  currentTab = fileName;
-  setTimeout(function () {
-    editor[fileName].refresh();
-  }, 1);
-  sendActiveTab(currentTab);
-  isCloseTab = false;
 }
 
 function closeTab(fileName) {
@@ -1240,8 +1376,9 @@ function closeTab(fileName) {
   var tabContent = document.getElementById(fileName + "-tab");
   tabContent.remove();
   delete editor[fileName];
-  $(".file.menu").children("a").first().click();
-  $("#main").click();
+  if (fileName === currentTab) {
+    $(".file.menu").children("a").first().click();
+  }
   isCloseTab = true;
   var fileTab = document.getElementById("file-tabs").children;
 }
@@ -1278,7 +1415,8 @@ function openTab(fileName) {
 
 function createFile() {
   var fileName = $(".filename").val();
-  socket.emit("create file", fileName);
+  let username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("create file", fileName, username);
 }
 
 function showExportModal() {
@@ -1291,7 +1429,8 @@ function showDeleteFileModal(fileName) {
 }
 
 function deleteFile(fileName) {
-  socket.emit("delete file", fileName);
+  let username = getVarFromScript("playgroundRemote", "data-username");
+  socket.emit("delete file", fileName, username);
 }
 
 function onClickExport() {
@@ -1367,6 +1506,8 @@ function setOnChangeEditer(fileName) {
       currentTab: fileName,
       fileName: fileName,
     });
+
+    editorValues[fileName] = editor[fileName].getValue();
   });
 }
 
@@ -1427,12 +1568,23 @@ function setOnDoubleClickEditor(fileName) {
 }
 
 function getAllFileEditor() {
-  let codeEditors = {};
-  projectFiles.forEach(runCodeEachFile);
-  function runCodeEachFile(fileName) {
-    codeEditors[fileName] = editor[fileName].getValue();
-  }
-  return codeEditors;
+  // let codeEditors = {};
+  // try {
+  //   projectFiles.forEach(runCodeEachFile);
+  //   return codeEditors;
+  // } catch (err) {
+  // $("#alert-header").text("ข้อผิดพลาดการนำเข้า");
+  // $("#alert-message").text(
+  //   "ข้อผิดพลาดของการนำเข้าฟังก์ชันหรือคำสั่งจากไฟล์อื่นที่ถูกปิดไปแล้ว"
+  // );
+  // $("#alert-modal").modal("show");
+  //   console.error(`Catching error: ${err}`);
+  //   return null;
+  // }
+  // function runCodeEachFile(fileName) {
+  //   codeEditors[fileName] = editor[fileName].getValue();
+  // }
+  return editorValues;
 }
 
 function newEditorFacade(fileName) {
@@ -1444,6 +1596,9 @@ function newEditorFacade(fileName) {
    * setup partner active tab
    **/
   if (fileName == "main") {
+    // console.log(`Main Tab, ${$(`#main-tab`).width()}`)
+    // $(`#file-tabs`).width($(`#main-tab`).width())
+    // console.log(`File Tabs, ${$(`#file-tabs`).width()}`)
     $("#" + partnerTab + "-file-icon").replaceWith(
       '<img id="' +
         partnerTab +
@@ -1465,5 +1620,14 @@ function storeActiveTime() {
       uid: uid,
       time: counts,
     });
+  }
+}
+
+function onClickChat(chat) {
+  $("#text-header-chat").text("Chat");
+  if (chat.attr("data-is-opened") == "false") {
+    chat.attr("data-is-opened", "true");
+  } else {
+    chat.attr("data-is-opened", "false");
   }
 }

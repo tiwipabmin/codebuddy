@@ -52,7 +52,7 @@ function createAssignmentNotification(assignments = null) {
       if (res.notifications !== undefined) {
         const notifications = res.notifications
         const aTag = $(`<a href='${notifications.link}'></a>`)
-        const item = $(`<div class="item" style="pointer-events: none; width: 420px; padding: 10px; margin: 5px; background-color:white;">` +
+        const item = $(`<div class="notification-assignment-item">` +
           `</div>`)
         const content = $(`<div class="content">` +
           `<div class="header">${notifications.head}</div>` +
@@ -62,7 +62,7 @@ function createAssignmentNotification(assignments = null) {
           `</div>`)
         item.append(content)
         aTag.append(item)
-        $('#notiItems').prepend(item)
+        $('#notification-items').prepend(item)
       }
     })
   }
