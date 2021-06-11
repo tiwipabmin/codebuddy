@@ -185,7 +185,7 @@ mixin settingsModal()
           .four.wide.column
             .field
               label Day  :
-              select.ui.dropdown.day(name='day')
+              select.ui.fluid.dropdown.day(name='day')
                 option(value='Mon.') Monday
                 option(value='Tue.') Tuesday
                 option(value='Wed.') Wednesday
@@ -196,7 +196,7 @@ mixin settingsModal()
           .six.wide.column(style='text-align:center;')
             b Time start
             .ui.labeled.input
-              select.ui.dropdown.timeStartHh(name='time_start_hh')
+              select.ui.fluid.dropdown.timeStartHh(name='time_start_hh')
                 option(value='00')  00
                 option(value='01')  01
                 option(value='02')  02
@@ -212,7 +212,7 @@ mixin settingsModal()
                 option(value='12')  12
               .ui.label
                 b(color='black') :
-              select.ui.dropdown.timeStartMm(name='time_start_mm')
+              select.ui.fluid.dropdown.timeStartMm(name='time_start_mm')
                 option(value='00')  00
                 option(value='05')  05
                 option(value='10')  10
@@ -225,14 +225,14 @@ mixin settingsModal()
                 option(value='45')  45
                 option(value='50')  50
                 option(value='55')  55
-              select.ui.dropdown.timeStartAp(name='time_start_ap')
+              select.ui.fluid.dropdown.timeStartAp(name='time_start_ap')
                 option(value='am.')  am.
                 option(value='pm.')  pm.
           .six.wide.column(style='text-align:center;')
             b Time end
             <br>
             .ui.labeled.input
-              select.ui.dropdown.timeEndHh(name='time_end_hh')
+              select.ui.fluid.dropdown.timeEndHh(name='time_end_hh')
                 option(value='00')  00
                 option(value='01')  01
                 option(value='02')  02
@@ -248,7 +248,7 @@ mixin settingsModal()
                 option(value='12')  12
               .ui.label
                 b(color='black') :
-              select.ui.dropdown.timeEndMm(name='time_end_mm')
+              select.ui.fluid.dropdown.timeEndMm(name='time_end_mm')
                 option(value='00')  00
                 option(value='05')  05
                 option(value='10')  10
@@ -261,7 +261,7 @@ mixin settingsModal()
                 option(value='45')  45
                 option(value='50')  50
                 option(value='55')  55
-              select.ui.dropdown.timeEndAp(name='time_end_ap')
+              select.ui.fluid.dropdown.timeEndAp(name='time_end_ap')
                 option(value='am.')  am.
                 option(value='pm.')  pm.
         input(type='hidden' name='course_id', value=`${dataSets.origins.section.course_id}`)
@@ -280,7 +280,7 @@ mixin assignmentModal()
       form.ui.form.segment#assignmentForm
         .inline.fields
           label Programming Style :
-          select.ui.dropdown(name='programming_style')
+          select.ui.fluid.dropdown(name='programming_style')
             option(value='Remote') Remote Pair-programming
             option(value='Co-located') Conventional Pair-programming
             option(value='Individual') Individual Programming
@@ -392,7 +392,7 @@ mixin newClassroomModal()
             .field
               |
               label Day  :
-              select.ui.dropdown.day(name='day')
+              select.ui.fluid.dropdown.day(name='day')
                 option(value='Mon.') Monday
                 option(value='Tue.') Tuesday
                 option(value='Wed.') Wednesday
@@ -403,7 +403,7 @@ mixin newClassroomModal()
           .six.wide.column(style='text-align:center;')
             b Time start
             .ui.labeled.input
-              select.ui.dropdown.timeStartHh(name='time_start_hh')
+              select.ui.fluid.dropdown.timeStartHh(name='time_start_hh')
                 option(value='01')  01
                 option(value='02')  02
                 option(value='03')  03
@@ -418,7 +418,7 @@ mixin newClassroomModal()
                 option(value='12')  12
               .ui.label
                 b(color='black') :
-              select.ui.dropdown.timeStartMm(name='time_start_mm')
+              select.ui.fluid.dropdown.timeStartMm(name='time_start_mm')
                 option(value='00')  00
                 option(value='05')  05
                 option(value='10')  10
@@ -431,13 +431,13 @@ mixin newClassroomModal()
                 option(value='45')  45
                 option(value='50')  50
                 option(value='55')  55
-              select.ui.dropdown.timeStartAp(name='time_start_ap')
+              select.ui.fluid.dropdown.timeStartAp(name='time_start_ap')
                 option(value='am.')  am.
                 option(value='pm.')  pm.
           .six.wide.column(style='text-align:center;')
             b Time end
             .ui.labeled.input
-              select.ui.dropdown.timeEndHh(name='time_end_hh')
+              select.ui.fluid.dropdown.timeEndHh(name='time_end_hh')
                 option(value='01')  01
                 option(value='02')  02
                 option(value='03')  03
@@ -452,7 +452,7 @@ mixin newClassroomModal()
                 option(value='12')  12
               .ui.label
                 b(color='black') :
-              select.ui.dropdown.timeEndMm(name='time_end_mm')
+              select.ui.fluid.dropdown.timeEndMm(name='time_end_mm')
                 option(value='00')  00
                 option(value='05')  05
                 option(value='10')  10
@@ -465,7 +465,7 @@ mixin newClassroomModal()
                 option(value='45')  45
                 option(value='50')  50
                 option(value='55')  55
-              select.ui.dropdown.timeEndAp(name='time_end_ap')
+              select.ui.fluid.dropdown.timeEndAp(name='time_end_ap')
                 option(value='am.')  am.
                 option(value='pm.')  pm.
         .ui.basic.center.aligned.segment

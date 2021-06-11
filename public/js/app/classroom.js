@@ -2159,7 +2159,7 @@ function createAssignmentPageInFirstContainer(
               content = $("<div class='content'></div>");
               grid = $("<div class='ui grid'></div>");
               eleven_wide_column = $(
-                "<div class='eleven wide column'><b style='font-size:1.2em;'><a class='header' href='/project/" +
+                "<div class='sixteen wide column'><b style='font-size:1.2em;'><a class='header' href='/project/" +
                   project.pid +
                   "/section/" +
                   section_id +
@@ -2169,9 +2169,9 @@ function createAssignmentPageInFirstContainer(
                   "</a></b></div>"
               );
               description = $(
-                "<div class='description'><p>" +
+                "<div class='description' style='word-break: break-word;'><pre>" +
                   project.description +
-                  "</p><div id='" +
+                  "</pre><div id='" +
                   project.pid +
                   "Project' class='ui grid'><div class='ten wide column'><font id='" +
                   project.pid +
@@ -2218,9 +2218,9 @@ function createAssignmentPageInFirstContainer(
                   "</a></b></div>"
               );
               description = $(
-                "<div class='description'><p>" +
+                "<div class='description' style='word-break: break-word;'><pre>" +
                   project.description +
-                  "</p><div id='" +
+                  "</pre><div id='" +
                   project.pid +
                   "Project' class='ui grid'><div class='ten wide column'><font id='" +
                   project.pid +
