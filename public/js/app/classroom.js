@@ -778,7 +778,7 @@ function on_click_confirm_button(parameters) {
       style: "display: block; position: fixed;",
     });
     $.ajax({
-      url: "/classroom/disableassignments",
+      url: "/classroom/disableAssignments",
       type: "put",
       data: parameters,
       success: function (res) {
@@ -800,7 +800,7 @@ function on_click_confirm_button(parameters) {
       style: "display: block; position: fixed;",
     });
     $.ajax({
-      url: "/classroom/enableassignments",
+      url: "/classroom/enableAssignments",
       type: "put",
       data: parameters,
       success: function (res) {
@@ -1550,7 +1550,7 @@ function onClickEnableAssignmentButton(sectionId) {
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
   let parameters = { sectionId: sectionId };
   // $.get("/classroom/getWeeklyAssignments", parameters, function (res) {
-  $.get("/classroom/getdisableassignments", parameters, function (data) {
+  $.get("/classroom/getDisableAssignments", parameters, function (data) {
     let weeks = JSON.parse(data.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
@@ -1592,7 +1592,7 @@ function onClickDisableAssignmentButton(sectionId) {
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
   let parameters = { sectionId: sectionId };
   // $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function (
-  $.get("/classroom/getenableassignments", parameters, function (data) {
+  $.get("/classroom/getEnableAssignments", parameters, function (data) {
     let weeks = JSON.parse(data.weeks);
     if (!weeks.length) {
       $("#week_amd").append(
