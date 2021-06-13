@@ -15,7 +15,6 @@ const User = mongoose.model("User");
 
 exports.getSection = async (req, res) => {
     let dataSets = {};
-    console.log(req.params.section_id)
     let section_id = parseInt(cryptr.decrypt(req.params.section_id));
     let occupation = req.user.info.occupation;
     let queryStudent =
@@ -468,6 +467,76 @@ exports.getPairing = async (req, res) => {
         pairingObjectives: JSON.stringify(dataSets.pairingObjectives),
     });
 };
+
+async function getPairingByPairingSessionId(
+    conMysql,
+    pairingSessionId,
+    sectionId
+) {
+    const queryPairingRecord =
+        "SELECT * FROM pairing_record WHERE pairing_session_id = " +
+        pairingSessionId;
+    let resPairingRecords = await conMysql.selectPairingRecord(
+        queryPairingRecord
+    );
+
+    const queryEnrollment =
+        "SELECT * FROM enrollment WHERE section_id = " + sectionId;
+    let resEnrollments = await conMysql.selectEnrollment(queryEnrollment);
+
+    let pairingRecords = {};
+    let enrollments = {};
+    for (let index in resPairingRecords) {
+        pairingRecords[resPairingRecords[index].enrollment_id] =
+            resPairingRecords[index];
+    }
+
+    for (let index in resEnrollments) {
+        enrollments[resEnrollments[index].enrollment_id] = resEnrollments[index];
+    }
+
+    let partnerKeys = {};
+    let pairingObjectives = {};
+    for (let indexEn in enrollments) {
+        if (enrollments[indexEn].partner_id == null) {
+            partnerKeys[enrollments[indexEn].enrollment_id] = -1;
+            pairingObjectives[enrollments[indexEn].enrollment_id] = -1;
+
+            delete enrollments[enrollments[indexEn].enrollment_id];
+        } else {
+            for (let indexPair in pairingRecords) {
+                if (
+                    enrollments[indexEn].enrollment_id ==
+                    pairingRecords[indexPair].enrollment_id
+                ) {
+                    if (pairingRecords[indexPair].role == "host") {
+                        partnerKeys[enrollments[indexEn].enrollment_id] =
+                            enrollments[indexEn].partner_id;
+                    } else if (pairingRecords[indexPair].role == "partner") {
+                        partnerKeys[enrollments[indexEn].partner_id] =
+                            enrollments[indexEn].enrollment_id;
+                    }
+
+                    pairingObjectives[enrollments[indexEn].enrollment_id] =
+                        pairingRecords[indexPair].pairing_objective;
+                    pairingObjectives[enrollments[indexEn].partner_id] =
+                        pairingRecords[indexPair].pairing_objective;
+                    delete pairingRecords[enrollments[indexEn]];
+                    delete enrollments[enrollments[indexEn].partner_id];
+                    delete enrollments[enrollments[indexEn]];
+                    delete pairingRecords[pairingRecords[indexPair]];
+                }
+            }
+        }
+    }
+
+    const dataSets = {
+        partnerKeys: partnerKeys,
+        pairingObjectives: pairingObjectives,
+    };
+
+    return dataSets;
+}
 
 exports.getWeeklyAssignments = async (req, res) => {
     let action = req.query.action;
@@ -1606,7 +1675,7 @@ exports.updateSection = async (req, res) => {
         section_id;
     var courseStatus = await conMysql.updateCourse(updateCourse);
     var sectionStatus = await conMysql.updateSection(updateSection);
-    res.redirect("/classroom/" + cryptr.encrypt(section_id));
+    res.redirect("/classroom/section/" + cryptr.encrypt(section_id));
 };
 
 exports.assignAssignment = async (req, res) => {
@@ -2170,7 +2239,7 @@ exports.createPairingRecord = async (req, res) => {
             }
         }
 
-        weeks = sortNumber(weeks);
+        weeks = weeks.sort((a, b) => { return a - b })
 
         let weeklyDatas = {
             assignments: JSON.stringify(assignments),

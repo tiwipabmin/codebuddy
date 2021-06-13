@@ -62,7 +62,7 @@ mixin confirmModal()
       .ui.basic.center.aligned.segment
         .actions
           button.ui.button.approve.green#confirm-button(type='submit') Confirm
-          .ui.button.approve.red#cancel-button(data-value='cancel' onclick='on_click_cancel_button()') Cancel
+          .ui.button.approve.red#cancel-button(data-value='cancel' onclick='onClickCancelButton()') Cancel
 
 mixin assignmentManagementModal()
   .ui.small.modal#assignment_management_modal

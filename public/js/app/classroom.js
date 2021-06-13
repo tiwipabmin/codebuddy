@@ -332,7 +332,7 @@ function setClassroomDetail(day, startTime, endTime) {
   });
 }
 
-function on_click_ui_purpose_tab(
+function onClickPurposeTab(
   index,
   purpose,
   studentId,
@@ -450,10 +450,10 @@ function on_click_ui_purpose_tab(
   });
 }
 
-function on_click_confirm_pairing_button(parameters) {
+function onClickConfirmPairingButton(parameters) {
   $("#confirm-button").attr(
     "onclick",
-    "on_click_confirm_button(" + JSON.stringify(parameters) + ")"
+    "onClickConfirmButton(" + JSON.stringify(parameters) + ")"
   );
   $("#confirm-header").text("Create new pairing session");
   $("#confirm-message").text(
@@ -466,10 +466,10 @@ function on_click_confirm_pairing_button(parameters) {
   $("#confirm-modal").modal("show");
 }
 
-function on_click_cancel_pairing_button() {
+function onClickCancelPairingButton() {
   const message = $("#confirm-message").attr("value");
   if (message == "Are you sure you want to cancel pairing?") {
-    $("#confirm-button").attr("onclick", "on_click_confirm_button({})");
+    $("#confirm-button").attr("onclick", "onClickConfirmButton({})");
     $("#confirm-modal").modal("show");
   } else {
     $("#alphabeticalFilter").attr("class", "ui button");
@@ -487,7 +487,7 @@ function on_click_cancel_pairing_button() {
   }
 }
 
-function on_click_cancel_button() {
+function onClickCancelButton() {
   const message = $("#confirm-message").attr("value");
   if (message == "Are you sure you want to cancel pairing?") {
     $("#student_list_modal").modal("show");
@@ -498,7 +498,7 @@ function on_click_cancel_button() {
   }
 }
 
-function on_click_confirm_button(parameters) {
+function onClickConfirmButton(parameters) {
   const message = $("#confirm-message").attr("value");
 
   if (message == "Are you sure you want to create new pairing session?") {
@@ -523,7 +523,7 @@ function on_click_confirm_button(parameters) {
         } else if (status == "Update completed.") {
           $("#no_session").empty();
           $("#menu_week").empty();
-          create_weeks_dropdown(
+          createWeekDropdown(
             "#menu_week",
             pairingSessions[0].pairing_session_id,
             weeklyDatas
@@ -537,12 +537,12 @@ function on_click_confirm_button(parameters) {
             pairingSessions[0].pairing_session_id,
             0
           );
-          set_item_pagination_in_third_container(
+          setItemPaginationInThirdContainer(
             pairingSessions,
             sectionId,
             "teacher"
           );
-          on_click_page_number_in_third_container(1);
+          onClickPageNumberInThirdContainer(1);
           $("#changePair").attr(
             "onclick",
             "onClickChangePairButton(" +
@@ -649,12 +649,12 @@ function on_click_confirm_button(parameters) {
         let pairingSessions = JSON.parse(data.pairingSessions);
         let sectionId = data.sectionId;
         if (resStatus == "Update completed.") {
-          set_item_pagination_in_third_container(
+          setItemPaginationInThirdContainer(
             pairingSessions,
             sectionId,
             "teacher"
           );
-          on_click_page_number_in_third_container(1);
+          onClickPageNumberInThirdContainer(1);
           $("#newPairingSession").attr("value", 0);
           $("#confirm-pairing").attr("value", "create");
         } else {
@@ -740,7 +740,7 @@ function on_click_confirm_button(parameters) {
         };
         if (status == "Delete all of these assignment successfully.") {
           $("#menu_week").empty();
-          create_weeks_dropdown(
+          createWeekDropdown(
             "#menu_week",
             pairing_session_id,
             data_for_weeks_dropdown_function
@@ -833,7 +833,7 @@ function on_click_confirm_button(parameters) {
           );
           $("#cancel-pairing").attr(
             "onclick",
-            "on_click_cancel_pairing_button()"
+            "onClickCancelPairingButton()"
           );
           showStudentList(
             "pair",
@@ -852,7 +852,7 @@ function on_click_confirm_button(parameters) {
         // $('#confirm-header').text('Student pairing')
         // $('#confirm-message').text('Are you sure you want to cancel pairing?')
         // $('#confirm-message').attr('value', 'Are you sure you want to cancel pairing?')
-        // $('#cancel-pairing').attr('onclick', 'on_click_cancel_pairing_button()')
+        // $('#cancel-pairing').attr('onclick', 'onClickCancelPairingButton()')
         $("#student_list_modal").modal("show");
         alert(res.resStatus);
       });
@@ -993,7 +993,7 @@ function onClickAddPartnerButton(
 
       $("#ui-purpose-0").attr(
         "onclick",
-        "on_click_ui_purpose_tab(" +
+        "onClickPurposeTab(" +
           $(".ui-purpose").index($("#ui-purpose-0")) +
           ', "' +
           $("#ui-purpose-0").data("purpose") +
@@ -1015,7 +1015,7 @@ function onClickAddPartnerButton(
       );
       $("#ui-purpose-1").attr(
         "onclick",
-        "on_click_ui_purpose_tab(" +
+        "onClickPurposeTab(" +
           $(".ui-purpose").index($("#ui-purpose-1")) +
           ', "' +
           $("#ui-purpose-1").data("purpose") +
@@ -1037,7 +1037,7 @@ function onClickAddPartnerButton(
       );
       $("#ui-purpose-2").attr(
         "onclick",
-        "on_click_ui_purpose_tab(" +
+        "onClickPurposeTab(" +
           $(".ui-purpose").index($("#ui-purpose-2")) +
           ', "' +
           $("#ui-purpose-2").data("purpose") +
@@ -1135,7 +1135,7 @@ function onClickAddPartnerButton(
         "value",
         "Are you sure you want to cancel pairing?"
       );
-      $("#cancel-pairing").attr("onclick", "on_click_cancel_pairing_button()");
+      $("#cancel-pairing").attr("onclick", "onClickCancelPairingButton()");
       showStudentList(
         "pair",
         partner_keys,
@@ -1345,7 +1345,7 @@ function showStudentList(
       };
       $("#confirm-pairing").attr(
         "onclick",
-        "on_click_confirm_pairing_button(" + JSON.stringify(parameters) + ")"
+        "onClickConfirmPairingButton(" + JSON.stringify(parameters) + ")"
       );
       $("#alphabeticalFilter").attr(
         "onclick",
@@ -1396,7 +1396,7 @@ function onClickCompletedSessionMenu(pairing_session_id, section_id) {
   });
   $("#confirm-button").attr(
     "onclick",
-    "on_click_confirm_button(" + parameters + ")"
+    "onClickConfirmButton(" + parameters + ")"
   );
   $("#confirm-header").text("Complete pairing session");
   $("#confirm-message").text(
@@ -1454,7 +1454,7 @@ function onClickAssign(
   $("#confirm-modal").modal("show");
 }
 
-function on_click_assign_button(assignment_of_week, pairing_session_id) {
+function onClickAssignButton(assignment_of_week, pairing_session_id) {
   assignment_of_week = JSON.parse(assignment_of_week);
   let assignment_is_selected = [];
   assignment_of_week.forEach(function (e) {
@@ -1469,7 +1469,7 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
     });
     $("#confirm-button").attr(
       "onclick",
-      "on_click_confirm_button(" + parameters + ")"
+      "onClickConfirmButton(" + parameters + ")"
     );
     $("#confirm-header").text("Assign assignment");
     $("#confirm-message").attr(
@@ -1480,14 +1480,6 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
       "Are you sure you want to assign these assignments to all student pairs?"
     );
     $("#confirm-modal").modal("show");
-    // setYear(2019, 2020, 'year_a', 'dropdown')
-    // setMonth(1, 13, 'month_a', 'dropdown')
-    // setDay(1, 32, 'day_a', 'dropdown')
-    // setHour(0, 24, 'endTimeHh_a', 'dropdown')
-    // setMinute(0, 60, 'endTimeMm_a', 'dropdown')
-    // setSecond(0, 60, 'endTimeSs_a', 'dropdown')
-    // $('#assign_now').attr('onclick', 'on_click_assign_now_button('+JSON.stringify(assignment_is_selected)+', '+pairing_session_id+')')
-    // $('#assignment-set-expiration-time').modal('show');
   } else {
     $("#alert-header").text("Select assignment");
     $("#alert-message").text(
@@ -1496,16 +1488,6 @@ function on_click_assign_button(assignment_of_week, pairing_session_id) {
     $("#alert-modal").modal("show");
   }
 }
-
-// function on_click_assign_now_button(assignment_set, pairing_session_id) {
-//   let end_time = $('#year_a').val() + '-' + $('#month_a').val() + '-' + $('#day_a').val() + 'T' + $('#endTimeHh_a').val() + ':' + $('#endTimeMm_a').val() + ':' + $('#endTimeSs_a').val() + 'Z'
-//   let parameters = JSON.stringify({assignment_set: assignment_set, pairing_session_id: pairing_session_id, end_time: end_time})
-//   $('#confirm-button').attr('onclick', 'on_click_confirm_button('+parameters+')')
-//   $('#confirm-header').text('Assign assignment')
-//   $('#confirm-message').attr('value', 'Are you sure you want to assign these assignments to all student pairs?')
-//   $('#confirm-message').text('Are you sure you want to assign these assignments to all student pairs?')
-//   $('#confirm-modal').modal('show');
-// }
 
 function onClickDeleteAssignment(assignment_of_week) {
   let assignment_is_selected = [];
@@ -1526,7 +1508,7 @@ function onClickDeleteAssignment(assignment_of_week) {
     });
     $("#confirm-button").attr(
       "onclick",
-      "on_click_confirm_button(" + parameters + ")"
+      "onClickConfirmButton(" + parameters + ")"
     );
     $("#confirm-header").text("Delete assignments");
     $("#confirm-message").attr(
@@ -1591,7 +1573,6 @@ function onClickDisableAssignmentButton(sectionId) {
   $("#dropdown_amd").append("<div class='default text'>Week</div>");
   $("#dropdown_amd").append("<div id='week_amd' class='menu'></div>");
   let parameters = { sectionId: sectionId };
-  // $.get("/classroom/getWeeklyAssignments", { action: "disable" }, function (
   $.get("/classroom/getEnableAssignments", parameters, function (data) {
     let weeks = JSON.parse(data.weeks);
     if (!weeks.length) {
@@ -1631,7 +1612,7 @@ function onClickEnableAssignmentConfirmation(sectionId) {
   });
   $("#confirm-button").attr(
     "onclick",
-    "on_click_confirm_button(" + parameters + ")"
+    "onClickConfirmButton(" + parameters + ")"
   );
   $("#confirm-header").text("Disable Assignment");
   $("#confirm-message").attr(
@@ -1651,7 +1632,7 @@ function onClickDisableAssignmentConfirmation(sectionId) {
   });
   $("#confirm-button").attr(
     "onclick",
-    "on_click_confirm_button(" + parameters + ")"
+    "onClickConfirmButton(" + parameters + ")"
   );
   $("#confirm-header").text("Disable Assignment");
   $("#confirm-message").attr(
@@ -1664,51 +1645,11 @@ function onClickDisableAssignmentConfirmation(sectionId) {
   $("#confirm-modal").modal("show");
 }
 
-// function on_click_confirm_assignment_management_button(action) {
-//   if (action == "enable") {
-//     parameters = JSON.stringify({
-//       week: $("#week_input_amd").val(),
-//       action: "enable"
-//     });
-//     $("#confirm-button").attr(
-//       "onclick",
-//       "on_click_confirm_button(" + parameters + ")"
-//     );
-//     $("#confirm-header").text("Disable Assignment");
-//     $("#confirm-message").attr(
-//       "value",
-//       "Are you sure you want to disable assignments on this week?"
-//     );
-//     $("#confirm-message").text(
-//       "Are you sure you want to disable assignments on this week?"
-//     );
-//     $("#confirm-modal").modal("show");
-//   } else if (action == "disable") {
-//     parameters = JSON.stringify({
-//       week: $("#week_input_amd").val(),
-//       action: "disable"
-//     });
-//     $("#confirm-button").attr(
-//       "onclick",
-//       "on_click_confirm_button(" + parameters + ")"
-//     );
-//     $("#confirm-header").text("Enable Assignment");
-//     $("#confirm-message").attr(
-//       "value",
-//       "Are you sure you want to enable assignments on this week?"
-//     );
-//     $("#confirm-message").text(
-//       "Are you sure you want to enable assignments on this week?"
-//     );
-//     $("#confirm-modal").modal("show");
-//   }
-// }
-
-function on_click_remove_student_button(enrollment_id, first_name, last_name) {
+function onClickRemoveStudentButton(enrollment_id, first_name, last_name) {
   parameters = JSON.stringify({ enrollment_id: enrollment_id });
   $("#confirm-button").attr(
     "onclick",
-    "on_click_confirm_button(" + parameters + ")"
+    "onClickConfirmButton(" + parameters + ")"
   );
   $("#confirm-header").text("Remove Student");
   $("#confirm-message").attr(
@@ -1725,7 +1666,7 @@ function on_click_remove_student_button(enrollment_id, first_name, last_name) {
   $("#confirm-modal").modal("show");
 }
 
-function get_items_of_week(items, range, week) {
+function getItemsOfWeek(items, range, week) {
   week = week.split("week");
   week = parseInt(week[0]);
   let items_of_week = [];
@@ -1754,7 +1695,7 @@ function get_items_of_week(items, range, week) {
 }
 
 function checkbox_event(assignment_set, id, opt) {
-  let assignment_of_week_ = get_items_of_week(assignment_set, 5, id)
+  let assignment_of_week_ = getItemsOfWeek(assignment_set, 5, id)
     .items_of_week;
   switch (opt) {
     //on click the "Check All of Box" button
@@ -1806,7 +1747,7 @@ function onClickButtonInUspm(id) {
   });
 }
 
-function create_weeks_dropdown(id, pairing_session_id, dataSets) {
+function createWeekDropdown(id, pairing_session_id, dataSets) {
   $("" + id).append(
     "<div class='week item' id='-1week' data-value='-1' onclick='onClickWeekDropdownInFirstContainer(\"-1week\", " +
       dataSets.assignments +
@@ -1852,13 +1793,13 @@ function onClickWeekDropdownInFirstContainer(
 ) {
   if (Array.isArray(assignment_set)) {
     if (assignment_set.length) {
-      let res_obj = get_items_of_week(assignment_set, 5, id);
+      let res_obj = getItemsOfWeek(assignment_set, 5, id);
       let assignment_of_week_ = res_obj.items_of_week;
       let pagination = res_obj.pagination;
 
       $("#assign-button").attr(
         "onclick",
-        "on_click_assign_button(" +
+        "onClickAssignButton(" +
           JSON.stringify(JSON.stringify(assignment_of_week_)) +
           ", " +
           pairing_session_id +
@@ -2104,7 +2045,7 @@ function createAssignmentPageInFirstContainer(
             description = $("<div class='description'>");
             grid = $("<div class='ui grid'></div>");
             fourteen_wide_column = $(
-              "<div class='fourteen wide column assignment_is_selected' onclick='on_click_assignment(1, \"" +
+              "<div class='fourteen wide column assignment_is_selected' onclick='onClickAssignment(1, \"" +
                 assignment.assignment_id +
                 "_is_selected\")'><pre style='padding-left:15px; padding-right:15px;'>" +
                 assignment.description +
@@ -2116,7 +2057,7 @@ function createAssignmentPageInFirstContainer(
             checkbox = $(
               "<div class='ui checkbox'><input class='checkbox_is_clicked' type='checkbox' id='" +
                 assignment.assignment_id +
-                "_is_selected' onclick='on_click_assignment(0, \"" +
+                "_is_selected' onclick='onClickAssignment(0, \"" +
                 assignment.assignment_id +
                 "_is_selected\")'/><label></label></div>"
             );
@@ -2298,7 +2239,7 @@ function setMonitoringInterval(id, intervalTime, projects) {
   );
 }
 
-function on_click_page_number_in_second_container(page) {
+function onClickPageNumberInSecondContainer(page) {
   $(".active.item.sc").attr({
     class: "item sc",
   });
@@ -2316,12 +2257,12 @@ function on_click_page_number_in_second_container(page) {
   });
 }
 
-function set_item_pagination_in_second_container(
+function setItemPaginationInSecondContainer(
   students,
   section_id,
   occupation
 ) {
-  let res_obj = get_items_of_week(students, 10, "-1week");
+  let res_obj = getItemsOfWeek(students, 10, "-1week");
   students = res_obj.items_of_week;
   let pagination = res_obj.pagination;
 
@@ -2367,7 +2308,7 @@ function set_item_pagination_in_second_container(
               "<div class='right floated content'></div>"
             );
             tag_a = $(
-              "<a class='ui right floated aligedvertical animated button red' onclick='on_click_remove_student_button(" +
+              "<a class='ui right floated aligedvertical animated button red' onclick='onClickRemoveStudentButton(" +
                 student.enrollment_id +
                 ',"' +
                 student.first_name +
@@ -2422,7 +2363,7 @@ function set_item_pagination_in_second_container(
     item = $(
       "<a class='item sc' id='page_" +
         pagination[_index] +
-        "_second_container' onclick='on_click_page_number_in_second_container(" +
+        "_second_container' onclick='onClickPageNumberInSecondContainer(" +
         pagination[_index] +
         ")'>" +
         pagination[_index] +
@@ -2432,7 +2373,7 @@ function set_item_pagination_in_second_container(
   }
 }
 
-function on_click_page_number_in_third_container(page) {
+function onClickPageNumberInThirdContainer(page) {
   $(".active.item.tc").attr({
     class: "item tc",
   });
@@ -2450,12 +2391,12 @@ function on_click_page_number_in_third_container(page) {
   });
 }
 
-function set_item_pagination_in_third_container(
+function setItemPaginationInThirdContainer(
   objects,
   section_id,
   occupation
 ) {
-  let res_obj = get_items_of_week(objects, 5, "-1week");
+  let res_obj = getItemsOfWeek(objects, 5, "-1week");
   objects = res_obj.items_of_week;
   let pagination = res_obj.pagination;
 
@@ -2606,7 +2547,7 @@ function set_item_pagination_in_third_container(
     item = $(
       "<a class='item tc' id='page_" +
         pagination[_index] +
-        "_third_container' onclick='on_click_page_number_in_third_container(" +
+        "_third_container' onclick='onClickPageNumberInThirdContainer(" +
         pagination[_index] +
         ")'>" +
         pagination[_index] +
@@ -2623,7 +2564,6 @@ function onClickChangePairButton(pairing_session_id, section_id) {
   };
   $.get("/classroom/getPairing", parameters, function (data) {
     if (data.status == "Pull information successfully") {
-      // $('#autoPairing').attr('onclick', 'onClickAutoPairingBtn(\"pair\", '+JSON.stringify(data.partner_keys)+', '+JSON.stringify(data.pairing_objective)+', '+data.pairing_session_id+', \"'+data.section_id+'\")')
       $("#autoPairing").show();
       $("#confirm-pairing").attr("value", "change");
       $("#confirm-header").text("Alert!");
@@ -2744,7 +2684,7 @@ function onClickStartAutoPairingBtn(
     );
     $("#confirm-button").attr(
       "onclick",
-      "on_click_confirm_button(" + JSON.stringify(parameters) + ")"
+      "onClickConfirmButton(" + JSON.stringify(parameters) + ")"
     );
     $("#confirm-modal").modal("show");
   } else if (autoPairingCommand === "purpose") {
@@ -2762,7 +2702,7 @@ function onClickStartAutoPairingBtn(
     );
     $("#confirm-button").attr(
       "onclick",
-      "on_click_confirm_button(" + JSON.stringify(parameters) + ")"
+      "onClickConfirmButton(" + JSON.stringify(parameters) + ")"
     );
     $("#confirm-modal").modal("show");
   } else {
@@ -3251,9 +3191,7 @@ function sort100to1(students, filtered, elementMoved) {
   }
 }
 
-function on_click_settings_menu() {}
-
-function on_click_assignment(opt, id) {
+function onClickAssignment(opt, id) {
   switch (opt) {
     case 1:
       $("#" + id).is(":checked") == true

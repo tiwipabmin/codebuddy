@@ -638,7 +638,7 @@ function sortNumber(numArray) {
 //     section_id;
 //   var courseStatus = await conMysql.updateCourse(updateCourse);
 //   var sectionStatus = await conMysql.updateSection(updateSection);
-//   res.redirect("/classroom/" + cryptr.encrypt(section_id));
+//   res.redirect("/classroom/section/" + cryptr.encrypt(section_id));
 // };
 
 exports.getMyProjects = async (req, res) => {
@@ -1052,75 +1052,75 @@ exports.removeStudent = async (req, res) => {
 //   });
 // };
 
-async function getPairingByPairingSessionId(
-  conMysql,
-  pairingSessionId,
-  sectionId
-) {
-  const queryPairingRecord =
-    "SELECT * FROM pairing_record WHERE pairing_session_id = " +
-    pairingSessionId;
-  let resPairingRecords = await conMysql.selectPairingRecord(
-    queryPairingRecord
-  );
+// async function getPairingByPairingSessionId(
+//   conMysql,
+//   pairingSessionId,
+//   sectionId
+// ) {
+//   const queryPairingRecord =
+//     "SELECT * FROM pairing_record WHERE pairing_session_id = " +
+//     pairingSessionId;
+//   let resPairingRecords = await conMysql.selectPairingRecord(
+//     queryPairingRecord
+//   );
 
-  const queryEnrollment =
-    "SELECT * FROM enrollment WHERE section_id = " + sectionId;
-  let resEnrollments = await conMysql.selectEnrollment(queryEnrollment);
+//   const queryEnrollment =
+//     "SELECT * FROM enrollment WHERE section_id = " + sectionId;
+//   let resEnrollments = await conMysql.selectEnrollment(queryEnrollment);
 
-  let pairingRecords = {};
-  let enrollments = {};
-  for (let index in resPairingRecords) {
-    pairingRecords[resPairingRecords[index].enrollment_id] =
-      resPairingRecords[index];
-  }
+//   let pairingRecords = {};
+//   let enrollments = {};
+//   for (let index in resPairingRecords) {
+//     pairingRecords[resPairingRecords[index].enrollment_id] =
+//       resPairingRecords[index];
+//   }
 
-  for (let index in resEnrollments) {
-    enrollments[resEnrollments[index].enrollment_id] = resEnrollments[index];
-  }
+//   for (let index in resEnrollments) {
+//     enrollments[resEnrollments[index].enrollment_id] = resEnrollments[index];
+//   }
 
-  let partnerKeys = {};
-  let pairingObjectives = {};
-  for (let indexEn in enrollments) {
-    if (enrollments[indexEn].partner_id == null) {
-      partnerKeys[enrollments[indexEn].enrollment_id] = -1;
-      pairingObjectives[enrollments[indexEn].enrollment_id] = -1;
+//   let partnerKeys = {};
+//   let pairingObjectives = {};
+//   for (let indexEn in enrollments) {
+//     if (enrollments[indexEn].partner_id == null) {
+//       partnerKeys[enrollments[indexEn].enrollment_id] = -1;
+//       pairingObjectives[enrollments[indexEn].enrollment_id] = -1;
 
-      delete enrollments[enrollments[indexEn].enrollment_id];
-    } else {
-      for (let indexPair in pairingRecords) {
-        if (
-          enrollments[indexEn].enrollment_id ==
-          pairingRecords[indexPair].enrollment_id
-        ) {
-          if (pairingRecords[indexPair].role == "host") {
-            partnerKeys[enrollments[indexEn].enrollment_id] =
-              enrollments[indexEn].partner_id;
-          } else if (pairingRecords[indexPair].role == "partner") {
-            partnerKeys[enrollments[indexEn].partner_id] =
-              enrollments[indexEn].enrollment_id;
-          }
+//       delete enrollments[enrollments[indexEn].enrollment_id];
+//     } else {
+//       for (let indexPair in pairingRecords) {
+//         if (
+//           enrollments[indexEn].enrollment_id ==
+//           pairingRecords[indexPair].enrollment_id
+//         ) {
+//           if (pairingRecords[indexPair].role == "host") {
+//             partnerKeys[enrollments[indexEn].enrollment_id] =
+//               enrollments[indexEn].partner_id;
+//           } else if (pairingRecords[indexPair].role == "partner") {
+//             partnerKeys[enrollments[indexEn].partner_id] =
+//               enrollments[indexEn].enrollment_id;
+//           }
 
-          pairingObjectives[enrollments[indexEn].enrollment_id] =
-            pairingRecords[indexPair].pairing_objective;
-          pairingObjectives[enrollments[indexEn].partner_id] =
-            pairingRecords[indexPair].pairing_objective;
-          delete pairingRecords[enrollments[indexEn]];
-          delete enrollments[enrollments[indexEn].partner_id];
-          delete enrollments[enrollments[indexEn]];
-          delete pairingRecords[pairingRecords[indexPair]];
-        }
-      }
-    }
-  }
+//           pairingObjectives[enrollments[indexEn].enrollment_id] =
+//             pairingRecords[indexPair].pairing_objective;
+//           pairingObjectives[enrollments[indexEn].partner_id] =
+//             pairingRecords[indexPair].pairing_objective;
+//           delete pairingRecords[enrollments[indexEn]];
+//           delete enrollments[enrollments[indexEn].partner_id];
+//           delete enrollments[enrollments[indexEn]];
+//           delete pairingRecords[pairingRecords[indexPair]];
+//         }
+//       }
+//     }
+//   }
 
-  const dataSets = {
-    partnerKeys: partnerKeys,
-    pairingObjectives: pairingObjectives,
-  };
+//   const dataSets = {
+//     partnerKeys: partnerKeys,
+//     pairingObjectives: pairingObjectives,
+//   };
 
-  return dataSets;
-}
+//   return dataSets;
+// }
 
 // exports.manageAssignment = async (req, res) => {
 //   let action = req.body.action;
@@ -2543,7 +2543,7 @@ exports.createAssignment = async (req, res) => {
   //   res.redirect(`/assignment/view/${enAssignmentId}/section/${section.section_id}`);
   // } else {
   //   res.redirect(`/assignment/getform/section/${section.section_id}`);
-  //   // res.redirect(`/classroom/${section.section_id}`);
+  //   // res.redirect(`/classroom/section/${section.section_id}`);
   // }
 };
 

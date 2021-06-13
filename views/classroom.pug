@@ -117,8 +117,8 @@ block content
         if dataSets.origins.students.length > 0
           script(type='text/javascript').
             $(document).ready(function() {
-              set_item_pagination_in_second_container(!{dataSets.reforms.students}, "!{dataSets.origins.section.section_id}", "!{user.info.occupation}")
-              on_click_page_number_in_second_container(1)
+              setItemPaginationInSecondContainer(!{dataSets.reforms.students}, "!{dataSets.origins.section.section_id}", "!{user.info.occupation}")
+              onClickPageNumberInSecondContainer(1)
             })
         else
           p.text-center No student.  
@@ -141,8 +141,8 @@ block content
           if dataSets.origins.pairingSessions.length > 0 && dataSets.origins.pairingSessions[0].status >= 0
             script(type='text/javascript').
               $(document).ready(function() {
-                set_item_pagination_in_third_container(!{dataSets.reforms.pairingSessions}, "!{dataSets.origins.section.section_id}", "!{user.info.occupation}")
-                on_click_page_number_in_third_container(1)
+                setItemPaginationInThirdContainer(!{dataSets.reforms.pairingSessions}, "!{dataSets.origins.section.section_id}", "!{user.info.occupation}")
+                onClickPageNumberInThirdContainer(1)
                 $('.ui.pointing.dropdown').dropdown();
               })
 
@@ -152,8 +152,8 @@ block content
           if dataSets.origins.assignments.length > 0
             script(type='text/javascript').
               $(document).ready(function() {
-                set_item_pagination_in_third_container(!{dataSets.reforms.assignments}, "!{dataSets.origins.section.section_id}", "!{user.info.occupation}")
-                on_click_page_number_in_third_container(1)
+                setItemPaginationInThirdContainer(!{dataSets.reforms.assignments}, "!{dataSets.origins.section.section_id}", "!{user.info.occupation}")
+                onClickPageNumberInThirdContainer(1)
                 monitorActiveProjects(!{dataSets.reforms.projects})
                 clearInterval("!{user.username}")
                 setMonitoringInterval("!{user.username}", 60000, !{dataSets.reforms.projects})
