@@ -721,7 +721,7 @@ function onClickConfirmButton(parameters) {
       style: "display: block; position: fixed;",
     });
     $.ajax({
-      url: "/api/deleteAssignment",
+      url: "/assignment/deleteAssignment",
       type: "delete",
       data: parameters,
       success: function (res) {
