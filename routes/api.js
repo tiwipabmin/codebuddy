@@ -10,6 +10,5 @@ router.get('/usernames', auth.isSignedIn, catchErrors(userController.getUsername
 router.get('/downloadFile', auth.isSignedIn, catchErrors(webController.downloadFile))
 router.get('/projects', auth.isSignedIn, catchErrors(webController.getMyProjects))
 router.delete('/removeStudent', auth.isSignedIn, catchErrors(webController.removeStudent))
-router.delete('/deleteAssignment', auth.isSignedIn, catchErrors(webController.deleteAssignment))
 
 module.exports = router
