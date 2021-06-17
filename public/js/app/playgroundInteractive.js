@@ -16,7 +16,7 @@ $(document).ready(function() {
   $("#rejectJoining").modal({
     closable: false,
     onApprove: function() {
-      $("#global_loader").attr({
+      $("#global-loader").attr({
         style: "display: block; position: fixed;"
       });
     }
@@ -351,7 +351,7 @@ socket.on("role selection", payload => {
     }
   });
   $("#selectRole-modal").modal("show");
-  $("#global_loader").attr("style", "display: none");
+  $("#global-loader").attr("style", "display: none");
 });
 
 /**
@@ -361,7 +361,7 @@ socket.on("confirm role change", payload => {
   $("#close_button_srm").attr("style", "display:none;");
   $("#ok_button_srm").attr("style", "display:none;");
   if (payload.status === "disconnect") {
-    $("#global_loader").attr({
+    $("#global-loader").attr({
       style: "display: block; position: fixed;"
     });
     $("#header_serm").empty();
@@ -428,12 +428,12 @@ socket.on("role updated", payload => {
   if (user === payload.projectRoles.roles.reviewer) {
     roles.user = "reviewer";
     roles.partner = "coder";
-    $("#global_loader").attr("style", "display: none");
+    $("#global-loader").attr("style", "display: none");
     projectFiles.forEach(setOptionFileNoCursor);
   } else if (user === payload.projectRoles.roles.coder) {
     roles.user = "coder";
     roles.partner = "reviewer";
-    $("#global_loader").attr("style", "display: none");
+    $("#global-loader").attr("style", "display: none");
     $("#close_button_srm").attr("style", "display:block;");
     projectFiles.forEach(setOptionFileShowCursor);
   } else {

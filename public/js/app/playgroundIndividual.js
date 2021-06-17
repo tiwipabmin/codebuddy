@@ -1,4 +1,4 @@
-function getVarFromScript(scriptName, name) {
+function getDataFromScript(scriptName, name) {
   const data = $(`script[src*=${scriptName}]`);
   const variable = data.attr(name);
   if (typeof variable === undefined) {
@@ -33,7 +33,7 @@ const term = new Terminal({
   rows: 10,
   cursorBlink: true,
 });
-const uid = getVarFromScript("playgroundIndividual", "data-uid");
+const uid = getDataFromScript("playgroundIndividual", "data-uid");
 var comments = [];
 // var code = null;
 let editorValues = { main: "" };
@@ -121,7 +121,7 @@ function changeTheme() {
 socket.emit("load playground", { programming_style: "Individual" });
 socket.emit("join project", {
   pid: getParameterByName("project"),
-  username: getVarFromScript("playgroundIndividual", "data-username"),
+  username: getDataFromScript("playgroundIndividual", "data-username"),
 });
 
 $(window).focus(() => {
@@ -147,7 +147,7 @@ $(window).focus(() => {
         socket.emit("load playground", { programming_style: "Individual" });
         socket.emit("join project", {
           pid: getParameterByName("project"),
-          username: getVarFromScript("playgroundIndividual", "data-username"),
+          username: getDataFromScript("playgroundIndividual", "data-username"),
           sectionId: getParameterByName("section"),
           state: "Starting Reconnection",
         });
@@ -418,7 +418,7 @@ term.on("key", function (key, ev) {
        * This 86 KeyCode is equivalent to the "Ctrl + v" KeyMap.
        */
       if (ev.keyCode == 67) {
-        const username = getVarFromScript("playgroundRemote", "data-username");
+        const username = getDataFromScript("playgroundRemote", "data-username");
         term.write("^C");
         socket.emit("terminate child process");
       } else if (ev.keyCode == 86) {
@@ -485,7 +485,7 @@ function submitCode() {
  */
 function clearTerminal() {
   term.clear();
-  const username = getVarFromScript("playgroundRemote", "data-username");
+  const username = getDataFromScript("playgroundRemote", "data-username");
   socket.emit("terminate child process");
 }
 
@@ -754,7 +754,7 @@ function openTab(fileName) {
 
 function createFile() {
   var fileName = $(".filename").val();
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   socket.emit("create file", fileName, username);
 }
 
@@ -767,7 +767,7 @@ function showDeleteFileModal(fileName) {
 }
 
 function deleteFile(fileName) {
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   socket.emit("delete file", fileName, username);
 }
 
@@ -798,7 +798,7 @@ function setOnChangeEditer(fileName) {
     let remove = data.removed;
     let isEnter = false;
     let isDelete = false;
-    let username = getVarFromScript("playgroundIndividual", "data-username");
+    let username = getDataFromScript("playgroundIndividual", "data-username");
 
     /**
      * Check when enter new line
@@ -873,7 +873,7 @@ function newEditorFacade(fileName) {
   //     '<img id="' +
   //       partnerTab +
   //       '-file-icon" class="ui avatar image partner-file-icon" src="' +
-  //       getVarFromScript('playgroundIndividual', 'data-partnerImg') +
+  //       getDataFromScript('playgroundIndividual', 'data-partnerImg') +
   //       '" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>'
   //   );
   // } else {

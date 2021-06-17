@@ -1,4 +1,4 @@
-function getVarFromScript(scriptName, name) {
+function getDataFromScript(scriptName, name) {
   const data = $(`script[src*=${scriptName}]`)
   const variable = data.attr(name)
   if (typeof variable === undefined) {
@@ -28,7 +28,7 @@ function getParameterByName(name) {
  * Dependencies declaration
  */
 const socket = io('');
-const uid = getVarFromScript('playgroundCoLocated', 'data-uid')
+const uid = getDataFromScript('playgroundCoLocated', 'data-uid')
 var comments = [];
 var code = null;
 
@@ -105,7 +105,7 @@ function changeTheme() {
 socket.emit("load playground", { programming_style: "Co-located" });
 socket.emit("join project", {
   pid: getParameterByName("project"),
-  username: getVarFromScript('playgroundCoLocated', 'data-username')
+  username: getDataFromScript('playgroundCoLocated', 'data-username')
 });
 
 /**
@@ -256,7 +256,7 @@ socket.on("update tab", payload => {
 //     select: 0,
 //     partner
 //   })
-//   $('#global_loader').attr('style', 'display: none')
+//   $('#global-loader').attr('style', 'display: none')
 // })
 
 /**
@@ -374,7 +374,7 @@ function runCode() {
  * Submit code
  */
 function submitCode() {
-  $("#global_loader").attr({
+  $("#global-loader").attr({
     style: "display: block; position: fixed;"
   });
   socket.emit("submit code", {
@@ -418,7 +418,7 @@ socket.on("show score", payload => {
     .modal({
       closable: false,
       onDeny: function() {
-        $("#global_loader").attr("style", "display: none");
+        $("#global-loader").attr("style", "display: none");
       }
     })
     .modal("show");
@@ -454,7 +454,7 @@ socket.on("show auto update score", payload => {
     $("#user-point-label").text(
       "average score: " + parseFloat(payload.avgScore).toFixed(2)
     );
-    $("#global_loader").attr("style", "display: none");
+    $("#global-loader").attr("style", "display: none");
   } else {
     $("#partner-point-label").text(
       "average score: " + parseFloat(payload.avgScore).toFixed(2)
@@ -479,7 +479,7 @@ socket.on("show partner active tab", payload => {
       '<img id="' +
         partnerTab +
         '-file-icon" class="ui avatar image partner-file-icon" src="' +
-        getVarFromScript('playgroundCoLocated', 'data-partnerImg') +
+        getDataFromScript('playgroundCoLocated', 'data-partnerImg') +
         '" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>'
     );
   }
@@ -725,7 +725,7 @@ function setOnChangeEditer(fileName) {
     let remove = data.removed;
     let isEnter = false;
     let isDelete = false;
-    let username = getVarFromScript('playgroundCoLocated', 'data-username')
+    let username = getDataFromScript('playgroundCoLocated', 'data-username')
 
     /**
      * check when enter new line
@@ -797,7 +797,7 @@ function newEditorFacade(fileName) {
       '<img id="' +
         partnerTab +
         '-file-icon" class="ui avatar image partner-file-icon" src="' +
-        getVarFromScript('playgroundCoLocated', 'data-partnerImg') +
+        getDataFromScript('playgroundCoLocated', 'data-partnerImg') +
         '" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>'
     );
   } else {

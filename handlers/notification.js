@@ -5,23 +5,25 @@ const conMysql = require("../mySql");
 const Notification = mongoose.model("Notification");
 const Project = mongoose.model("Project");
 
-module.exports = (io, client, keyStores, timerIds) => {
+module.exports = (io, client, secInfos, timerIds) => {
   /**
-   * keyStores = {
-   *  key: {
-   *          tiwipab1: {
+   * secInfos = {
+   *  secKey: { // The "secKey" key is the "sectionId".
+   *          tiwipab: { // The "tiwipab" key is the first partner
+   *                        that login into website as a host.
    *               guest: weerabhat,
    *               activeUsers: [ tiwipab, weerabhat ]
-   *          } // username merged with section_id as a partner section key's the first user login the website.
+   *          }
    *      }
    * }
    *
-   * keys = {
-   *      1: courseName
+   * secKeys = { // secKeys store the match of key (sectionId)
+   *                and value (courseName)
+   *      1: "courseName"
    * }
    */
-  const notificationsId = [];
-  let keys = {}; // section key
+  const notificationsIds = [];
+  const secKeys = {};
   let curUser = "gentleman";
   let beat = 0;
   let pingPongId = "";
@@ -35,12 +37,10 @@ module.exports = (io, client, keyStores, timerIds) => {
     client.disconnect();
   }
 
-  function reverseId(id) {
-    let newId = "";
-    for (let index = id.length - 1; index >= 0; index--) {
-      newId += id[index];
-    }
-    return newId;
+  const reverse = function (str) {
+    const [firstCharacter] = str
+    if (str.length === 1) return firstCharacter
+    return reverse(str.substring(1)) + firstCharacter
   }
 
   client.on("PONG", (payload) => {
@@ -119,16 +119,16 @@ module.exports = (io, client, keyStores, timerIds) => {
      * Keys are created by to use a section key
      */
     for (let secKey in sections) {
-      Object.assign(keys, { [secKey]: sections[secKey].course_name });
+      Object.assign(secKeys, { [secKey]: sections[secKey].course_name });
 
-      if (keyStores[secKey] === undefined) {
-        keyStores[secKey] = {};
+      if (secInfos[secKey] === undefined) {
+        secInfos[secKey] = {};
       }
     }
 
     if (occupation === "student") {
       const stdSecs = {}; // store students that enroll to many courses.
-      for (let key in keys) {
+      for (let key in secKeys) {
         const queryStudent =
           "select * from student as st join enrollment as e on e.student_id = st.student_id " +
           "where e.section_id = " +
@@ -169,21 +169,21 @@ module.exports = (io, client, keyStores, timerIds) => {
           const tmp = { ...resPartners[0] };
           pnSecs.info = tmp;
 
-          let guest = Object.keys(keyStores[secKey]).find(
-            (username) => keyStores[secKey][username].guest === curUser
+          let guest = Object.keys(secInfos[secKey]).find(
+            (username) => secInfos[secKey][username].guest === curUser
           );
 
           /**
            * Delete duplicate data
            */
-          if (keyStores[secKey][curUser] !== undefined && guest !== undefined) {
-            delete keyStores[secKey][guest];
+          if (secInfos[secKey][curUser] !== undefined && guest !== undefined) {
+            delete secInfos[secKey][guest];
           }
 
-          if (keyStores[secKey][curUser] === undefined && guest === undefined) {
+          if (secInfos[secKey][curUser] === undefined && guest === undefined) {
             if (pnSecs.info !== null) {
               let pnSessionKey = curUser + secKey;
-              Object.assign(keyStores[secKey], {
+              Object.assign(secInfos[secKey], {
                 [curUser]: {
                   guest: pnSecs.info.username,
                   activeUsers: [curUser],
@@ -197,23 +197,23 @@ module.exports = (io, client, keyStores, timerIds) => {
               console.log(
                 "Student has a partnerShip but partner doesn't has information."
               );
-              Object.assign(keyStores[secKey], {
+              Object.assign(secInfos[secKey], {
                 [curUser]: { guest: null },
               });
             }
           } else {
             let tmpUser = guest === undefined ? curUser : guest;
             if (
-              ((keyStores[secKey][tmpUser].guest !== pnSecs.info.username &&
+              ((secInfos[secKey][tmpUser].guest !== pnSecs.info.username &&
                 guest === undefined) ||
                 (tmpUser !== pnSecs.info.username &&
-                  keyStores[secKey][curUser] === undefined)) &&
+                  secInfos[secKey][curUser] === undefined)) &&
               Object.keys(pnSecs.info).length
             ) {
-              delete keyStores[secKey][tmpUser];
+              delete secInfos[secKey][tmpUser];
 
               let pnSessionKey = curUser + secKey;
-              Object.assign(keyStores[secKey], {
+              Object.assign(secInfos[secKey], {
                 [curUser]: {
                   guest: pnSecs.info.username,
                   activeUsers: [curUser],
@@ -223,11 +223,11 @@ module.exports = (io, client, keyStores, timerIds) => {
               client.join(pnSessionKey);
               // winston.info(`${curUser} join partner session['${pnSessionKey}']`);
             } else if (
-              keyStores[secKey][tmpUser].activeUsers.indexOf(curUser) < 0 &&
+              secInfos[secKey][tmpUser].activeUsers.indexOf(curUser) < 0 &&
               Object.keys(pnSecs.info).length
             ) {
               let pnSessionKey = tmpUser + secKey;
-              keyStores[secKey][tmpUser].activeUsers.push(curUser);
+              secInfos[secKey][tmpUser].activeUsers.push(curUser);
               client.join(pnSessionKey);
               // winston.info(`${curUser} join partner session['${pnSessionKey}']`);
             } else if (Object.keys(pnSecs.info).length) {
@@ -235,44 +235,44 @@ module.exports = (io, client, keyStores, timerIds) => {
               client.join(pnSessionKey);
               // winston.info(`${curUser} join partner session['${pnSessionKey}']`);
             } else {
-              delete keyStores[secKey][tmpUser];
+              delete secInfos[secKey][tmpUser];
 
               console.log(
                 "Student has a partnerShip but partner doesn't has information."
               );
-              Object.assign(keyStores[secKey], {
+              Object.assign(secInfos[secKey], {
                 [curUser]: { guest: null },
               });
             }
           }
         } else {
           // User doesn't has a partnership
-          Object.assign(keyStores[secKey], {
+          Object.assign(secInfos[secKey], {
             [curUser]: { guest: null },
           });
         }
       }
     } else {
       // User is a teacher
-      for (let secKey in keys) {
-        Object.assign(keyStores[secKey], {
+      for (let secKey in secKeys) {
+        Object.assign(secInfos[secKey], {
           [curUser]: { guest: null },
         });
       }
     }
 
-    for (let secKey in keys) {
+    for (let secKey in secKeys) {
       client.join(secKey);
       // winston.info(`${curUser} join classroom['${secKey}']`);
     }
 
-    const notifications = await getAllNotifications(curUser, notificationsId);
+    const notifications = await getAllNotifications(curUser, notificationsIds);
     if (notifications.length) {
       client.emit("notify all", { notifications: notifications, init: 1 });
     }
 
     timerIds[curUser] = setInterval(async function () {
-      const notifications = await getAllNotifications(curUser, notificationsId);
+      const notifications = await getAllNotifications(curUser, notificationsIds);
       if (notifications.length) {
         client.emit("notify all", { notifications: notifications, init: 0 });
       }
@@ -313,7 +313,7 @@ module.exports = (io, client, keyStores, timerIds) => {
           });
           Object.assign(resNotifications[index]._doc, {
             available_project: projects.available_project,
-            nid: reverseId(resNotifications[index]._doc.nid),
+            nid: reverse(resNotifications[index]._doc.nid),
             [tmpNotifications.receiver[0].username]:
               tmpNotifications.receiver[0].status,
           });
@@ -321,7 +321,7 @@ module.exports = (io, client, keyStores, timerIds) => {
         } else if (tmpNotifications.type === `assignment`) {
           idContainers.push(tmpNotifications.nid);
           Object.assign(resNotifications[index]._doc, {
-            nid: reverseId(resNotifications[index]._doc.nid),
+            nid: reverse(resNotifications[index]._doc.nid),
             [tmpNotifications.receiver[0].username]:
               tmpNotifications.receiver[0].status,
           });
@@ -330,7 +330,7 @@ module.exports = (io, client, keyStores, timerIds) => {
           if (tmpNotifications.createdBy !== curUser) {
             idContainers.push(tmpNotifications.nid);
             Object.assign(resNotifications[index]._doc, {
-              nid: reverseId(resNotifications[index]._doc.nid),
+              nid: reverse(resNotifications[index]._doc.nid),
               [tmpNotifications.receiver[0].username]:
                 tmpNotifications.receiver[0].status,
             });
@@ -352,48 +352,48 @@ module.exports = (io, client, keyStores, timerIds) => {
     if (timerIds[curUser] !== undefined) {
       clearInterval(timerIds[curUser]);
     }
-    for (let secKey in keys) {
-      if (keyStores[secKey] !== undefined) {
-        let guest = Object.keys(keyStores[secKey]).find(
-          (username) => keyStores[secKey][username].guest === curUser
+    for (let secKey in secKeys) {
+      if (secInfos[secKey] !== undefined) {
+        let guest = Object.keys(secInfos[secKey]).find(
+          (username) => secInfos[secKey][username].guest === curUser
         );
 
-        if (keyStores[secKey][curUser] !== undefined || guest !== undefined) {
+        if (secInfos[secKey][curUser] !== undefined || guest !== undefined) {
           if (
             guest !== undefined ||
-            keyStores[secKey][curUser].guest !== null
+            secInfos[secKey][curUser].guest !== null
           ) {
             let pnSessionKey =
               guest === undefined ? curUser + secKey : guest + secKey;
             let tmpKey = guest === undefined ? curUser : guest;
-            let numUser = keyStores[secKey][tmpKey].activeUsers.length;
+            let numUser = secInfos[secKey][tmpKey].activeUsers.length;
 
             if (numUser === 1) {
-              delete keyStores[secKey][tmpKey];
+              delete secInfos[secKey][tmpKey];
             } else {
               if (guest === undefined) {
-                let index = keyStores[secKey][tmpKey].activeUsers.indexOf(
+                let index = secInfos[secKey][tmpKey].activeUsers.indexOf(
                   tmpKey
                 );
-                keyStores[secKey][tmpKey].activeUsers.splice(index, 1);
+                secInfos[secKey][tmpKey].activeUsers.splice(index, 1);
               } else {
-                let index = keyStores[secKey][guest].activeUsers.indexOf(
-                  keyStores[secKey][guest].guest
+                let index = secInfos[secKey][guest].activeUsers.indexOf(
+                  secInfos[secKey][guest].guest
                 );
-                keyStores[secKey][guest].activeUsers.splice(index, 1);
+                secInfos[secKey][guest].activeUsers.splice(index, 1);
               }
             }
 
             client.leave(pnSessionKey);
             // winston.info(`${curUser} leave partner session['${pnSessionKey}']`);
           } else {
-            delete keyStores[secKey][curUser];
+            delete secInfos[secKey][curUser];
           }
         }
 
-        delete keys[secKey];
-        Object.keys(keyStores[secKey]).length === 0
-          ? delete keyStores[secKey]
+        delete secKeys[secKey];
+        Object.keys(secInfos[secKey]).length === 0
+          ? delete secInfos[secKey]
           : null;
         client.leave(secKey);
         // winston.info(`${curUser} leave classroom['${secKey}']`);

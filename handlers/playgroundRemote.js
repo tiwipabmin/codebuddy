@@ -5,7 +5,6 @@ const fs = require("fs");
 const archiver = require("archiver");
 const nodepty = require("node-pty");
 const Cryptr = require("cryptr");
-const { disconnect } = require("process");
 const cryptr = new Cryptr("codebuddy");
 
 const Project = mongoose.model("Project");
@@ -17,7 +16,7 @@ const User = mongoose.model("User");
 const Comment = mongoose.model("Comment");
 const History = mongoose.model("History");
 
-module.exports = (io, client, redis, projects, keyStores, timerIds) => {
+module.exports = (io, client, redis, projects, secInfos, timerIds) => {
   /**
    * recieve project id from client and stored in projectId
    **/
@@ -26,7 +25,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   let curUser = "";
   let projectSessionId = "";
   let detectInputLst = [];
-  let timerId = {};
+  let psTimerIds = {};
   let comments = [];
   let index = null;
   let pythonProcess = null;
@@ -51,16 +50,8 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   /**
    * `PONG` event that check the client is connected.
    */
-  client.on("PONG", (payload) => {
-    client.emit("PING", { beat: beat });
-    // if (payload.beat > beat) {
-    //   beat = payload.beat;
-    //   pingPongId = setTimeout(sendHeartbeat, 1000);
-    //   clearTimeout(autoDiscId);
-    //   autoDiscId = setTimeout(autoDisconnect, 2000);
-    // } else {
-    //   clearTimeout(pingPongId);
-    // }
+  client.on("PING", () => {
+    client.emit("PONG");
   });
 
   /**
@@ -95,10 +86,10 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         client.emit("reconnected");
       }
 
-      const user = await User.findOne({ username: curUser }, (err, res) => {
-        if (err) throw err;
-        return res;
-      });
+      // const user = await User.findOne({ username: curUser }, (err, res) => {
+      //   if (err) throw err;
+      //   return res;
+      // });
 
       const project = await Project.findOne({ pid: projectId }, (err, res) => {
         if (err) throw err;
@@ -123,7 +114,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
          * Join session socket with project id
          */
         client.join(projectId);
-        // startHeartbeat();
 
         client.emit("start the project session", {});
 
@@ -268,12 +258,12 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
   client.on("clear interval", (name) => {
     if (name === `countdowntimer`) {
-      clearInterval(timerId[`${projectId}countdowntimer`]);
+      clearInterval(psTimerIds[`${projectId}countdowntimer`]);
     } else if (name === `dwellingtimer`) {
-      clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+      clearInterval(psTimerIds[`${projectSessionId}dwellingtimer`]);
     }
-    clearInterval(timerId[`codertimer`]);
-    clearInterval(timerId[`reviewertimer`]);
+    clearInterval(psTimerIds[`codertimer`]);
+    clearInterval(psTimerIds[`reviewertimer`]);
   });
 
   /**
@@ -286,119 +276,15 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         if (projects[projectId].kickOff) {
           if (projects[projectId].kickOff > 1) projects[projectId].kickOff -= 1;
           else delete projects[projectId].kickOff;
-          // client.leave(projectId);
           console.log(`${curUser} was kicked from the Project Session.`);
-        } else {
-          // clearInterval(timerId[`${projectId}countdowntimer`]);
-          // clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
-          // clearInterval(timerId[`codertimer`]);
-          // clearInterval(timerId[`reviewertimer`]);
-          // /**
-          //  * `countdownTimer()` function is started by only one user.
-          //  **/
-          // io.in(projectId).emit("clear interval", `countdowntimer`);
-          // /**
-          //  * Clear "dwellingtimer" interval's any user who hasn't left the project at the moment.
-          //  */
-          // io.in(projectId).emit("clear interval", `dwellingtimer`);
-          // delete projects[projectId].activeUsers[curUser];
-          // let numUser = Object.keys(projects[projectId].activeUsers).length;
-          // /**
-          //  * Leave the project at a certain time.
-          //  */
-          // client.leave(projectId);
-          // clearTimeout(pingPongId);
-          // clearTimeout(autoDiscId);
-          // if (numUser >= 1) {
-          //   if (curUser === projects[projectId].roles.coder) {
-          //     projects[projectId].roles = swapRole(projects[projectId].roles);
-          //   }
-          //   io.in(projectId).emit("auto role change", {
-          //     roles: projects[projectId].roles,
-          //     status: `disconnected`,
-          //   });
-          //   io.in(projectId).emit("update status", {
-          //     status: 0,
-          //   });
-          //   // clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
-          //   io.in(projectId).emit("start the project session", {});
-          // } else {
-          //   delete projects[projectId];
-          // }
-          // await Project.updateOne(
-          //   {
-          //     pid: projectId,
-          //   },
-          //   {
-          //     $set: {
-          //       disable_time: Date.now(),
-          //     },
-          //   },
-          //   (err, res) => {
-          //     if (err) throw err;
-          //     return res;
-          //   }
-          // );
-          // const queryNotifications = await Notification.find(
-          //   {
-          //     $and: [
-          //       { "receiver.username": curUser },
-          //       { "receiver.status": `no interact` },
-          //       { type: `project` },
-          //     ],
-          //   },
-          //   {
-          //     nid: 1,
-          //   }
-          // ).sort({ createdAt: -1 });
-          // const notificationsId = [];
-          // for (let index in queryNotifications) {
-          //   notificationsId.push(queryNotifications[index].nid);
-          // }
-          // if (notificationsId.length) {
-          //   await Notification.updateMany(
-          //     { nid: { $in: notificationsId } },
-          //     { $set: { "receiver.$[].status": `interacted` } }
-          //   );
-          //   const reversedNotificationsId = [];
-          //   for (let index in notificationsId) {
-          //     let nid = notificationsId[index];
-          //     let reversedNid = ``;
-          //     for (let indexId = nid.length - 1; indexId >= 0; indexId--) {
-          //       reversedNid += nid[indexId];
-          //     }
-          //     reversedNotificationsId.push(reversedNid);
-          //   }
-          //   if (
-          //     reversedNotificationsId.length &&
-          //     keyStores[sectionId] !== undefined
-          //   ) {
-          //     let guest = Object.keys(keyStores[sectionId]).find(
-          //       (username) => keyStores[sectionId][username].guest === curUser
-          //     );
-          //     if (keyStores[sectionId][curUser] !== undefined || guest) {
-          //       let tmpTimerId = Object.keys(timerIds).length + 1;
-          //       timerIds[tmpTimerId] = setInterval(() => {
-          //         let pnSessionKey =
-          //           guest === undefined
-          //             ? curUser + sectionId
-          //             : guest + sectionId;
-          //         io.in(pnSessionKey).emit("disable project notification", {
-          //           reversedNotificationsId: reversedNotificationsId,
-          //           timerId: tmpTimerId,
-          //         });
-          //       }, 5000);
-          //     }
-          //   }
-          // }
         }
 
         if (projects[projectId].activeUsers[curUser] !== undefined) {
           console.log("Disconnected -->", curUser);
-          clearInterval(timerId[`${projectId}countdowntimer`]);
-          clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
-          clearInterval(timerId[`codertimer`]);
-          clearInterval(timerId[`reviewertimer`]);
+          clearInterval(psTimerIds[`${projectId}countdowntimer`]);
+          clearInterval(psTimerIds[`${projectSessionId}dwellingtimer`]);
+          clearInterval(psTimerIds[`codertimer`]);
+          clearInterval(psTimerIds[`reviewertimer`]);
           /**
            * `countdownTimer()` function is started by only one user.
            **/
@@ -431,26 +317,26 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
             io.in(projectId).emit("update status", {
               status: 0,
             });
-            // clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+            // clearInterval(psTimerIds[`${projectSessionId}dwellingtimer`]);
             io.in(projectId).emit("start the project session", {});
           } else {
+            await Project.updateOne(
+              {
+                pid: projectId,
+              },
+              {
+                $set: {
+                  disable_time: Date.now(),
+                },
+              },
+              (err, res) => {
+                if (err) throw err;
+                return res;
+              }
+            );
+            
             delete projects[projectId];
           }
-
-          await Project.updateOne(
-            {
-              pid: projectId,
-            },
-            {
-              $set: {
-                disable_time: Date.now(),
-              },
-            },
-            (err, res) => {
-              if (err) throw err;
-              return res;
-            }
-          );
 
           const queryNotifications = await Notification.find(
             {
@@ -488,13 +374,13 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
 
             if (
               reversedNotificationsId.length &&
-              keyStores[sectionId] !== undefined
+              secInfos[sectionId] !== undefined
             ) {
-              let guest = Object.keys(keyStores[sectionId]).find(
-                (username) => keyStores[sectionId][username].guest === curUser
+              let guest = Object.keys(secInfos[sectionId]).find(
+                (username) => secInfos[sectionId][username].guest === curUser
               );
 
-              if (keyStores[sectionId][curUser] !== undefined || guest) {
+              if (secInfos[sectionId][curUser] !== undefined || guest) {
                 let tmpTimerId = Object.keys(timerIds).length + 1;
 
                 timerIds[tmpTimerId] = setInterval(() => {
@@ -763,29 +649,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   });
 
   /**
-   * `role selected` event fired when one of the project user select his role
-   * @param {Object} payload user selected role and partner username
-   * then socket will broadcast the role to his partner
-   **/
-  client.on("role selected", (payload) => {
-    countdownTimer();
-    if (payload.select === 0) {
-      projects[projectId].roles.reviewer = curUser;
-      projects[projectId].roles.coder = payload.partner;
-    } else {
-      projects[projectId].roles.reviewer = payload.partner;
-      projects[projectId].roles.coder = curUser;
-    }
-    Project.findOne({ pid: projectId }, function (err, res) {
-      if (err) return handleError(err);
-      io.in(projectId).emit("update role", {
-        roles: projects[projectId].roles,
-        project: res,
-      });
-    });
-  });
-
-  /**
    * The `switch role` event have 2 cases of this events as follows:
    * 1. the event fired when the one of users want to switch his role.
    * 2. The one of users leave the project session at a certain time.
@@ -820,30 +683,6 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
   client.on("confirm to switch role", async (answer, roles) => {
     try {
       if (answer === "accept") {
-        // const user = await User.findOne({
-        //   username: roles.requestedBy,
-        // });
-
-        // const curProjectSession = await ProjectSession.find(
-        //   {
-        //     uid: user._id,
-        //   },
-        //   {
-        //     psid: 1,
-        //   }
-        // ).sort({ joinedAt: -1 });
-
-        // ProjectSession.updateOne(
-        //   {
-        //     psid: curProjectSession[0].psid,
-        //   },
-        //   {
-        //     $inc: { noOfManualRoleSwitching: 1 },
-        //   },
-        //   (err) => {
-        //     if (err) console.error(`Catching error: ${err}`);
-        //   }
-        // );
         await updateNoOfRoleSwitching(roles.requestedBy, "manual");
 
         delete roles.requestedBy;
@@ -1472,15 +1311,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         const after_score = data.indexOf("/10");
         score = data.slice(before_score + 28, after_score);
       }
-      // else if (data.indexOf('E:') < 0) {
-      //   score = 0
-      // }
       data = data.replace(/\/10/g, "/100.00");
 
       /**
        * As the listener may send data three times per one process or more,
        * so the score of project must to save once.
-       * The line of process is 757 to 903
        **/
       if (
         (!empty &&
@@ -1707,10 +1542,10 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
     for (let index in fileNameList) {
       fs.writeFile(
         "./public/project_files/" +
-          projectId +
-          "/" +
-          fileNameList[index] +
-          ".py",
+        projectId +
+        "/" +
+        fileNameList[index] +
+        ".py",
         code[fileNameList[index]],
         (err) => {
           if (err) throw er;
@@ -1792,11 +1627,11 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    */
   function verifyRoles() {
     if (projects[projectId].roles.coder === curUser) {
-      clearInterval(timerId[`reviewertimer`]);
-      timerId[`codertimer`] = setInterval(coderTimeInterval, 1000);
+      clearInterval(psTimerIds[`reviewertimer`]);
+      psTimerIds[`codertimer`] = setInterval(coderTimeInterval, 1000);
     } else if (projects[projectId].roles.reviewer === curUser) {
-      clearInterval(timerId[`codertimer`]);
-      timerId[`reviewertimer`] = setInterval(reviewerTimeInterval, 1000);
+      clearInterval(psTimerIds[`codertimer`]);
+      psTimerIds[`reviewertimer`] = setInterval(reviewerTimeInterval, 1000);
     }
   }
 
@@ -1895,13 +1730,13 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
         return (swaptime = parseInt(project.swaptime) * 60 * 1000);
       }
     });
-    if (timerId[`${projectId}countdowntimer`] === undefined) {
-      timerId[`${projectId}countdowntimer`] = setInterval(intervalFunc, 1000);
+    if (psTimerIds[`${projectId}countdowntimer`] === undefined) {
+      psTimerIds[`${projectId}countdowntimer`] = setInterval(intervalFunc, 1000);
       redis.hset(`project:${projectId}`, "startTime", Date.now().toString());
       return;
     } else {
-      clearInterval(timerId[`${projectId}countdowntimer`]);
-      delete timerId[`${projectId}countdowntimer`];
+      clearInterval(psTimerIds[`${projectId}countdowntimer`]);
+      delete psTimerIds[`${projectId}countdowntimer`];
       countdownTimer();
       return;
     }
@@ -1957,7 +1792,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
           return;
         }
         count += 1;
-        clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+        clearInterval(psTimerIds[`${projectSessionId}dwellingtimer`]);
         projectSessionId = "";
         initializeProjectSession(username, pid, count);
         return;
@@ -1969,7 +1804,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    *
    * @param {*}
    */
-  function completeProjectSession() {}
+  function completeProjectSession() { }
 
   /**
    *
@@ -1977,7 +1812,7 @@ module.exports = (io, client, redis, projects, keyStores, timerIds) => {
    * @param {*} project
    */
   function dwellingTimer(psid) {
-    timerId[`${psid}dwellingtimer`] = setInterval(() => {
+    psTimerIds[`${psid}dwellingtimer`] = setInterval(() => {
       ProjectSession.updateOne(
         {
           psid: psid,

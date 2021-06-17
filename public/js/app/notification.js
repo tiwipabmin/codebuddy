@@ -4,7 +4,7 @@
  * @param {String} name parameter name that you want to get variable from
  * https://stackoverflow.com/questions/2190801/passing-parameters-to-javascript-files/2190927?noredirect=1#comment47136074_2190927
  */
-function getVarFromScript(scriptName, name) {
+function getDataFromScript(scriptName, name) {
   const data = $(`script[src*=${scriptName}]`);
   const variable = data.attr(name);
   if (typeof variable === undefined) {
@@ -20,8 +20,8 @@ const classNotiSocket = io("");
 classNotiSocket.emit("notification", {});
 
 classNotiSocket.emit("join classroom", {
-  username: getVarFromScript("notification", "data-username"),
-  occupation: getVarFromScript("notification", "data-occupation"),
+  username: getDataFromScript("notification", "data-username"),
+  occupation: getDataFromScript("notification", "data-occupation"),
 });
 
 classNotiSocket.on("connection failed", (payload) => {});
@@ -177,7 +177,7 @@ function onClickSysmtemUsageElement(nid, type) {
 
 function onClickJoinProject(element = null, nid = null, link = null) {
   data = { nid: nid, link: link };
-  $("#global_loader").attr({
+  $("#global-loader").attr({
     style: "position:fixed; display:block;",
   });
   $.ajax({
@@ -185,7 +185,7 @@ function onClickJoinProject(element = null, nid = null, link = null) {
     type: `put`,
     data: data,
     success: function (data) {
-      $("#global_loader").attr({
+      $("#global-loader").attr({
         style: "position:fixed; display:none;",
       });
       if (data === "OK") {
@@ -225,7 +225,7 @@ classNotiSocket.on("disable project notification", (payload) => {
 });
 
 classNotiSocket.on("notify all", (payload) => {
-  const username = getVarFromScript("notification", "data-username");
+  const username = getDataFromScript("notification", "data-username");
   const notifications = payload.notifications;
   if (notifications !== null) {
     if ($("#notification-text").length) {

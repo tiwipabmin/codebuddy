@@ -544,6 +544,7 @@ fieldset {
   margin-top: -18px;
   color: #b30202;
 }
+
 #badge1 {
   border-radius: 25px;
   background-color: #2185d0;
@@ -641,6 +642,13 @@ fieldset {
 
 .nowrap {
   white-space: nowrap;
+}
+
+#footer {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
 }
 
 .footer-index {

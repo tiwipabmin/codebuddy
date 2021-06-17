@@ -4,7 +4,6 @@
 const express = require('express')
 
 const auth = require('../middlewares/auth')
-const webController = require('../controllers/webController')
 const classroomController = require('../controllers/classroomController')
 const { catchErrors } = require('../handlers/errorHandlers')
 

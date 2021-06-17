@@ -21,7 +21,7 @@ mixin pairStudent()
       .ui.basic.center.aligned.segment
         .actions
           button.ui.button.approve.green#confirm-pairing(type='submit', value='create') Confirm
-          .ui.button.approve.red#cancel-pairing(data-value='cancel' onclick='on_click_cancel_pairing_button()') Cancel
+          .ui.button.approve.red#cancel-pairing(data-value='cancel' onclick='onClickCancelPairingButton()') Cancel
 
   .ui.small.modal#partner_selection_modal
     .header Select partner

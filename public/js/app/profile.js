@@ -4,7 +4,7 @@
  * @param {String} name parameter name that you want to get variable from
  * https://stackoverflow.com/questions/2190801/passing-parameters-to-javascript-files/2190927?noredirect=1#comment47136074_2190927
  */
-function getVarFromScript(scriptName, name) {
+function getDataFromScript(scriptName, name) {
     const data = $(`script[src*=${scriptName}]`)
     const variable = data.attr(name)
     if (typeof variable === undefined) {
@@ -14,7 +14,7 @@ function getVarFromScript(scriptName, name) {
 }
 
 $(document).ready(() => {
-    const status = getVarFromScript('profile', 'data-status')
+    const status = getDataFromScript('profile', 'data-status')
     console.log(status)
     if (status !== "undefined") {
         alert(status)

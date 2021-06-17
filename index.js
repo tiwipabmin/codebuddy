@@ -54,7 +54,7 @@ new Redis().on('error', (err) => {
  */
 const app = require('./server')
 const config = require('getconfig')
-const fs = require('fs')
+// const fs = require('fs')
 const webRtcSockets = require('./signaling/sockets')
 
 const server = app.listen(process.env.PORT || 8080, () => {
