@@ -25,7 +25,7 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
   let curUser = "";
   let projectSessionId = "";
   let detectInputLst = [];
-  let timerId = {};
+  let psTimerIds = {};
   let comments = [];
   let index = null;
   let pythonProcess = null;
@@ -50,8 +50,8 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
   /**
    * `PONG` event that check the client is connected.
    */
-  client.on("PONG", (payload) => {
-    client.emit("PING", { beat: beat });
+  client.on("PING", () => {
+    client.emit("PONG");
   });
 
   /**
@@ -86,10 +86,10 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
         client.emit("reconnected");
       }
 
-      const user = await User.findOne({ username: curUser }, (err, res) => {
-        if (err) throw err;
-        return res;
-      });
+      // const user = await User.findOne({ username: curUser }, (err, res) => {
+      //   if (err) throw err;
+      //   return res;
+      // });
 
       const project = await Project.findOne({ pid: projectId }, (err, res) => {
         if (err) throw err;
@@ -258,12 +258,12 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
 
   client.on("clear interval", (name) => {
     if (name === `countdowntimer`) {
-      clearInterval(timerId[`${projectId}countdowntimer`]);
+      clearInterval(psTimerIds[`${projectId}countdowntimer`]);
     } else if (name === `dwellingtimer`) {
-      clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+      clearInterval(psTimerIds[`${projectSessionId}dwellingtimer`]);
     }
-    clearInterval(timerId[`codertimer`]);
-    clearInterval(timerId[`reviewertimer`]);
+    clearInterval(psTimerIds[`codertimer`]);
+    clearInterval(psTimerIds[`reviewertimer`]);
   });
 
   /**
@@ -281,10 +281,10 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
 
         if (projects[projectId].activeUsers[curUser] !== undefined) {
           console.log("Disconnected -->", curUser);
-          clearInterval(timerId[`${projectId}countdowntimer`]);
-          clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
-          clearInterval(timerId[`codertimer`]);
-          clearInterval(timerId[`reviewertimer`]);
+          clearInterval(psTimerIds[`${projectId}countdowntimer`]);
+          clearInterval(psTimerIds[`${projectSessionId}dwellingtimer`]);
+          clearInterval(psTimerIds[`codertimer`]);
+          clearInterval(psTimerIds[`reviewertimer`]);
           /**
            * `countdownTimer()` function is started by only one user.
            **/
@@ -317,26 +317,26 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
             io.in(projectId).emit("update status", {
               status: 0,
             });
-            // clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+            // clearInterval(psTimerIds[`${projectSessionId}dwellingtimer`]);
             io.in(projectId).emit("start the project session", {});
           } else {
+            await Project.updateOne(
+              {
+                pid: projectId,
+              },
+              {
+                $set: {
+                  disable_time: Date.now(),
+                },
+              },
+              (err, res) => {
+                if (err) throw err;
+                return res;
+              }
+            );
+            
             delete projects[projectId];
           }
-
-          await Project.updateOne(
-            {
-              pid: projectId,
-            },
-            {
-              $set: {
-                disable_time: Date.now(),
-              },
-            },
-            (err, res) => {
-              if (err) throw err;
-              return res;
-            }
-          );
 
           const queryNotifications = await Notification.find(
             {
@@ -1627,11 +1627,11 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
    */
   function verifyRoles() {
     if (projects[projectId].roles.coder === curUser) {
-      clearInterval(timerId[`reviewertimer`]);
-      timerId[`codertimer`] = setInterval(coderTimeInterval, 1000);
+      clearInterval(psTimerIds[`reviewertimer`]);
+      psTimerIds[`codertimer`] = setInterval(coderTimeInterval, 1000);
     } else if (projects[projectId].roles.reviewer === curUser) {
-      clearInterval(timerId[`codertimer`]);
-      timerId[`reviewertimer`] = setInterval(reviewerTimeInterval, 1000);
+      clearInterval(psTimerIds[`codertimer`]);
+      psTimerIds[`reviewertimer`] = setInterval(reviewerTimeInterval, 1000);
     }
   }
 
@@ -1730,13 +1730,13 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
         return (swaptime = parseInt(project.swaptime) * 60 * 1000);
       }
     });
-    if (timerId[`${projectId}countdowntimer`] === undefined) {
-      timerId[`${projectId}countdowntimer`] = setInterval(intervalFunc, 1000);
+    if (psTimerIds[`${projectId}countdowntimer`] === undefined) {
+      psTimerIds[`${projectId}countdowntimer`] = setInterval(intervalFunc, 1000);
       redis.hset(`project:${projectId}`, "startTime", Date.now().toString());
       return;
     } else {
-      clearInterval(timerId[`${projectId}countdowntimer`]);
-      delete timerId[`${projectId}countdowntimer`];
+      clearInterval(psTimerIds[`${projectId}countdowntimer`]);
+      delete psTimerIds[`${projectId}countdowntimer`];
       countdownTimer();
       return;
     }
@@ -1792,7 +1792,7 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
           return;
         }
         count += 1;
-        clearInterval(timerId[`${projectSessionId}dwellingtimer`]);
+        clearInterval(psTimerIds[`${projectSessionId}dwellingtimer`]);
         projectSessionId = "";
         initializeProjectSession(username, pid, count);
         return;
@@ -1812,7 +1812,7 @@ module.exports = (io, client, redis, projects, secInfos, timerIds) => {
    * @param {*} project
    */
   function dwellingTimer(psid) {
-    timerId[`${psid}dwellingtimer`] = setInterval(() => {
+    psTimerIds[`${psid}dwellingtimer`] = setInterval(() => {
       ProjectSession.updateOne(
         {
           psid: psid,

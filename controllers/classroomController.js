@@ -361,9 +361,9 @@ exports.getStudentsFromSection = async (req, res) => {
 
 exports.searchStudent = async (req, res) => {
     const search = req.query.search;
-    const studentId = req.query.student_id;
-    const sectionId = parseInt(cryptr.decrypt(req.query.section_id));
-    const pairingSessionId = req.query.pairing_session_id;
+    const studentId = req.query.studentId;
+    const sectionId = parseInt(cryptr.decrypt(req.query.sectionId));
+    const pairingSessionId = req.query.pairingSessionId;
     const username = req.query.username;
     const studentQuery =
         "SELECT * FROM enrollment AS\
@@ -396,15 +396,15 @@ exports.searchStudent = async (req, res) => {
             }
         }
     }
-    console.log("Search Student: partnerKeys, ", req.query.partner_keys);
+    console.log("Search Student: partnerKeys, ", req.query.partnerKeys);
     res.send({
         studentId: studentId,
         students: students,
         purpose: "none",
         sectionId: cryptr.encrypt(sectionId),
         pairingSessionId: pairingSessionId,
-        partnerKeys: req.query.partner_keys,
-        pairingObjectives: req.query.pairing_objective,
+        partnerKeys: req.query.partnerKeys,
+        pairingObjectives: req.query.pairingObjective,
     });
 };
 

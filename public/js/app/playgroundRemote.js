@@ -6,7 +6,7 @@ $(document).ready(function () {
   changeProfileGrid($(window).width());
 });
 
-function getVarFromScript(scriptName, name) {
+function getDataFromScript(scriptName, name) {
   const data = $(`script[src*=${scriptName}]`);
   const variable = data.attr(name);
   if (typeof variable === undefined) {
@@ -46,19 +46,19 @@ const term = new Terminal({
   rows: 10,
   cursorBlink: true,
 });
-const uid = getVarFromScript("playgroundRemote", "data-uid");
-const sectionId = getVarFromScript("playgroundRemote", "data-sectionId");
+const uid = getDataFromScript("playgroundRemote", "data-uid");
+const sectionId = getDataFromScript("playgroundRemote", "data-sectionId");
 let comments = [];
 let editorValues = { main: "" };
 
 let webrtc = new SimpleWebRTC({
   /**
    * the id/element dom element that will hold "our" video
-   **/ 
+   **/
   localVideoEl: "localVideo",
   /**
    * the id/element dom element that will hold remote videos
-   **/ 
+   **/
   remoteVideosEl: "remoteVideo",
   /**
    * immediately ask for camera access
@@ -69,11 +69,11 @@ let webrtc = new SimpleWebRTC({
 /**
  * Initiate local editor
  */
-var projectFiles = JSON.parse(document.getElementById("projectFiles").value);
-var currentTab = "main";
-var partnerTab = "main";
-var isCloseTab = false;
-var isLight = false;
+let projectFiles = JSON.parse(document.getElementById("projectFiles").value);
+let currentTab = "main";
+let partnerTab = "main";
+let isCloseTab = false;
+let isLight = false;
 let shellprompt = "\033[1;3;31m$ \033[0m";
 let termInput = "";
 let isCodeRunning = false;
@@ -149,7 +149,7 @@ function changeTheme() {
 socket.emit("load playground", { programming_style: "Remote" });
 socket.emit("join project", {
   pid: getParameterByName("project"),
-  username: getVarFromScript("playgroundRemote", "data-username"),
+  username: getDataFromScript("playgroundRemote", "data-username"),
   sectionId: getParameterByName("section"),
 });
 
@@ -179,28 +179,30 @@ $(window).focus(() => {
         socket.emit("load playground", { programming_style: "Remote" });
         socket.emit("join project", {
           pid: getParameterByName("project"),
-          username: getVarFromScript("playgroundRemote", "data-username"),
+          username: getDataFromScript("playgroundRemote", "data-username"),
           sectionId: getParameterByName("section"),
           state: "Starting Reconnection",
         });
       }
     }, 3000);
-    let beat = 1;
-    socket.emit("PONG", { beat: beat });
+    socket.emit("PING");
   }
 });
 
-socket.on("PING", (payload) => {
-  $("#playground-remote-loader").attr("style", "display: none");
+function clearReconData() {
   clearInterval(reconIntervalId);
-  reconIntervalId = "";
   reconTimer = 0;
+  reconIntervalId = "";
+}
+
+socket.on("PONG", () => {
+  $("#playground-remote-loader").attr("style", "display: none");
+  clearReconData()
+  console.log("PONG")
 });
 
 socket.on("reconnected", () => {
-  clearInterval(reconIntervalId);
-  reconTimer = 0;
-  reconIntervalId = "";
+  clearReconData()
   $("#playground-remote-loader").attr("style", "display: none");
 });
 
@@ -268,7 +270,7 @@ socket.on("init reviews", (payload) => {
 socket.on("update tab", (payload) => {
   var fileName = payload.fileName;
   var action = payload.action;
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   if (action == "create") {
     var id = document.getElementById("file-tabs").childElementCount;
     $(".add-file")
@@ -399,7 +401,7 @@ socket.on("update tab", (payload) => {
  * @param {String} requestedBy The username of user requesting to switch role.
  */
 socket.on("manually switch role", (roles, requestedBy) => {
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   if (requestedBy !== username) {
     roles.requestedBy = requestedBy;
     $("#hdr-crc").text(
@@ -472,11 +474,11 @@ socket.on("countdown", (payload) => {
 });
 
 socket.on("denied to join", (curUser) => {
-  username = getVarFromScript("playgroundRemote", "data-username");
+  username = getDataFromScript("playgroundRemote", "data-username");
   if (curUser === username) {
     let a = document.createElement("a");
     a.href = "/classroom/section/" +
-      getVarFromScript("playgroundRemote", "data-sectionId")
+      getDataFromScript("playgroundRemote", "data-sectionId")
     document.body.appendChild(a);
     a.click();
   }
@@ -507,7 +509,7 @@ function setOptionFileShowCursor(fileName) {
  * @param {Object} payload the object instance
  */
 socket.on("update role", (payload) => {
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   $("#acpt-btn-crc").attr("style", "display:none;");
   $("#acpt-btn-crc").removeAttr("onclick");
   $("#dcln-btn-crc").attr("style", "display:none;");
@@ -681,7 +683,7 @@ socket.on("update after delete review", (payload) => {
 });
 
 socket.on("is typing", (payload) => {
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   if (username != payload.username) {
     $("#show-is-typing").text(payload.text);
     if ($(".clearfix").attr("data-is-opened") == "false") {
@@ -716,7 +718,7 @@ term.prompt();
 
 term.on("key", function (key, ev) {
   const printable = !ev.altKey && !ev.altGraphKey && !ev.metaKey;
-  const username = getVarFromScript("playgroundRemote", "data-username");
+  const username = getDataFromScript("playgroundRemote", "data-username");
 
   if (roles.user === "coder") {
     if (ev.keyCode == 13) {
@@ -819,7 +821,7 @@ function submitCode() {
  * Clear Terminal
  */
 function clearTerminal() {
-  const username = getVarFromScript("playgroundRemote", "data-username");
+  const username = getDataFromScript("playgroundRemote", "data-username");
   socket.emit("terminate child process", username, "clear terminal");
 }
 
@@ -919,7 +921,7 @@ socket.on("show partner active tab", (payload) => {
       '<img id="' +
       partnerTab +
       '-file-icon" class="ui avatar image partner-file-icon" src="' +
-      getVarFromScript("playgroundRemote", "data-partnerImg") +
+      getDataFromScript("playgroundRemote", "data-partnerImg") +
       '" style="position: absolute; margin-left: -32px; margin-top: -5px;"/>'
     );
   }
@@ -965,7 +967,7 @@ socket.on("term update", (data = "", state = "closed", payload) => {
       term.write(data);
     }
   } else {
-    username = getVarFromScript("playgroundRemote", "data-username");
+    username = getDataFromScript("playgroundRemote", "data-username");
     if (payload.coder != username) {
       term.writeln(data);
     }
@@ -1066,13 +1068,13 @@ $(document).ready(function () {
     },
   });
   $("#inpt-msg").keydown(function () {
-    text = `${getVarFromScript(
+    text = `${getDataFromScript(
       "playgroundRemote",
       "data-username"
     )} is typing...`;
 
     socket.emit("is typing", {
-      username: getVarFromScript("playgroundRemote", "data-username"),
+      username: getDataFromScript("playgroundRemote", "data-username"),
       textHeader: text,
       text: text,
     });
@@ -1081,7 +1083,7 @@ $(document).ready(function () {
   $("#inpt-msg").keyup(function () {
     let timeId = setTimeout(function () {
       socket.emit("is typing", {
-        username: getVarFromScript("playgroundRemote", "data-username"),
+        username: getDataFromScript("playgroundRemote", "data-username"),
         textHeader: "Chat",
         text: "",
       });
@@ -1146,7 +1148,7 @@ $(function () {
 });
 
 function switchRole(requestedBy) {
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   socket.emit("switch role", {
     user: username,
     requestedBy: requestedBy,
@@ -1154,7 +1156,6 @@ function switchRole(requestedBy) {
 }
 
 function updateScroll() {
-  // $(".chat").animate({ scrollTop: $(document).height() }, "fast");
   $(".chat-history").animate(
     { scrollTop: $(".message-list").height() },
     "fast"
@@ -1301,7 +1302,7 @@ function openTab(fileName) {
 
 function createFile() {
   var fileName = $(".filename").val();
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   socket.emit("create file", fileName, username);
 }
 
@@ -1315,7 +1316,7 @@ function showDeleteFileModal(fileName) {
 }
 
 function deleteFile(fileName) {
-  let username = getVarFromScript("playgroundRemote", "data-username");
+  let username = getDataFromScript("playgroundRemote", "data-username");
   socket.emit("delete file", fileName, username);
 }
 
@@ -1344,7 +1345,7 @@ function setOnChangeEditer(fileName) {
     let remove = data.removed;
     let isEnter = false;
     let isDelete = false;
-    let username = getVarFromScript("playgroundRemote", "data-username");
+    let username = getDataFromScript("playgroundRemote", "data-username");
 
     /**
      * check when enter new line
@@ -1486,7 +1487,7 @@ function newEditorFacade(fileName) {
       '<img id="' +
       partnerTab +
       '-file-icon" class="ui avatar image partner-file-icon" src="' +
-      getVarFromScript("playgroundRemote", "data-partnerImg") +
+      getDataFromScript("playgroundRemote", "data-partnerImg") +
       '" style="position: absolute; margin-left: -32px; margin-top: -5px; width:20px; height:20px;"/>'
     );
   } else {

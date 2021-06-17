@@ -4,7 +4,7 @@
  * @param {String} name parameter name that you want to get variable from
  * https://stackoverflow.com/questions/2190801/passing-parameters-to-javascript-files/2190927?noredirect=1#comment47136074_2190927
  */
-function getVarFromScript(scriptName, name) {
+function getDataFromScript(scriptName, name) {
   const data = $(`script[src*=${scriptName}]`);
   const variable = data.attr(name);
   if (typeof variable === undefined) {
@@ -14,7 +14,7 @@ function getVarFromScript(scriptName, name) {
 }
 
 $(document).ready(function () {
-  $("#global_loader").attr("style", "display: none");
+  $("#global-loader").attr("style", "display: none");
   $("#settings-modal").modal({
     closable: false,
     transition: "fade up",
@@ -124,8 +124,8 @@ $(document).ready(function () {
 /** Responsive Pagination */
 $(window).resize(() => {
   const windowWidth = $(window).width();
-  let assignments = getVarFromScript("classroom", "data-assignments");
-  let projects = getVarFromScript("classroom", "data-projects");
+  let assignments = getDataFromScript("classroom", "data-assignments");
+  let projects = getDataFromScript("classroom", "data-projects");
 
   if (assignments !== "undefined") {
     assignments = JSON.parse(assignments);
@@ -135,13 +135,13 @@ $(window).resize(() => {
     projects = JSON.parse(projects);
   }
 
-  const username = getVarFromScript("classroom", "data-username");
-  const img = getVarFromScript("classroom", "data-image");
-  const pairingSessionId = getVarFromScript(
+  const username = getDataFromScript("classroom", "data-username");
+  const img = getDataFromScript("classroom", "data-image");
+  const pairingSessionId = getDataFromScript(
     "classroom",
     "data-pairingSessionId"
   );
-  const occupation = getVarFromScript("classroom", "data-occupation");
+  const occupation = getDataFromScript("classroom", "data-occupation");
   let weekId = $(".week.item.active.selected").attr("id");
 
   if (!weekId) {
@@ -507,7 +507,7 @@ function onClickConfirmButton(parameters) {
       session_status <= 0 &&
       $("#confirm-pairing").attr("value") == "create"
     ) {
-      $("#global_loader").attr({
+      $("#global-loader").attr({
         style: "display: block; position: fixed;",
       });
       $.post("/classroom/createPairingRecord", parameters, function (data) {
@@ -567,7 +567,7 @@ function onClickConfirmButton(parameters) {
         } else {
           alert(status);
         }
-        $("#global_loader").attr({
+        $("#global-loader").attr({
           style: "display: none; position: fixed;",
         });
       });
@@ -575,7 +575,7 @@ function onClickConfirmButton(parameters) {
       session_status == 1 &&
       $("#confirm-pairing").attr("value") == "change"
     ) {
-      $("#global_loader").attr({
+      $("#global-loader").attr({
         style: "display: block; position: fixed;",
       });
       $("#autoPairing").hide();
@@ -611,7 +611,7 @@ function onClickConfirmButton(parameters) {
             $("#confirm-pairing").attr("value", "create");
             alert(status);
           }
-          $("#global_loader").attr({
+          $("#global-loader").attr({
             style: "display: none; position: fixed;",
           });
         },
@@ -637,7 +637,7 @@ function onClickConfirmButton(parameters) {
   } else if (
     message == "Are you sure you want to complete this pairing session?"
   ) {
-    $("#global_loader").attr({
+    $("#global-loader").attr({
       style: "display: block; position: fixed;",
     });
     $.ajax({
@@ -660,7 +660,7 @@ function onClickConfirmButton(parameters) {
         } else {
           alert(resStatus);
         }
-        $("#global_loader").attr({
+        $("#global-loader").attr({
           style: "display: none; position: fixed;",
         });
       },
@@ -669,7 +669,7 @@ function onClickConfirmButton(parameters) {
     message ==
     "Are you sure you want to assign these assignments to all student pairs?"
   ) {
-    $("#global_loader").attr({
+    $("#global-loader").attr({
       style: "display: block; position: fixed;",
     });
     $.post("/classroom/assignAssignment", parameters, function (data) {
@@ -687,7 +687,7 @@ function onClickConfirmButton(parameters) {
       } else {
         alert(res_status);
       }
-      $("#global_loader").attr({
+      $("#global-loader").attr({
         style: "display: none; position: fixed;",
       });
     });
@@ -695,7 +695,7 @@ function onClickConfirmButton(parameters) {
     message ==
     "Are you sure you want to remove the student from this classroom?"
   ) {
-    $("#global_loader").attr({
+    $("#global-loader").attr({
       style: "display: block; position: fixed;",
     });
     $.ajax({
@@ -711,13 +711,13 @@ function onClickConfirmButton(parameters) {
         } else {
           alert(res.resStatus);
         }
-        $("#global_loader").attr({
+        $("#global-loader").attr({
           style: "display: none; position: fixed;",
         });
       },
     });
   } else if (message == "Are you sure you want to delete these assignment?") {
-    $("#global_loader").attr({
+    $("#global-loader").attr({
       style: "display: block; position: fixed;",
     });
     $.ajax({
@@ -766,7 +766,7 @@ function onClickConfirmButton(parameters) {
         } else {
           alert(status);
         }
-        $("#global_loader").attr({
+        $("#global-loader").attr({
           style: "display: none; position: fixed;",
         });
       },
@@ -774,7 +774,7 @@ function onClickConfirmButton(parameters) {
   } else if (
     message == "Are you sure you want to disable assignments on this week?"
   ) {
-    $("#global_loader").attr({
+    $("#global-loader").attr({
       style: "display: block; position: fixed;",
     });
     $.ajax({
@@ -788,7 +788,7 @@ function onClickConfirmButton(parameters) {
         } else {
           alert(status);
         }
-        $("#global_loader").attr({
+        $("#global-loader").attr({
           style: "display: none; position: fixed;",
         });
       },
@@ -796,7 +796,7 @@ function onClickConfirmButton(parameters) {
   } else if (
     message == "Are you sure you want to enable assignments on this week?"
   ) {
-    $("#global_loader").attr({
+    $("#global-loader").attr({
       style: "display: block; position: fixed;",
     });
     $.ajax({
@@ -810,7 +810,7 @@ function onClickConfirmButton(parameters) {
         } else {
           alert(status);
         }
-        $("#global_loader").attr({
+        $("#global-loader").attr({
           style: "display: none; position: fixed;",
         });
       },
@@ -864,21 +864,21 @@ function onClickConfirmButton(parameters) {
 
 function searchStudent(
   id,
-  student_id,
-  section_id,
-  pairing_session_id,
+  studentId,
+  sectionId,
+  pairingSessionId,
   username,
-  partner_keys,
-  pairing_objective
+  partnerKeys,
+  pairingObjective
 ) {
   var parameters = {
     search: $(id).val(),
-    student_id: student_id,
-    section_id: section_id,
-    pairing_session_id: pairing_session_id,
+    studentId: studentId,
+    sectionId: sectionId,
+    pairingSessionId: pairingSessionId,
     username: username,
-    partner_keys: JSON.stringify(partner_keys),
-    pairing_objective: JSON.stringify(pairing_objective),
+    partnerKeys: JSON.stringify(partnerKeys),
+    pairingObjective: JSON.stringify(pairingObjective),
   };
   $.get("/classroom/searchStudent", parameters, function (data) {
     const studentId = data.studentId;

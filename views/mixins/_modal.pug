@@ -1,48 +1,3 @@
-mixin partnerSelectionModal()
-  .ui.small.modal#select-partner-modal
-      i.close.icon
-      .header Select partner
-      .content
-        .ui.top.attached.tabular.menu
-          //- a.item.active(data-tab="purpose") Select by purpose
-          a.item.active(data-tab="search") Search partner
-        //- .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="purpose")
-        //-   a.ui.red.ribbon.label Recommended
-        //-   .ui.grid
-        //-     .six.wide.column
-        //-         #ui-purpose-0.ui-purpose.ui.segment.top.attached.purpose-segment-tab(data-tooltip='The difference of the score is less than 10 points.' data-position='left center')&attributes({'data-purpose':'quality', 'data-uid':user._id, 'data-score':user.avgScore})
-        //-           .row
-        //-             i.large.circular.inverted.teal.line.chart.icon
-        //-           .row
-        //-             | Quality oriented
-        //-         #ui-purpose-1.ui-purpose.ui.segment.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 10 to 20 points.' data-position='left center')&attributes({'data-purpose':'experience', 'data-uid':user._id, 'data-score':user.avgScore})
-        //-           .row
-        //-             i.large.circular.inverted.teal.line.idea.icon
-        //-           .row
-        //-             | Mutual improvement
-        //-         #ui-purpose-2.ui-purpose.ui.segment.bottom.attached.purpose-segment-tab(data-tooltip='The difference of the score is in between 20 to 30 points.' data-position='left center')&attributes({'data-purpose':'train', 'data-uid':user._id, 'data-score':user.avgScore})
-        //-           .row
-        //-             i.large.circular.inverted.teal.line.student.icon.center.aligned
-        //-           .row
-        //-             | Teaching &amp; Learning
-        //-     .ten.wide.column 
-        //-       .ui.circular.labels.your-score-label
-        //-           a.ui.red.label Your score #{parseFloat(user.avgScore).toFixed(2)}
-        //-       .ui.segment.container.user-purpose.box
-        //-         .ui.middle.aligned.animated.list.user-purpose-list
-        //-             li.ui.item Please select your purpose.
-        .ui.bottom.attached.tab.segment.active.purpose-tab(data-tab="search")
-          .ui.grid
-            .six.wide.column
-              .ui.category.search
-                .ui.icon.input
-                  input.prompt(type="text" placeholder="Search by username..." id="search-partner-input" onkeyup="searchPartner($(this), \'" + dataSets.origins.section.section_id + "\')")
-                  i.search.icon
-            .ten.wide.column 
-                .ui.segment.container.user-purpose.box
-                  .ui.middle.aligned.animated.list.user-list
-                    li.ui.item Search result
-
 mixin alertModal()
   .ui.small.modal#alert-modal
     i.close.icon
@@ -240,26 +195,6 @@ mixin assignmentModal()
             option(value='Remote') Remote Pair-programming
             option(value='Co-located') Conventional Pair-programming
             option(value='Individual') Individual Programming
-          //- .field
-          //-   .ui.radio.checkbox
-          //-     input#psCo-located(type='radio' name='programming_style' value='Co-located' checked='checked')
-          //-     |  
-          //-     label Conventional Pair-Programming
-          //- .field
-          //-   .ui.radio.checkbox
-          //-     input#psRemote(type='radio' name='programming_style' value='Remote')
-          //-     |  
-          //-     label Remote Pair-Programming
-          //- .field
-          //-   .ui.radio.checkbox
-          //-     input#psIndividual(type='radio' name='programming_style' value='Individual')
-          //-     |
-          //-     label Individual Programming
-          //- .field
-          //-   .ui.radio.checkbox
-          //-     input#psInteractive(type='radio' name='programming_style' value='Interactive')
-          //-     |
-          //-     label Interactive Programming
         .ui.grid
           .thirteen.wide.column
             .field
@@ -272,11 +207,6 @@ mixin assignmentModal()
               |
               input#assWeek(type='text' name='week' placeholder='Week' maxlength='3')
         .ui.grid
-          //- .row
-          //-   .thirteen.wide.column
-          //-     input.file#imgSel(type='file')
-          //-   .three.wide.column
-          //-     .ui.blue.button#insertPicture(style="width:100%; height:85%;") Insert
           .row
             .sixteen.wide.column
               .field
